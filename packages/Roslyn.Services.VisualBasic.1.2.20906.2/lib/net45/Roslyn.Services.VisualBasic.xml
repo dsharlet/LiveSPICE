@@ -1,0 +1,875 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+Roslyn.Services.VisualBasic
+</name>
+</assembly>
+<members>
+<member name="T:Roslyn.Services.VisualBasic.VisualBasicSyntaxTreeFactoryService.PositionalSyntaxReference">
+	<summary>
+ Represents a syntax reference that doesn't actually hold onto the referenced node.
+ Instead, enough data is held onto so that the node can be recovered and returned if
+ necessary.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.VisualBasicSyntaxTreeFactoryService.NullSyntaxReference">
+	<summary>
+ Represents a syntax reference that was passed a null
+ reference to a node. In this case, we just hold onto the
+ weak tree reference and throw if any invalid properties
+ are accessed.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxTreeExtensions.FindTriviaToLeft(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32)">
+	<summary>
+ Finds the token being touched by this position. Unlike the normal FindTrivia helper, this helper will prefer
+ trivia to the left rather than the right if the position is on the border.
+ </summary>
+	<param name="syntaxTree">The syntaxTree to search.</param>
+	<param name="position">The position to find trivia.</param>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxTreeExtensions.FindTokenOnRightOfPosition(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+	<summary>
+ If the position is inside of token, return that token; otherwise, return the token to right.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxTreeExtensions.FindTokenOnLeftOfPosition(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+	<summary>
+ If the position is inside of token, return that token; otherwise, return the token to left. 
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxTokenExtensions.IsChildToken``1(Roslyn.Compilers.VisualBasic.SyntaxToken,System.Func{``0,Roslyn.Compilers.VisualBasic.SyntaxToken})">
+	<summary>
+ Returns true if is a given token is a child token of of a certain type of parent node.
+ </summary>
+	<typeparam name="TParent">The type of the parent node.</typeparam>
+	<param name="token">The token that we are testing.</param>
+	<param name="childGetter">A function that, when given the parent node, returns the child token we are interested in.</param>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxTokenExtensions.IsChildSeparatorToken``2(Roslyn.Compilers.VisualBasic.SyntaxToken,System.Func{``0,Roslyn.Compilers.VisualBasic.SeparatedSyntaxList{``1}})">
+	<summary>
+ Returns true if is a given token is a seperator token in a given parent list.
+ </summary>
+	<typeparam name="TParent">The type of the parent node containing the separated list.</typeparam>
+	<param name="token">The token that we are testing.</param>
+	<param name="childGetter">A function that, when given the parent node, returns the separated list.</param>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxTokenExtensions.IsFirstTokenOnLine(Roslyn.Compilers.VisualBasic.SyntaxToken,Roslyn.Compilers.IText)">
+	<summary>
+ Determines whether the given SyntaxToken is the first token on a line in the specified IText
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.SplitNodesOnPreprocessorBoundaries``1(System.Collections.Generic.IEnumerable{``0},System.Threading.CancellationToken)">
+	<summary>
+ Breaks up the list of provided nodes, based on how they are 
+ interspersed with pp directives, into groups.  Within these groups
+ nodes can be moved around safely, without breaking any pp 
+ constructs.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.ContainsInterleavedDirective(Roslyn.Compilers.VisualBasic.SyntaxNode,System.Threading.CancellationToken)">
+	<summary>
+ Returns true if the passed in node contains an interleaved pp 
+ directive.
+ 
+ i.e. The following returns false:
+ 
+   void Foo() {
+ #if true
+ #endif
+   }
+ 
+ #if true
+   void Foo() {
+   }
+ #endif
+ 
+ but these return true:
+ 
+ #if true
+   void Foo() {
+ #endif
+   }
+ 
+   void Foo() {
+ #if true
+   }
+ #endif
+ 
+ #if true
+   void Foo() {
+ #else
+   }
+ #endif
+ 
+ i.e. the method returns true if it contains a PP directive that 
+ belongs to a grouping constructs (like #if/#endif or 
+ #region/#endregion), but the grouping construct isn't entirely c
+ contained within the span of the node.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.IsExecutableBlock(Roslyn.Compilers.VisualBasic.SyntaxNode)">
+	<summary>
+ Returns true if this is a block that can contain multiple executable statements.  i.e.
+ this node is the VB equivalent of a BlockSyntax in C#.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.FindTokenOnRightOfPosition(Roslyn.Compilers.VisualBasic.SyntaxNode,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+	<summary>
+ If the position is inside of token, return that token; otherwise, return the token to right.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.FindTokenOnLeftOfPosition(Roslyn.Compilers.VisualBasic.SyntaxNode,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+	<summary>
+ If the position is inside of token, return that token; otherwise, return the token to left. 
+ </summary>
+</member><member name="F:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.FindSkippedTokenForward">
+	<summary>
+ Look inside a trivia list for a skipped token that contains the given position.
+ </summary>
+</member><member name="F:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.FindSkippedTokenBackward">
+	<summary>
+ Look inside a trivia list for a skipped token that contains the given position.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.SyntaxNodeExtensions.GetSkippedTokens(Roslyn.Compilers.Common.CommonSyntaxTriviaList)">
+	<summary>
+ get skipped tokens from the trivia list
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ISemanticModelExtensions.GenerateNameForExpression(Roslyn.Compilers.Common.ISemanticModel,Roslyn.Compilers.VisualBasic.ExpressionSyntax)">
+	<summary>
+ Given an expression node, tries to generate an appropriate name that can be used for
+ that expression.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ExpressionSyntaxExtensions.DecomposeName(Roslyn.Compilers.VisualBasic.ExpressionSyntax,Roslyn.Compilers.VisualBasic.ExpressionSyntax@,System.String@,System.Int32@)">
+	<summary>
+ Decompose a name or member access expression into its component parts.
+ </summary>
+	<param name="expression">The name or member access expression.</param>
+	<param name="qualifier">The qualifier (or left-hand-side) of the name expression. This may be null if there is no qualifier.</param>
+	<param name="name">The name of the expression.</param>
+	<param name="arity">The number of generic type parameters.</param>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ExpressionSyntaxExtensions.ReplacementChangesInferredVariableType(Roslyn.Compilers.VisualBasic.ExpressionSyntax,Roslyn.Compilers.VisualBasic.ExpressionSyntax,Roslyn.Compilers.VisualBasic.SemanticModel,System.Threading.CancellationToken)">
+	<summary>
+ Determines whether replacing <paramref name="expression"/> with <paramref name="newExpression"/>
+ will change the type of a type-inferred variable.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ExpressionSyntaxExtensions.ReplacementChangesOverloadResolution(Roslyn.Compilers.VisualBasic.ExpressionSyntax,Roslyn.Compilers.VisualBasic.ExpressionSyntax,Roslyn.Compilers.VisualBasic.SemanticModel,System.Threading.CancellationToken)">
+	<summary>
+ Determines whether replacing <paramref name="expression"/> with <paramref name="newExpression"/>
+ will change the overload resolution of any parenting expressions.
+ </summary>
+</member><member name="P:Roslyn.Services.VisualBasic.Extensions.DirectiveSyntaxExtensions.DirectiveInfo.StartEndMap">
+	<summary>
+ Returns a map which maps from a DirectiveStatementSyntax to it's corresponding start/end directive.
+ Directives like #ElseIf which exist in the middle of a start/end pair are not included.
+ </summary>
+</member><member name="P:Roslyn.Services.VisualBasic.Extensions.DirectiveSyntaxExtensions.DirectiveInfo.ConditionalMap">
+	<summary>
+ Maps a #If/#ElseIf/#Else/#EndIf directive to its list of matching #If/#ElseIf/#Else/#End directives.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.DirectiveSyntaxExtensions.GetMatchingStartOrEndDirective(Roslyn.Compilers.VisualBasic.DirectiveStatementSyntax,System.Threading.CancellationToken)">
+	<summary>
+ Given a starting or ending directive, return the matching directive, if it exists. For directives that live
+ the "middle" of a start/end pair, such as #ElseIf or #Else, this method will throw.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.DirectiveSyntaxExtensions.GetMatchingConditionalDirectives(Roslyn.Compilers.VisualBasic.DirectiveStatementSyntax,System.Threading.CancellationToken)">
+	<summary>
+ Given a conditional directive (#If, #ElseIf, #Else, or #End If), returns a IEnumerable of all directives in
+ the set.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.VisualBasicSyntaxTreeFactoryService.RecoverableSyntaxTree">
+	<summary>
+ Represents a syntax tree that only has a weak reference to its 
+ underlying data.  This way it can be passed around without forcing
+ the underlying full tree to stay alive.  Think of it more as a 
+ key that can be used to identify a tree rather than the tree itself.
+ </summary>
+</member><member name="M:Roslyn.Services.Editor.VisualBasic.LanguageServices.VisualBasicSymbolDeclarationService.GetDeclarations(Roslyn.Compilers.Common.ISymbol)">
+	<summary>
+ Get the declaring syntax node for a Symbol. Unlike the DeclaringSyntaxNodes property,
+ this function always returns a block syntax, if there is one.
+ </summary>
+</member><member name="M:Roslyn.Services.Editor.VisualBasic.LanguageServices.VisualBasicSymbolDeclarationService.GetBlockFromBegin(Roslyn.Compilers.VisualBasic.SyntaxNode)">
+	<summary>
+ If "node" is the begin statement of a declaration block, return that block, otherwise
+ return node.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.VisualBasicSyntaxTreeFactoryService.PathSyntaxReference">
+	<summary>
+ Represents a syntax reference that doesn't actually hold onto the 
+ referenced node.  Instead, enough data is held onto so that the node
+ can be recovered and returned if necessary.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Formatting.TriviaDataFactory">
+	<summary>
+ trivia factory.
+ 
+ it will cache some commonly used trivia to reduce memory footprint and heap allocation
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Formatting.TriviaDataFactory.LineContinuationTrivia">
+	<summary>   
+ represents a general trivia between two tokens. slightly more expensive than others since it
+ needs to calculate stuff unlike other cases
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Formatting.TriviaDataFactory.ComplexTrivia">
+	<summary>   
+ represents a general trivia between two tokens. slightly more expensive than others since it
+ needs to calculate stuff unlike other cases
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Formatting.TriviaDataFactory.AfterStatementTerminatorTokenTrivia">
+	<summary>   
+ represents a general trivia between two tokens. slightly more expensive than others since it
+ needs to calculate stuff unlike other cases
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Formatting.FormattingResult">
+	<summary>
+ this holds onto changes made by formatting engine.
+ 
+ currently it only has an ability to apply those changes to buffer. but it could be expanded to
+ support other cases as well such as tree or etc.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.IMethodSymbolExtensions.IsAggregateFunction(Roslyn.Compilers.Common.IMethodSymbol)">
+	<summary>
+ Determines whether the given IMethodSymbol can be used as an aggregate function
+ in a Group..By..Into or an Aggregate..Into clause.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ContextQuery.SyntaxTreeExtensions.IsSingleLineStatementContext(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,Roslyn.Compilers.VisualBasic.SyntaxToken)">
+	<summary>
+ The specified position is where I could start a statement in a place where exactly one
+ statement could exist.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ContextQuery.SyntaxTreeExtensions.IsMultiLineStatementStartContext(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,Roslyn.Compilers.VisualBasic.SyntaxToken)">
+	<summary>
+ The specified position is where I could start a statement in a place where one or more
+ statements could exist.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ContextQuery.SyntaxTreeExtensions.IsTypeDeclarationContext(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32)">
+	<summary>
+ The specified position is where we can declare some .NET type, such as classes, structures, etc.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ContextQuery.SyntaxTreeExtensions.IsTypeMemberDeclarationKeywordContext(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,Roslyn.Compilers.VisualBasic.SyntaxToken)">
+	<summary>
+ The specified position is where a keyword can go like "Sub", "Function", etc. in a classes, structures, and modules
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ContextQuery.SyntaxTreeExtensions.IsInterfaceMemberDeclarationKeywordContext(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,Roslyn.Compilers.VisualBasic.SyntaxToken)">
+	<summary>
+ The specified position is where a keyword can go like "Sub", "Function" in an interface
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ContextQuery.SyntaxTreeExtensions.IsTypeDeclarationKeywordContext(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,Roslyn.Compilers.VisualBasic.SyntaxToken)">
+	<summary>
+ The specified position is where we can declare some .NET type, such as classes, structures, etc.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Extensions.ContextQuery.SyntaxTreeExtensions.IsAfterStatementOfKind(Roslyn.Compilers.VisualBasic.SyntaxTree,System.Int32,Roslyn.Compilers.VisualBasic.SyntaxToken,Roslyn.Compilers.VisualBasic.SyntaxKind[])">
+	<summary>
+ The specified position is immediately following a statement of one of the given kinds.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Utilities.ModifierCollectionFacts">
+	<summary>
+ A helper class that is constructed giving a set of modifiers. It takes these modifiers, and
+ breaks them down into separate categories, as well as determines what type of declaration is
+ being forced if certain modifiers are present.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Rename.ConflictResolutionRewriter.RewriteExtensionMethodInvocation(Roslyn.Compilers.VisualBasic.InvocationExpressionSyntax,Roslyn.Compilers.VisualBasic.ExpressionSyntax,Roslyn.Compilers.VisualBasic.ArgumentListSyntax,Roslyn.Compilers.Common.IMethodSymbol)">
+	<summary>
+ Takes an invocation of an extension method and rewrites it to the non-extension-method
+ invocation.
+ </summary>
+	<param name="originalNode">The original node from the tree, before any rewriting has
+ been done.</param>
+	<param name="thisExpression">The "this" expression of the invocation.</param>
+	<param name="rewrittenArgumentList">The argument list of the original invocation, with
+ any rewriting having taken place for deeper conflicts.</param>
+	<param name="extensionMethod">The extension method we're invoking, in reduced
+ form.</param>
+</member><member name="M:Roslyn.Services.VisualBasic.Rename.ConflictResolutionRewriter.RewriteExtensionMethodInvocation(Roslyn.Compilers.VisualBasic.InvocationExpressionSyntax,Roslyn.Compilers.VisualBasic.ExpressionSyntax,Roslyn.Compilers.VisualBasic.ArgumentListSyntax,Roslyn.Compilers.Common.IMethodSymbol,System.Boolean)">
+	<summary>
+ Takes an invocation of an extension method and rewrites it to the non-extension-method
+ invocation.
+ </summary>
+	<param name="originalNode">The original node from the tree, before any rewriting has
+ been done.</param>
+	<param name="thisExpression">The "this" expression of the invocation.</param>
+	<param name="rewrittenArgumentList">The argument list of the original invocation, with
+ any rewriting having taken place for deeper conflicts.</param>
+	<param name="extensionMethod">The extension method we're invoking, in reduced
+ form.</param>
+	<param name="includeGenerics">Whether we should include generic type arguments for the method call.</param>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Types.BuiltInTypesKeywordRecommender">
+	<summary>
+ Recommends built-in types in various contexts.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.WithKeywordRecommender">
+	<summary>
+ Recommends the "With" statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.WhileLoopKeywordRecommender">
+	<summary>
+ Recommends the "While" keyword at the start of a statement. "While" as a part of a Do statement is handled in
+ the UntilAndWhileKeywordRecommender.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.WhenKeywordRecommender">
+	<summary>
+ Recommends the "When" keyword for a Catch filter
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.UsingKeywordRecommender">
+	<summary>
+ Recommends the "Using" keyword at the beginning of a statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.TryKeywordRecommender">
+	<summary>
+ Recommends the "Try" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ToKeywordRecommender">
+	<summary>
+ Recommends the "To" keyword in an For.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ThrowKeywordRecommender">
+	<summary>
+ Recommends the "Throw" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ThenKeywordRecommender">
+	<summary>
+ Recommends the "Then" keyword in an If statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.SyncLockKeywordRecommender">
+	<summary>
+ Recommends the "SyncLock" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.StopKeywordRecommender">
+	<summary>
+ Recommends the "Stop" statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.StepKeywordRecommender">
+	<summary>
+ Recommends the "Step" keyword in a For statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.SelectKeywordRecommender">
+	<summary>
+ Recommends the "Select" keyword at the start of a statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ReturnKeywordRecommender">
+	<summary>
+ Recommends the "Return" keyword at the start of a statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.NextKeywordRecommender">
+	<summary>
+ Recommends the "Next" statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.MidKeywordRecommender">
+	<summary>
+ Recommends the "Mid" keyword for the Mid statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.LoopKeywordRecommender">
+	<summary>
+ Recommends the "Loop" statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.IsKeywordRecommender">
+	<summary>
+ Recommends the "Is" keyword at the beginning of any clause in a "Case" statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.IfKeywordRecommender">
+	<summary>
+ Recommends the "If" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.GotoKeywordRecommender">
+	<summary>
+ Recommends the "Goto" keyword
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ForKeywordRecommender">
+	<summary>
+ Recommends the "For" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.FinallyKeywordRecommender">
+	<summary>
+ Recommends the "Finally" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ExitKeywordRecommender">
+	<summary>
+ Recommends the "Exit" keyword at the start of a statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.EndKeywordRecommender">
+	<summary>
+ Recommends the "End" statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ElseKeywordRecommender">
+	<summary>
+ Recommends the "Else" keyword for the statement context.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ElseIfKeywordRecommender">
+	<summary>
+ Recommends the "ElseIf" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.EachKeywordRecommender">
+	<summary>
+ Recommends the "Each" keyword after the "For" keyword
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.DoKeywordRecommender">
+	<summary>
+ Recommends the "Do" keyword at the start of a statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.ContinueKeywordRecommender">
+	<summary>
+ Recommends the "Continue" keyword at the start of a statement when in any loop.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.CatchKeywordRecommender">
+	<summary>
+ Recommends the "Catch" keyword for the statement context
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.CaseKeywordRecommender">
+	<summary>
+ Recommends the "Case" and possibly "Case Else" keyword inside a Select block
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Statements.CallKeywordRecommender">
+	<summary>
+ Recommends the "Call" statement.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.RecommendationHelpers.GetParentOrNull(Roslyn.Compilers.VisualBasic.SyntaxNode)">
+	<summary>
+ Returns the parent of the node given. node may be null, which will cause this function to return null.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.RecommendationHelpers.GetExpressionTerminatingToken(Roslyn.Compilers.VisualBasic.SyntaxNode)">
+	<summary>
+ Given a syntax node, this returns the token that is the "end" token that ends this
+ expression.
+ </summary>
+	<param name="expression">The expression to get the last token of.</param>
+	<returns>The last token, or SyntaxKind.None if the last token is missing.</returns>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.WhileKeywordRecommender">
+	<summary>
+ Recommends the While keyword after a Skip/Take query
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.WhereKeywordRecommender">
+	<summary>
+ Recommends the "Where" query clause.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.TakeKeywordRecommender">
+	<summary>
+ Recommends the Take operator for Take/Take While.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.SkipKeywordRecommender">
+	<summary>
+ Recommends the Skip operator for Skip/Skip While.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.SelectKeywordRecommender">
+	<summary>
+ Recommends the "Select" query operator.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.OrderByKeywordRecommender">
+	<summary>
+ Recommends the "Order By" query clause.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.OnKeywordRecommender">
+	<summary>
+ Recommends the "On" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.LetKeywordRecommender">
+	<summary>
+ Recommends the Let operator.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.JoinKeywordRecommender">
+	<summary>
+ Recommends the "Join" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.IntoKeywordRecommender">
+	<summary>
+ Recommends the "Into" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.GroupKeywordRecommender">
+	<summary>
+ Recommends the "Group" query operator.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.GroupJoinKeywordRecommender">
+	<summary>
+ Recommends the ""Group Join" query clause when it appears inside a normal Join clause.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.GroupByKeywordRecommender">
+	<summary>
+ Recommends the "By" keyword for the "Group By" query clause.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.FromKeywordRecommender">
+	<summary>
+ Recommends the From keyword to introduce a LINQ query or do a cross-join.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.EqualsKeywordRecommender">
+	<summary>
+ Recommends the Equals keyword when in a join syntax.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.DistinctKeywordRecommender">
+	<summary>
+ Recommends the "Distinct" query operator.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.AscendingDescendingKeywordRecommender">
+	<summary>
+ Recommends the "Ascending" and "Descending" contextual keywords in a Order By clause.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Queries.AggregateKeywordRecommender">
+	<summary>
+ Recommends the Aggregate operator.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives.RegionDirectiveKeywordRecommender">
+	<summary>
+ Recommends the "#Region" directive
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives.IfDirectiveKeywordRecommender">
+	<summary>
+ Recommends the "#If" preprocessor directive
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives.EndRegionDirectiveKeywordRecommender">
+	<summary>
+ Recommends the "#End Region" directive
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives.EndIfDirectiveKeywordRecommender">
+	<summary>
+ Recommends the "#End If" preprocessor directive
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives.ElseIfDirectiveKeywordRecommender">
+	<summary>
+ Recommends the "#ElseIf" preprocessor directive
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives.ElseDirectiveKeywordRecommender">
+	<summary>
+ Recommends the "#Else" preprocessor directive
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives.ConstDirectiveKeywordRecommender">
+	<summary>
+ Recommends the "#Const" preprocessor directive
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OptionStatements.StrictOptionsRecommender">
+	<summary>
+ Recommends the "On" and "Off" options that come after "Option Infer"
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OptionStatements.OptionNamesRecommender">
+	<summary>
+ Recommends the names of options that can appear after an Option keyword, such as Compare or Infer.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OptionStatements.OptionKeywordRecommender">
+	<summary>
+ Recommends the "Option" keyword
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OptionStatements.InferOptionsRecommender">
+	<summary>
+ Recommends the "On" and "Off" options that come after "Option Infer"
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OptionStatements.ExplicitOptionsRecommender">
+	<summary>
+ Recommends the "On" and "Off" options that appear after Option Explicit.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OptionStatements.CompareBinaryTextRecommender">
+	<summary>
+ Recommends the "Binary" and "Text" options that come after "Option Compare"
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OnErrorStatements.ResumeKeywordRecommender">
+	<summary>
+ Recommends "Resume Next" after "On Error", or "Resume" as a standalone statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OnErrorStatements.OnErrorKeywordRecommender">
+	<summary>
+ Recommends "On Error Resume Next" and "On Error Goto" in a statement context.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OnErrorStatements.NextKeywordRecommender">
+	<summary>
+ Recommends "Next" after "On Error Resume" or after the "Resume" statement
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OnErrorStatements.GoToKeywordRecommender">
+	<summary>
+ Recommends "GoTo" after "On Error"
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OnErrorStatements.GoToDestinationsRecommender">
+	<summary>
+ Recommends 0 and -1 as the "destinations" of where to go to after On Error Goto
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.OnErrorStatements.ErrorKeywordRecommender">
+	<summary>
+ Recommends "Error" after "On" in a "On Error" statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.IsStatementTerminatingTokenVisitor">
+	<summary>
+ A visitor that determines if the targetToken passed in the constructor can be considered
+ the end of the visited statement. Tokens in the token stream of the file after
+ targetToken are ignored. This means that in some cases, say "Throw" vs. "Throw x" there
+ is more than one keyword that could terminate the statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.WithKeywordRecommender">
+	<summary>
+ Recommends the "From" keyword when used in a New syntax (such as New foo From)
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.TypeOfKeywordRecommender">
+	<summary>
+ Recommends the "TypeOf" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.TrueFalseKeywordRecommender">
+	<summary>
+ Recommends the "True" and "False" keywords
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.SubFunctionKeywordRecommender">
+	<summary>
+ Recommends the "Sub" and "Function" keywords in expression contexts that would start a lambda.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.NotKeywordRecommender">
+	<summary>
+ Recommends the "Not" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.NothingKeywordRecommender">
+	<summary>
+ Recommends the "Nothing" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.NewKeywordRecommender">
+	<summary>
+ Recommends the "New" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.MyClassKeywordRecommender">
+	<summary>
+ Recommends the "MyClass" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.MyBaseKeywordRecommender">
+	<summary>
+ Recommends the "MyBase" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.MeKeywordRecommender">
+	<summary>
+ Recommends the "Me" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.KeyKeywordRecommender">
+	<summary>
+ Recommends the "Key" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.IfKeywordRecommender">
+	<summary>
+ Recommends the "If" keyword when used for the null coalescing or ternary operator
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.GlobalKeywordRecommender">
+	<summary>
+ Recommends the "Global" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.GetXmlNamespaceKeywordRecommender">
+	<summary>
+ Recommends the "GetXmlNamespace" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.GetTypeKeywordRecommender">
+	<summary>
+ Recommends the "GetType" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.FromKeywordRecommender">
+	<summary>
+ Recommends the "With" keyword when used in a New syntax (such as New foo With)
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.BinaryOperatorKeywordRecommender">
+	<summary>
+ Recommends binary infix operators that are English text, like "AndAlso", "OrElse", "Like", etc.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Expressions.AddressOfKeywordRecommender">
+	<summary>
+ Recommends the "AddressOf" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.EventHandling.RemoveHandlerKeywordRecommender">
+	<summary>
+ Recommends the "RemoveHandler" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.EventHandling.RaiseEventKeywordRecommender">
+	<summary>
+ Recommends the "RaiseEvent" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.EventHandling.HandlesKeywordRecommender">
+	<summary>
+ Recommends the "Handles" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.EventHandling.AddHandlerKeywordRecommender">
+	<summary>
+ Recommends the "AddHandler" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ToKeywordRecommender">
+	<summary>
+ Recommends the "To" keyword in array bounds.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.SubKeywordRecommender">
+	<summary>
+ Recommends the "Sub" keyword in member declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.StructureKeywordRecommender">
+	<summary>
+ Recommends the "Structure" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.StaticKeywordRecommender">
+	<summary>
+ Recommends the "Static" keyword for the start of a statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.PropertyKeywordRecommender">
+	<summary>
+ Recommends the "Property" keyword in member declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ParameterModifiersKeywordRecommender">
+	<summary>
+ Recommends the ByVal, ByRef, etc keywords.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.OverloadableOperatorRecommender">
+	<summary>
+ Recommends the various list of operators you can overload after the "Operator" keyword
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.OperatorKeywordRecommender">
+	<summary>
+ Recommends the "Operator" keyword in member declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.NamespaceKeywordRecommender">
+	<summary>
+ Recommends the "Namespace" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ModuleKeywordRecommender">
+	<summary>
+ Recommends the "Module" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ModifierKeywordsRecommender">
+	<summary>
+ Recommends the "Property" keyword in member declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.LibKeywordRecommender">
+	<summary>
+ Recommends the "Lib" keyword in external method declarations.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.InterfaceKeywordRecommender">
+	<summary>
+ Recommends the "Interface" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.InKeywordRecommender">
+	<summary>
+ Recommends the "In" keyword in all types of declarations.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.InheritsKeywordRecommender">
+	<summary>
+ Recommends the "Inherits" keyword.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ImportsKeywordRecommender">
+	<summary>
+ Recommends the "Imports" keyword
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ImplementsKeywordRecommender">
+	<summary>
+ Recommends the "Implements" keyword
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.GetSetKeywordRecommender">
+	<summary>
+ Recommends the "Get" and "Set" keyword in property declarations.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.FunctionKeywordRecommender">
+	<summary>
+ Recommends the "Function" keyword in member declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ExternalSubFunctionKeywordRecommender">
+	<summary>
+ Recommends the "Function" and "Sub" keywords in external method declarations.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.EventKeywordRecommender">
+	<summary>
+ Recommends the "Event" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.EnumKeywordRecommender">
+	<summary>
+ Recommends the "Enum" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.EndBlockKeywordRecommender">
+	<summary>
+ Recommends "End [block]" or, if after a End keyword, just the Block.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.DimKeywordRecommender">
+	<summary>
+ Recommends the "Dim" keyword in all appropriate contexts.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.DelegateSubFunctionKeywordRecommender">
+	<summary>
+ Recommends the "Function" and "Sub" keywords in external method declarations.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.DelegateKeywordRecommender">
+	<summary>
+ Recommends the "Delegate" keyword in member declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.DeclareKeywordRecommender">
+	<summary>
+ Recommends the "Declare" keyword in member declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.CustomEventKeywordRecommender">
+	<summary>
+ Recommends the "Custom Event" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ConstKeywordRecommender">
+	<summary>
+ Recommends the "Const" keyword for the start of a statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.ClassKeywordRecommender">
+	<summary>
+ Recommends the "Class" keyword in type declaration contexts
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.CharsetModifierKeywordRecommender">
+	<summary>
+ Recommends one of the charset modifiers after a "Declare" keyword
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.AttributeScopesKeywordRecommender">
+	<summary>
+ Recommends the "Assembly" and "Module" keyword for top-level attributes that may exist in a file.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.AsKeywordRecommender">
+	<summary>
+ Recommends the "As" keyword in all types of declarations.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.Declarations.AliasKeywordRecommender">
+	<summary>
+ Recommends the "Alias" keyword in external method declarations.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.ArrayStatements.ReDimKeywordRecommender">
+	<summary>
+ Recommends the "ReDim" statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.ArrayStatements.PreserveKeywordRecommender">
+	<summary>
+ Recommends the "Preserve" modifier after the ReDim statement.
+ </summary>
+</member><member name="T:Roslyn.Services.VisualBasic.Completion.KeywordRecommenders.ArrayStatements.EraseKeywordRecommender">
+	<summary>
+ Recommends the "Erase" statement.
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.RemoveUnnecessaryLineContinuationCodeCleanupProvider.Replacer.StatementSeparatorColon(Roslyn.Compilers.VisualBasic.SyntaxToken)">
+	<summary>
+ check whether it is statement separator colon
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.OperatorStatementSpecialFixup(Roslyn.Compilers.VisualBasic.OperatorStatementSyntax)">
+	<summary>
+ this will put operator token and modifier tokens in right order
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.ValidOperatorStatement(Roslyn.Compilers.VisualBasic.OperatorStatementSyntax)">
+	<summary>
+ check whether given operator statement is valid or not
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.NormalizeOperator(Roslyn.Compilers.VisualBasic.SyntaxToken,System.Func{Roslyn.Compilers.VisualBasic.SyntaxToken,System.Boolean},System.Func{Roslyn.Compilers.VisualBasic.SyntaxToken,Roslyn.Compilers.VisualBasic.SyntaxTriviaList},System.Func{Roslyn.Compilers.VisualBasic.SyntaxToken,System.Collections.Generic.List{Roslyn.Compilers.VisualBasic.SyntaxKind}},System.Func{Roslyn.Compilers.VisualBasic.SyntaxToken,System.Int32,Roslyn.Compilers.VisualBasic.SyntaxToken})">
+	<summary>
+ normalize operator
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.ReorderModifiers(Roslyn.Compilers.VisualBasic.SyntaxTokenList)">
+	<summary>
+ reorder modifiers in the list
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.NormalizeModifiers``1(``0,Roslyn.Compilers.VisualBasic.SyntaxNode,System.Func{``0,Roslyn.Compilers.VisualBasic.SyntaxTokenList},System.Func{``0,Roslyn.Compilers.VisualBasic.SyntaxTokenList,``0})">
+	<summary>
+ normalize modifier list of the node and record changes if there is any change
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.NormalizeModifiers``1(``0,``0,System.Func{``0,Roslyn.Compilers.VisualBasic.SyntaxTokenList},System.Func{``0,Roslyn.Compilers.VisualBasic.SyntaxTokenList,``0})">
+	<summary>
+ normalize modifier list of the node and record changes if there is any change
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.RemoveDimKeyword``1(``0,System.Func{``0,Roslyn.Compilers.VisualBasic.SyntaxTokenList})">
+	<summary>
+ remove "Dim" keyword if present
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.RemoveByValKeyword(Roslyn.Compilers.VisualBasic.ParameterListSyntax,System.Int32)">
+	<summary>
+ remove ByVal keyword from parameter list
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.RemoveModifierKeyword``1(``0,System.Func{``0,Roslyn.Compilers.VisualBasic.SyntaxTokenList},Roslyn.Compilers.VisualBasic.SyntaxKind)">
+	<summary>
+ remove a modifier from the given node
+ </summary>
+</member><member name="M:Roslyn.Services.CodeCleanup.Providers.NormalizeModifiersOrOperatorsCodeCleanupProvider.Rewriter.IsModifiersInRightOrder(Roslyn.Compilers.VisualBasic.SyntaxTokenList)">
+	<summary>
+ check whether given modifiers are in right order (in sync with ModifierKindsInOrder list)
+ </summary>
+</member><member name="F:Roslyn.Services.VisualBasic.Classification.VisualBasicClassificationService.Worker._nonOverlappingSpans">
+	<summary>
+ nonOverlappingSpans spans used for Debug validation that
+ spans that worker produces are not mutually overlapping.
+ </summary>
+</member><member name="M:Roslyn.Services.VisualBasic.Classification.ClassificationExtensions.GetClassification(Roslyn.Compilers.VisualBasic.SyntaxToken)">
+	<summary>
+ Return the classification type associated with this token.
+ </summary>
+	<param name="token">The token to be classified.</param>
+	<returns>The classification type for the token</returns>
+	<remarks></remarks>
+</member>
+</members>
+</doc>

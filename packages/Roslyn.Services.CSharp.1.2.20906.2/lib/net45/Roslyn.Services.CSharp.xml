@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Roslyn.Services.CSharp</name>
+    </assembly>
+    <members>
+        <member name="M:Roslyn.Services.CSharp.Classification.ClassificationExtensions.GetClassification(Roslyn.Compilers.CSharp.SyntaxToken,Roslyn.Compilers.CSharp.SyntaxTree)">
+            <summary>
+            Determine the classification type for a given token.
+            </summary>
+            <param name="token">The token.</param>
+            <param name="syntaxTree">The tree containing the token (can be null for tokens that are
+            unparented).</param>
+            <returns>The correct syntactic classification for the token.</returns>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.Classification.CSharpClassificationService.Worker">
+            <summary>
+            Worker is an utility class that can classify a list of tokens or a tree within a
+            requested span The implementation is generic and can produce any kind of classification
+            artefacts T T is normally either ClassificationSpan or a Tuple (for testing purposes) 
+            and constructed via provided factory.
+            </summary>
+        </member>
+        <member name="F:Roslyn.Services.CSharp.Classification.CSharpClassificationService.Worker.nonOverlappingSpans">
+            <summary>
+            nonOverlappingSpans spans used for Debug validation that spans that worker produces
+            are not mutually overlapping.
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.CodeActions.InlineTemporary.InlineTemporaryCodeRefactoringProvider.InitializerRewriter">
+            <summary>
+            This class handles rewriting initializer expressions that refer to the variable
+            being initialized into a simpler form.  For example, in "int x = x = 1", we want to
+            get just "1" back as the initializer.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.CommonSyntaxNodeExtensions.GetEnclosingUsingDirectives(Roslyn.Compilers.Common.CommonSyntaxNode)">
+            <summary>
+            Returns the list of using directives that affect 'node'.  The list will be returned in
+            top down order.  
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.ExpressionSyntaxExtensions.CastIfPossible(Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.Common.ITypeSymbol,System.Int32,Roslyn.Compilers.Common.ISemanticModel)">
+            <summary>
+            Adds to <paramref name="targetType"/> if it does not contain an anonymous
+            type and binds to the same type at the given <paramref name="position"/>.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.ExpressionSyntaxExtensions.ReplacementChangesInferredVariableType(Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.CSharp.SemanticModel)">
+            <summary>
+            Determines whether replacing <paramref name="expression"/> with <paramref name="newExpression"/>
+            will change the type of a type-inferred variable.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.ExpressionSyntaxExtensions.ReplacementChangesOverloadResolution(Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.CSharp.SemanticModel,System.Threading.CancellationToken)">
+            <summary>
+            Determines whether replacing <paramref name="expression"/> with <paramref name="newExpression"/>
+            will change the overload resolution of any parenting expressions.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.ISemanticModelExtensions.DecomposeName(Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.CSharp.ExpressionSyntax@,System.String@,System.Int32@)">
+            <summary>
+            Decomposes a name or member access expression into its component parts.
+            </summary>
+            <param name="expression">The name or member access expression.</param>
+            <param name="qualifier">The qualifier (or left-hand-side) of the name expression. This may be null if there is no qualifier.</param>
+            <param name="name">The name of the expression.</param>
+            <param name="arity">The number of generic type parameters.</param>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.ISemanticModelExtensions.GenerateNameForArgument(Roslyn.Compilers.Common.ISemanticModel,Roslyn.Compilers.CSharp.ArgumentSyntax)">
+            <summary>
+            Given an argument node, tries to generate an appropriate name that can be used for that
+            argument.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.ISemanticModelExtensions.GenerateNameForExpression(Roslyn.Compilers.Common.ISemanticModel,Roslyn.Compilers.CSharp.ExpressionSyntax)">
+            <summary>
+            Given an expression node, tries to generate an appropriate name that can be used for
+            that expression. 
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.GetAllPrecedingTriviaToPreviousToken(Roslyn.Compilers.CSharp.SyntaxToken)">
+            <summary>
+            Returns all of the trivia to the left of this token up to the previous token (concatenates
+            the previous token's trailing trivia and this token's leading trivia).
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.ContainsInterleavedDirective(Roslyn.Compilers.CSharp.SyntaxNode,System.Threading.CancellationToken)">
+            <summary>
+            Returns true if the passed in node contains an interleaved pp directive.
+            
+            i.e. The following returns false:
+            
+              void Foo() {
+            #if true
+            #endif
+              }
+            
+            #if true
+              void Foo() {
+              }
+            #endif
+            
+            but these return true:
+            
+            #if true
+              void Foo() {
+            #endif
+              }
+            
+              void Foo() {
+            #if true
+              }
+            #endif
+            
+            #if true
+              void Foo() {
+            #else
+              }
+            #endif
+            
+            i.e. the method returns true if it contains a PP directive that belongs to a grouping
+            constructs (like #if/#endif or #region/#endregion), but the grouping construct isn't
+            entirely contained within the span of the node.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.SplitNodesOnPreprocessorBoundaries``1(System.Collections.Generic.IEnumerable{``0},System.Threading.CancellationToken)">
+            <summary>
+            Breaks up the list of provided nodes, based on how they are interspersed with pp
+            directives, into groups.  Within these groups nodes can be moved around safely, without
+            breaking any pp constructs.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.RemoveNode``1(``0,Roslyn.Compilers.CSharp.SyntaxNode)">
+            <summary>
+            Removes the given node from a list (possibly separated) contained in the root.
+            </summary>
+        </member>
+        <member name="F:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.FindSkippedTokenForward">
+            <summary>
+            Look inside a trivia list for a skipped token that contains the given position.
+            </summary>
+        </member>
+        <member name="F:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.FindSkippedTokenBackward">
+            <summary>
+            Look inside a trivia list for a skipped token that contains the given position.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.GetSkippedTokens(Roslyn.Compilers.Common.CommonSyntaxTriviaList)">
+            <summary>
+            return only skipped tokens
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.FindTokenOnRightOfPosition(Roslyn.Compilers.CSharp.SyntaxNode,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            If the position is inside of token, return that token; otherwise, return the token to the right.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxNodeExtensions.FindTokenOnLeftOfPosition(Roslyn.Compilers.CSharp.SyntaxNode,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            If the position is inside of token, return that token; otherwise, return the token to the left.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxTokenExtensions.IsFirstTokenOnLine(Roslyn.Compilers.CSharp.SyntaxToken,Roslyn.Compilers.IText)">
+            <summary>
+            Determines whether the given SyntaxToken is the first token on a line in the specified IText.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxTokenExtensions.GetAllTrailingTrivia(Roslyn.Compilers.CSharp.SyntaxToken)">
+            <summary>
+            Retrieves all trivia after this token, including it's trailing trivia and
+            the leading trivia of the next token.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxTokenExtensions.FindLastTokenOfPartialGenericName(Roslyn.Compilers.CSharp.SyntaxToken)">
+            <summary>
+            Lexically, find the last token that looks like it's part of this generic name.
+            </summary>
+            <param name="genericIdentifier">The "name" of the generic identifer, last token before
+            the "&amp;"</param>
+            <returns>The last token in the name</returns>
+            <remarks>This is related to the code in <see cref="M:SyntaxTreeExtensions.IsInPartiallyWrittenGeneric"/></remarks>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxTreeExtensions.FindTokenOnRightOfPosition(Roslyn.Compilers.CSharp.SyntaxTree,System.Int32,System.Threading.CancellationToken,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            If the position is inside of token, return that token; otherwise, return the token to the right.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.SyntaxTreeExtensions.FindTokenOnLeftOfPosition(Roslyn.Compilers.CSharp.SyntaxTree,System.Int32,System.Threading.CancellationToken,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            If the position is inside of token, return that token; otherwise, return the token to the left.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.TypeSyntaxExtensions.IsTypeInferred(Roslyn.Compilers.CSharp.TypeSyntax,Roslyn.Compilers.Common.ISemanticModel)">
+            <summary>
+            Determines whether the specified TypeSyntax is actually 'var'.
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.Formatting.FormattingResult">
+            <summary>
+            this holds onto changes made by formatting engine.
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.Formatting.TriviaDataFactory">
+            <summary>
+            trivia factory.
+            
+            it will cache some commonly used trivia to reduce memory footprint and heap allocation
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.Formatting.TriviaDataFactory.ComplexTrivia">
+            <summary>   
+            represents a general trivia between two tokens. slightly more expensive than others since it
+            needs to calculate stuff unlike other cases
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.CSharpSyntaxTreeFactoryService.PathSyntaxReference">
+            <summary>
+            Represents a syntax reference that doesn't actually hold onto the 
+            referenced node.  Instead, enough data is held onto so that the node
+            can be recovered and returned if necessary.
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.CSharpSyntaxTreeFactoryService.NullSyntaxReference">
+            <summary>
+            Represents a syntax reference that was passed a null
+            reference to a node. In this case, we just hold onto the
+            weak tree reference and throw if any invalid properties
+            are accessed.
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.CSharpSyntaxTreeFactoryService.PositionalSyntaxReference">
+            <summary>
+            Represents a syntax reference that doesn't actually hold onto the 
+            referenced node.  Instead, enough data is held onto so that the node
+            can be recovered and returned if necessary.
+            </summary>
+        </member>
+        <member name="T:Roslyn.Services.CSharp.CSharpSyntaxTreeFactoryService.RecoverableSyntaxTree">
+            <summary>
+            Represents a syntax tree that only has a weak reference to its 
+            underlying data.  This way it can be passed around without forcing
+            the underlying full tree to stay alive.  Think of it more as a 
+            key that can be used to identify a tree rather than the tree itself.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Rename.ConflictResolutionRewriter.RewriteExtensionMethodInvocation(Roslyn.Compilers.CSharp.InvocationExpressionSyntax,Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.CSharp.ArgumentListSyntax,Roslyn.Compilers.Common.IMethodSymbol)">
+            <summary>
+            Takes an invocation of an extension method and rewrites it to the non-extension-method
+            invocation.
+            </summary>
+            <param name="originalNode">The original node from the tree, before any rewriting has
+            been done.</param>
+            <param name="thisExpression">The "this" expression of the invocation.</param>
+            <param name="rewrittenArgumentList">The argument list of the original invocation, with
+            any rewriting having taken place for deeper conflicts.</param>
+            <param name="reducedExtensionMethod">The extension method we're invoking, in reduced
+            form.</param>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Rename.ConflictResolutionRewriter.RewriteExtensionMethodInvocation(Roslyn.Compilers.CSharp.InvocationExpressionSyntax,Roslyn.Compilers.CSharp.ExpressionSyntax,Roslyn.Compilers.CSharp.ArgumentListSyntax,Roslyn.Compilers.Common.IMethodSymbol,System.Boolean)">
+            <summary>
+            Takes an invocation of an extension method and rewrites it to the non-extension-method
+            invocation.
+            </summary>
+            <param name="originalNode">The original node from the tree, before any rewriting has
+            been done.</param>
+            <param name="thisExpression">The "this" expression of the invocation.</param>
+            <param name="rewrittenArgumentList">The argument list of the original invocation, with
+            any rewriting having taken place for deeper conflicts.</param>
+            <param name="reducedExtensionMethod">The extension method we're invoking, in reduced
+            form.</param>
+            <param name="includeGenerics">Whether we should include generic type arguments for the method call.</param>
+        </member>
+        <member name="M:Roslyn.Services.CSharp.Extensions.ArgumentSyntaxExtensions.DetermineParameter(Roslyn.Compilers.CSharp.ArgumentSyntax,Roslyn.Compilers.Common.ISemanticModel,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Returns the parameter to which this argument is passed. If <paramref name="allowParams"/>
+            is true, the last parameter will be returned if it is params parameter and the index of
+            the specified argument is greater than the number of parameters.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,71 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace SyMath
+{
+    public class Unary : Expression
+    {
+        protected Operator op;
+        protected Expression o;
+        public Operator Operator { get { return op; } }
+        public Expression Operand { get { return o; } }
+
+        protected Unary(Operator Op, Expression Operand) { op = Op; o = Operand; }
+
+        public static Expression Prime(Expression Operand) 
+        { 
+            Call f = Operand as Call;
+            if (f != null && f.Arguments.Count() == 1)
+                return Call.D(f, f.Arguments.First());
+            return new Unary(Operator.Prime, Operand); 
+        }
+        public static Expression Negate(Expression Operand) { return Multiply.New(Constant.NegativeOne, Operand); }
+        public static Expression Inverse(Expression Operand) { return Binary.Power(Operand, Constant.NegativeOne); }
+        public static Expression Not(Expression Operand) { return new Unary(Operator.Not, Operand); }
+        public static Expression New(Operator Op, Expression Operand)
+        {
+            switch (Op)
+            {
+                case Operator.Prime: return Prime(Operand);
+                case Operator.Negate: return Negate(Operand);
+                case Operator.Inverse: return Inverse(Operand);
+                case Operator.Not: return Not(Operand);
+                default: return new Unary(Op, Operand);
+            }
+        }
+        
+        public static string ToString(Operator o)
+        {
+            switch (o)
+            {
+                case Operator.Negate: return "-";
+                case Operator.Not: return "!";
+                default: return "<unknown>";
+            }
+        }
+
+        // operator interface.
+        public override string ToString()
+        {
+            return "(" + ToString(Operator) + Operand.ToString() + ")";
+        }
+        public override int GetHashCode()
+        {
+            return Operator.GetHashCode() ^ Operand.GetHashCode();
+        }
+
+        public override IEnumerable<Atom> Atoms { get { return Operand.Atoms; } }
+        public override int CompareTo(Expression R)
+        {
+            Unary RU = R as Unary;
+            if (!ReferenceEquals(RU, null))
+                return LexicalCompareTo(
+                    () => Operator.CompareTo(RU.Operator),
+                    () => Operand.CompareTo(RU.Operand));
+
+            return base.CompareTo(R);
+        }
+    }
+}
