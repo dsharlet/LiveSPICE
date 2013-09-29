@@ -29,14 +29,14 @@ namespace CircuitTests
 
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 
-            Dictionary<Expression, float[]> input = new Dictionary<Expression, float[]>();
-            float[] vs = new float[N];
+            Dictionary<Expression, double[]> input = new Dictionary<Expression, double[]>();
+            double[] vs = new double[N];
             for (int n = 0; n < N; ++n)
                 vs[n] = (float)VS.Evaluate(Component.t, n * S.T);
             input.Add("VS[t]", vs);
 
-            Dictionary<Expression, float[]> output = new Dictionary<Expression, float[]>();
-            float[] vout = new float[N];
+            Dictionary<Expression, double[]> output = new Dictionary<Expression, double[]>();
+            double[] vout = new double[N];
             output.Add("Vo[t]", vout);
 
             //timer.Start();
@@ -49,7 +49,7 @@ namespace CircuitTests
             timer.Stop();
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
-            foreach (KeyValuePair<Expression, float[]> i in input.Concat(output))
+            foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
                 plots.Add(i.Key, i.Value.Select((j, n) => Arrow.New(n * S.T, j)).ToList());
 
             System.Console.WriteLine("Run: {0} ms", timer.ElapsedMilliseconds);

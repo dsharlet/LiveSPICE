@@ -26,6 +26,8 @@ namespace SyMath
         private MethodInfo target;
 
         public CompileTarget(MethodInfo Target) { target = Target; }
+        public CompileTarget(Delegate Target) { target = Target.Method; }
+        public CompileTarget(Type T, string Name) { target = T.GetMethod(Name); }
 
         public MethodInfo Target { get { return target; } }
     }

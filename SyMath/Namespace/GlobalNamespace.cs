@@ -16,45 +16,45 @@ namespace SyMath
         public static readonly Expression False = Constant.Zero;
         public static readonly Expression True = Constant.One;
 
-        public static Expression Abs(Constant x) { return Constant.New(Real.Abs(x)); }
-        public static Expression Sign(Constant x) { return Constant.New(Real.Sign(x)); }
+        [CompileTarget(typeof(System.Math), "Abs")] public static Expression Abs(Constant x) { return Constant.New(Real.Abs(x)); }
+        [CompileTarget(typeof(System.Math), "Sign")] public static Expression Sign(Constant x) { return Constant.New(Real.Sign(x)); }
 
-        public static Expression Sin(Constant x) { return Constant.New(Real.Sin(x)); }
-        public static Expression Cos(Constant x) { return Constant.New(Real.Cos(x)); }
-        public static Expression Tan(Constant x) { return Constant.New(Real.Tan(x)); }
-        public static Expression Sec(Constant x) { return Constant.New(Real.Sec(x)); }
-        public static Expression Csc(Constant x) { return Constant.New(Real.Csc(x)); }
-        public static Expression Cot(Constant x) { return Constant.New(Real.Cot(x)); }
+        [CompileTarget(typeof(System.Math), "Sin")] public static Expression Sin(Constant x) { return Constant.New(Real.Sin(x)); }
+        [CompileTarget(typeof(System.Math), "Cos")] public static Expression Cos(Constant x) { return Constant.New(Real.Cos(x)); }
+        [CompileTarget(typeof(System.Math), "Tan")] public static Expression Tan(Constant x) { return Constant.New(Real.Tan(x)); }
+        [CompileTarget(typeof(System.Math), "Sec")] public static Expression Sec(Constant x) { return Constant.New(Real.Sec(x)); }
+        [CompileTarget(typeof(System.Math), "Csc")] public static Expression Csc(Constant x) { return Constant.New(Real.Csc(x)); }
+        [CompileTarget(typeof(System.Math), "Cot")] public static Expression Cot(Constant x) { return Constant.New(Real.Cot(x)); }
 
-        public static Expression ArcSin(Constant x) { return Constant.New(Real.ArcSin(x)); }
-        public static Expression ArcCos(Constant x) { return Constant.New(Real.ArcCos(x)); }
-        public static Expression ArcTan(Constant x) { return Constant.New(Real.ArcTan(x)); }
-        public static Expression ArcSec(Constant x) { return Constant.New(Real.ArcSec(x)); }
-        public static Expression ArcCsc(Constant x) { return Constant.New(Real.ArcCsc(x)); }
-        public static Expression ArcCot(Constant x) { return Constant.New(Real.ArcCot(x)); }
+        [CompileTarget(typeof(System.Math), "ArcSin")] public static Expression ArcSin(Constant x) { return Constant.New(Real.ArcSin(x)); }
+        [CompileTarget(typeof(System.Math), "ArcCos")] public static Expression ArcCos(Constant x) { return Constant.New(Real.ArcCos(x)); }
+        [CompileTarget(typeof(System.Math), "ArcTan")] public static Expression ArcTan(Constant x) { return Constant.New(Real.ArcTan(x)); }
+        [CompileTarget(typeof(System.Math), "ArcSec")] public static Expression ArcSec(Constant x) { return Constant.New(Real.ArcSec(x)); }
+        [CompileTarget(typeof(System.Math), "ArcCsc")] public static Expression ArcCsc(Constant x) { return Constant.New(Real.ArcCsc(x)); }
+        [CompileTarget(typeof(System.Math), "ArcCot")] public static Expression ArcCot(Constant x) { return Constant.New(Real.ArcCot(x)); }
 
-        public static Expression Sinh(Constant x) { return Constant.New(Real.Sinh(x)); }
-        public static Expression Cosh(Constant x) { return Constant.New(Real.Cosh(x)); }
-        public static Expression Tanh(Constant x) { return Constant.New(Real.Tanh(x)); }
-        public static Expression Sech(Constant x) { return Constant.New(Real.Sech(x)); }
-        public static Expression Csch(Constant x) { return Constant.New(Real.Csch(x)); }
-        public static Expression Coth(Constant x) { return Constant.New(Real.Coth(x)); }
+        [CompileTarget(typeof(System.Math), "Sinh")] public static Expression Sinh(Constant x) { return Constant.New(Real.Sinh(x)); }
+        [CompileTarget(typeof(System.Math), "Cosh")] public static Expression Cosh(Constant x) { return Constant.New(Real.Cosh(x)); }
+        [CompileTarget(typeof(System.Math), "Tanh")] public static Expression Tanh(Constant x) { return Constant.New(Real.Tanh(x)); }
+        [CompileTarget(typeof(System.Math), "Sech")] public static Expression Sech(Constant x) { return Constant.New(Real.Sech(x)); }
+        [CompileTarget(typeof(System.Math), "Csch")] public static Expression Csch(Constant x) { return Constant.New(Real.Csch(x)); }
+        [CompileTarget(typeof(System.Math), "Coth")] public static Expression Coth(Constant x) { return Constant.New(Real.Coth(x)); }
 
-        public static Expression ArcSinh(Constant x) { return Constant.New(Real.ArcSinh(x)); }
-        public static Expression ArcCosh(Constant x) { return Constant.New(Real.ArcCosh(x)); }
-        public static Expression ArcTanh(Constant x) { return Constant.New(Real.ArcTanh(x)); }
-        public static Expression ArcSech(Constant x) { return Constant.New(Real.ArcSech(x)); }
-        public static Expression ArcCsch(Constant x) { return Constant.New(Real.ArcCsch(x)); }
-        public static Expression ArcCoth(Constant x) { return Constant.New(Real.ArcCoth(x)); }
+        [CompileTarget(typeof(System.Math), "ArcSinh")] public static Expression ArcSinh(Constant x) { return Constant.New(Real.ArcSinh(x)); }
+        [CompileTarget(typeof(System.Math), "ArcCosh")] public static Expression ArcCosh(Constant x) { return Constant.New(Real.ArcCosh(x)); }
+        [CompileTarget(typeof(System.Math), "ArcTanh")] public static Expression ArcTanh(Constant x) { return Constant.New(Real.ArcTanh(x)); }
+        [CompileTarget(typeof(System.Math), "ArcSech")] public static Expression ArcSech(Constant x) { return Constant.New(Real.ArcSech(x)); }
+        [CompileTarget(typeof(System.Math), "ArcCsch")] public static Expression ArcCsch(Constant x) { return Constant.New(Real.ArcCsch(x)); }
+        [CompileTarget(typeof(System.Math), "ArcCoth")] public static Expression ArcCoth(Constant x) { return Constant.New(Real.ArcCoth(x)); }
 
-        public static Expression Sqrt(Constant x) { return Constant.New(Real.Sqrt(x)); }
-        public static Expression Exp(Constant x) { return Constant.New(Real.Exp(x)); }
-        public static Expression Ln(Constant x) { return Constant.New(Real.Ln(x)); }
-        public static Expression Log(Constant x, Constant b) { return Constant.New(Real.Log(x, b)); }
+        [CompileTarget(typeof(System.Math), "Sqrt")] public static Expression Sqrt(Constant x) { return Constant.New(Real.Sqrt(x)); }
+        [CompileTarget(typeof(System.Math), "Exp")] public static Expression Exp(Constant x) { return Constant.New(Real.Exp(x)); }
+        [CompileTarget(typeof(System.Math), "Ln")] public static Expression Ln(Constant x) { return Constant.New(Real.Ln(x)); }
+        [CompileTarget(typeof(System.Math), "Log")] public static Expression Log(Constant x, Constant b) { return Constant.New(Real.Log(x, b)); }
 
-        public static Expression Floor(Constant x) { return Constant.New(Real.Floor(x)); }
-        public static Expression Ceiling(Constant x) { return Constant.New(Real.Ceiling(x)); }
-        public static Expression Round(Constant x) { return Constant.New(Real.Round(x)); }
+        [CompileTarget(typeof(System.Math), "Floor")] public static Expression Floor(Constant x) { return Constant.New(Real.Floor(x)); }
+        [CompileTarget(typeof(System.Math), "Ceiling")] public static Expression Ceiling(Constant x) { return Constant.New(Real.Ceiling(x)); }
+        [CompileTarget(typeof(System.Math), "Round")] public static Expression Round(Constant x) { return Constant.New(Real.Round(x)); }
 
         private static BigInteger Factorial(BigInteger x)
         {
