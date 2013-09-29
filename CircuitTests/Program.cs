@@ -44,6 +44,10 @@ namespace CircuitTests
             //for (int n = 0; n < N; ++n)
             //    Data.WriteLine("{0}\t{1}", vs[n], vout[n]);
 
+            // Ensure that the expression is compiled before benchmarking.
+            S.Process(1, input, output);
+            S.Reset();
+
             timer.Start();
             S.Process(N, input, output);
             timer.Stop();
@@ -52,7 +56,7 @@ namespace CircuitTests
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
                 plots.Add(i.Key, i.Value.Select((j, n) => Arrow.New(n * S.T, j)).ToList());
 
-            System.Console.WriteLine("Run: {0} ms", timer.ElapsedMilliseconds);
+            System.Console.WriteLine("Run: {0} ms ({1}x)", timer.ElapsedMilliseconds, (N * (double)S.T) / ((double)timer.ElapsedMilliseconds / 1000.0));
 
             Plot p = new Plot(Name, 400, 400, t0, -3.0, (double)S.t, 3.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
         }
