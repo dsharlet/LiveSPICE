@@ -176,7 +176,7 @@ namespace LiveSPICE
         }
 
         // Callback for audio.
-        private void ProcessSamples(float[] Samples, int Rate)
+        private void ProcessSamples(double[] Samples, int Rate)
         {
             //CopyTo(Samples, ref input);
             oscilloscope.AddSignal(simulation.Input.ToString(), Samples, Rate);

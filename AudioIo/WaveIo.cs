@@ -14,13 +14,17 @@ namespace AudioIo
         [DllImport("NativeAudioUtils.dll")]
         public static extern void Fixed16x1ToFloat(IntPtr Fixed, float[] Float, int Count);
         [DllImport("NativeAudioUtils.dll")]
+        public static extern void Fixed16x1ToDouble(IntPtr Fixed, double[] Float, int Count);
+        [DllImport("NativeAudioUtils.dll")]
         public static extern void FloatToFixed16x1(float[] Float, IntPtr Fixed, int Count);
+        [DllImport("NativeAudioUtils.dll")]
+        public static extern void DoubleToFixed16x1(double[] Float, IntPtr Fixed, int Count);
 
         /// <summary>
         /// Handler for accepting new samples in and writing output samples out.
         /// </summary>
         /// <param name="Samples"></param>
-        public delegate void SampleHandler(float[] Samples, int Rate);
+        public delegate void SampleHandler(double[] Samples, int Rate);
              
         private IntPtr hWaveIn, hWaveOut;
         private WaveFormatEx format;
@@ -29,7 +33,7 @@ namespace AudioIo
         private WaveApi.Callback waveProc = new WaveApi.Callback(WaveProc);
         private volatile bool disposing = false;
 
-        private float[] samples;
+        private double[] samples;
 
         private GCHandle handle;
 
@@ -48,7 +52,7 @@ namespace AudioIo
             int BufferSize = Buffer / 4;
             BufferSize = BufferSize - (format.BlockAlign - (Buffer % format.BlockAlign)) % format.BlockAlign;
 
-            samples = new float[BufferSize * 8 / Bits];
+            samples = new double[BufferSize * 8 / Bits];
 
             // Construct waveOut
             MmException.CheckThrow(WaveApi.waveOutOpen(out hWaveOut, -1, ref format, waveProc, (IntPtr)handle, WaveApi.CALLBACK_FUNCTION));
@@ -95,9 +99,9 @@ namespace AudioIo
                 return;
 
             WaveBuffer buffer = (WaveBuffer)((GCHandle)hdr.User).Target;
-            Fixed16x1ToFloat(hdr.Data, samples, samples.Length);
+            Fixed16x1ToDouble(hdr.Data, samples, samples.Length);
             callback(samples, format.SamplesPerSec);
-            FloatToFixed16x1(samples, hdr.Data, samples.Length);
+            DoubleToFixed16x1(samples, hdr.Data, samples.Length);
             buffer.PlayHeader.BufferLength = hdr.BytesRecorded;
             buffer.Play();
         }

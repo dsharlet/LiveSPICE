@@ -97,7 +97,7 @@ namespace LiveSPICE
         /// <summary>
         /// Properties and methods associated with a particular signal.
         /// </summary>
-        public class Signal : List<float>
+        public class Signal : List<double>
         {
             // The global index of the first sample in the array.
             private long first;
@@ -113,7 +113,7 @@ namespace LiveSPICE
             }
 
             // Process new samples for this signal.
-            public void AddSamples(float[] Samples, int Truncate)
+            public void AddSamples(double[] Samples, int Truncate)
             {
                 AddRange(Samples);
                 if (Count > Truncate)
@@ -127,7 +127,7 @@ namespace LiveSPICE
             public long First { get { return first; } }
             public long Last { get { return first + Count; } }
 
-            public float this[long i] 
+            public double this[long i] 
             { 
                 get 
                 {
@@ -135,7 +135,7 @@ namespace LiveSPICE
                     if (0 <= i && i < Count)
                         return base[(int)i];
                     else
-                        return float.NaN;
+                        return double.NaN;
                 } 
             }
         }
@@ -176,7 +176,7 @@ namespace LiveSPICE
         }
         
         protected long t = 0;
-        public void AddSignal(string Name, float[] Samples, int Rate)
+        public void AddSignal(string Name, double[] Samples, int Rate)
         {
             Signal S;
             lock (signals)
@@ -202,8 +202,8 @@ namespace LiveSPICE
             // Add new samples to the signal.
             lock (S) S.AddSamples(Samples, (int)(4 * (double)sampleRate * MaxPeriod));
         }
-        
-        public void AddSignal(string Name, float[] Samples) { AddSignal(Name, Samples, 0); }
+
+        public void AddSignal(string Name, double[] Samples) { AddSignal(Name, Samples, 0); }
         
         protected override void OnRender(DrawingContext DC)
         {
@@ -243,7 +243,7 @@ namespace LiveSPICE
                         int BlockSize = 8192;
                         if (focus.Last - focus.First >= BlockSize)
                         {
-                            float[] data = focus.Skip((int)(focus.Last - focus.First - BlockSize)).ToArray();
+                            double[] data = focus.Skip((int)(focus.Last - focus.First - BlockSize)).ToArray();
 
                             // Estimate the fundamental frequency of the signal.
                             double phase;
@@ -550,7 +550,7 @@ namespace LiveSPICE
             }
         }
 
-        private static Complex[] DecimateSignal(float[] Block, int Decimate)
+        private static Complex[] DecimateSignal(double[] Block, int Decimate)
         {
             int N = Block.Length / Decimate;
             Complex[] data = new Complex[N];
@@ -566,7 +566,7 @@ namespace LiveSPICE
             return data;
         }
 
-        private static double EstimateFrequency(float[] Samples, int Decimate, out double Phase)
+        private static double EstimateFrequency(double[] Samples, int Decimate, out double Phase)
         {
             Complex[] data = DecimateSignal(Samples, Decimate);
             int N = data.Length;
