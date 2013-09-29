@@ -108,7 +108,6 @@ namespace LiveSPICE
 
             public Signal(long Start)
             {
-                pen = Pen;
                 first = Start;
             }
 
@@ -368,9 +367,9 @@ namespace LiveSPICE
             {
                 List<Pen> pens = signals.Values.Where(i => i.Pen != null).Select(i => i.Pen).ToList();
 
-                foreach (Brush j in SignalBrushes)
-                    foreach (DashStyle k in SignalStyles)
-                        if (pens.Count(i => j != i.Brush && k != i.DashStyle) == 0)
+                foreach (DashStyle k in SignalStyles)
+                    foreach (Brush j in SignalBrushes)
+                        if (pens.Count(i => j == i.Brush && k == i.DashStyle) == 0)
                             return new Pen(j, 1.0) { DashStyle = k };
             }
             return new Pen(Brushes.White, 1.0);

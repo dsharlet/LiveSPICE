@@ -95,9 +95,7 @@ namespace LiveSPICE
         }
         private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveViewer != null; }
         private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { SaveLayout(); ActiveContent.Close(); }
-
-        protected Circuit.Simulation sim;
-
+        
         private void Run_Executed(object sender, ExecutedRoutedEventArgs e) 
         {
             audio.Stop();
@@ -110,7 +108,7 @@ namespace LiveSPICE
             {
                 Circuit.Circuit circuit = active.Build(log);
 
-                sim = new Circuit.Simulation(circuit, audio.SampleRate);
+                simulation.Run(new Circuit.Simulation(circuit, audio.SampleRate));
             }
             catch (Exception ex)
             {
@@ -178,12 +176,7 @@ namespace LiveSPICE
         // Callback for audio.
         private void ProcessSamples(double[] Samples, int Rate)
         {
-            //CopyTo(Samples, ref input);
-            oscilloscope.AddSignal(simulation.Input.ToString(), Samples, Rate);
-
-            //simulation.Process(Samples, Rate);
-
-            oscilloscope.AddSignal(simulation.Output.ToString(), Samples);
+            simulation.Process(Samples, Rate, oscilloscope);
         }
 
         private void SaveLayout(string Config)

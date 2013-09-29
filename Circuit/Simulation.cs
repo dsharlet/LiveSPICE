@@ -257,12 +257,27 @@ namespace Circuit
 
             // Store output samples.
             foreach (Expression i in Output)
-                body.Add(LinqExpression.Assign(
-                    LinqExpression.MakeIndex(
-                        buffers[i], 
-                        typeof(double[]).GetProperty("Item"), 
-                        new LinqExpression[] { vn }),
-                    nodes[i].LinqExpr));
+            {
+                Node n;
+                if (nodes.TryGetValue(i, out n))
+                {
+                    body.Add(LinqExpression.Assign(
+                        LinqExpression.MakeIndex(
+                            buffers[i],
+                            typeof(double[]).GetProperty("Item"),
+                            new LinqExpression[] { vn }),
+                        n.LinqExpr));
+                }
+                else
+                {
+                    body.Add(LinqExpression.Assign(
+                        LinqExpression.MakeIndex(
+                            buffers[i],
+                            typeof(double[]).GetProperty("Item"),
+                            new LinqExpression[] { vn }),
+                        LinqExpression.Constant(double.NaN)));
+                }
+            }
 
             // Update t0 = t.
             body.Add(LinqExpression.Assign(pt0, vt));

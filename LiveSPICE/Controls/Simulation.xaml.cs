@@ -54,6 +54,21 @@ namespace LiveSPICE
             InitializeComponent();
         }
 
+        protected Circuit.Simulation simulation;
+
+        public void Run(Circuit.Simulation Simulation) { simulation = Simulation; }
+
+        public void Process(double[] Samples, int Rate, Oscilloscope Oscilloscope)
+        {
+            Oscilloscope.AddSignal(Input.ToString(), Samples, Rate);
+
+            if (simulation != null)
+            {
+                simulation.Process(input, Samples, output, Samples);
+                Oscilloscope.AddSignal(Output.ToString(), Samples);
+            }
+        }
+
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {
