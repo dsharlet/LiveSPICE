@@ -15,24 +15,24 @@ namespace SyMath
         private Expression body;
         public Expression Body { get { return body; } }
 
-        private List<Variable> args;
-        public IEnumerable<Variable> Arguments { get { return args; } }
+        private List<Variable> parameters;
+        public override IEnumerable<Variable> Parameters { get { return parameters; } }
 
-        private ExprFunction(string Name, Expression Body, IEnumerable<Variable> Args) : base(Name) { body = Body; args = Args.ToList(); }
+        private ExprFunction(string Name, Expression Body, IEnumerable<Variable> Params) : base(Name) { body = Body; parameters = Params.ToList(); }
 
-        public static ExprFunction New(string Name, Expression Body, IEnumerable<Variable> Args) { return new ExprFunction(Name, Body, Args); }
-        public static ExprFunction New(string Name, Expression Body, params Variable[] Args) { return new ExprFunction(Name, Body, Args); }
-        public static ExprFunction New(string Name, IEnumerable<Variable> Args) { return new ExprFunction(Name, null, Args); }
-        public static ExprFunction New(string Name, params Variable[] Args) { return new ExprFunction(Name, null, Args); }
+        public static ExprFunction New(string Name, Expression Body, IEnumerable<Variable> Params) { return new ExprFunction(Name, Body, Params); }
+        public static ExprFunction New(string Name, Expression Body, params Variable[] Params) { return new ExprFunction(Name, Body, Params); }
+        public static ExprFunction New(string Name, IEnumerable<Variable> Params) { return new ExprFunction(Name, null, Params); }
+        public static ExprFunction New(string Name, params Variable[] Params) { return new ExprFunction(Name, null, Params); }
 
-        public override Expression Call(IEnumerable<Expression> Params)
+        public override Expression Call(IEnumerable<Expression> Args)
         {
-            return body.Evaluate(Arguments.Zip(Params, (a, b) => Arrow.New(a, b)));
+            return body.Evaluate(parameters.Zip(Args, (a, b) => Arrow.New(a, b)));
         }
 
-        public override bool CanCall(IEnumerable<Expression> Params)
+        public override bool CanCall(IEnumerable<Expression> Args)
         {
-            return CanCall() && Arguments.Count() == Params.Count();
+            return CanCall() && parameters.Count() == Args.Count();
         }
 
         public override bool CanCall()
@@ -42,7 +42,7 @@ namespace SyMath
 
         public override LinqExpression Compile(IEnumerable<LinqExpression> Args)
         {
-            return body.Compile(args.Zip(Args, (i, j) => new { i, j }).ToDictionary(i => (Expression)i.i, i => i.j));
+            return body.Compile(parameters.Zip(Args, (i, j) => new { i, j }).ToDictionary(i => (Expression)i.i, i => i.j));
         }
     }
 }

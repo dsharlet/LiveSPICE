@@ -40,17 +40,22 @@ namespace SyMath
         private MethodInfo method;
         public MethodInfo Method { get { return method; } }
 
+        public override IEnumerable<Variable> Parameters
+        {
+            get { return Method.GetParameters().Select(i => Variable.New(i.Name)); }
+        }
+
         private NativeFunction(MethodInfo Method) : base(Method.Name) { method = Method; }
 
         public static NativeFunction New(MethodInfo Method) { return new NativeFunction(Method); }
-        
-        public override Expression Call(IEnumerable<Expression> Params)
+
+        public override Expression Call(IEnumerable<Expression> Args)
         {
             object Result;
             if (Method.IsStatic)
-                Result = Method.Invoke(null, Params.ToArray<object>());
+                Result = Method.Invoke(null, Args.ToArray<object>());
             else
-                Result = Method.Invoke(Params.First(), Params.Skip(1).ToArray<object>());
+                Result = Method.Invoke(Args.First(), Args.Skip(1).ToArray<object>());
 
             if (Result is Expression)
                 return Result as Expression;
@@ -58,9 +63,9 @@ namespace SyMath
                 return Constant.New(Result);
         }
 
-        public override bool CanCall(IEnumerable<Expression> Params)
+        public override bool CanCall(IEnumerable<Expression> Args)
         {
-            return Method.GetParameters().Length == Params.Count() - (Method.IsStatic ? 0 : 1);
+            return Method.GetParameters().Length == Args.Count() - (Method.IsStatic ? 0 : 1);
         }
         
         public override Expression Substitute(Call C, IDictionary<Expression, Expression> x0, bool IsTransform)
