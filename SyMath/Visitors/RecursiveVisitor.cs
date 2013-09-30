@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace SyMath
 {
@@ -21,7 +22,9 @@ namespace SyMath
                 Expression Vi = Visit(i);
                 if (ReferenceEquals(Vi, null)) return null;
                 list.Add(Vi);
-                Equal = Equal && Vi.Equals(i);
+
+                Debug.Assert(Vi.Equals(i) == ReferenceEquals(Vi, i));
+                Equal = Equal && ReferenceEquals(Vi, i);
             }
             return Equal ? List : list;
         }
@@ -32,7 +35,10 @@ namespace SyMath
             Expression R = Visit(B.Right);
             if (ReferenceEquals(L, null) || ReferenceEquals(R, null)) return null;
 
-            if (L.Equals(B.Left) && R.Equals(B.Right))
+            Debug.Assert(L.Equals(B.Left) == ReferenceEquals(L, B.Left));
+            Debug.Assert(R.Equals(B.Right) == ReferenceEquals(R, B.Right));
+
+            if (ReferenceEquals(L, B.Left) && ReferenceEquals(R, B.Right))
                 return B;
             else
                 return Binary.New(B.Operator, L, R);
@@ -43,7 +49,9 @@ namespace SyMath
             Expression O = Visit(U.Operand);
             if (ReferenceEquals(O, null)) return null;
 
-            if (O.Equals(U.Operand))
+            Debug.Assert(O.Equals(U.Operand) == ReferenceEquals(O, U.Operand));
+
+            if (ReferenceEquals(O, U.Operand))
                 return U;
             else
                 return Unary.New(U.Operator, O);
@@ -53,28 +61,28 @@ namespace SyMath
         {
             IEnumerable<Expression> terms = VisitList(A.Terms);
             if (ReferenceEquals(terms, null)) return null;
-            return terms == A.Terms ? A : Add.New(terms);
+            return ReferenceEquals(terms, A.Terms) ? A : Add.New(terms);
         }
 
         protected override Expression VisitMultiply(Multiply M)
         {
             IEnumerable<Expression> terms = VisitList(M.Terms);
             if (ReferenceEquals(terms, null)) return null;
-            return terms == M.Terms ? M : Multiply.New(terms);
+            return ReferenceEquals(terms, M.Terms) ? M : Multiply.New(terms);
         }
 
         protected override Expression VisitSet(Set S)
         {
             IEnumerable<Expression> members = VisitList(S.Members);
             if (ReferenceEquals(members, null)) return null;
-            return members == S.Members ? S : Set.New(members);
+            return ReferenceEquals(members, S.Members) ? S : Set.New(members);
         }
 
         protected override Expression VisitCall(Call F)
         {
             IEnumerable<Expression> arguments = VisitList(F.Arguments);
             if (ReferenceEquals(arguments, null)) return null;
-            return arguments == F.Arguments ? F : Call.New(F.Target, arguments);
+            return ReferenceEquals(arguments, F.Arguments) ? F : Call.New(F.Target, arguments);
         }
     }
 }
