@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using LinqExpressions = System.Linq.Expressions;
 using LinqExpression = System.Linq.Expressions.Expression;
 
 namespace SyMath
@@ -17,8 +18,9 @@ namespace SyMath
 
         public CompileVisitor(IDictionary<Expression, LinqExpression> Map)
         {
-            foreach (KeyValuePair<Expression, LinqExpression> i in Map)
-                compiled[i.Key] = i.Value;
+            if (Map != null)
+                foreach (KeyValuePair<Expression, LinqExpression> i in Map)
+                    compiled[i.Key] = i.Value;
         }
 
         public override LinqExpression Visit(Expression E)
@@ -131,6 +133,54 @@ namespace SyMath
         public static LinqExpression Compile(this Expression This, IDictionary<Expression, LinqExpression> Map)
         {
             return new CompileVisitor(Map).Visit(This);
+        }
+
+        /// <summary>
+        /// Compile an expression to a Lambda.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="This"></param>
+        /// <param name="ParameterMap"></param>
+        /// <param name="Map"></param>
+        /// <returns></returns>
+        public static LinqExpressions.Expression<T> Compile<T>(this Expression This, IEnumerable<Expression> ParameterMap, IDictionary<Expression, LinqExpression> Map)
+        {
+            List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
+            Dictionary<Expression, LinqExpression> map = Map != null ? new Dictionary<Expression,LinqExpression>(Map) : new Dictionary<Expression, LinqExpression>();
+            foreach (Expression i in ParameterMap)
+            {
+                LinqExpressions.ParameterExpression p = LinqExpression.Parameter(typeof(double), i.ToString());
+                parameters.Add(p);
+                map.Add(i, p);
+            }
+
+            return LinqExpression.Lambda<T>(
+                Compile(This, map), 
+                parameters);
+        }
+
+        /// <summary>
+        /// Compile an expression to a Lambda.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="This"></param>
+        /// <param name="ParameterMap"></param>
+        /// <returns></returns>
+        public static LinqExpressions.Expression<T> Compile<T>(this Expression This, IEnumerable<Expression> ParameterMap)
+        {
+            return Compile<T>(This, ParameterMap, null);
+        }
+
+        /// <summary>
+        /// Compile an expression to a Lambda.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="This"></param>
+        /// <param name="ParameterMap"></param>
+        /// <returns></returns>
+        public static LinqExpressions.Expression<T> Compile<T>(this Expression This, params Expression[] ParameterMap)
+        {
+            return Compile<T>(This, ParameterMap, null);
         }
     }
 }
