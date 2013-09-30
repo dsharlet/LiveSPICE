@@ -46,38 +46,41 @@ namespace Circuit
         // Nodes in this simulation.
         private Dictionary<Expression, Node> nodes;
                 
-        // Store the previous inputs for interpolation.
-        private Dictionary<Expression, GlobalExpr<double>> inputs = new Dictionary<Expression, GlobalExpr<double>>();
-
-        // Current time of the simulation (Component.t).
-        protected Expression _t = Constant.Zero;
-        public Expression t { get { return _t; } }
-
-        // Timestep of the simulation (Component.T).
-        protected Expression _T;
-        public Expression T { get { return _T; } }
+        // Stores any global state in the simulation.
+        private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
 
         // Expression for t at the previous timestep.
-        private static Expression t0 = Variable.New("t0");
+        private static readonly Expression t0 = Variable.New("t0");
 
+        protected double _t = 0.0;
         /// <summary>
-        /// Get the nodes being simulated.
+        /// Current time of the simulation (Component.t).
         /// </summary>
-        public IEnumerable<Expression> Nodes { get { return nodes.Keys; } }
+        public double t { get { return _t; } }
 
+        protected double _T;
+        /// <summary>
+        /// Timestep of the simulation (Component.T).
+        /// </summary>
+        public double T { get { return _T; } }
+        
         protected int iterations;
         /// <summary>
         /// Get or set the maximum number of iterations to use when numerically solving equations.
         /// </summary>
         public int Iterations { get { return iterations; } }
+
         protected int oversample;
         /// <summary>
         /// Get or set the oversampling factor for the simulation.
         /// </summary>
         public int Oversample { get { return oversample; } }
 
-        // Shorthand for df/dx.
-        private static Expression D(Expression f, Expression x) { return f.Differentiate(x); }
+        /// <summary>
+        /// Enumerate the nodes in the simulation.
+        /// </summary>
+        public IEnumerable<Expression> Nodes { get { return nodes.Keys; } }
+
         // Solve a system of equations, possibly including linear differential equations.
         private static List<Arrow> Solve(List<Equal> f, List<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method, int iterations)
         {
@@ -117,12 +120,11 @@ namespace Circuit
         /// </summary>
         /// <param name="C">Circuit to simulate.</param>
         /// <param name="T">Sampling period.</param>
-        /// <returns></returns>
         public Simulation(Circuit Circuit, Quantity SampleRate, int Oversample, int Iterations)
         {
             oversample = Oversample;
             iterations = Iterations;
-            _T = 1.0 / (Expression)SampleRate;
+            _T = 1.0 / (double)SampleRate;
 
             // Compute the KCL equations for this circuit.
             List<Equal> kcl = Circuit.Analyze();
@@ -142,22 +144,31 @@ namespace Circuit
                 i => new Node(i.Right));
         }
 
+        /// <summary>
+        /// Clear all state from the simulation.
+        /// </summary>
         public void Reset()
         {
-            _t = Constant.Zero;
+            _t = 0.0;
             foreach (Node i in nodes.Values)
                 i.V = 0.0;
-            foreach (GlobalExpr<double> i in inputs.Values)
+            foreach (GlobalExpr<double> i in globals.Values)
                 i.Value = 0.0;
         }
         
-        // Process some samples. Requested nodes are stored in Output.
+        /// <summary>
+        /// Process some samples with this simulation.
+        /// </summary>
+        /// <param name="N">Number of samples to process.</param>
+        /// <param name="Input">Mapping of node Expression -> double[] buffers that describe the input samples.</param>
+        /// <param name="Output">Mapping of node Expression -> double[] buffers that describe requested output samples.</param>
+        /// <param name="Arguments">Constant expressions describing the values of any parameters to the simulation.</param>
         public void Process(int N, IDictionary<Expression, double[]> Input, IDictionary<Expression, double[]> Output, IEnumerable<Arrow> Arguments)
         {
             Delegate processor = Compile(Input.Keys, Output.Keys, Arguments.Select(i => i.Left));
 
             // Build parameter list for the processor.
-            List<object> parameters = new List<object>();
+            List<object> parameters = new List<object>(3 + Input.Count + Output.Count + Arguments.Count());
             parameters.Add(N);
             parameters.Add((double)t);
             parameters.Add((double)T / Oversample);
@@ -171,6 +182,13 @@ namespace Circuit
             _t = (double)processor.DynamicInvoke(parameters.ToArray());
         }
 
+        /// <summary>
+        /// Process some samples with this simulation.
+        /// </summary>
+        /// <param name="N">Number of samples to process.</param>
+        /// <param name="Input">Mapping of node Expression -> double[] buffers that describe the input samples.</param>
+        /// <param name="Output">Mapping of node Expression -> double[] buffers that describe requested output samples.</param>
+        /// <param name="Arguments">Constant expressions describing the values of any parameters to the simulation.</param>
         public void Process(int N, IDictionary<Expression, double[]> Input, IDictionary<Expression, double[]> Output, params Arrow[] Arguments)
         {
             Process(N, Input, Output, Arguments.AsEnumerable());
@@ -192,8 +210,8 @@ namespace Circuit
                 new Dictionary<Expression, double[]>() { { OutputNode, OutputSamples } });
         }
 
-        // Compile and cache delegates for processing various IO configurations for this simulation.
         Dictionary<long, Delegate> compiled = new Dictionary<long, Delegate>();
+        // Compile and cache delegates for processing various IO configurations for this simulation.
         private Delegate Compile(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             long hash = Input.OrderedHashCode();
@@ -204,15 +222,38 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            d = ProcessExpression(Input, Output, Parameters).Compile();
+            d = CompileProcess(Input, Output, Parameters).Compile();
             compiled[hash] = d;
             return d;
         }
         
-        // The resulting lambda processes N samples, using buffers provided for Input and Output.
-        // Arguments: int N, double t, double T, double[] x Input, double[] x Output, double[] x Arguments
-        // Returns: t + N * T
-        private LinqExpressions.LambdaExpression ProcessExpression(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
+        // The resulting lambda processes N samples, using buffers provided for Input and Output:
+        //  double f (int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
+        //  {
+        //      double t = t0;
+        //      for (int n = 0; n < N; ++n)
+        //      {
+        //          in0 = oldIn0
+        //          din0 = (Input0[n] - oldIn0) / Oversample
+        //          oldIn0 = Input0[n]
+        //          ...
+        //          for (int ov = Oversample; ov > 0; --ov)
+        //          {
+        //              t += T
+        //              in0 += din0
+        //              ...
+        //
+        //              foreach (Node i in nodes)
+        //                  i.V = i.step()
+        //
+        //              t0 = t
+        //          }
+        //          Output0[n] = Nodes[Output0].V
+        //          ...
+        //
+        //      }
+        //  }
+        private LinqExpressions.LambdaExpression CompileProcess(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             // Map expressions to identifiers in the syntax tree.
             Dictionary<Expression, LinqExpression> v = new Dictionary<Expression, LinqExpression>();
@@ -228,7 +269,7 @@ namespace Circuit
             List<LinqExpression> body = new List<LinqExpression>();
             List<LinqExpressions.ParameterExpression> locals = new List<LinqExpressions.ParameterExpression>();
 
-            // Parameters to the lambda.
+            // Create parameters for the basic simulation info (N, t, T).
             LinqExpressions.ParameterExpression pN = LinqExpression.Parameter(typeof(int), "N");
             parameters.Add(pN);
 
@@ -240,20 +281,15 @@ namespace Circuit
             parameters.Add(pT);
             v[Component.T] = pT;
 
-            foreach (Expression i in Input)
+            // Create buffer parameters for each input, output.
+            foreach (Expression i in Input.Concat(Output))
             {
                 LinqExpressions.ParameterExpression arg = LinqExpression.Parameter(typeof(double[]), i.ToString());
                 parameters.Add(arg);
                 buffers[i] = arg;
             }
 
-            foreach (Expression i in Output)
-            {
-                LinqExpressions.ParameterExpression arg = LinqExpression.Parameter(typeof(double[]), i.ToString());
-                parameters.Add(arg);
-                buffers[i] = arg;
-            }
-
+            // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
             {
                 LinqExpressions.ParameterExpression arg = LinqExpression.Parameter(typeof(double), i.ToString());
@@ -261,7 +297,7 @@ namespace Circuit
                 v[i] = arg;
             }
             
-            // Defining lambda body.
+            // Define lambda body.
 
             // t = t0
             LinqExpressions.ParameterExpression vt = LinqExpression.Variable(typeof(double), "t");
@@ -269,18 +305,17 @@ namespace Circuit
             locals.Add(vt);
             v[Component.t] = vt;
             
-            // n = 0
+            // N for loop header.
             LinqExpressions.ParameterExpression vn = LinqExpression.Variable(typeof(int), "n");
             locals.Add(vn);
+            // n = 0
             body.Add(LinqExpression.Assign(vn, LinqExpression.Constant(0)));
-
-            // N for loop header.
             LinqExpressions.LabelTarget forN = LinqExpression.Label("forN");
             body.Add(LinqExpression.Label(forN));
             // if (n > N) return t
             body.Add(LinqExpression.IfThen(
                 LinqExpression.GreaterThanOrEqual(vn, pN),
-                LinqExpression.Return(returnTo, LinqExpression.Convert(vn, typeof(double)), typeof(double))));
+                LinqExpression.Return(returnTo, vt, typeof(double))));
 
             // N for loop body.
 
@@ -289,17 +324,18 @@ namespace Circuit
             foreach (Expression i in Input)
             {
                 // Ensure that we have a global variable to store the previous sample in.
-                inputs[i] = new GlobalExpr<double>(0.0);
-                LinqExpression va = inputs[i].Expr;
+                globals[i] = new GlobalExpr<double>(0.0);
+                LinqExpression va = globals[i].Expr;
                 LinqExpression vb = LinqExpression.MakeIndex(
                     buffers[i], 
                     typeof(double[]).GetProperty("Item"), 
                     new LinqExpression[] { vn });
 
-                // Create a local variable for the interpolated sample and assign va to it.
+                // Create a temporary local variable for the interpolated sample.
                 LinqExpressions.ParameterExpression vi = LinqExpression.Variable(typeof(double), i.ToString() + "_i");
                 locals.Add(vi);
                 v[i] = vi;
+                // vi = va
                 body.Add(LinqExpression.Assign(vi, va));
                 
                 // Compute the delta for the sample per oversample iteration: (vb - va) / Oversample.
@@ -332,6 +368,7 @@ namespace Circuit
                 body.Add(LinqExpression.AddAssign(v[i], dinput[i]));
 
             // Compile step expressions and assign to the node state.
+            // TODO: Skip nodes that have input values? Does that ever happen?
             foreach (KeyValuePair<Expression, Node> i in nodes)
                 body.Add(LinqExpression.Assign(i.Value.VExpr, i.Value.Step.Compile(v)));
 
@@ -365,5 +402,8 @@ namespace Circuit
             body.Add(LinqExpression.Label(returnTo, vt));
             return LinqExpression.Lambda(LinqExpression.Block(locals, body), parameters);
         }
+
+        // Shorthand for df/dx.
+        private static Expression D(Expression f, Expression x) { return f.Differentiate(x); }
     }
 }
