@@ -106,9 +106,9 @@ namespace LiveSPICE
                 DefaultExt = FileExtension
             };
             if (dlg.ShowDialog(Application.Current.MainWindow) ?? false)
+                return Save(dlg.FileName);
+            else
                 return false;
-
-            return Save(dlg.FileName);
         }
         public bool CanClose()
         {
