@@ -130,6 +130,9 @@
                             <xcad:LayoutAnchorable Title="Properties" CanHide="False" CanClose="False" AutoHideWidth="240">
                                 <xctk:PropertyGrid x:Name="properties" NameColumnWidth="110" />
                             </xcad:LayoutAnchorable>
+                            <xcad:LayoutAnchorable Title="Simulation">
+                                <ls:Simulation x:Name="simulation" BorderBrush="DarkGray" BorderThickness="1" />
+                            </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                         
                         <!-- Oscilloscope -->
@@ -157,9 +160,6 @@
                             </xcad:LayoutAnchorable>
                             <xcad:LayoutAnchorable Title="Speaker">
                                 <ls:Speaker x:Name="speaker" BorderBrush="DarkGray" BorderThickness="1" />
-                            </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable Title="Simulation">
-                                <ls:Simulation x:Name="simulation" BorderBrush="DarkGray" BorderThickness="1" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
