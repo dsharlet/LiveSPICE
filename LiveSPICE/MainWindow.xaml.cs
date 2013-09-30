@@ -108,7 +108,7 @@ namespace LiveSPICE
             {
                 Circuit.Circuit circuit = active.Build(log);
 
-                simulation.Run(new Circuit.Simulation(circuit, audio.SampleRate));
+                simulation.Run(circuit, audio.SampleRate);
             }
             catch (Exception ex)
             {
@@ -176,7 +176,13 @@ namespace LiveSPICE
         // Callback for audio.
         private void ProcessSamples(double[] Samples, int Rate)
         {
+            double inputGain = (double)audio.InputGain;
+            double outputGain = (double)audio.OutputGain;
+            for (int i = 0; i < Samples.Length; ++i)
+                Samples[i] *= inputGain;
             simulation.Process(Samples, Rate, oscilloscope);
+            for (int i = 0; i < Samples.Length; ++i)
+                Samples[i] *= outputGain;
         }
 
         private void SaveLayout(string Config)

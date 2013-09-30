@@ -44,6 +44,20 @@ namespace LiveSPICE
             get { return bitsPerSample; }
             set { bitsPerSample = value; NotifyChanged("BitsPerSample"); } 
         }
+
+        protected Quantity inputGain = new Quantity(1, Units.None);
+        public Quantity InputGain
+        {
+            get { return inputGain; }
+            set { inputGain.Set(value); NotifyChanged("InputGain"); }
+        }
+
+        protected Quantity outputGain = new Quantity(1, Units.None);
+        public Quantity OutputGain
+        {
+            get { return outputGain; }
+            set { outputGain.Set(value); NotifyChanged("OutputGain"); }
+        }
         
         public Audio()
         {

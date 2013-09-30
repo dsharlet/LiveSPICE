@@ -21,14 +21,14 @@ namespace LiveSPICE
     /// </summary>
     public partial class Simulation : UserControl, INotifyPropertyChanged
     {
-        protected int oversample = 8;
+        protected int oversample = 4;
         public int Oversample
         {
             get { return oversample; }
             set { oversample = value; NotifyChanged("Oversample"); }
         }
 
-        protected int iterations = 8;
+        protected int iterations = 1;
         public int Iterations
         {
             get { return iterations; }
@@ -56,16 +56,19 @@ namespace LiveSPICE
 
         protected Circuit.Simulation simulation;
 
-        public void Run(Circuit.Simulation Simulation) { simulation = Simulation; }
-
-        public void Process(double[] Samples, int Rate, Oscilloscope Oscilloscope)
+        public void Run(Circuit.Circuit Circuit, Circuit.Quantity Rate) 
         {
-            Oscilloscope.AddSignal(Input.ToString(), Samples, Rate);
+            simulation = new Circuit.Simulation(Circuit, Rate, Oversample, Iterations);
+        }
+        
+        public void Process(double[] Samples, int Rate, Oscilloscope Scope)
+        {
+            Scope.AddSignal(Input.ToString(), Samples, Rate);
 
             if (simulation != null)
             {
                 simulation.Process(input, Samples, output, Samples);
-                Oscilloscope.AddSignal(Output.ToString(), Samples);
+                Scope.AddSignal(Output.ToString(), Samples);
             }
         }
 
