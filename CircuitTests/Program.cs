@@ -65,7 +65,7 @@ namespace CircuitTests
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             System.Console.WriteLine(name);
             timer.Start();
-            Simulation S = new Simulation(circuit, new Quantity(48000, Units.Hz));
+            Simulation S = new Simulation(circuit, new Quantity(48000, Units.Hz), 8, 1);
             System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
 
             // Run a sine wave through the circuit.

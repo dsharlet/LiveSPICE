@@ -65,16 +65,16 @@ namespace Circuit
         /// </summary>
         public IEnumerable<Expression> Nodes { get { return nodes.Keys; } }
 
-        protected int iterations = 1;
+        protected int iterations;
         /// <summary>
         /// Get or set the maximum number of iterations to use when numerically solving equations.
         /// </summary>
-        public int Iterations { get { return iterations; } set { iterations = value; } }
-        protected int oversample = 1;
+        public int Iterations { get { return iterations; } }
+        protected int oversample;
         /// <summary>
         /// Get or set the oversampling factor for the simulation.
         /// </summary>
-        public int Oversample { get { return oversample; } set { oversample = value; } }
+        public int Oversample { get { return oversample; } }
 
         // Shorthand for df/dx.
         private static Expression D(Expression f, Expression x) { return f.Differentiate(x); }
@@ -118,21 +118,23 @@ namespace Circuit
         /// <param name="C">Circuit to simulate.</param>
         /// <param name="T">Sampling period.</param>
         /// <returns></returns>
-        public Simulation(Circuit C, Quantity F)
+        public Simulation(Circuit Circuit, Quantity SampleRate, int Oversample, int Iterations)
         {
-            _T = 1.0 / ((Expression)F * Oversample);
+            oversample = Oversample;
+            iterations = Iterations;
+            _T = 1.0 / (Expression)SampleRate;
 
             // Compute the KCL equations for this circuit.
-            List<Equal> kcl = C.Analyze();
+            List<Equal> kcl = Circuit.Analyze();
             
             // Find the expression for the next timestep via the trapezoid method (ala bilinear transform).
             List<Arrow> step = Solve(
                 kcl.ToList(),
-                C.Nodes.Select(i => i.V).Cast<Expression>().ToList(), 
+                Circuit.Nodes.Select(i => i.V).Cast<Expression>().ToList(), 
                 Component.t, t0, 
-                _T, 
+                T / Oversample, 
                 IntegrationMethod.Trapezoid, 
-                iterations);
+                Iterations);
 
             // Create the nodes.
             nodes = step.ToDictionary(
@@ -158,7 +160,7 @@ namespace Circuit
             List<object> parameters = new List<object>();
             parameters.Add(N);
             parameters.Add((double)t);
-            parameters.Add((double)T);
+            parameters.Add((double)T / Oversample);
             foreach (KeyValuePair<Expression, double[]> i in Input)
                 parameters.Add(i.Value);
             foreach (KeyValuePair<Expression, double[]> i in Output)
@@ -261,13 +263,13 @@ namespace Circuit
             
             // Defining lambda body.
 
-            // Set t = t0.
+            // t = t0
             LinqExpressions.ParameterExpression vt = LinqExpression.Variable(typeof(double), "t");
             body.Add(LinqExpression.Assign(vt, pt0));
             locals.Add(vt);
             v[Component.t] = vt;
             
-            // Set n = 0.
+            // n = 0
             LinqExpressions.ParameterExpression vn = LinqExpression.Variable(typeof(int), "n");
             locals.Add(vn);
             body.Add(LinqExpression.Assign(vn, LinqExpression.Constant(0)));
@@ -275,16 +277,18 @@ namespace Circuit
             // N for loop header.
             LinqExpressions.LabelTarget forN = LinqExpression.Label("forN");
             body.Add(LinqExpression.Label(forN));
+            // if (n > N) return t
             body.Add(LinqExpression.IfThen(
                 LinqExpression.GreaterThanOrEqual(vn, pN),
-                LinqExpression.Return(returnTo, vt, typeof(double))));
+                LinqExpression.Return(returnTo, LinqExpression.Convert(vn, typeof(double)), typeof(double))));
 
             // N for loop body.
+
+            // Prepare input samples.
             Dictionary<Expression, LinqExpression> dinput = new Dictionary<Expression, LinqExpression>();
-            // Get input samples.
             foreach (Expression i in Input)
             {
-                // Ensure that we have a variable to store the previous sample in.
+                // Ensure that we have a global variable to store the previous sample in.
                 inputs[i] = new GlobalExpr<double>(0.0);
                 LinqExpression va = inputs[i].Expr;
                 LinqExpression vb = LinqExpression.MakeIndex(
@@ -298,13 +302,13 @@ namespace Circuit
                 v[i] = vi;
                 body.Add(LinqExpression.Assign(vi, va));
                 
-                // Compute the delta for the sample per oversample iteration.
+                // Compute the delta for the sample per oversample iteration: (vb - va) / Oversample.
                 LinqExpressions.ParameterExpression dinputi = LinqExpression.Variable(typeof(double), "d" + i.ToString());
                 locals.Add(dinputi);
                 dinput[i] = dinputi;
                 body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, va), LinqExpression.Constant((double)Oversample))));
 
-                // The next sample's va = this samples vb.
+                // va = vb
                 body.Add(LinqExpression.Assign(va, vb));
 
                 // If i isn't a node, just make a dummy expression for the previous timestep. 
@@ -320,8 +324,8 @@ namespace Circuit
             LinqExpressions.LabelTarget forOv = LinqExpression.Label("forOv");
             body.Add(LinqExpression.Label(forOv));
 
-            // Set t = t0 + T.
-            body.Add(LinqExpression.Assign(vt, LinqExpression.Add(pt0, pT)));
+            // t += T
+            body.Add(LinqExpression.AddAssign(vt, pT));
             
             // Interpolate the input functions.
             foreach (Expression i in Input)
@@ -331,10 +335,10 @@ namespace Circuit
             foreach (KeyValuePair<Expression, Node> i in nodes)
                 body.Add(LinqExpression.Assign(i.Value.VExpr, i.Value.Step.Compile(v)));
 
-            // Update t0 = t.
+            // t0 = t
             body.Add(LinqExpression.Assign(pt0, vt));
 
-            // If --ov > 0, go back to oversampling loop header.
+            // if (--ov > 0) goto forOv
             body.Add(LinqExpression.IfThen(
                 LinqExpression.GreaterThan(LinqExpression.PreDecrementAssign(ov), LinqExpression.Constant(0)),
                 LinqExpression.Goto(forOv)));
@@ -351,11 +355,11 @@ namespace Circuit
                         new LinqExpression[] { vn }),
                     n != null ? n.VExpr : LinqExpression.Constant(double.NaN)));
             }
-            
-            // ++n.
+
+            // ++n
             body.Add(LinqExpression.PreIncrementAssign(vn));
 
-            // Go to the beginning of the loop over N.
+            // goto forN
             body.Add(LinqExpression.Goto(forN));
             
             body.Add(LinqExpression.Label(returnTo, vt));
