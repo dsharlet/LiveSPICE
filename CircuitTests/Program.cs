@@ -5,6 +5,8 @@ using System.Text;
 using System.Reflection;
 using SyMath;
 using Circuit;
+using LinqExpressions = System.Linq.Expressions;
+using LinqExpression = System.Linq.Expressions.Expression;
 
 // Filter design tool: http://sim.okawa-denshi.jp/en/CRtool.php
 
@@ -24,41 +26,38 @@ namespace CircuitTests
         }
 
         public static void RunTest(Simulation S, Expression VS, int N, string Name)
-        {
+        {   
+            // Compile the VS expression for speed.
+            Func<double, double> VS_ = VS.Compile<Func<double, double>>(Component.t).Compile();
+            
             double t0 = (double)S.t;
-
-            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-
+            
             Dictionary<Expression, double[]> input = new Dictionary<Expression, double[]>();
             double[] vs = new double[N];
-            for (int n = 0; n < N; ++n)
-                vs[n] = (float)VS.Evaluate(Component.t, n * S.T);
+            for (int n = 0; n < vs.Length; ++n)
+                vs[n] = VS_(n * (double)S.T);
             input.Add("VS[t]", vs);
 
             Dictionary<Expression, double[]> output = new Dictionary<Expression, double[]>();
-            double[] vout = new double[N];
+            double[] vout = new double[vs.Length];
             output.Add("Vo[t]", vout);
-
-            //timer.Start();
-            //S.Process(N, input, output);
-            //for (int n = 0; n < N; ++n)
-            //    Data.WriteLine("{0}\t{1}", vs[n], vout[n]);
-
-            // Ensure that the expression is compiled before benchmarking.
+            
+            // Ensure that the simulation is compiled before benchmarking.
             S.Process(1, input, output);
             S.Reset();
 
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             timer.Start();
-            S.Process(N, input, output);
+            S.Process(vs.Length, input, output);
             timer.Stop();
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
-                plots.Add(i.Key, i.Value.Select((j, n) => Arrow.New(n * S.T, j)).ToList());
+                plots.Add(i.Key, i.Value.Take(5000).Select((j, n) => Arrow.New(n * S.T, j)).ToList());
 
-            System.Console.WriteLine("Run: {0} ms ({1}x)", timer.ElapsedMilliseconds, (N * (double)S.T) / ((double)timer.ElapsedMilliseconds / 1000.0));
+            System.Console.WriteLine("Run: {0}x", (N * (double)S.T) / ((double)timer.ElapsedMilliseconds / 1000.0));
 
-            Plot p = new Plot(Name, 400, 400, t0, -3.0, (double)S.t, 3.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
+            Plot p = new Plot(Name, 400, 400, t0, -3.0, (double)S.T * 5000, 3.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
         }
 
         public void Run()
@@ -70,7 +69,7 @@ namespace CircuitTests
             System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
 
             // Run a sine wave through the circuit.
-            RunTest(S, "Sin[t*100*2*3.1415]", 48000 / 10, name);
+            RunTest(S, "Sin[t*100*2*3.1415]", 48000 * 100, name);
             // Run 1V DC through the circuit.
             //RunTest(S, "1", 1000, name);
         }
