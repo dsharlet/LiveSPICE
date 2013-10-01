@@ -66,7 +66,7 @@ namespace SyMath
                 case Operator.Inverse: return LinqExpression.Divide(LinqExpression.Constant(1.0), o);
                 case Operator.Not: return LinqExpression.Not(o);
 
-                default: throw new InvalidOperationException("Unsupported unary operator");
+                default: throw new NotImplementedException("Unsupported unary operator");
             }
         }
 
@@ -92,7 +92,7 @@ namespace SyMath
                 case Operator.Less: return LinqExpression.LessThan(l, r);
                 case Operator.LessEqual: return LinqExpression.LessThanOrEqual(l, r);
 
-                default: throw new InvalidOperationException("Unsupported binary operator.");
+                default: throw new NotImplementedException("Unsupported binary operator.");
             }
         }
 
@@ -108,7 +108,10 @@ namespace SyMath
 
         protected override LinqExpression VisitCall(Call F)
         {
-            return F.Target.Compile(F.Arguments.Select(i => Visit(i)));
+            if (F.Target.CanCall(F.Arguments))
+                return F.Target.Compile(F.Arguments.Select(i => Visit(i)));
+            else
+                throw new InvalidOperationException("Call cannot be resolved.");
         }
 
         protected override LinqExpression VisitVariable(Variable V)
@@ -118,7 +121,7 @@ namespace SyMath
 
         protected override LinqExpression VisitUnknown(Expression E)
         {
-            throw new InvalidOperationException("Unsupported expression type.");
+            throw new NotImplementedException("Unsupported expression type.");
         }
     }
 
