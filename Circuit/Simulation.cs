@@ -94,7 +94,7 @@ namespace Circuit
             step.AddRange(linear);
             // Substitute the solutions found.
             f = f.Evaluate(linear).OfType<Equal>().ToList();
-            y.RemoveAll(i => step.Find(j => j.Left.Equals(i)) != null);
+            y.RemoveAll(i => step.Any(j => j.Left.Equals(i)));
             
             // Solve for any non-differential functions remaining and substitute them into the system.
             List<Arrow> nondifferential = f.Where(i => !i.IsFunctionOf(dydt)).Solve(y);
@@ -105,7 +105,7 @@ namespace Circuit
             // Replace differentials with approximations.
             f = f.Evaluate(y.Select(i => Arrow.New(D(i, t), (i - i.Evaluate(t, t0)) / h))).Cast<Equal>().ToList();
             f = f.Evaluate(differentials).OfType<Equal>().ToList();
-            y.RemoveAll(i => step.Find(j => j.Left.Equals(i)) != null);
+            y.RemoveAll(i => step.Any(j => j.Left.Equals(i)));
 
             // Try solving for numerical solutions.
             List<Arrow> nonlinear = f.NSolve(y.Select(i => Arrow.New(i, i.Evaluate(t, t0))), iterations);
