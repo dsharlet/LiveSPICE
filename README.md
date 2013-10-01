@@ -7,3 +7,5 @@ This project is an attempt to simulate audio circuits in a SPICE style applicati
 audio devices attached to the computer, with minimial latency. 
 
 Currently, the project is capable of simulating small, simple circuits in real time.
+
+Currently the only tested audio input device is a Rocksmith guitar cable.
