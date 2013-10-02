@@ -90,7 +90,7 @@ namespace Circuit
             // Try solving for y algebraically.
             List<Arrow> linear = f.Solve(y);
             // Only accept independent solutions.
-            linear.RemoveAll(i => i.Right.IsFunctionOf(dydt.Append(i.Left)));
+            linear.RemoveAll(i => i.Right.IsFunctionOf(i.Left) || i.Right.IsFunctionOf(dydt));
             step.AddRange(linear);
             // Substitute the solutions found.
             f = f.Evaluate(linear).OfType<Equal>().ToList();
