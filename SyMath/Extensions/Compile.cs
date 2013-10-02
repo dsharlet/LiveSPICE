@@ -202,7 +202,7 @@ namespace SyMath
 
 
         public static float Abs(float x) { return x < 0.0f ? -x : x; }
-        public static float Sign(float x) { return x < 0.0f ? -1 : 1; }
+        public static float Sign(float x) { return x < 0.0f ? -1.0f : 1.0f; }
 
         public static float Sin(float x) { return (float)System.Math.Sin(x); }
         public static float Cos(float x) { return (float)System.Math.Cos(x); }
