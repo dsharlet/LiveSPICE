@@ -28,7 +28,7 @@ namespace CircuitTests
         public static void RunTest(Simulation S, Function VS, int N, string Name)
         {   
             // Compile the VS expression for speed.
-            Func<double, double> VS_ = VS.Compile<Func<double, double>>().Compile();
+            Func<double, double> VS_ = VS.Compile<Func<double, double>>();
             
             double t0 = (double)S.t;
             

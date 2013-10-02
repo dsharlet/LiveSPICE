@@ -79,7 +79,7 @@ namespace SyMath
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public LinqExpressions.Expression<T> Compile<T>(IEnumerable<Type> Libraries)
+        public T Compile<T>(IEnumerable<Type> Libraries)
         {
             Dictionary<Expression, LinqExpression> map = new Dictionary<Expression, LinqExpression>();
             List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
@@ -93,10 +93,10 @@ namespace SyMath
             
             return LinqExpression.Lambda<T>(
                 Call(Parameters).Compile(map, Libraries),
-                parameters);
+                parameters).Compile();
         }
 
-        public LinqExpressions.Expression<T> Compile<T>() { return Compile<T>(null); }
+        public T Compile<T>() { return Compile<T>(null); }
 
         /// <summary>
         /// Substitute the variables into the expressions.
