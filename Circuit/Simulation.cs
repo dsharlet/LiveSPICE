@@ -349,17 +349,24 @@ namespace Circuit
                             body.Add(LinqExpression.Assign(pt0, vt));
                         });
 
-                    // Store output samples.
+                    // Store output samples, NaN if the output expression doesn't compile.
                     foreach (Expression i in Output)
                     {
-                        Node ni;
-                        nodes.TryGetValue(i, out ni);
+                        LinqExpression oi;
+                        try 
+                        { 
+                            oi = i.Evaluate(Component.t, t0).Compile(v); 
+                        }
+                        catch (CompileException) 
+                        { 
+                            oi = LinqExpression.Constant(double.NaN); 
+                        }
                         body.Add(LinqExpression.Assign(
                             LinqExpression.MakeIndex(
                                 buffers[i],
                                 typeof(double[]).GetProperty("Item"),
                                 new LinqExpression[] { vn }),
-                            ni != null ? ni.VExpr : LinqExpression.Constant(double.NaN)));
+                            oi));
                     }
                 });
             

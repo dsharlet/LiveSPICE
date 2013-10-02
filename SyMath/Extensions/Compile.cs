@@ -8,7 +8,15 @@ using LinqExpressions = System.Linq.Expressions;
 using LinqExpression = System.Linq.Expressions.Expression;
 
 namespace SyMath
-{    
+{
+    /// <summary>
+    /// Exception class for compiler errors.
+    /// </summary>
+    public class CompileException : Exception
+    {
+        public CompileException(string Message, Exception Inner) : base(Message, Inner) { }
+    }
+
     /// <summary>
     /// Visitor to translate Expression to System.Linq.Expressions.Expression.
     /// </summary>
@@ -144,7 +152,14 @@ namespace SyMath
             if (Libraries == null)
                 Libraries = new Type[] { typeof(StandardMath) };
 
-            return new CompileVisitor(Map, Libraries).Visit(This);
+            try
+            {
+                return new CompileVisitor(Map, Libraries).Visit(This);
+            }
+            catch (System.Exception Ex)
+            {
+                throw new CompileException("Exception compiling expression", Ex);
+            }
         }
 
         public static LinqExpression Compile(this Expression This, IDictionary<Expression, LinqExpression> Map)
