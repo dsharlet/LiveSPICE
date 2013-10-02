@@ -270,137 +270,161 @@ namespace Circuit
             List<LinqExpressions.ParameterExpression> locals = new List<LinqExpressions.ParameterExpression>();
 
             // Create parameters for the basic simulation info (N, t, T).
-            LinqExpressions.ParameterExpression pN = LinqExpression.Parameter(typeof(int), "N");
-            parameters.Add(pN);
-
-            LinqExpressions.ParameterExpression pt0 = LinqExpression.Parameter(typeof(double), "t0");
-            parameters.Add(pt0);
-            v[t0] = pt0;
-
-            LinqExpressions.ParameterExpression pT = LinqExpression.Parameter(typeof(double), "T");
-            parameters.Add(pT);
-            v[Component.T] = pT;
+            LinqExpressions.ParameterExpression pN = Declare<int>(parameters, "N");
+            LinqExpressions.ParameterExpression pt0 = Declare<double>(parameters, v, t0);
+            LinqExpressions.ParameterExpression pT = Declare<double>(parameters, v, Component.T);
 
             // Create buffer parameters for each input, output.
             foreach (Expression i in Input.Concat(Output))
-            {
-                LinqExpressions.ParameterExpression arg = LinqExpression.Parameter(typeof(double[]), i.ToString());
-                parameters.Add(arg);
-                buffers[i] = arg;
-            }
+                Declare<double[]>(parameters, buffers, i);
 
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
-            {
-                LinqExpressions.ParameterExpression arg = LinqExpression.Parameter(typeof(double), i.ToString());
-                parameters.Add(arg);
-                v[i] = arg;
-            }
+                Declare<double>(parameters, v, i);
             
             // Define lambda body.
 
-            // t = t0
-            LinqExpressions.ParameterExpression vt = LinqExpression.Variable(typeof(double), "t");
+            // double t = t0
+            LinqExpressions.ParameterExpression vt = Declare<double>(locals, v, Component.t);
             body.Add(LinqExpression.Assign(vt, pt0));
-            locals.Add(vt);
-            v[Component.t] = vt;
+
+            // for (int n = 0; n < N; ++n)
+            LinqExpressions.ParameterExpression vn = Declare<int>(locals, "n");
+            For("forN", body,
+                () => body.Add(LinqExpression.Assign(vn, LinqExpression.Constant(0))),
+                LinqExpression.LessThan(vn, pN),
+                () => body.Add(LinqExpression.PreIncrementAssign(vn)),
+                () =>
+                {
+                    // Prepare input samples for oversampling interpolation.
+                    Dictionary<Expression, LinqExpression> dinput = new Dictionary<Expression, LinqExpression>();
+                    foreach (Expression i in Input)
+                    {
+                        // Ensure that we have a global variable to store the previous sample in.
+                        globals[i] = new GlobalExpr<double>(0.0);
+                        LinqExpression va = globals[i].Expr;
+                        LinqExpression vb = LinqExpression.MakeIndex(
+                            buffers[i],
+                            typeof(double[]).GetProperty("Item"),
+                            new LinqExpression[] { vn });
+
+                        // double vi = va
+                        LinqExpressions.ParameterExpression vi = Declare<double>(locals, v, i, i.ToString() + "_i");
+                        body.Add(LinqExpression.Assign(vi, va));
+
+                        // Compute the delta for the sample per oversample iteration: (vb - va) / Oversample.
+                        LinqExpressions.ParameterExpression dinputi = Declare<double>(locals, dinput, i, "d" + i.ToString());
+                        body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, va), LinqExpression.Constant((double)Oversample))));
+
+                        // va = vb
+                        body.Add(LinqExpression.Assign(va, vb));
+
+                        // If i isn't a node, just make a dummy expression for the previous timestep. 
+                        // This might be able to be removed with an improved system solver that doesn't create references to i[t0] when i is not a node.
+                        if (!nodes.ContainsKey(i))
+                            v[i.Evaluate(Component.t, t0)] = v[i];
+                    }
+
+                    // for (int ov = Oversample; ov > 0; --ov)
+                    LinqExpressions.ParameterExpression ov = Declare<int>(locals, "ov");
+                    For("forOv", body, 
+                        () => body.Add(LinqExpression.Assign(ov, LinqExpression.Constant(Oversample))),
+                        LinqExpression.GreaterThan(ov, LinqExpression.Constant(0)),
+                        () => body.Add(LinqExpression.PreDecrementAssign(ov)),
+                        () => 
+                        {
+                            // t += T
+                            body.Add(LinqExpression.AddAssign(vt, pT));
+
+                            // Interpolate the input functions.
+                            foreach (Expression i in Input)
+                                body.Add(LinqExpression.AddAssign(v[i], dinput[i]));
+
+                            // Compile step expressions and assign to the node state.
+                            // TODO: Skip nodes that have input values? Does that ever happen?
+                            foreach (KeyValuePair<Expression, Node> i in nodes)
+                                body.Add(LinqExpression.Assign(i.Value.VExpr, i.Value.Step.Compile(v)));
+
+                            // t0 = t
+                            body.Add(LinqExpression.Assign(pt0, vt));
+                        });
+
+                    // Store output samples.
+                    foreach (Expression i in Output)
+                    {
+                        Node ni;
+                        nodes.TryGetValue(i, out ni);
+                        body.Add(LinqExpression.Assign(
+                            LinqExpression.MakeIndex(
+                                buffers[i],
+                                typeof(double[]).GetProperty("Item"),
+                                new LinqExpression[] { vn }),
+                            ni != null ? ni.VExpr : LinqExpression.Constant(double.NaN)));
+                    }
+                });
             
-            // N for loop header.
-            LinqExpressions.ParameterExpression vn = LinqExpression.Variable(typeof(int), "n");
-            locals.Add(vn);
-            // n = 0
-            body.Add(LinqExpression.Assign(vn, LinqExpression.Constant(0)));
-            LinqExpressions.LabelTarget forN = LinqExpression.Label("forN");
-            body.Add(LinqExpression.Label(forN));
-            // if (n > N) return t
-            body.Add(LinqExpression.IfThen(
-                LinqExpression.GreaterThanOrEqual(vn, pN),
-                LinqExpression.Return(returnTo, vt, typeof(double))));
-
-            // N for loop body.
-
-            // Prepare input samples.
-            Dictionary<Expression, LinqExpression> dinput = new Dictionary<Expression, LinqExpression>();
-            foreach (Expression i in Input)
-            {
-                // Ensure that we have a global variable to store the previous sample in.
-                globals[i] = new GlobalExpr<double>(0.0);
-                LinqExpression va = globals[i].Expr;
-                LinqExpression vb = LinqExpression.MakeIndex(
-                    buffers[i], 
-                    typeof(double[]).GetProperty("Item"), 
-                    new LinqExpression[] { vn });
-
-                // Create a temporary local variable for the interpolated sample.
-                LinqExpressions.ParameterExpression vi = LinqExpression.Variable(typeof(double), i.ToString() + "_i");
-                locals.Add(vi);
-                v[i] = vi;
-                // vi = va
-                body.Add(LinqExpression.Assign(vi, va));
-                
-                // Compute the delta for the sample per oversample iteration: (vb - va) / Oversample.
-                LinqExpressions.ParameterExpression dinputi = LinqExpression.Variable(typeof(double), "d" + i.ToString());
-                locals.Add(dinputi);
-                dinput[i] = dinputi;
-                body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, va), LinqExpression.Constant((double)Oversample))));
-
-                // va = vb
-                body.Add(LinqExpression.Assign(va, vb));
-
-                // If i isn't a node, just make a dummy expression for the previous timestep. 
-                // This might be able to be removed with an improved system solver that doesn't create references to i[t0] when i is not a node.
-                if (!nodes.ContainsKey(i))
-                    v[i.Evaluate(Component.t, t0)] = v[i];
-            }
-
-            // Oversampling loop header.
-            LinqExpressions.ParameterExpression ov = LinqExpression.Variable(typeof(int), "ov");
-            locals.Add(ov);
-            body.Add(LinqExpression.Assign(ov, LinqExpression.Constant(Oversample)));
-            LinqExpressions.LabelTarget forOv = LinqExpression.Label("forOv");
-            body.Add(LinqExpression.Label(forOv));
-
-            // t += T
-            body.Add(LinqExpression.AddAssign(vt, pT));
-            
-            // Interpolate the input functions.
-            foreach (Expression i in Input)
-                body.Add(LinqExpression.AddAssign(v[i], dinput[i]));
-
-            // Compile step expressions and assign to the node state.
-            // TODO: Skip nodes that have input values? Does that ever happen?
-            foreach (KeyValuePair<Expression, Node> i in nodes)
-                body.Add(LinqExpression.Assign(i.Value.VExpr, i.Value.Step.Compile(v)));
-
-            // t0 = t
-            body.Add(LinqExpression.Assign(pt0, vt));
-
-            // if (--ov > 0) goto forOv
-            body.Add(LinqExpression.IfThen(
-                LinqExpression.GreaterThan(LinqExpression.PreDecrementAssign(ov), LinqExpression.Constant(0)),
-                LinqExpression.Goto(forOv)));
-            
-            // Store output samples.
-            foreach (Expression i in Output)
-            {
-                Node n;
-                nodes.TryGetValue(i, out n);
-                body.Add(LinqExpression.Assign(
-                    LinqExpression.MakeIndex(
-                        buffers[i],
-                        typeof(double[]).GetProperty("Item"),
-                        new LinqExpression[] { vn }),
-                    n != null ? n.VExpr : LinqExpression.Constant(double.NaN)));
-            }
-
-            // ++n
-            body.Add(LinqExpression.PreIncrementAssign(vn));
-
-            // goto forN
-            body.Add(LinqExpression.Goto(forN));
-            
+            body.Add(LinqExpression.Return(returnTo, vt, typeof(double)));
             body.Add(LinqExpression.Label(returnTo, vt));
             return LinqExpression.Lambda(LinqExpression.Block(locals, body), parameters);
+        }
+
+        private void For(
+            string Name,
+            IList<LinqExpression> Target,
+            Action Init,
+            LinqExpression Condition,
+            Action Step,
+            Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body)
+        {
+            LinqExpressions.LabelTarget begin = LinqExpression.Label(Name + "_begin");
+            LinqExpressions.LabelTarget end = LinqExpression.Label(Name + "_end");
+
+            // Generate the init code.
+            Init();
+
+            // Check the condition, exit if necessary.
+            Target.Add(LinqExpression.Label(begin));
+            Target.Add(LinqExpression.IfThen(LinqExpression.Not(Condition), LinqExpression.Goto(end)));
+
+            // Generate the body code.
+            Body(end, begin);
+
+            // Generate the step code.
+            Step();
+            Target.Add(LinqExpression.Goto(begin));
+
+            // Exit point.
+            Target.Add(LinqExpression.Label(end));
+        }
+
+        private void For(
+            string Name,
+            IList<LinqExpression> Target,
+            Action Init,
+            LinqExpression Condition,
+            Action Step,
+            Action Body)
+        {
+            For(Name, Target, Init, Condition, Step, (x, y) => Body());
+        }
+
+        private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr, string Name)
+        {
+            LinqExpressions.ParameterExpression p = LinqExpression.Parameter(typeof(T), Name);
+            Scope.Add(p);
+            if (Map != null)
+                Map.Add(Expr, p);
+            return p;
+        }
+
+        private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr)
+        {
+            return Declare<T>(Scope, Map, Expr, Expr.ToString());
+        }
+
+        private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, string Name)
+        {
+            return Declare<T>(Scope, null, null, Name);
         }
 
         // Shorthand for df/dx.
