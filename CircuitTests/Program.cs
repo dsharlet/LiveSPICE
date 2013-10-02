@@ -25,10 +25,10 @@ namespace CircuitTests
             circuit = Circuit;
         }
 
-        public static void RunTest(Simulation S, Expression VS, int N, string Name)
+        public static void RunTest(Simulation S, Function VS, int N, string Name)
         {   
             // Compile the VS expression for speed.
-            Func<double, double> VS_ = VS.Compile<Func<double, double>>(Component.t).Compile();
+            Func<double, double> VS_ = VS.Compile<Func<double, double>>().Compile();
             
             double t0 = (double)S.t;
             
@@ -69,7 +69,7 @@ namespace CircuitTests
             System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
 
             // Run a sine wave through the circuit.
-            RunTest(S, "Sin[t*100*2*3.1415]", 48000 * 100, name);
+            RunTest(S, ExprFunction.New("VS", "Sin[t*100*2*3.1415]", Component.t), 48000 * 100, name);
             // Run 1V DC through the circuit.
             //RunTest(S, "1", 1000, name);
         }
@@ -79,8 +79,7 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
-            //ToneStack(Test.VSt).Run();
-            //MinimalMixedSystem("Sin[t*100]").Run();
+            //MinimalMixedSystem(Test.VSt).Run();
             PassiveLowPass("Sin[t*100]").Run();
             VoltageDivider(Test.VSt).Run();
             NonInvertingAmplifier(Test.VSt).Run();
@@ -89,6 +88,7 @@ namespace CircuitTests
             PassiveLowPass(Test.VSt).Run();
             ActiveLowPass(Test.VSt).Run();
             PassiveSecondOrderLowpassRC(Test.VSt).Run();
+            //ToneStack(Test.VSt).Run();
             //Triode(Test.VSt).Run();
             //PassiveSecondOrderLowpassRLC(Test.VSt).Run();
             //DiodeHalfClipper(Test.VSt).Run();

@@ -40,9 +40,17 @@ namespace SyMath
             return !ReferenceEquals(body, null);
         }
 
-        public override LinqExpression Compile(IEnumerable<LinqExpression> Args)
+        public override LinqExpression CompileCall(IEnumerable<LinqExpression> Args, IEnumerable<Type> Libraries)
         {
-            return body.Compile(parameters.Zip(Args, (i, j) => new { i, j }).ToDictionary(i => (Expression)i.i, i => i.j));
+            // Try using the base first, which will call a function from one of the libraries if possible. 
+            try
+            {
+                return base.CompileCall(Args, Libraries);
+            }
+            catch (System.Exception)
+            {
+                return body.Compile(parameters.Zip(Args, (i, j) => new { i, j }).ToDictionary(i => (Expression)i.i, i => i.j), Libraries);
+            }
         }
     }
 }

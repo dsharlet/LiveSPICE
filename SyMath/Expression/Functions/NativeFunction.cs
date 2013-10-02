@@ -16,22 +16,7 @@ namespace SyMath
     {
         public NoSubstitute() { }
     }
-
-    /// <summary>
-    /// Attribute to identify the method to call for compilation.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public class CompileTarget : Attribute
-    {
-        private MethodInfo target;
-
-        public CompileTarget(MethodInfo Target) { target = Target; }
-        public CompileTarget(Delegate Target) { target = Target.Method; }
-        public CompileTarget(Type T, string Name) { target = T.GetMethod(Name); }
-
-        public MethodInfo Target { get { return target; } }
-    }
-
+    
     /// <summary>
     /// Function defined by a native function.
     /// </summary>
@@ -96,15 +81,7 @@ namespace SyMath
             else
                 return SyMath.Substitute.New(C, late.Count > 1 ? (Expression)Set.New(late) : late.Single());
         }
-
-        public override LinqExpression Compile(IEnumerable<LinqExpression> Args)
-        {
-            CompileTarget compiled = method.GetCustomAttribute<CompileTarget>();
-            if (compiled != null)
-                return LinqExpression.Call(compiled.Target, Args);
-            throw new NotImplementedException("Cannot compile method " + Name);
-        }
-
+        
         public override bool Equals(Expression E)
         {
             NativeFunction F = E as NativeFunction;

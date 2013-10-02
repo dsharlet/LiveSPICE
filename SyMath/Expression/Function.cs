@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Reflection;
 using LinqExpression = System.Linq.Expressions.Expression;
 using LinqExpressions = System.Linq.Expressions;
 
@@ -37,22 +38,65 @@ namespace SyMath
         public virtual bool CanCall() { return true; }
 
         /// <summary>
-        /// Compile function call.
+        /// Compile a call to this function to a native function call.
         /// </summary>
         /// <param name="Args"></param>
+        /// <param name="Libraries"></param>
         /// <returns></returns>
-        public virtual LinqExpression Compile(IEnumerable<LinqExpression> Args) { throw new NotImplementedException("Cannot compile function " + Name + " of type " + GetType().FullName); }
+        public virtual LinqExpression CompileCall(IEnumerable<LinqExpression> Args, IEnumerable<Type> Libraries)
+        {
+            // Get the types of the compiled arguments.
+            Type[] types = Args.Select(i => i.Type).ToArray();
+
+            // Find a method with the same name and matching arguments.
+            MethodInfo method = null;
+            foreach (Type i in Libraries)
+            {
+                // If the method is not found, check the base type.
+                for (Type t = i; t != null; t = t.BaseType)
+                {
+                    MethodInfo m = t.GetMethod(Name, BindingFlags.Static | BindingFlags.Public, null, types, null);
+                    if (m != null)
+                    {
+                        // If we already found a method, throw ambiguous.
+                        if (method != null)
+                            throw new AmbiguousMatchException(Name);
+                        method = m;
+                        break;
+                    }
+                }
+            }
+
+            // Generate a call to the found method.
+            if (method != null)
+                return LinqExpression.Call(method, Args);
+            else
+                throw new InvalidOperationException("Could not find method for function '" + Name + "'");
+        }
 
         /// <summary>
         /// Compile function to a lambda.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public LinqExpressions.Expression<T> Compile<T>() 
-        { 
-            IEnumerable<Expression> Args = Parameters.Select((i, j) => Variable.New("x" + j.ToString()));
-            return Call(Args).Compile<T>(Args);
+        public LinqExpressions.Expression<T> Compile<T>(IEnumerable<Type> Libraries)
+        {
+            Dictionary<Expression, LinqExpression> map = new Dictionary<Expression, LinqExpression>();
+            List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
+
+            foreach (Variable i in Parameters)
+            {
+                LinqExpressions.ParameterExpression p = LinqExpression.Parameter(typeof(double), i.Name);
+                map.Add(i, p);
+                parameters.Add(p);
+            }
+            
+            return LinqExpression.Lambda<T>(
+                Call(Parameters).Compile(map, Libraries),
+                parameters);
         }
+
+        public LinqExpressions.Expression<T> Compile<T>() { return Compile<T>(null); }
 
         /// <summary>
         /// Substitute the variables into the expressions.
