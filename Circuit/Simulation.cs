@@ -378,8 +378,8 @@ namespace Circuit
             Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body)
         {
             string name = Target.Count.ToString();
-            LinqExpressions.LabelTarget begin = LinqExpression.Label(name + "_begin");
-            LinqExpressions.LabelTarget end = LinqExpression.Label(name + "_end");
+            LinqExpressions.LabelTarget begin = LinqExpression.Label("for_" + name + "_begin");
+            LinqExpressions.LabelTarget end = LinqExpression.Label("for_" + name + "_end");
 
             // Generate the init code.
             Init();
@@ -408,6 +408,71 @@ namespace Circuit
             Action Body)
         {
             For(Target, Init, Condition, Step, (x, y) => Body());
+        }
+
+        // Generate a while loop given the condition and body expressions.
+        private void While(
+            IList<LinqExpression> Target,
+            LinqExpression Condition,
+            Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body)
+        {
+            string name = Target.Count.ToString();
+            LinqExpressions.LabelTarget begin = LinqExpression.Label("while_" + name + "_begin");
+            LinqExpressions.LabelTarget end = LinqExpression.Label("while_" + name + "_end");
+
+            // Check the condition, exit if necessary.
+            Target.Add(LinqExpression.Label(begin));
+            Target.Add(LinqExpression.IfThen(LinqExpression.Not(Condition), LinqExpression.Goto(end)));
+
+            // Generate the body code.
+            Body(end, begin);
+
+            // Loop.
+            Target.Add(LinqExpression.Goto(begin));
+
+            // Exit label.
+            Target.Add(LinqExpression.Label(end));
+        }
+
+        // Generate a while loop given the condition and body expressions.
+        private void While(
+            IList<LinqExpression> Target,
+            LinqExpression Condition,
+            Action Body)
+        {
+            While(Target, Condition, (x, y) => Body());
+        }
+
+        // Generate a do-while loop given the condition and body expressions.
+        private void DoWhile(
+            IList<LinqExpression> Target,
+            Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body,
+            LinqExpression Condition)
+        {
+            string name = Target.Count.ToString();
+            LinqExpressions.LabelTarget begin = LinqExpression.Label("do_" + name + "_begin");
+            LinqExpressions.LabelTarget end = LinqExpression.Label("do_" + name + "_end");
+
+            // Check the condition, exit if necessary.
+            Target.Add(LinqExpression.Label(begin));
+
+            // Generate the body code.
+            Body(end, begin);
+
+            // Loop.
+            Target.Add(LinqExpression.IfThen(Condition, LinqExpression.Goto(begin)));
+
+            // Exit label.
+            Target.Add(LinqExpression.Label(end));
+        }
+
+        // Generate a do-while loop given the condition and body expressions.
+        private void DoWhile(
+            IList<LinqExpression> Target,
+            Action Body,
+            LinqExpression Condition)
+        {
+            DoWhile(Target, (x, y) => Body(), Condition);
         }
 
         private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr, string Name)
