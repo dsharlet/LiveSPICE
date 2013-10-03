@@ -23,7 +23,20 @@ namespace SyMath
             m = new Expression[M, N];
             for (int i = 0; i < M; ++i)
                 for (int j = 0; j < N; ++j)
-                    m[i, j] = M == N && i == j ? Constant.One : Constant.Zero;
+                    m[i, j] = Constant.Zero;
+        }
+
+        /// <summary>
+        /// Create an NxN identity matrix.
+        /// </summary>
+        /// <param name="M"></param>
+        /// <param name="N"></param>
+        public Matrix(int N)
+        {
+            m = new Expression[N, N];
+            for (int i = 0; i < N; ++i)
+                for (int j = 0; j < N; ++j)
+                    m[i, j] = i == j ? Constant.One : Constant.Zero;
         }
 
         public Matrix(Matrix Clone)
@@ -33,13 +46,7 @@ namespace SyMath
                 for (int j = 0; j < N; ++j)
                     m[i, j] = Clone[i, j];
         }
-
-        /// <summary>
-        /// Create a square identity matrix.
-        /// </summary>
-        /// <param name="N"></param>
-        public Matrix(int N) : this(N, N) { }
-
+        
         public int M { get { return m.GetLength(0); } }
         public int N { get { return m.GetLength(1); } }
 
