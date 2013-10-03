@@ -222,38 +222,15 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            d = CompileProcess(Input, Output, Parameters).Compile();
+            d = DefineProcessFunction(Input, Output, Parameters).Compile();
             compiled[hash] = d;
             return d;
         }
         
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
-        //  double f (int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
-        //  {
-        //      double t = t0;
-        //      for (int n = 0; n < N; ++n)
-        //      {
-        //          in0 = oldIn0
-        //          din0 = (Input0[n] - oldIn0) / Oversample
-        //          oldIn0 = Input0[n]
-        //          ...
-        //          for (int ov = Oversample; ov > 0; --ov)
-        //          {
-        //              t += T
-        //              in0 += din0
-        //              ...
-        //
-        //              foreach (Node i in nodes)
-        //                  i.V = i.step()
-        //
-        //              t0 = t
-        //          }
-        //          Output0[n] = Nodes[Output0].V
-        //          ...
-        //
-        //      }
-        //  }
-        private LinqExpressions.LambdaExpression CompileProcess(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
+        //  double Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
+        //  { ... }
+        private LinqExpressions.LambdaExpression DefineProcessFunction(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             // Map expressions to identifiers in the syntax tree.
             Dictionary<Expression, LinqExpression> v = new Dictionary<Expression, LinqExpression>();
@@ -264,20 +241,17 @@ namespace Circuit
                 v[i.Key.Evaluate(Component.t, t0)] = i.Value.VExpr;
 
             // Lambda definition objects.
-            LinqExpressions.LabelTarget returnTo = LinqExpression.Label(typeof(double));
             List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
-            List<LinqExpression> body = new List<LinqExpression>();
             List<LinqExpressions.ParameterExpression> locals = new List<LinqExpressions.ParameterExpression>();
+            List<LinqExpression> body = new List<LinqExpression>();
 
             // Create parameters for the basic simulation info (N, t, T).
             LinqExpressions.ParameterExpression pN = Declare<int>(parameters, "N");
             LinqExpressions.ParameterExpression pt0 = Declare<double>(parameters, v, t0);
             LinqExpressions.ParameterExpression pT = Declare<double>(parameters, v, Component.T);
-
             // Create buffer parameters for each input, output.
             foreach (Expression i in Input.Concat(Output))
                 Declare<double[]>(parameters, buffers, i);
-
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
                 Declare<double>(parameters, v, i);
@@ -290,7 +264,7 @@ namespace Circuit
 
             // for (int n = 0; n < N; ++n)
             LinqExpressions.ParameterExpression vn = Declare<int>(locals, "n");
-            For("forN", body,
+            For(body,
                 () => body.Add(LinqExpression.Assign(vn, LinqExpression.Constant(0))),
                 LinqExpression.LessThan(vn, pN),
                 () => body.Add(LinqExpression.PreIncrementAssign(vn)),
@@ -305,15 +279,15 @@ namespace Circuit
                         LinqExpression va = globals[i].Expr;
                         LinqExpression vb = LinqExpression.MakeIndex(
                             buffers[i],
-                            typeof(double[]).GetProperty("Item"),
+                            buffers[i].Type.GetProperty("Item"),
                             new LinqExpression[] { vn });
 
-                        // double vi = va
+                        // double v_i = va
                         LinqExpressions.ParameterExpression vi = Declare<double>(locals, v, i, i.ToString() + "_i");
                         body.Add(LinqExpression.Assign(vi, va));
 
-                        // Compute the delta for the sample per oversample iteration: (vb - va) / Oversample.
-                        LinqExpressions.ParameterExpression dinputi = Declare<double>(locals, dinput, i, "d" + i.ToString());
+                        // d_i (vb - va) / Oversample.
+                        LinqExpressions.ParameterExpression dinputi = Declare<double>(locals, dinput, i, "d_" + i.ToString());
                         body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, va), LinqExpression.Constant((double)Oversample))));
 
                         // va = vb
@@ -325,9 +299,18 @@ namespace Circuit
                             v[i.Evaluate(Component.t, t0)] = v[i];
                     }
 
+                    // Prepare output sample accumulators for low pass filtering.
+                    Dictionary<Expression, LinqExpression> output = new Dictionary<Expression, LinqExpression>();
+                    foreach (Expression i in Output)
+                    {
+                        // i_o = 0
+                        LinqExpression s = Declare<double>(locals, output, i, i.ToString() + "_o");
+                        body.Add(LinqExpression.Assign(s, LinqExpression.Constant(0.0)));
+                    }
+
                     // for (int ov = Oversample; ov > 0; --ov)
                     LinqExpressions.ParameterExpression ov = Declare<int>(locals, "ov");
-                    For("forOv", body, 
+                    For(body, 
                         () => body.Add(LinqExpression.Assign(ov, LinqExpression.Constant(Oversample))),
                         LinqExpression.GreaterThan(ov, LinqExpression.Constant(0)),
                         () => body.Add(LinqExpression.PreDecrementAssign(ov)),
@@ -336,55 +319,67 @@ namespace Circuit
                             // t += T
                             body.Add(LinqExpression.AddAssign(vt, pT));
 
-                            // Interpolate the input functions.
+                            // input_i += d_i
                             foreach (Expression i in Input)
                                 body.Add(LinqExpression.AddAssign(v[i], dinput[i]));
 
-                            // Compile step expressions and assign to the node state.
                             // TODO: Skip nodes that have input values? Does that ever happen?
                             foreach (KeyValuePair<Expression, Node> i in nodes)
+                            {
+                                // i.V = i.Step.Evaluate()
                                 body.Add(LinqExpression.Assign(i.Value.VExpr, i.Value.Step.Compile(v)));
+                                // After i.V is updated, add it to the map for future step expressions.
+                                v[i.Key] = i.Value.VExpr;
+                            }
 
                             // t0 = t
                             body.Add(LinqExpression.Assign(pt0, vt));
+
+                            // o_i += i.Evaluate()
+                            foreach (Expression i in Output)
+                                body.Add(LinqExpression.AddAssign(output[i], CompileOrNaN(i, v)));
                         });
 
-                    // Store output samples, NaN if the output expression doesn't compile.
+                    // Output[i][n] = o_i / Oversample
                     foreach (Expression i in Output)
-                    {
-                        LinqExpression oi;
-                        try 
-                        { 
-                            oi = i.Evaluate(Component.t, t0).Compile(v); 
-                        }
-                        catch (CompileException) 
-                        { 
-                            oi = LinqExpression.Constant(double.NaN); 
-                        }
                         body.Add(LinqExpression.Assign(
-                            LinqExpression.MakeIndex(
-                                buffers[i],
-                                typeof(double[]).GetProperty("Item"),
-                                new LinqExpression[] { vn }),
-                            oi));
-                    }
+                            LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { vn }),
+                            LinqExpression.Divide(output[i], LinqExpression.Constant((double)Oversample))));
                 });
             
-            body.Add(LinqExpression.Return(returnTo, vt, typeof(double)));
+            // return t
+            LinqExpressions.LabelTarget returnTo = LinqExpression.Label(vt.Type);
+            body.Add(LinqExpression.Return(returnTo, vt, vt.Type));
             body.Add(LinqExpression.Label(returnTo, vt));
+
+            // Put it all together.
             return LinqExpression.Lambda(LinqExpression.Block(locals, body), parameters);
         }
 
+        // Compile x to an expression, or NaN if compilation fails.
+        private static LinqExpression CompileOrNaN(Expression x, IDictionary<Expression, LinqExpression> v)
+        {
+            try
+            {
+                return x.Compile(v);
+            }
+            catch (CompileException)
+            {
+                return LinqExpression.Constant(double.NaN);
+            }
+        }
+
+        // Generate a for loop given the header and body expressions.
         private void For(
-            string Name,
             IList<LinqExpression> Target,
             Action Init,
             LinqExpression Condition,
             Action Step,
             Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body)
         {
-            LinqExpressions.LabelTarget begin = LinqExpression.Label(Name + "_begin");
-            LinqExpressions.LabelTarget end = LinqExpression.Label(Name + "_end");
+            string name = Target.Count.ToString();
+            LinqExpressions.LabelTarget begin = LinqExpression.Label(name + "_begin");
+            LinqExpressions.LabelTarget end = LinqExpression.Label(name + "_end");
 
             // Generate the init code.
             Init();
@@ -404,15 +399,15 @@ namespace Circuit
             Target.Add(LinqExpression.Label(end));
         }
 
+        // Generate a for loop given the header and body expressions.
         private void For(
-            string Name,
             IList<LinqExpression> Target,
             Action Init,
             LinqExpression Condition,
             Action Step,
             Action Body)
         {
-            For(Name, Target, Init, Condition, Step, (x, y) => Body());
+            For(Target, Init, Condition, Step, (x, y) => Body());
         }
 
         private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr, string Name)
