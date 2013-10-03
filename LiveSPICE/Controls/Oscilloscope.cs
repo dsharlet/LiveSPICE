@@ -140,7 +140,7 @@ namespace LiveSPICE
         }
 
         protected Dictionary<string, Signal> signals = new Dictionary<string,Signal>();
-        protected long shift;
+        protected long shift, delay;
         protected double Vmax;
 
         private Signal focus = null;
@@ -195,6 +195,7 @@ namespace LiveSPICE
 
                     t = S.Last;
                     signals.RemoveAll(i => i.Value.Last < t);
+                    delay = Samples.Length;
                 }
             }
             
@@ -233,7 +234,7 @@ namespace LiveSPICE
                     // Compute statistics of the clock signal.
                     lock (focus)
                     {
-                        shift = focus.Last;
+                        shift = focus.Last - delay;
 
                         peak = focus.Max(i => Math.Abs(i));
                         rms = Math.Sqrt(focus.Sum(i => i * i) / focus.Count);
