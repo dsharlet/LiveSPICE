@@ -5,6 +5,9 @@ using System.Text;
 
 namespace SyMath
 {
+    /// <summary>
+    /// Numerical methods for integration.
+    /// </summary>
     public enum IntegrationMethod
     {
         Euler,
@@ -45,46 +48,7 @@ namespace SyMath
 
             return Y;
         }
-
-        private static List<Arrow> NDSolve(this List<Equal> f, List<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method, int iterations)
-        {
-            // Find y' in terms of y.
-            List<Arrow> dydt = f.Solve(y.Select(i => D(i, t)));
-
-            // Euler step, used as an initial guess for other methods.
-            // y[t] = y[t0] + h*f[t0, y[t0]]
-            List<Arrow> step = dydt.Select(i => Arrow.New(
-                DOf(i.Left),
-                DOf(i.Left).Evaluate(t, t0) + h * i.Right.Evaluate(t, t0))).ToList();
-
-            switch (method)
-            {
-                case IntegrationMethod.Euler:
-                    break;
-                case IntegrationMethod.BackwardEuler:
-                    // Solve y[t] = y[t0] + h*f[t, y[t]] for y[t].
-                    step = NSolveExtension.NSolve(
-                        dydt.Select(i => Equal.New(
-                            DOf(i.Left),
-                            DOf(i.Left).Evaluate(t, t0) + h * i.Right)),
-                        step,
-                        iterations);
-                    break;
-                case IntegrationMethod.Trapezoid:
-                    // Solve y[t] = y[t0] + (h/2)*(f[t0, y[t0]] + f[t, y[t]]) for y[t].
-                    step = NSolveExtension.NSolve(
-                        dydt.Select(i => Equal.New(
-                            DOf(i.Left),
-                            DOf(i.Left).Evaluate(t, t0) + (h / 2) * (i.Right.Evaluate(t, t0) + i.Right))),
-                        step,
-                        iterations);
-                    break;
-                default:
-                    throw new NotImplementedException(method.ToString());
-            }
-            return step;
-        }
-
+        
         /// <summary>
         /// Solve a linear system of differential equations for y[t] at t = t0 + h in terms of y[t0].
         /// </summary>
@@ -94,11 +58,37 @@ namespace SyMath
         /// <param name="t0">Previous timestep.</param>
         /// <param name="h">Step size.</param>
         /// <param name="method">Integration method to use for differential equations.</param>
-        /// <param name="iterations">Iterations to use for numerical solutions.</param>
         /// <returns>Expressions for y[t0 + h].</returns>
-        public static List<Arrow> NDSolve(this IEnumerable<Equal> f, IEnumerable<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method, int iterations)
+        public static List<Arrow> NDSolve(this IEnumerable<Equal> f, IEnumerable<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method)
         {
-            return NDSolve(f.ToList(), y.ToList(), t, t0, h, method, iterations);
+            // TODO: y = y.ToList(); ?
+
+            // Find y' in terms of y.
+            List<Arrow> dydt = f.Solve(y.Select(i => D(i, t)));
+
+            switch (method)
+            {
+                // y[t] = y[t0] + h*f[t0, y[t0]]
+                case IntegrationMethod.Euler:
+                    return dydt.Select(i => Arrow.New(
+                        DOf(i.Left),
+                        DOf(i.Left).Evaluate(t, t0) + h * i.Right.Evaluate(t, t0))).ToList();
+
+                // Solve y[t] = y[t0] + h*f[t, y[t]] for y[t].
+                case IntegrationMethod.BackwardEuler:
+                    return dydt.Select(i => Equal.New(
+                            DOf(i.Left),
+                            DOf(i.Left).Evaluate(t, t0) + h * i.Right)).Solve(y);
+
+                // Solve y[t] = y[t0] + (h/2)*(f[t0, y[t0]] + f[t, y[t]]) for y[t].
+                case IntegrationMethod.Trapezoid:
+                    return dydt.Select(i => Equal.New(
+                            DOf(i.Left),
+                            DOf(i.Left).Evaluate(t, t0) + (h / 2) * (i.Right.Evaluate(t, t0) + i.Right))).Solve(y);
+
+                default:
+                    throw new NotImplementedException(method.ToString());
+            }
         }
                 
         // Get the expression that x is a derivative of.
