@@ -26,7 +26,7 @@ namespace CircuitTests
         }
 
         public static void RunTest(Simulation S, Function VS, int N, string Name)
-        {   
+        {
             // Compile the VS expression for speed.
             Func<double, double> VS_ = VS.Compile<Func<double, double>>();
             
@@ -57,7 +57,7 @@ namespace CircuitTests
 
             System.Console.WriteLine("Run: {0}x", (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0));
 
-            Plot p = new Plot(Name, 400, 400, t0, -3.0, S.TimeStep * 5000, 3.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
+            Plot p = new Plot(Name, 400, 400, t0, -2.0, S.TimeStep * 5000, 2.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
         }
 
         public void Run()
@@ -79,9 +79,10 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
-            ToneStack(Test.VSt).Run();
-            //Triode(Test.VSt).Run();
             DiodeClipper(Test.VSt).Run();
+            Supernode(Test.VSt).Run();
+            //ToneStack(Test.VSt).Run();
+            //Triode(Test.VSt).Run();
             MinimalMixedSystem(Test.VSt).Run();
             PassiveLowPass(Test.VSt).Run();
             VoltageDivider(Test.VSt).Run();
@@ -353,21 +354,21 @@ namespace CircuitTests
 
         public static Test ToneStack(Expression V)
         {
-            Potentiometer R1 = new Potentiometer(2);
-            VariableResistor R2 = new VariableResistor(2);
-            Potentiometer R3 = new Potentiometer(2);
-            Resistor R4 = new Resistor(1);
-            Capacitor C1 = new Capacitor(1);
-            Capacitor C2 = new Capacitor(1);
-            Capacitor C3 = new Capacitor(1);
+            //Potentiometer R1 = new Potentiometer(2);
+            //VariableResistor R2 = new VariableResistor(2);
+            //Potentiometer R3 = new Potentiometer(2);
+            //Resistor R4 = new Resistor(1);
+            //Capacitor C1 = new Capacitor(1);
+            //Capacitor C2 = new Capacitor(1);
+            //Capacitor C3 = new Capacitor(1);
 
-            //Potentiometer R1 = new Potentiometer(250e3m);
-            //VariableResistor R2 = new VariableResistor(1e6m);
-            //Potentiometer R3 = new Potentiometer(25e3m);
-            //Resistor R4 = new Resistor(56e3m);
-            //Capacitor C1 = new Capacitor(0.25e-9m);
-            //Capacitor C2 = new Capacitor(20e-9m);
-            //Capacitor C3 = new Capacitor(20e-9m);
+            Potentiometer R1 = new Potentiometer(250e3m);
+            VariableResistor R2 = new VariableResistor(1e6m);
+            Potentiometer R3 = new Potentiometer(25e3m);
+            Resistor R4 = new Resistor(56e3m);
+            Capacitor C1 = new Capacitor(0.25e-9m);
+            Capacitor C2 = new Capacitor(20e-9m);
+            Capacitor C3 = new Capacitor(20e-9m);
 
             Circuit.Circuit C = new Circuit.Circuit();
 
@@ -522,7 +523,7 @@ namespace CircuitTests
         {
             Resistor R1 = new Resistor(1);
             Resistor R2 = new Resistor(1);
-            
+
             Capacitor C1 = new Capacitor(1);
 
             Circuit.Circuit C = new Circuit.Circuit();
@@ -552,6 +553,53 @@ namespace CircuitTests
             C1.ConnectTo(Vx, Vg);
 
             return new Test("Minimal Mixed System", C);
+        }
+
+        /// <summary>
+        /// Circuit with the voltage source not attached to ground.
+        /// </summary>
+        /// <param name="V"></param>
+        /// <returns></returns>
+        public static Test Supernode(Expression V)
+        {
+            Resistor R1 = new Resistor(1);
+            Resistor R2 = new Resistor(1);
+            Resistor R3 = new Resistor(1);
+            Resistor R4 = new Resistor(1);
+
+            Circuit.Circuit C = new Circuit.Circuit();
+
+            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VSc = new VoltageSource(2);
+            Ground G = new Ground();
+
+            C.Components.Add(VS);
+            C.Components.Add(VSc);
+            C.Components.Add(G);
+
+            Node Va = new Node("Va");
+            Node Vb = new Node("Vb");
+            Node Vc = new Node("Vc");
+            Node Vo = new Node("Vo");
+            Node Vg = new Node("Vg");
+
+            C.Nodes = new List<Node>() { Va, Vb, Vc, Vo, Vg };
+
+            C.Components.Add(R1);
+            C.Components.Add(R2);
+            C.Components.Add(R3);
+            C.Components.Add(R4);
+
+            VS.ConnectTo(Vb, Va);
+            VSc.ConnectTo(Vg, Vc);
+            G.ConnectTo(Vg);
+
+            R1.ConnectTo(Va, Vo);
+            R2.ConnectTo(Vo, Vc);
+            R3.ConnectTo(Vb, Vc);
+            R4.ConnectTo(Vb, Vg);
+
+            return new Test("Supernode", C);
         }
     }
 }
