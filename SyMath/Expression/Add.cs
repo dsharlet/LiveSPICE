@@ -130,7 +130,23 @@ namespace SyMath
         }
 
         // object interface.
-        public override string ToString() { return "(" + terms.UnSplit(" + ") + ")"; }
+        public override string ToString() 
+        {
+            StringBuilder s = new StringBuilder();
+            s.Append("(");
+            s.Append(terms.First().ToString());
+            foreach (Expression i in terms.Skip(1))
+            {
+                string si = i.ToString();
+                string nsi = (-i).ToString();
+                if (si.Length < nsi.Length)
+                    s.Append(" + " + si);
+                else
+                    s.Append(" - " + nsi);
+            }
+            s.Append(")");
+            return s.ToString();
+        }
         public override bool Equals(Expression E) { return ReferenceEquals(this, E) || terms.SequenceEqual(TermsOf(E)); }
         public override int GetHashCode() { return terms.OrderedHashCode(); }
 

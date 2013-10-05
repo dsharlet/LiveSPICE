@@ -152,8 +152,28 @@ namespace SyMath
         private static Constant NegativeOne = Constant.New(-1);
         public override string ToString()
         {
-            bool negative = terms.Count(i => i.Equals(NegativeOne)) % 2 == 1;
-            return "(" + (negative ? "-" : "") + terms.Except(NegativeOne).UnSplit("*") + ")";
+            Expression n = -this;
+
+            string s = terms.UnSplit("*");
+            string ns = Multiply.TermsOf(n).UnSplit("*");
+
+            IEnumerable<Expression> t;
+            if (s.Length < ns.Length)
+                t = terms;
+            else
+                t = Multiply.TermsOf(n);
+
+            StringBuilder sb = new StringBuilder();
+
+            if (t.Count() != 1)
+                sb.Append("(");
+
+            sb.Append(s.Length < ns.Length ? s : "-" + ns);
+
+            if (t.Count() != 1)
+                sb.Append(")");
+
+            return sb.ToString();
         }
         public override bool Equals(Expression E) { return ReferenceEquals(this, E) || terms.SequenceEqual(TermsOf(E)); }
         public override int GetHashCode() { return terms.OrderedHashCode(); }
