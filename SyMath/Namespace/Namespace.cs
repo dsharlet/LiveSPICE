@@ -8,6 +8,14 @@ using System.Numerics;
 namespace SyMath
 {
     /// <summary>
+    /// Exception for bad function/variable lookups.
+    /// </summary>
+    class UnresolvedName : Exception
+    {
+        public UnresolvedName(string Message) : base(Message) { }
+    }
+
+    /// <summary>
     /// Contains functions and values.
     /// </summary>
     public class Namespace
@@ -29,7 +37,14 @@ namespace SyMath
         /// <returns></returns>
         public Expression Resolve(string Name) 
         {
-            return LookupName(Name).SingleOrDefault(); 
+            try
+            {
+                return LookupName(Name).Single();
+            }
+            catch (Exception)
+            {
+                throw new UnresolvedName(Name);
+            }
         }
         /// <summary>
         /// Resolve a name with arguments to a function.
@@ -39,8 +54,15 @@ namespace SyMath
         /// <returns></returns>
         public Function Resolve(string Name, IEnumerable<Expression> Params)
         {
-            IEnumerable<Function> candidates = LookupName(Name).OfType<Function>();
-            return candidates.SingleOrDefault(i => i.CanCall(Params));
+            try
+            {
+                IEnumerable<Function> candidates = LookupName(Name).OfType<Function>();
+                return candidates.Single(i => i.CanCall(Params));
+            }
+            catch (Exception)
+            {
+                throw new UnresolvedName(Name);
+            }
         }
 
         /// <summary>

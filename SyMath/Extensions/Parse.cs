@@ -272,18 +272,28 @@ namespace SyMath
                 {
                     tokens.Consume();
                     List<Expression> args = L(",", "]");
-                    Function target = context.Resolve(tok, args);
-                    if (target == null)
+                    Function target;
+                    try
+                    {
+                        target = context.Resolve(tok, args);
+                    }
+                    catch (UnresolvedName)
+                    {
                         target = ExprFunction.New(tok, args.Select(i => Variable.New("")));
+                    }
                     return Call.New(target, args);
                 }
                 else
                 {
-                    Expression x = context.Resolve(tok);
-                    if (x != null)
-                        return x;
-
-                    return Variable.New(tok);
+                    Expression x;
+                    try
+                    {
+                        return context.Resolve(tok);
+                    }
+                    catch (UnresolvedName)
+                    {
+                        return Variable.New(tok);
+                    }
                 }
             }
         }
