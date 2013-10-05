@@ -84,10 +84,12 @@ namespace SyMath
             Dictionary<Expression, LinqExpression> map = new Dictionary<Expression, LinqExpression>();
             List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
 
-            foreach (Variable i in Parameters)
+            // Get the invoke function for T so we can get the types of the arguments.
+            MethodInfo invoke = typeof(T).GetMethod("Invoke");
+            foreach (var i in Parameters.Zip(invoke.GetParameters(), (a, b) => new { a, b }))
             {
-                LinqExpressions.ParameterExpression p = LinqExpression.Parameter(typeof(double), i.Name);
-                map.Add(i, p);
+                LinqExpressions.ParameterExpression p = LinqExpression.Parameter(i.b.ParameterType, i.a.Name);
+                map.Add(i.a, p);
                 parameters.Add(p);
             }
             
