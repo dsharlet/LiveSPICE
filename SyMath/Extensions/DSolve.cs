@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace SyMath
 {
@@ -65,6 +66,10 @@ namespace SyMath
 
             // Find y' in terms of y.
             List<Arrow> dydt = f.Solve(y.Select(i => D(i, t)));
+
+            // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
+            if (dydt.Any(i => !i.Right.IsFunctionOf(dydt.Select(j => j.Left))))
+                throw new AlgebraException("Differential equation is not linear.");
 
             switch (method)
             {
