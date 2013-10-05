@@ -45,8 +45,8 @@ namespace SyMath
 
             // Substitute analytical solutions into the system.
             f = f.Select(i => i.Evaluate(xN)).OfType<Equal>().ToList();
-            x = x.Where(i => xN.Find(j => j.Left.Equals(i)) == null).ToList();
-            x0 = x0.Where(i => xN.Find(j => j.Left.Equals(i.Left)) == null).ToList();
+            x = x.Where(i => xN.None(j => j.Left.Equals(i))).ToList();
+            x0 = x0.Where(i => xN.None(j => j.Left.Equals(i.Left))).ToList();
 
             // Numerically approximate the result with Newton's method, 
             // i.e. solve JF(x0)*(x - x0) = -F(x0) for x.

@@ -45,7 +45,7 @@ namespace SyMath
 
         protected Expression ProductRule(Expression L, IEnumerable<Expression> R)
         {
-            if (!R.Any())
+            if (R.Empty())
                 return Visit(L);
 
             if (L.IsFunctionOf(x))

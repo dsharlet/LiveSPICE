@@ -68,7 +68,7 @@ namespace SyMath
             List<Arrow> dydt = f.Solve(y.Select(i => D(i, t)));
 
             // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
-            if (dydt.Any(i => !i.Right.IsFunctionOf(dydt.Select(j => j.Left))))
+            if (dydt.Any(i => i.Right.IsFunctionOf(dydt.Select(j => j.Left))))
                 throw new AlgebraException("Differential equation is not linear.");
 
             switch (method)

@@ -165,7 +165,7 @@ namespace Circuit
             // Find dxdt that are present in the system.
             dxdt = x.Where(i => S.Any(j => j.IsFunctionOf(D(i, t)))).Select(i => D(i, t)).ToList();
             // Find x that don't have a differential relationship.
-            List<Expression> algebraic = x.Where(i => !dxdt.Any(j => DOf(j).Equals(i))).ToList();
+            List<Expression> algebraic = x.Where(i => dxdt.None(j => DOf(j).Equals(i))).ToList();
 
             // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
             differential = S
@@ -174,7 +174,7 @@ namespace Circuit
             x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
 
             // Solve can solve the system after the differential solutions are known.
-            linear = S.Solve(x.Where(i => !kcl.Any(j => j.f.IsFunctionOf(i))));
+            linear = S.Solve(x.Where(i => kcl.None(j => j.f.IsFunctionOf(i))));
             x.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
 
             // This will be solved via newtons method at compile time.
