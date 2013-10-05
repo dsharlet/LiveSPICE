@@ -73,12 +73,8 @@ namespace SyMath
         /// </summary>
         /// <param name="B">Basis variables.</param>
         /// <param name="E">Expression to get coefficients from.</param>
-        public LinearCombination(IEnumerable<Expression> B, Expression E)
+        public LinearCombination(IEnumerable<Expression> B, Expression E) : this(B)
         {
-            // Add terms for the basis.
-            terms = B.Select(i => new Term(i)).ToList();
-            terms.Add(new Term(Constant.One));
-
             foreach (Expression t in Add.TermsOf(E.Expand()))
                 AddTerm(B, t);
         }
