@@ -21,6 +21,7 @@ namespace Circuit
 
         public Resistor() { Name = "R1"; }
         public Resistor(decimal R) : this() { Resistance.Value = R; }
+        public Resistor(Expression R) : this() { Resistance.Value = R; }
 
         public override Expression i
         {

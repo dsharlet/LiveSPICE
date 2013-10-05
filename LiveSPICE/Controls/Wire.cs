@@ -24,7 +24,7 @@ namespace Circuit
     [DisplayName("Wire")]
     public class Wire : TwoTerminal
     {
-        protected override void Analyze(IList<Equal> Kcl) { throw new NotImplementedException(); }
+        public override void Analyze(IList<Equal> Kcl, IList<SyMath.Expression> Unknowns) { throw new NotImplementedException(); }
         protected override void DrawSymbol(SymbolLayout Sym) { Sym.AddWire(Anode, Cathode); }
     }
 }

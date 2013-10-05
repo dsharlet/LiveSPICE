@@ -16,7 +16,7 @@ namespace Circuit
     {
         public Ground() { Name = "GND"; }
 
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             // Nodes connected to ground have V = 0.
             Kcl.Add(Equal.New(Terminal.V, Constant.Zero));

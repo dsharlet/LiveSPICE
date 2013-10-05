@@ -59,7 +59,7 @@ namespace Circuit
             Wiper.ConnectTo(W);
         }
 
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             Expression R1 = resistance.Value * (1.0 - wipe);
             Expression R2 = resistance.Value * wipe;

@@ -16,7 +16,7 @@ namespace Circuit
     {
         public TaggedWire() { }
 
-        protected override void Analyze(IList<Equal> Kcl) { }
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns) { }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {

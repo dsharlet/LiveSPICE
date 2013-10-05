@@ -38,7 +38,7 @@ namespace Circuit
             o = new Terminal(this, "Out");
         }
 
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             // Infinite input impedance.
             Positive.i = Constant.Zero;

@@ -68,17 +68,11 @@ namespace Circuit
         public abstract IEnumerable<Terminal> Terminals { get; }
 
         /// <summary>
-        /// Compute a system of equations representing a KCL node analysis.
+        /// Compute the KCL equations associated with this component.
         /// </summary>
-        /// <returns>Set expression containing the KCL equations.</returns>
-        public List<Equal> Analyze()
-        {
-            List<Equal> Kcl = new List<Equal>();
-            Analyze(Kcl);
-            return Kcl;
-        }
-
-        protected virtual void Analyze(IList<Equal> Kcl) { }
+        /// <param name="Kcl"></param>
+        /// <param name="Unknowns"></param>
+        public virtual void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns) { }
         
         /// <summary>
         /// Define the schematic layout of this component.

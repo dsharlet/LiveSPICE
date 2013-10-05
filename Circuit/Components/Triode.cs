@@ -115,9 +115,9 @@ namespace Circuit
             k = new Terminal(this, "K");
             Name = "V1";
         }
-               
 
-        protected override void Analyze(IList<Equal> Kcl)
+
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             Expression Ip, Ig, Ik;
             model.Evaluate(p.V, g.V, k.V, out Ip, out Ig, out Ik);

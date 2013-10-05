@@ -69,7 +69,7 @@ namespace Circuit
             Name = "Q1";
         }
 
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             Expression Ic, Ib, Ie;
             model.Evaluate(c.V, b.V, e.V, out Ic, out Ib, out Ie);

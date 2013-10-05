@@ -16,7 +16,7 @@ namespace Circuit
         [Browsable(false)]
         public Expression V { get { return Anode.V - Cathode.V; } }
 
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             // A voltage source supplies any current necessary to maintain the voltage.
             Anode.i = null;

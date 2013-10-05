@@ -14,7 +14,7 @@ namespace Circuit
     [DisplayName("Buffer")]
     public class Buffer : TwoTerminal
     {
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             Anode.i = Constant.Zero;
             Cathode.i = null;

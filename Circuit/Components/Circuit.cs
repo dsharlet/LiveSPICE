@@ -18,7 +18,7 @@ namespace Circuit
     /// </summary>
     public class Circuit : Component, IXmlSerializable
     {
-        public List<Component> Components = new List<Component>();
+        public ComponentCollection Components = new ComponentCollection();
         public List<Node> Nodes = new List<Node>();
         
         /// <summary>
@@ -32,14 +32,13 @@ namespace Circuit
             }
         }
 
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             foreach (Component c in Components)
-                foreach (Equal i in c.Analyze())
-                    Kcl.Add(i);
+                c.Analyze(Kcl, Unknowns);
             foreach (Node n in Nodes)
             {
-                Expression i = n.i;
+                Expression i = n.Kcl();
                 if (i != null)
                     Kcl.Add(Equal.New(i, Constant.Zero));
             }

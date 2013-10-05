@@ -25,13 +25,13 @@ namespace Circuit
         public VoltageSource() { Name = "V1"; }
         public VoltageSource(Expression V) : this() { v.Value = V; }
 
-        protected override void Analyze(IList<Equal> Kcl)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
-            // A voltage source supplies any current necessary to maintain the voltage.
-            Anode.i = null;
-            Cathode.i = null;
+            Anode.i = Call.New(ExprFunction.New("i_" + Name, t), t);
+            Cathode.i = -Anode.i;
 
             Kcl.Add(Equal.New(Anode.V - Cathode.V, V.Value));
+            Unknowns.Add(Anode.i);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
