@@ -69,7 +69,7 @@ namespace SyMath
 
             // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
             if (dydt.Any(i => i.Right.IsFunctionOf(dydt.Select(j => j.Left))))
-                throw new AlgebraException("Differential equation is not linear.");
+                throw new AlgebraException("Differential equation is singular or not linear.");
 
             switch (method)
             {
