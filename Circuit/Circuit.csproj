@@ -66,7 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ComponentCollection.cs" />
+    <Compile Include="Utils\ComponentCollection.cs" />
     <Compile Include="Components\BaseComponents.cs" />
     <Compile Include="Components\Transistor.cs" />
     <Compile Include="Components\Triode.cs" />
@@ -80,6 +80,7 @@
     <Compile Include="Components\IdealOpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
+    <Compile Include="Utils\NodeCollection.cs" />
     <Compile Include="Utils\Units.cs" />
     <Compile Include="Utils\QuantityConverter.cs" />
     <Compile Include="Utils\Coord.cs" />

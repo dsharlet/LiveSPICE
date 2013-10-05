@@ -19,7 +19,7 @@ namespace Circuit
     public class Circuit : Component, IXmlSerializable
     {
         public ComponentCollection Components = new ComponentCollection();
-        public List<Node> Nodes = new List<Node>();
+        public NodeCollection Nodes = new NodeCollection();
         
         /// <summary>
         /// External terminals (ports) in this circuit.

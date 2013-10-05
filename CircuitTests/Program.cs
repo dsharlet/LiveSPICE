@@ -79,7 +79,7 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
-            DiodeClipper(Test.VSt).Run();
+            //DiodeClipper(Test.VSt).Run();
             Supernode(Test.VSt).Run();
             //ToneStack(Test.VSt).Run();
             //Triode(Test.VSt).Run();
@@ -107,7 +107,7 @@ namespace CircuitTests
             Node Vin = new Node("Vin");
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
-            C.Nodes = new List<Node>() { Vin, Vo, Vg };
+            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -168,7 +168,7 @@ namespace CircuitTests
             Node Vn = new Node("Vn");
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
-            C.Nodes = new List<Node>() { Vp, Vn, Vo, Vg };
+            C.Nodes = new NodeCollection() { Vp, Vn, Vo, Vg };
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -210,7 +210,7 @@ namespace CircuitTests
             Node Vn = new Node("Vn");
             Node Vp = new Node("Vp");
             Node Vo = new Node("Vo");
-            C.Nodes = new List<Node>() { Vin, Vn, Vp, Vo };
+            C.Nodes = new NodeCollection() { Vin, Vn, Vp, Vo };
 
             C.Components.Add(Rin);
             C.Components.Add(Rf);
@@ -253,7 +253,7 @@ namespace CircuitTests
             Node Vn = new Node("Vn");
             Node Vp = new Node("Vp");
             Node Vo = new Node("Vo");
-            C.Nodes = new List<Node>() { Vin, Vn, Vp, Vo };
+            C.Nodes = new NodeCollection() { Vin, Vn, Vp, Vo };
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -297,7 +297,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new List<Node>() { Vin, Va, Vo, Vg };
+            C.Nodes = new NodeCollection() { Vin, Va, Vo, Vg };
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -336,7 +336,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new List<Node>() { Vin, Vo, Vg };
+            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
 
             C.Components.Add(R1);
             C.Components.Add(L1);
@@ -387,7 +387,7 @@ namespace CircuitTests
             Node Ve = new Node("Ve");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new List<Node>() { Vin, Vo, Va, Vb, Vc, Vd, Ve, Vg };
+            C.Nodes = new NodeCollection() { Vin, Vo, Va, Vb, Vc, Vd, Ve, Vg };
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -440,7 +440,7 @@ namespace CircuitTests
             Node Vx = new Node("Vx");
             Node Vpp = new Node("Vpp");
 
-            C.Nodes = new List<Node>() { Vin, Vp, Vg, Vk, Vx, Vpp, Vgr };
+            C.Nodes = new NodeCollection() { Vin, Vp, Vg, Vk, Vx, Vpp, Vgr };
 
             C.Components.Add(Ci);
             C.Components.Add(Ri);
@@ -498,7 +498,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new List<Node>() { Vin, Vo, Vg };
+            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
 
             C.Components.Add(R1);
             C.Components.Add(D1);
@@ -539,7 +539,7 @@ namespace CircuitTests
             Node Vg = new Node("Vg");
             Node Vx = new Node("Vx");
 
-            C.Nodes = new List<Node>() { Vin, Vo, Vg, Vx };
+            C.Nodes = new NodeCollection() { Vin, Vo, Vg, Vx };
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -583,14 +583,14 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new List<Node>() { Va, Vb, Vc, Vo, Vg };
+            C.Nodes = new NodeCollection() { Va, Vb, Vc, Vo, Vg };
 
             C.Components.Add(R1);
             C.Components.Add(R2);
             C.Components.Add(R3);
             C.Components.Add(R4);
 
-            VS.ConnectTo(Vb, Va);
+            VS.ConnectTo(Va, Vb);
             VSc.ConnectTo(Vg, Vc);
             G.ConnectTo(Vg);
 
