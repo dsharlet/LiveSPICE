@@ -76,7 +76,7 @@
     <Compile Include="Components\Ground.cs" />
     <Compile Include="Components\Inductor.cs" />
     <Compile Include="Components\Buffer.cs" />
-    <Compile Include="Components\Circuit.cs" />
+    <Compile Include="Circuit.cs" />
     <Compile Include="Components\IdealOpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
@@ -85,7 +85,7 @@
     <Compile Include="Utils\Coord.cs" />
     <Compile Include="Simulation.cs" />
     <Compile Include="Symbol.cs" />
-    <Compile Include="Components\Component.cs" />
+    <Compile Include="Component.cs" />
     <Compile Include="Components\Capacitor.cs" />
     <Compile Include="Components\Resistor.cs" />
     <Compile Include="Node.cs" />
