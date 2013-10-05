@@ -86,6 +86,8 @@ namespace SyMath
 
             // Get the invoke function for T so we can get the types of the arguments.
             MethodInfo invoke = typeof(T).GetMethod("Invoke");
+            if (invoke.GetParameters().Count() != Parameters.Count())
+                throw new InvalidOperationException("Different parameters for Function '" + Name + "' and '" + typeof(T).ToString() + "'");
             foreach (var i in Parameters.Zip(invoke.GetParameters(), (a, b) => new { a, b }))
             {
                 LinqExpressions.ParameterExpression p = LinqExpression.Parameter(i.b.ParameterType, i.a.Name);
