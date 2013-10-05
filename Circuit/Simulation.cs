@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Reflection;
 using System.Reflection.Emit;
 using SyMath;
@@ -15,7 +16,7 @@ namespace Circuit
     /// </summary>
     public class Simulation
     {
-        // Holds a T instance and a LINQ expression that maps to the instance.
+        // Holds an instance of T and a LinqExpression that maps to the instance.
         class GlobalExpr<T>
         {
             private T x;
@@ -29,40 +30,58 @@ namespace Circuit
             public GlobalExpr(T Init) : this() { x = Init; }
         }
 
-        // Stores the stateful data associated with a node in the circuit simulation.
-        class Node
+        // Stores a DAE as a linear/differential A and non-linear equation f, A = f.
+        class DiffAlgEq
         {
-            // Expression describing a single timestep.
-            public Expression Step;
+            private static int token = 0;
 
-            // Current voltage at this node.
-            private GlobalExpr<double> v = new GlobalExpr<double>();
-            public double V { get { return v.Value; } set { v.Value = value; } }
-            public LinqExpression VExpr { get { return v.Expr; } }
+            public Expression A = Constant.Zero, f = Constant.Zero;
 
-            public Node(Expression Step) { this.Step = Step; }
-        }
+            // Token expressions representing the previous values of A, f.
+            public Expression A0 = Constant.Zero;
+            public Expression f0 = Constant.Zero;
 
-        // Nodes in this simulation.
-        private Dictionary<Expression, Node> nodes;
-                
-        // Stores any global state in the simulation.
-        private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
+            public DiffAlgEq(Equal Eq, IEnumerable<Expression> x, IEnumerable<Expression> dxdt)
+            {
+                Expression eq = Eq.Left - Eq.Right;
+
+                foreach (Expression i in Add.TermsOf((Eq.Left - Eq.Right).Expand()))
+                {
+                    if (!i.IsFunctionOf(x.Concat(dxdt)) || IsLinearFunctionOf(i, x))
+                        A += i;
+                    else if (i.IsFunctionOf(dxdt))
+                        A += i;
+                    else
+                        f += -i;
+                }
+
+                if (!A.Equals(Constant.Zero))
+                    A0 = Variable.New("A0_" + Interlocked.Increment(ref token).ToString());
+                if (!f.Equals(Constant.Zero))
+                    f0 = Variable.New("f0_" + Interlocked.Increment(ref token).ToString());
+            }
+
+            public override string ToString()
+            {
+                return Equal.New(A, f).ToString();
+            }
+        };
 
         // Expression for t at the previous timestep.
         private static readonly Expression t0 = Variable.New("t0");
+        private static readonly Expression t = Component.t;
 
         protected double _t = 0.0;
         /// <summary>
-        /// Current time of the simulation (Component.t).
+        /// Get the current time of the simulation.
         /// </summary>
-        public double t { get { return _t; } }
-
+        public double Time { get { return _t; } }
+        
         protected double _T;
         /// <summary>
-        /// Timestep of the simulation (Component.T).
+        /// Get the timestep for the simulation.
         /// </summary>
-        public double T { get { return _T; } }
+        public double TimeStep { get { return _T; } }
         
         protected int iterations;
         /// <summary>
@@ -76,43 +95,38 @@ namespace Circuit
         /// </summary>
         public int Oversample { get { return oversample; } }
 
+        // Nodes in this simulation.
+        private List<Expression> nodes;
+
+        // Simulation timestep.
+        private Expression h;
+
+        // Expressions for the input values.
+        private List<Arrow> direct;
+        // Expressions for the solution of the differential equations.
+        private List<Arrow> differential;
+        // Expressions for the solution of the linear equations.
+        private List<Arrow> linear;
+        // Implicit equations describing the non-linear system.
+        private List<Tuple<Equal, Expression>> nonlinear;
+        private List<Expression> unknowns;
+
+        // Stores any global state in the simulation (previous state values, mostly).
+        private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
+
         /// <summary>
         /// Enumerate the nodes in the simulation.
         /// </summary>
-        public IEnumerable<Expression> Nodes { get { return nodes.Keys; } }
-
-        // Solve a system of equations, possibly including linear differential equations.
-        private static List<Arrow> Solve(List<Equal> f, List<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method, int iterations)
+        public IEnumerable<Expression> Nodes { get { return nodes; } }
+        
+        private List<Equal> AnalyzeKcl(Circuit Circuit, List<Expression> x, List<Expression> dxdt)
         {
-            List<Expression> dydt = y.Select(i => D(i, t)).ToList();
-
-            List<Arrow> step = new List<Arrow>();
-            // Try solving for y algebraically.
-            List<Arrow> linear = f.Solve(y);
-            // Only accept independent solutions.
-            linear.RemoveAll(i => i.Right.IsFunctionOf(i.Left) || i.Right.IsFunctionOf(dydt));
-            step.AddRange(linear);
-            // Substitute the solutions found.
-            f = f.Evaluate(linear).OfType<Equal>().ToList();
-            y.RemoveAll(i => step.Any(j => j.Left.Equals(i)));
-            
-            // Solve for any non-differential functions remaining and substitute them into the system.
-            List<Arrow> nondifferential = f.Where(i => !i.IsFunctionOf(dydt)).Solve(y);
-            List<Equal> df = f.Evaluate(nondifferential).OfType<Equal>().ToList();
-            // Solve the differential equations.
-            List<Arrow> differentials = df.NDSolve(y, t, t0, h, method, iterations);
-            step.AddRange(differentials);
-            // Replace differentials with approximations.
-            f = f.Evaluate(y.Select(i => Arrow.New(D(i, t), (i - i.Evaluate(t, t0)) / h))).Cast<Equal>().ToList();
-            f = f.Evaluate(differentials).OfType<Equal>().ToList();
-            y.RemoveAll(i => step.Any(j => j.Left.Equals(i)));
-
-            // Try solving for numerical solutions.
-            List<Arrow> nonlinear = f.NSolve(y.Select(i => Arrow.New(i, i.Evaluate(t, t0))), iterations);
-            nonlinear.RemoveAll(i => i.Right.IsFunctionOf(dydt));
-            step.AddRange(nonlinear);
-
-            return step;
+            List<Equal> kcl = Circuit.Analyze();
+            direct = kcl.Solve(x);
+            direct.RemoveAll(i => i.Right.IsFunctionOf(i.Left) || i.Right.IsFunctionOf(dxdt));
+            kcl = kcl.Evaluate(direct).OfType<Equal>().ToList();
+            x.RemoveAll(i => direct.Any(j => j.Left.Equals(i)));
+            return kcl;
         }
 
         /// <summary>
@@ -125,23 +139,51 @@ namespace Circuit
             oversample = Oversample;
             iterations = Iterations;
             _T = 1.0 / (double)SampleRate;
+            nodes = Circuit.Nodes.Select(i => (Expression)Call.New(((Call)i.V).Target, t)).ToList();
 
-            // Compute the KCL equations for this circuit.
-            List<Equal> kcl = Circuit.Analyze();
+            // Create a global variable for the previous state of each node.
+            foreach (Expression i in nodes)
+                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
+
+            // Length of one timestep in the oversampled simulation.
+            h = 1 / ((Expression)SampleRate * Oversample);
+
+            // State variable x for each node in the circuit.
+            List<Expression> x = Circuit.Nodes.Select(i => i.V).Cast<Expression>().ToList();
+            List<Expression> dxdt = x.Select(i => D(i, t)).ToList();
+
+            // Find the non-trivial KCL equations for this circuit.
+            List<DiffAlgEq> kcl = AnalyzeKcl(Circuit, x, dxdt).Select(i => new DiffAlgEq(i, x, dxdt)).ToList();
             
-            // Find the expression for the next timestep via the trapezoid method (ala bilinear transform).
-            List<Arrow> step = Solve(
-                kcl.ToList(),
-                Circuit.Nodes.Select(i => i.V).Cast<Expression>().ToList(), 
-                Component.t, t0, 
-                T / Oversample, 
-                IntegrationMethod.Trapezoid, 
-                Iterations);
+            // This is the system (DAE) we have to solve:
+            //  Ax'(t) + Bx(t) + f(t) = 0.
 
-            // Create the nodes.
-            nodes = step.ToDictionary(
-                i => (Expression)Call.New(((Call)i.Left).Target, Component.t), 
-                i => new Node(i.Right));
+            // DAEs are hard to solve simultaneously, so we are going to hold parts of the system
+            // constant (to the current value).
+
+            List<Equal> S = kcl.Select(i => Equal.New(i.A, i.f0)).ToList();
+            // Find dxdt that are present in the system.
+            dxdt = x.Where(i => S.Any(j => j.IsFunctionOf(D(i, t)))).Select(i => D(i, t)).ToList();
+            // Find x that don't have a differential relationship.
+            List<Expression> algebraic = x.Where(i => !dxdt.Any(j => DOf(j).Equals(i))).ToList();
+
+            // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
+            differential = S
+                .Evaluate(algebraic.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).OfType<Equal>()
+                .NDSolve(dxdt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
+            x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
+
+            // Solve can solve the system after the differential solutions are known.
+            linear = S.Solve(x.Where(i => !kcl.Any(j => j.f.IsFunctionOf(i))));
+            x.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
+
+            // This will be solved via newtons method at compile time.
+            nonlinear = kcl.Where(i => !i.f.IsZero()).Select(i => new Tuple<Equal, Expression>(Equal.New(i.A, i.f), i.f0)).ToList();
+            unknowns = x;
+
+            // Create a global variable for the value of each f0.
+            foreach (Tuple<Equal, Expression> i in nonlinear)
+                globals[i.Item2] = new GlobalExpr<double>(0.0);
         }
 
         /// <summary>
@@ -150,8 +192,6 @@ namespace Circuit
         public void Reset()
         {
             _t = 0.0;
-            foreach (Node i in nodes.Values)
-                i.V = 0.0;
             foreach (GlobalExpr<double> i in globals.Values)
                 i.Value = 0.0;
         }
@@ -170,8 +210,8 @@ namespace Circuit
             // Build parameter list for the processor.
             List<object> parameters = new List<object>(3 + Input.Count + Output.Count + Arguments.Count());
             parameters.Add(N);
-            parameters.Add((double)t);
-            parameters.Add((double)T / Oversample);
+            parameters.Add((double)_t);
+            parameters.Add((double)_T / Oversample);
             foreach (KeyValuePair<Expression, double[]> i in Input)
                 parameters.Add(i.Value);
             foreach (KeyValuePair<Expression, double[]> i in Output)
@@ -237,8 +277,8 @@ namespace Circuit
             Dictionary<Expression, LinqExpression> buffers = new Dictionary<Expression, LinqExpression>();
 
             // Get expressions for the state of each node. These may be replaced by input parameters.
-            foreach (KeyValuePair<Expression, Node> i in nodes)
-                v[i.Key.Evaluate(Component.t, t0)] = i.Value.VExpr;
+            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+                v[i.Key] = i.Value.Expr;
 
             // Lambda definition objects.
             List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
@@ -259,7 +299,7 @@ namespace Circuit
             // Define lambda body.
 
             // double t = t0
-            LinqExpressions.ParameterExpression vt = Declare<double>(locals, v, Component.t);
+            LinqExpressions.ParameterExpression vt = Declare<double>(locals, v, t);
             body.Add(LinqExpression.Assign(vt, pt0));
 
             // for (int n = 0; n < N; ++n)
@@ -295,8 +335,8 @@ namespace Circuit
 
                         // If i isn't a node, just make a dummy expression for the previous timestep. 
                         // This might be able to be removed with an improved system solver that doesn't create references to i[t0] when i is not a node.
-                        if (!nodes.ContainsKey(i))
-                            v[i.Evaluate(Component.t, t0)] = v[i];
+                        if (!nodes.Contains(i))
+                            v[i.Evaluate(t, t0)] = v[i];
                     }
 
                     // Prepare output sample accumulators for low pass filtering.
@@ -323,14 +363,60 @@ namespace Circuit
                             foreach (Expression i in Input)
                                 body.Add(LinqExpression.AddAssign(v[i], dinput[i]));
 
-                            // TODO: Skip nodes that have input values? Does that ever happen?
-                            foreach (KeyValuePair<Expression, Node> i in nodes)
+                            // Compile the timestep expressions.
+                            foreach (Arrow i in direct)
                             {
-                                // i.V = i.Step.Evaluate()
-                                body.Add(LinqExpression.Assign(i.Value.VExpr, i.Value.Step.Compile(v)));
-                                // After i.V is updated, add it to the map for future step expressions.
-                                v[i.Key] = i.Value.VExpr;
+                                LinqExpression Vi = globals[i.Left.Evaluate(t, t0)].Expr;
+                                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(v)));
+                                v[i.Left] = Vi;
                             }
+
+                            foreach (Arrow i in differential)
+                            {
+                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
+                                LinqExpression Vt = i.Right.Compile(v);
+                                // Compute the value of v'(t) and store it in the map.
+                                LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString());
+                                body.Add(LinqExpression.Assign(dV, LinqExpression.Subtract(Vt, Vt0)));
+                                v[D(i.Left, t)] = dV;
+
+                                // Update Vt0.
+                                body.Add(LinqExpression.Assign(Vt0, Vt));
+                                v[i.Left] = Vt;
+                            }
+
+                            foreach (Arrow i in linear)
+                            {
+                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
+                                body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
+                                v[i.Left] = Vt0;
+                            }
+                            
+                            // Solve the non-linear system.
+                            LinqExpressions.ParameterExpression it = Declare<int>(locals, "it");
+                            For(body,
+                                () => body.Add(LinqExpression.Assign(it, LinqExpression.Constant(Iterations))),
+                                LinqExpression.GreaterThan(it, LinqExpression.Constant(0)),
+                                () => body.Add(LinqExpression.PreDecrementAssign(it)),
+                                () =>
+                                {
+                                    List<Arrow> iter = nonlinear.Select(i => i.Item1).NSolve(unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))), 1);
+
+                                    foreach (Arrow i in iter)
+                                    {
+                                        LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
+                                        body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
+                                        v[i.Left] = Vt0;
+                                    }
+                                });
+
+                            // Update f0.
+                            foreach (Tuple<Equal, Expression> i in nonlinear)
+                            {
+                                LinqExpression f0 = globals[i.Item2].Expr;
+                                body.Add(LinqExpression.Assign(f0, i.Item1.Right.Compile(v)));
+                            }
+                            
 
                             // t0 = t
                             body.Add(LinqExpression.Assign(pt0, vt));
@@ -496,5 +582,29 @@ namespace Circuit
 
         // Shorthand for df/dx.
         private static Expression D(Expression f, Expression x) { return f.Differentiate(x); }
+
+        // Get the expression that x is a derivative of.
+        private static Expression DOf(Expression x)
+        {
+            Call d = (Call)x;
+            if (d.Target.Name == "D")
+                return d.Arguments.First();
+            throw new InvalidOperationException("Expression is not a derivative");
+        }
+
+        private static bool IsLinearFunctionOf(Expression f, IEnumerable<Expression> x)
+        {
+            foreach (Expression i in x)
+            {
+                // TODO: There must be a more efficient way to do this...
+                Expression fi = f / i;
+                if (!fi.IsFunctionOf(i))
+                    return true;
+
+                //if (Add.TermsOf(f).Count(j => Multiply.TermsOf(j).Sum(k => k.Equals(i) ? 1 : k.IsFunctionOf(i) ? 2 : 0) == 1) == 1)
+                //    return true;
+            }
+            return false;
+        }
     }
 }

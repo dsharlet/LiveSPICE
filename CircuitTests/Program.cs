@@ -30,12 +30,12 @@ namespace CircuitTests
             // Compile the VS expression for speed.
             Func<double, double> VS_ = VS.Compile<Func<double, double>>();
             
-            double t0 = (double)S.t;
+            double t0 = (double)S.Time;
             
             Dictionary<Expression, double[]> input = new Dictionary<Expression, double[]>();
             double[] vs = new double[N];
             for (int n = 0; n < vs.Length; ++n)
-                vs[n] = VS_(n * (double)S.T);
+                vs[n] = VS_(n * S.TimeStep);
             input.Add("VS[t]", vs);
 
             Dictionary<Expression, double[]> output = new Dictionary<Expression, double[]>();
@@ -53,11 +53,11 @@ namespace CircuitTests
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
-                plots.Add(i.Key, i.Value.Take(5000).Select((j, n) => Arrow.New(n * S.T, j)).ToList());
+                plots.Add(i.Key, i.Value.Take(5000).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
 
-            System.Console.WriteLine("Run: {0}x", (N * (double)S.T) / ((double)timer.ElapsedMilliseconds / 1000.0));
+            System.Console.WriteLine("Run: {0}x", (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0));
 
-            Plot p = new Plot(Name, 400, 400, t0, -3.0, (double)S.T * 5000, 3.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
+            Plot p = new Plot(Name, 400, 400, t0, -3.0, S.TimeStep * 5000, 3.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
         }
 
         public void Run()
@@ -65,7 +65,7 @@ namespace CircuitTests
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             System.Console.WriteLine(name);
             timer.Start();
-            Simulation S = new Simulation(circuit, new Quantity(48000, Units.Hz), 8, 1);
+            Simulation S = new Simulation(circuit, new Quantity(48000, Units.Hz), 8, 8);
             System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
 
             // Run a sine wave through the circuit.
@@ -79,17 +79,16 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
-            //MinimalMixedSystem(Test.VSt).Run();
-            PassiveLowPass("Sin[t*100]").Run();
+            ToneStack(Test.VSt).Run();
+            //Triode(Test.VSt).Run();
+            DiodeClipper(Test.VSt).Run();
+            MinimalMixedSystem(Test.VSt).Run();
+            PassiveLowPass(Test.VSt).Run();
             VoltageDivider(Test.VSt).Run();
             NonInvertingAmplifier(Test.VSt).Run();
             InvertingAmplifier(Test.VSt).Run();
-            DiodeClipper(Test.VSt).Run();
-            PassiveLowPass(Test.VSt).Run();
             ActiveLowPass(Test.VSt).Run();
             PassiveSecondOrderLowpassRC(Test.VSt).Run();
-            //ToneStack(Test.VSt).Run();
-            //Triode(Test.VSt).Run();
             //PassiveSecondOrderLowpassRLC(Test.VSt).Run();
             //DiodeHalfClipper(Test.VSt).Run();
         }
@@ -135,6 +134,13 @@ namespace CircuitTests
         {
             Resistor R1 = new Resistor(10e3m);
             Capacitor C1 = new Capacitor(10e-7m);
+            return new Test("Passive low-pass", CreateVoltageDivider(V, R1, C1));
+        }
+
+        private static Test PassiveLowPassMinimal(Expression V)
+        {
+            Resistor R1 = new Resistor(1);
+            Capacitor C1 = new Capacitor(1);
             return new Test("Passive low-pass", CreateVoltageDivider(V, R1, C1));
         }
 
