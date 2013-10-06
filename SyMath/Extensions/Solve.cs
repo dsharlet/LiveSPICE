@@ -101,7 +101,7 @@ namespace SyMath
         /// </summary>
         /// <param name="f">Equation or set of equations to solve.</param>
         /// <param name="x">Variable of set of variables to solve for.</param>
-        /// <returns></returns>
+        /// <returns>The solved values of x, including non-independent solutions.</returns>
         public static List<Arrow> Solve(this IEnumerable<Equal> f, IEnumerable<Expression> x)
         {
             // Convert f to a system of linear equations.
