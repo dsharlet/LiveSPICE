@@ -77,6 +77,7 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
+            //SeriesDiodeClipper(Test.VSt).Run();
             PassiveLowPassRLC(Test.VSt).Run();
             PassiveBandPassRLC(Test.VSt).Run();
             //ToneStack(Test.VSt).Run();
@@ -85,7 +86,7 @@ namespace CircuitTests
             Potentiometer(Test.VSt).Run();
             PassiveLowPassRL(Test.VSt).Run();
             DiodeHalfClipper(Test.VSt).Run();
-            DiodeClipper(Test.VSt).Run();
+            ParallelDiodeClipper(Test.VSt).Run();
             Supernode(Test.VSt).Run();
             MinimalMixedSystem(Test.VSt).Run();
             PassiveLowPassRC(Test.VSt).Run();
@@ -344,6 +345,7 @@ namespace CircuitTests
         }
 
         /// <summary>
+        /// http://ecee.colorado.edu/~mathys/ecen2260/pdf/filters02.pdf
         /// </summary>
         /// <returns></returns>
         public static Test PassiveLowPassRLC(Expression V)
@@ -546,7 +548,7 @@ namespace CircuitTests
             return new Test("Diode half wave clipper", CreateVoltageDivider(V, R1, D1));
         }
 
-        public static Test DiodeClipper(Expression V)
+        public static Test ParallelDiodeClipper(Expression V)
         {
             Resistor R1 = new Resistor() { Resistance = 100 };
             Diode D1 = new Diode();
@@ -577,7 +579,42 @@ namespace CircuitTests
             D1.ConnectTo(Vo, Vg);
             D2.ConnectTo(Vg, Vo);
 
-            return new Test("Diode clipper", C);
+            return new Test("Parallel diode clipper", C);
+        }
+
+        public static Test SeriesDiodeClipper(Expression V)
+        {
+            Resistor R1 = new Resistor() { Resistance = 100 };
+            Diode D1 = new Diode();
+            Diode D2 = new Diode();
+
+            Circuit.Circuit C = new Circuit.Circuit();
+
+            VoltageSource VS = new VoltageSource() { Voltage = V };
+            Ground G = new Ground();
+
+            C.Components.Add(VS);
+            C.Components.Add(G);
+
+            Node Vin = new Node("Vin");
+            Node Vo = new Node("Vo");
+            Node Va = new Node("Va");
+            Node Vg = new Node("Vg");
+
+            C.Nodes = new NodeCollection() { Vin, Vo, Va, Vg };
+
+            C.Components.Add(R1);
+            C.Components.Add(D1);
+            C.Components.Add(D2);
+
+            VS.ConnectTo(Vin, Vg);
+            G.ConnectTo(Vg);
+
+            R1.ConnectTo(Vin, Vo);
+            D1.ConnectTo(Vo, Va);
+            D2.ConnectTo(Va, Vg);
+
+            return new Test("Series diode clipper", C);
         }
 
         /// <summary>
