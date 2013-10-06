@@ -42,9 +42,7 @@ namespace LiveSPICE
         public static IEnumerable<Type> GetComponentTypes()
         {
             Type root = typeof(Circuit.Component);
-            return Assembly.GetAssembly(typeof(Circuit.Wire)).GetTypes()
-                .Concat(Assembly.GetAssembly(root).GetTypes())
-                .Where(t => !t.IsAbstract && root.IsAssignableFrom(t));
+            return Assembly.GetAssembly(root).GetTypes().Where(t => !t.IsAbstract && root.IsAssignableFrom(t));
         }
 
         public void Init(Window ShortcutKeys, RoutedEventHandler OnClick)

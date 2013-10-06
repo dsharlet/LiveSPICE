@@ -16,19 +16,6 @@ using System.Windows.Shapes;
 using System.Xml.Linq;
 using SyMath;
 
-namespace Circuit
-{
-    /// <summary>
-    /// This is a token component type for wires. Not intended for use in an actual Circuit.
-    /// </summary>
-    [DisplayName("Wire")]
-    public class Wire : TwoTerminal
-    {
-        public override void Analyze(IList<Equal> Kcl, IList<SyMath.Expression> Unknowns) { throw new NotImplementedException(); }
-        protected override void DrawSymbol(SymbolLayout Sym) { Sym.AddWire(Anode, Cathode); }
-    }
-}
-
 namespace LiveSPICE
 {
     public class Wire : Element
