@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}</ProjectGuid>
+    <ProjectGuid>{9CC62442-D627-4F57-BA97-E54997A0502B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CircuitTests</RootNamespace>
-    <AssemblyName>CircuitTests</AssemblyName>
+    <RootNamespace>SyMathTests</RootNamespace>
+    <AssemblyName>SyMathTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -39,9 +39,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,16 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Plot.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Circuit\Circuit.csproj">
-      <Project>{5E788E8B-995B-4B54-B3A9-040D65D5509A}</Project>
-      <Name>Circuit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SyMath\SyMath.csproj">
+    <ProjectReference Include="..\..\SyMath\SyMath.csproj">
       <Project>{2877C441-FD0B-4441-A469-E677003EE35A}</Project>
       <Name>SyMath</Name>
     </ProjectReference>
