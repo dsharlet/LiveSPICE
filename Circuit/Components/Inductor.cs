@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Inductor")]
-    public class Inductor : PassiveTwoTerminal
+    public class Inductor : TwoTerminal
     {
         protected Quantity inductance = new Quantity(100e-6m, Units.H);
         [Description("Inductance of this inductor.")]
@@ -21,9 +21,17 @@ namespace Circuit
 
         public Inductor() { Name = "L1"; }
 
-        public override Expression i
+        // Inductor is modeled as a voltage source where V = L*di/dt.
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
-            get { return V.Integrate(t) / inductance.Value; }
+            // Define a new unknown for the current through this inductor.
+            Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Unknowns.Add(i);
+
+            Kcl.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * i.Differentiate(t)));
+
+            Anode.i = i;
+            Cathode.i = -Anode.i;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

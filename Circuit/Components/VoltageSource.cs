@@ -26,7 +26,7 @@ namespace Circuit
 
         public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
-            Anode.i = Call.New(ExprFunction.New("i_" + Name, t), t);
+            Anode.i = Call.New(ExprFunction.New("i" + Name, t), t);
             Cathode.i = -Anode.i;
 
             Kcl.Add(Equal.New(Anode.V - Cathode.V, Voltage.Value));

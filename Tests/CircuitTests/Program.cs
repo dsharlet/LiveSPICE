@@ -77,19 +77,20 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
+            PassiveLowPassRL(Test.VSt).Run();
+            PassiveSecondOrderLowpassRLC(Test.VSt).Run();
+            DiodeHalfClipper(Test.VSt).Run();
             DiodeClipper(Test.VSt).Run();
-            Supernode(Test.VSt).Run();
             //ToneStack(Test.VSt).Run();
             //Triode(Test.VSt).Run();
+            Supernode(Test.VSt).Run();
             MinimalMixedSystem(Test.VSt).Run();
-            PassiveLowPass(Test.VSt).Run();
+            PassiveLowPassRC(Test.VSt).Run();
             VoltageDivider(Test.VSt).Run();
             NonInvertingAmplifier(Test.VSt).Run();
             InvertingAmplifier(Test.VSt).Run();
-            ActiveLowPass(Test.VSt).Run();
+            ActiveLowPassRC(Test.VSt).Run();
             PassiveSecondOrderLowpassRC(Test.VSt).Run();
-            //PassiveSecondOrderLowpassRLC(Test.VSt).Run();
-            //DiodeHalfClipper(Test.VSt).Run();
         }
 
         private static Circuit.Circuit CreateVoltageDivider(Expression V, TwoTerminal R1, TwoTerminal R2)
@@ -112,7 +113,7 @@ namespace CircuitTests
 
             VS.ConnectTo(Vin, Vg);
             R1.ConnectTo(Vin, Vo);
-            R2.ConnectTo(Vo, Vg);
+            R2.ConnectTo(Vg, Vo);
             G.ConnectTo(Vg);
 
             return C;
@@ -129,18 +130,18 @@ namespace CircuitTests
         /// http://en.wikipedia.org/wiki/Low-pass_filter#Passive_electronic_realization
         /// </summary>
         /// <returns></returns>
-        private static Test PassiveLowPass(Expression V)
+        private static Test PassiveLowPassRC(Expression V)
         {
             Resistor R1 = new Resistor() { Resistance = 10e3m };
             Capacitor C1 = new Capacitor() { Capacitance = 10e-7m };
-            return new Test("Passive low-pass", CreateVoltageDivider(V, R1, C1));
+            return new Test("Passive low-pass RC", CreateVoltageDivider(V, R1, C1));
         }
 
-        private static Test PassiveLowPassMinimal(Expression V)
+        private static Test PassiveLowPassRL(Expression V)
         {
-            Resistor R1 = new Resistor() { Resistance = 1 };
-            Capacitor C1 = new Capacitor() { Capacitance = 1 };
-            return new Test("Passive low-pass", CreateVoltageDivider(V, R1, C1));
+            Resistor R1 = new Resistor() { Resistance = 10e3m };
+            Inductor L1 = new Inductor() { Inductance = 10 };
+            return new Test("Passive low-pass RL", CreateVoltageDivider(V, L1, R1));
         }
 
         /// <summary>
@@ -231,7 +232,7 @@ namespace CircuitTests
         /// http://en.wikipedia.org/wiki/Low-pass_filter#Active_electronic_realization
         /// </summary>
         /// <returns></returns>
-        public static Test ActiveLowPass(Expression V)
+        public static Test ActiveLowPassRC(Expression V)
         {
             Resistor R1 = new Resistor() { Resistance = 10e3m };
             Resistor R2 = new Resistor() { Resistance = 10e3m };
@@ -277,8 +278,8 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test PassiveSecondOrderLowpassRC(Expression V)
         {
-            Resistor R1 =   new Resistor() { Resistance = 10e3m };
-            Resistor R2 =   new Resistor() { Resistance = 10e3m };
+            Resistor R1 = new Resistor() { Resistance = 10e3m };
+            Resistor R2 = new Resistor() { Resistance = 10e3m };
             Capacitor C1 = new Capacitor() { Capacitance = 1e-6m };
             Capacitor C2 = new Capacitor() { Capacitance = 1e-6m };
 
@@ -475,7 +476,7 @@ namespace CircuitTests
             Diode D1 = new Diode();
             Resistor R1 = new Resistor() { Resistance = 100m };
 
-            return new Test("Diode half wave clipper", CreateVoltageDivider(V, D1, R1));
+            return new Test("Diode half wave clipper", CreateVoltageDivider(V, R1, D1));
         }
 
         public static Test DiodeClipper(Expression V)

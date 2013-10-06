@@ -48,6 +48,7 @@ namespace Circuit
                 c.Analyze(Kcl, Unknowns);
             foreach (Node n in Nodes)
             {
+                Unknowns.Add(n.V);
                 Expression i = n.Kcl();
                 if (i != null)
                     Kcl.Add(Equal.New(i, Constant.Zero));

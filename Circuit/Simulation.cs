@@ -55,7 +55,7 @@ namespace Circuit
         // Expressions for the solution of the differential equations.
         private List<Arrow> differential;
         // Expressions for the solution of the linear equations.
-        private List<Arrow> linear;
+        private List<Arrow> algebraic;
         // Implicit equations describing the non-linear system.
         private List<Tuple<Equal, Expression>> nonlinear;
         private List<Expression> unknowns;
@@ -83,52 +83,49 @@ namespace Circuit
             // Length of one timestep in the oversampled simulation.
             h = 1 / ((Expression)SampleRate * Oversample);
 
-            // State variable x for each node in the circuit.
-            List<Expression> x = nodes.ToList();
-            List<Equal> kclEq = new List<Equal>();
-            
-            Circuit.Analyze(kclEq, x);
+            // Analyze the circuit to get the KCL equations and the unknowns we need to solve for.
+            List<Expression> x = new List<Expression>();
+            List<Equal> kcl = new List<Equal>();
+            Circuit.Analyze(kcl, x);
 
-            // Create global variables for the previous state.
+            // Create global variables for the previous state of each unknown.
             foreach (Expression i in x)
                 globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
 
-            // Find trivial solutions for x in the system and remove them.
-            trivial = kclEq.Solve(x);
+            // Find trivial solutions (e.g. ground) for x and substitute them into the system.
+            trivial = kcl.Solve(x);
             trivial.RemoveAll(i => i.Right.IsFunctionOf(x));
-            kclEq = kclEq.Evaluate(trivial).OfType<Equal>().ToList();
+            kcl = kcl.Evaluate(trivial).OfType<Equal>().ToList();
             x.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
 
+            // Get the potential differential unknowns in the system.
             List<Expression> dxdt = x.Select(i => D(i, t)).ToList();
             
-            // Find the non-trivial KCL equations for this circuit.
-            List<DiffAlgEq> kcl = kclEq.Select(i => new DiffAlgEq(i, x, dxdt)).ToList();
+            // These are the non-trivial KCL equations of the circuit, stored as differential algebraic equations (DAEs).
+            List<DiffAlgEq> dae = kcl.Select(i => new DiffAlgEq(i, x, dxdt)).ToList();
             
-            // This is the system (DAE) we have to solve:
-            //  Ax'(t) + Bx(t) + f(t) = 0.
+            // First, work on the system where f(t) is constant (previous state).
+            List<Equal> S = dae.Select(i => Equal.New(i.A, i.f0)).ToList();
 
-            // DAEs are hard to solve simultaneously, so we are going to hold parts of the system
-            // constant (to the current value).
-
-            List<Equal> S = kcl.Select(i => Equal.New(i.A, i.f0)).ToList();
-            // Find dxdt that are present in the system.
-            dxdt = dxdt.Where(i => S.Any(j => j.IsFunctionOf(i))).ToList();
-            // Find x that don't have a differential relationship.
-            List<Expression> algebraic = x.Where(i => dxdt.None(j => DOf(j).Equals(i))).ToList();
+            // Only care about dx/dt that actually exist in the system.
+            dxdt.RemoveAll(i => !S.Any(j => j.IsFunctionOf(i)));
 
             // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
+            List<Expression> xa = x.Where(i => dxdt.None(j => DOf(j).Equals(i))).ToList();
+
             differential = S
-                .Evaluate(algebraic.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).Cast<Equal>().ToList()
+                .Evaluate(S.Solve(xa)).OfType<Equal>()
+                .Evaluate(xa.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).Cast<Equal>().ToList()
                 .NDSolve(dxdt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
             x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
 
-            // Solve can solve the system after the differential solutions are known.
-            linear = S.Solve(x.Where(i => kcl.None(j => j.f.IsFunctionOf(i))));
-            linear.RemoveAll(i => i.Right.IsFunctionOf(x.Except(linear.Select(j => j.Left))));
-            x.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
+            // Find as many closed form solutions in the remaining system as possible.
+            algebraic = S.Solve(x.Where(i => dae.None(j => j.f.IsFunctionOf(i))));
+            algebraic.RemoveAll(i => i.Right.IsFunctionOf(x.Except(algebraic.Select(j => j.Left))));
+            x.RemoveAll(i => algebraic.Any(j => j.Left.Equals(i)));
 
-            // This will be solved via newtons method at compile time.
-            nonlinear = kcl.Where(i => !i.f.IsZero()).Select(i => new Tuple<Equal, Expression>(Equal.New(i.A, i.f), i.f0)).ToList();
+            // The remaining non-linear system will be solved via Newton's method.
+            nonlinear = dae.Where(i => !i.f.IsZero()).Select(i => new Tuple<Equal, Expression>(Equal.New(i.A, i.f), i.f0)).ToList();
             unknowns = x;
 
             // Create a global variable for the value of each f0.
@@ -332,7 +329,7 @@ namespace Circuit
                                 LinqExpression Vt = i.Right.Compile(v);
                                 // Compute the value of v'(t) and store it in the map.
                                 LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString());
-                                body.Add(LinqExpression.Assign(dV, LinqExpression.Multiply(LinqExpression.Subtract(Vt, Vt0), pT)));
+                                body.Add(LinqExpression.Assign(dV, LinqExpression.Divide(LinqExpression.Subtract(Vt, Vt0), pT)));
                                 v[D(i.Left, t)] = dV;
 
                                 // Update Vt0.
@@ -341,7 +338,7 @@ namespace Circuit
                             }
 
                             // And the linear timestep expressions.
-                            foreach (Arrow i in linear)
+                            foreach (Arrow i in algebraic)
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
                                 body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
