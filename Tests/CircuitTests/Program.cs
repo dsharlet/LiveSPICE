@@ -77,7 +77,8 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
-            //PassiveSecondOrderLowpassRLC(Test.VSt).Run();
+            PassiveLowPassRLC(Test.VSt).Run();
+            PassiveBandPassRLC(Test.VSt).Run();
             //ToneStack(Test.VSt).Run();
             //Triode(Test.VSt).Run();
             VoltageDivider(Test.VSt).Run();
@@ -345,7 +346,45 @@ namespace CircuitTests
         /// <summary>
         /// </summary>
         /// <returns></returns>
-        public static Test PassiveSecondOrderLowpassRLC(Expression V)
+        public static Test PassiveLowPassRLC(Expression V)
+        {
+            Resistor R1 = new Resistor() { Resistance = 100 };
+            Inductor L1 = new Inductor() { Inductance = 100m };
+            Capacitor C1 = new Capacitor() { Capacitance = 200e-9m };
+
+            Circuit.Circuit C = new Circuit.Circuit();
+
+            VoltageSource VS = new VoltageSource() { Voltage = V };
+            Ground G = new Ground();
+
+            C.Components.Add(VS);
+            C.Components.Add(G);
+
+            Node Vin = new Node("Vin");
+            Node Va = new Node("Va");
+            Node Vo = new Node("Vo");
+            Node Vg = new Node("Vg");
+
+            C.Nodes = new NodeCollection() { Vin, Va, Vo, Vg };
+
+            C.Components.Add(R1);
+            C.Components.Add(L1);
+            C.Components.Add(C1);
+
+            VS.ConnectTo(Vin, Vg);
+            G.ConnectTo(Vg);
+
+            R1.ConnectTo(Vin, Va);
+            L1.ConnectTo(Va, Vo);
+            C1.ConnectTo(Vo, Vg);
+
+            return new Test("Passive lowpass (RLC)", C);
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <returns></returns>
+        public static Test PassiveBandPassRLC(Expression V)
         {
             Resistor R1 = new Resistor() { Resistance = 100 };
             Inductor L1 = new Inductor() { Inductance = 50e-3m };
@@ -372,11 +411,11 @@ namespace CircuitTests
             VS.ConnectTo(Vin, Vg);
             G.ConnectTo(Vg);
 
-            C1.ConnectTo(Vin, Vo);
+            R1.ConnectTo(Vin, Vo);
+            C1.ConnectTo(Vo, Vg);
             L1.ConnectTo(Vo, Vg);
-            R1.ConnectTo(Vo, Vg);
 
-            return new Test("Passive second-order low-pass (RLC)", C);
+            return new Test("Passive bandpass (RLC)", C);
         }
 
         public static Test ToneStack(Expression V)
