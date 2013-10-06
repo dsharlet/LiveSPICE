@@ -291,7 +291,7 @@ namespace Circuit
                         if (!nodes.Contains(i))
                         {
                             v[i.Evaluate(t, t0)] = v[i];
-                            v[i.Differentiate(t).Evaluate(t, t0)] = v[i.Differentiate(t)] = LinqExpression.Divide(dinputi, pT);
+                            v[D(i, t).Evaluate(t, t0)] = v[D(i, t)] = LinqExpression.Divide(dinputi, pT);
                         }
                     }
 
@@ -539,7 +539,7 @@ namespace Circuit
         }
 
         // Shorthand for df/dx.
-        private static Expression D(Expression f, Expression x) { return f.Differentiate(x); }
+        private static Expression D(Expression f, Expression x) { return Call.D(f, x); }
 
         // Get the expression that x is a derivative of.
         private static Expression DOf(Expression x)

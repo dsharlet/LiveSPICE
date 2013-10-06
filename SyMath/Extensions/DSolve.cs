@@ -110,6 +110,6 @@ namespace SyMath
         private static Expression L(Expression f, Expression t) { return f.LaplaceTransform(t, s); }
         private static Expression IL(Expression f, Expression t) { return f.InverseLaplaceTransform(s, t); }
 
-        private static Expression D(Expression f, Expression t) { return f.Differentiate(t); }
+        private static Expression D(Expression f, Expression t) { return Call.D(f, t); }
     }
 }
