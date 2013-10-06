@@ -112,10 +112,9 @@ namespace Circuit
 
             // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
             List<Expression> xa = x.Where(i => dxdt.None(j => DOf(j).Equals(i))).ToList();
-
             differential = S
                 .Evaluate(S.Solve(xa)).OfType<Equal>()
-                .Evaluate(xa.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).Cast<Equal>().ToList()
+                .Evaluate(xa.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).Cast<Equal>()
                 .NDSolve(dxdt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
             x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
 
@@ -273,12 +272,12 @@ namespace Circuit
                             buffers[i].Type.GetProperty("Item"),
                             new LinqExpression[] { vn });
 
-                        // double v_i = va
+                        // double vi = va
                         LinqExpressions.ParameterExpression vi = Declare<double>(locals, v, i, i.ToString() + "_i");
                         body.Add(LinqExpression.Assign(vi, va));
 
-                        // d_i (vb - va) / Oversample.
-                        LinqExpressions.ParameterExpression dinputi = Declare<double>(locals, dinput, i, "d_" + i.ToString());
+                        // di = (vb - vi) / Oversample.
+                        LinqExpressions.ParameterExpression dinputi = Declare<double>(locals, dinput, i, "d" + i.ToString());
                         body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, vi), LinqExpression.Constant((double)Oversample))));
 
                         // va = vb
@@ -395,19 +394,6 @@ namespace Circuit
             return LinqExpression.Lambda(LinqExpression.Block(locals, body), parameters);
         }
 
-        // Compile x to an expression, or NaN if compilation fails.
-        private static LinqExpression CompileOrNaN(Expression x, IDictionary<Expression, LinqExpression> v)
-        {
-            try
-            {
-                return x.Compile(v);
-            }
-            catch (CompileException)
-            {
-                return LinqExpression.Constant(double.NaN);
-            }
-        }
-
         // Generate a for loop given the header and body expressions.
         private void For(
             IList<LinqExpression> Target,
@@ -455,7 +441,7 @@ namespace Circuit
             LinqExpression Condition,
             Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body)
         {
-            string name = Target.Count.ToString();
+            string name = (Target.Count + 1).ToString();
             LinqExpressions.LabelTarget begin = LinqExpression.Label("while_" + name + "_begin");
             LinqExpressions.LabelTarget end = LinqExpression.Label("while_" + name + "_end");
 
@@ -488,7 +474,7 @@ namespace Circuit
             Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body,
             LinqExpression Condition)
         {
-            string name = Target.Count.ToString();
+            string name = (Target.Count + 1).ToString();
             LinqExpressions.LabelTarget begin = LinqExpression.Label("do_" + name + "_begin");
             LinqExpressions.LabelTarget end = LinqExpression.Label("do_" + name + "_end");
 
@@ -531,6 +517,19 @@ namespace Circuit
         private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, string Name)
         {
             return Declare<T>(Scope, null, null, Name);
+        }
+
+        // Compile x to an expression, or NaN if compilation fails.
+        private static LinqExpression CompileOrNaN(Expression x, IDictionary<Expression, LinqExpression> v)
+        {
+            try
+            {
+                return x.Compile(v);
+            }
+            catch (CompileException)
+            {
+                return LinqExpression.Constant(double.NaN);
+            }
         }
 
         // Shorthand for df/dx.
