@@ -29,7 +29,6 @@ namespace Circuit
             Unknowns.Add(i);
 
             Kcl.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * i.Differentiate(t)));
-
             Anode.i = i;
             Cathode.i = -Anode.i;
         }

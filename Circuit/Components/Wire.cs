@@ -21,10 +21,10 @@ namespace Circuit
         {
             Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
             Unknowns.Add(i);
-            Anode.i = i;
-            Cathode.i = -i;
 
             Kcl.Add(Equal.New(Anode.V, Cathode.V));
+            Anode.i = i;
+            Cathode.i = -i;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym) { Sym.AddWire(Anode, Cathode); }

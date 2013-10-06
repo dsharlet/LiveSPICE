@@ -26,11 +26,12 @@ namespace Circuit
 
         public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
-            Anode.i = Call.New(ExprFunction.New("i" + Name, t), t);
-            Cathode.i = -Anode.i;
+            Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Unknowns.Add(i);
 
             Kcl.Add(Equal.New(Anode.V - Cathode.V, Voltage.Value));
-            Unknowns.Add(Anode.i);
+            Anode.i = i;
+            Cathode.i = -i;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
