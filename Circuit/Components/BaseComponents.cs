@@ -86,6 +86,12 @@ namespace Circuit
         }
 
         /// <summary>
+        /// Voltage drop across this component, V = Anode - Cathode.
+        /// </summary>
+        [Browsable(false)]
+        public Expression V { get { return Anode.V - Cathode.V; } }
+
+        /// <summary>
         /// Connect the terminals of this component to the given nodes.
         /// </summary>
         /// <param name="A"></param>
@@ -112,12 +118,6 @@ namespace Circuit
     /// </summary>
     public abstract class PassiveTwoTerminal : TwoTerminal
     {
-        /// <summary>
-        /// Voltage drop across this component, V = Anode - Cathode.
-        /// </summary>
-        [Browsable(false)]
-        public Expression V { get { return Anode.V - Cathode.V; } }
-
         /// <summary>
         /// Current from the Anode to the Cathode.
         /// </summary>

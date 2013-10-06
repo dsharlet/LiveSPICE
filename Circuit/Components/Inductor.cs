@@ -26,11 +26,13 @@ namespace Circuit
         {
             // Define a new unknown for the current through this inductor.
             Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Expression di_dt = D(i, t);
             Unknowns.Add(i);
+            Unknowns.Add(di_dt);
 
-            Kcl.Add(Equal.New(Anode.V - Cathode.V, Multiply.New(inductance.Value, D(i, t))));
+            Kcl.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * di_dt));
             Anode.i = i;
-            Cathode.i = -Anode.i;
+            Cathode.i = -i;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Capacitor")]
-    public class Capacitor : PassiveTwoTerminal
+    public class Capacitor : TwoTerminal
     {
         private Quantity capacitance = new Quantity(100e-6m, Units.F);
         [Description("Capacitance of this capacitor.")]
@@ -21,11 +21,22 @@ namespace Circuit
 
         public Capacitor() { Name = "C1"; }
 
-        public override Expression i(Expression V)
+        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
-            return Multiply.New(capacitance.Value, D(V, t));
+            // Create a new unknown for the drop across this capacitor.
+            Expression Vac = Call.New(ExprFunction.New("V" + Name, t), t);
+            Expression dVac_dt = D(Vac, t);
+            Kcl.Add(Equal.New(Vac, V));
+
+            // Vac and dVac/dt are unknowns.
+            Unknowns.Add(Vac);
+            Unknowns.Add(dVac_dt);
+
+            Expression i = capacitance.Value * dVac_dt;
+            Anode.i = i;
+            Cathode.i = -i;
         }
-        
+                
         protected override void DrawSymbol(SymbolLayout Sym)
         {
             Sym.AddWire(Anode, new Coord(0, 2));

@@ -12,10 +12,7 @@ namespace Circuit
     public class Input : TwoTerminal
     {
         public Input() { Name = "Input"; }
-
-        [Browsable(false)]
-        public Expression V { get { return Anode.V - Cathode.V; } }
-
+        
         public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             // A voltage source supplies any current necessary to maintain the voltage.
