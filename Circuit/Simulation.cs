@@ -140,7 +140,7 @@ namespace Circuit
             
             Circuit.Analyze(kclEq, x);
 
-            // Create a global variable for the previous state of each node.
+            // Create global variables for the previous state.
             foreach (Expression i in x)
                 globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
 
@@ -175,6 +175,7 @@ namespace Circuit
 
             // Solve can solve the system after the differential solutions are known.
             linear = S.Solve(x.Where(i => kcl.None(j => j.f.IsFunctionOf(i))));
+            linear.RemoveAll(i => i.Right.IsFunctionOf(x.Except(linear.Select(j => j.Left))));
             x.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
 
             // This will be solved via newtons method at compile time.
