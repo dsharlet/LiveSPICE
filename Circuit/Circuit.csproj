@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\VariableResistor.cs" />
     <Compile Include="Utils\ComponentCollection.cs" />
     <Compile Include="Components\BaseComponents.cs" />
     <Compile Include="Components\Transistor.cs" />
