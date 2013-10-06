@@ -25,7 +25,7 @@ namespace CircuitTests
             protected Color color = Color.Transparent;
             public Color Color { get { return color; } set { color = value; } }
 
-            public abstract void Paint(double x0, double x1, Graphics G);
+            public abstract void Paint(Matrix T, double x0, double x1, Graphics G);
         }
 
         public class Function : Series
@@ -36,15 +36,12 @@ namespace CircuitTests
                 this.f = f;
             }
 
-            public override void Paint(double x0, double x1, Graphics G)
+            public override void Paint(Matrix T, double x0, double x1, Graphics G)
             {
                 PointF[] dx_ = new PointF[] { new PointF(3.0f, 3.0f) };
-                Matrix T = G.Transform.Clone();
-                T.Invert();
-                T.TransformVectors(dx_);
                 PointF dx = dx_[0];
 
-                Pen pen = new Pen(color, (float)Math.Sqrt((double)(dx.X * dx.X + dx.Y * dx.Y)) / 20.0f);
+                Pen pen = new Pen(color, 1.0f);
 
                 int N = 2048;
                 PointF[] points = new PointF[N + 1];
@@ -55,7 +52,10 @@ namespace CircuitTests
                     points[i].Y = (float)f.Call(x);
                 }
 
-                G.DrawLines(pen, points);
+                System.Drawing.PointF[] Tpoints = new System.Drawing.PointF[points.Length];
+                points.CopyTo(Tpoints, 0);
+                T.TransformPoints(Tpoints);
+                G.DrawLines(pen, Tpoints);
             }
         }
 
@@ -70,18 +70,19 @@ namespace CircuitTests
                 points = Points.Select(i => new PointF((float)(double)i.Left, (float)(double)i.Right)).ToArray();
             }
 
-            public override void Paint(double x0, double x1, Graphics G)
+            public override void Paint(Matrix T, double x0, double x1, Graphics G)
             {
-                PointF[] dx_ = new PointF[] { new PointF(3.0f, 3.0f) };
-                Matrix T = G.Transform.Clone();
-                T.Invert();
-                T.TransformVectors(dx_);
-                PointF dx = dx_[0];
+                PointF dx = new PointF(3.0f, 3.0f);
 
-                Pen pen = new Pen(color, (float)Math.Sqrt((double)(dx.X * dx.X + dx.Y * dx.Y)) / 20.0f);
+                Pen pen = new Pen(color, 1.0f);
+                pen.StartCap = LineCap.Round;
+                pen.EndCap = LineCap.Round;
                 Brush brush = new SolidBrush(color);
 
-                G.DrawLines(pen, points);
+                System.Drawing.PointF[] Tpoints = new System.Drawing.PointF[points.Length];
+                points.CopyTo(Tpoints, 0);
+                T.TransformPoints(Tpoints);
+                G.DrawLines(pen, Tpoints);
                 return;
                 switch (pointStyle)
                 {
@@ -138,7 +139,6 @@ namespace CircuitTests
                 new RectangleF(new PointF(0.0f, 0.0f), (SizeF)e.ClipRectangle.Size), 
                 new PointF[] { new PointF(x0.X, x1.Y), new PointF(x1.X, x1.Y), new PointF(x0.X, x0.Y) });
             T.Invert();
-            G.Transform = T;
             G.SmoothingMode = SmoothingMode.AntiAlias;
             G.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
@@ -150,7 +150,7 @@ namespace CircuitTests
                     if (colors.Count > 1)
                         colors.RemoveAt(0);
                 }
-                i.Value.Paint(x0.X, x1.X, G);
+                i.Value.Paint(T, x0.X, x1.X, G);
             }
         }
     }
