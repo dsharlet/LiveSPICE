@@ -250,7 +250,11 @@ namespace Circuit
 
             // Trivial timestep expressions that are not a function of the input can be set once here.
             foreach (Arrow i in trivial.Where(i => !i.IsFunctionOf(Input)))
-                body.Add(LinqExpression.Assign(globals[i.Left.Evaluate(t, t0)], i.Right.Compile(v)));
+            {
+                LinqExpression Vi = globals[i.Left.Evaluate(t, t0)];
+                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(v)));
+                v[i.Left] = Vi;
+            }
 
             // for (int n = 0; n < N; ++n)
             LinqExpressions.ParameterExpression vn = Declare<int>(locals, "n");
@@ -283,10 +287,12 @@ namespace Circuit
                         // va = vb
                         body.Add(LinqExpression.Assign(va, vb));
 
-                        // If i isn't a node, just make a dummy expression for the previous timestep. 
-                        // This might be able to be removed with an improved system solver that doesn't create references to i[t0] when i is not a node.
+                        // If i isn't a node, add the 
                         if (!nodes.Contains(i))
+                        {
                             v[i.Evaluate(t, t0)] = v[i];
+                            v[i.Differentiate(t).Evaluate(t, t0)] = v[i.Differentiate(t)] = LinqExpression.Divide(dinputi, pT);
+                        }
                     }
 
                     // Prepare output sample accumulators for low pass filtering.
