@@ -68,7 +68,7 @@ namespace Circuit
 
             Cathode.i = VR1 / R1;
             Anode.i = VR2 / -R2;
-            Wiper.i = Cathode.i - Anode.i;
+            Wiper.i = Cathode.i + Anode.i;
         }
         
         public override sealed void LayoutSymbol(SymbolLayout Sym)

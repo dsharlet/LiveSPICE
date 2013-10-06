@@ -77,16 +77,17 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
-            PassiveLowPassRL(Test.VSt).Run();
-            PassiveSecondOrderLowpassRLC(Test.VSt).Run();
-            DiodeHalfClipper(Test.VSt).Run();
-            DiodeClipper(Test.VSt).Run();
+            //PassiveSecondOrderLowpassRLC(Test.VSt).Run();
             //ToneStack(Test.VSt).Run();
             //Triode(Test.VSt).Run();
+            VoltageDivider(Test.VSt).Run();
+            Potentiometer(Test.VSt).Run();
+            PassiveLowPassRL(Test.VSt).Run();
+            DiodeHalfClipper(Test.VSt).Run();
+            DiodeClipper(Test.VSt).Run();
             Supernode(Test.VSt).Run();
             MinimalMixedSystem(Test.VSt).Run();
             PassiveLowPassRC(Test.VSt).Run();
-            VoltageDivider(Test.VSt).Run();
             NonInvertingAmplifier(Test.VSt).Run();
             InvertingAmplifier(Test.VSt).Run();
             ActiveLowPassRC(Test.VSt).Run();
@@ -124,6 +125,33 @@ namespace CircuitTests
             Resistor R1 = new Resistor() { Resistance = 10 };
             Resistor R2 = new Resistor() { Resistance = 10 };
             return new Test("Voltage divider", CreateVoltageDivider(V, R1, R2));
+        }
+
+        private static Test Potentiometer(Expression V)
+        {
+            Potentiometer R1 = new Potentiometer() { Resistance = 20 };
+
+            Circuit.Circuit C = new Circuit.Circuit();
+
+            VoltageSource VS = new VoltageSource() { Voltage = V };
+            Ground G = new Ground();
+
+            C.Components.Add(VS);
+            C.Components.Add(G);
+            
+            Node Vin = new Node("Vin");
+            Node Vo = new Node("Vo");
+            Node Vg = new Node("Vg");
+            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
+
+            C.Components.Add(R1);
+
+            VS.ConnectTo(Vin, Vg);
+            G.ConnectTo(Vg);
+
+            R1.ConnectTo(Vin, Vg, Vo);
+
+            return new Test("Potentiometer", C);
         }
 
         /// <summary>
