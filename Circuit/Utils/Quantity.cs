@@ -98,6 +98,10 @@ namespace Circuit
         public static bool operator ==(Quantity L, Quantity R) { return L.x == R.x && L.units == R.units; }
         public static bool operator !=(Quantity L, Quantity R) { return !(L == R); }
 
+        public static implicit operator Quantity(Expression V) { return new Quantity(V, Units.None); }
+        public static implicit operator Quantity(Real V) { return new Quantity(V, Units.None); }
+        public static implicit operator Quantity(decimal V) { return new Quantity(V, Units.None); }
+
         public static implicit operator Expression(Quantity M) { return M.Value; }
         public static explicit operator Real(Quantity M) { return (Real)M.Value; }
         public static explicit operator double(Quantity M) { return (double)M.Value; }

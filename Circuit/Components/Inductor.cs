@@ -20,7 +20,6 @@ namespace Circuit
         public Quantity Inductance { get { return inductance; } set { if (inductance.Set(value)) NotifyChanged("Inductance"); } }
 
         public Inductor() { Name = "L1"; }
-        public Inductor(decimal L) : this() { inductance.Value = Constant.New(L); }
 
         public override Expression i
         {

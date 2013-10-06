@@ -38,7 +38,6 @@ namespace Circuit
             wiper = new Terminal(this, "Wiper");
             Name = "R1"; 
         }
-        public Potentiometer(decimal R) : this() { Resistance.Value = Constant.New(R); }
 
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Description("Total resistance of this potentiometer.")]

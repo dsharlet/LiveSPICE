@@ -96,7 +96,7 @@ namespace CircuitTests
         {
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -120,8 +120,8 @@ namespace CircuitTests
 
         private static Test VoltageDivider(Expression V)
         {
-            Resistor R1 = new Resistor(10);
-            Resistor R2 = new Resistor(20);
+            Resistor R1 = new Resistor() { Resistance = 10 };
+            Resistor R2 = new Resistor() { Resistance = 10 };
             return new Test("Voltage divider", CreateVoltageDivider(V, R1, R2));
         }
 
@@ -131,15 +131,15 @@ namespace CircuitTests
         /// <returns></returns>
         private static Test PassiveLowPass(Expression V)
         {
-            Resistor R1 = new Resistor(10e3m);
-            Capacitor C1 = new Capacitor(10e-7m);
+            Resistor R1 = new Resistor() { Resistance = 10e3m };
+            Capacitor C1 = new Capacitor() { Capacitance = 10e-7m };
             return new Test("Passive low-pass", CreateVoltageDivider(V, R1, C1));
         }
 
         private static Test PassiveLowPassMinimal(Expression V)
         {
-            Resistor R1 = new Resistor(1);
-            Capacitor C1 = new Capacitor(1);
+            Resistor R1 = new Resistor() { Resistance = 1 };
+            Capacitor C1 = new Capacitor() { Capacitance = 1 };
             return new Test("Passive low-pass", CreateVoltageDivider(V, R1, C1));
         }
 
@@ -149,12 +149,12 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test NonInvertingAmplifier(Expression V)
         {
-            Resistor R1 = new Resistor(10);
-            Resistor R2 = new Resistor(20);
+            Resistor R1 = new Resistor() { Resistance = 10 };
+            Resistor R2 = new Resistor() { Resistance = 20 };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -191,12 +191,12 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test InvertingAmplifier(Expression V)
         {
-            Resistor Rin = new Resistor(10);
-            Resistor Rf = new Resistor(20);
+            Resistor Rin = new Resistor() { Resistance = 10 };
+            Resistor Rf = new Resistor() { Resistance = 20 };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -233,13 +233,13 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test ActiveLowPass(Expression V)
         {
-            Resistor R1 = new Resistor(10e3m);
-            Resistor R2 = new Resistor(10e3m);
-            Capacitor C1 = new Capacitor(10e-7m);
+            Resistor R1 = new Resistor() { Resistance = 10e3m };
+            Resistor R2 = new Resistor() { Resistance = 10e3m };
+            Capacitor C1 = new Capacitor() { Capacitance = 10e-7m };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -277,14 +277,14 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test PassiveSecondOrderLowpassRC(Expression V)
         {
-            Resistor R1 = new Resistor(10e3m);
-            Resistor R2 = new Resistor(10e3m);
-            Capacitor C1 = new Capacitor(1e-6m);
-            Capacitor C2 = new Capacitor(1e-6m);
+            Resistor R1 =   new Resistor() { Resistance = 10e3m };
+            Resistor R2 =   new Resistor() { Resistance = 10e3m };
+            Capacitor C1 = new Capacitor() { Capacitance = 1e-6m };
+            Capacitor C2 = new Capacitor() { Capacitance = 1e-6m };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -318,13 +318,13 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test PassiveSecondOrderLowpassRLC(Expression V)
         {
-            Resistor R1 = new Resistor(100);
-            Inductor L1 = new Inductor(50e-3m);
-            Capacitor C1 = new Capacitor(200e-9m);
+            Resistor R1 = new Resistor() { Resistance = 100 };
+            Inductor L1 = new Inductor() { Inductance = 50e-3m };
+            Capacitor C1 = new Capacitor() { Capacitance = 200e-9m };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -360,17 +360,17 @@ namespace CircuitTests
             //Capacitor C2 = new Capacitor(1);
             //Capacitor C3 = new Capacitor(1);
 
-            Potentiometer R1 = new Potentiometer(250e3m);
-            VariableResistor R2 = new VariableResistor(1e6m);
-            Potentiometer R3 = new Potentiometer(25e3m);
-            Resistor R4 = new Resistor(56e3m);
-            Capacitor C1 = new Capacitor(0.25e-9m);
-            Capacitor C2 = new Capacitor(20e-9m);
-            Capacitor C3 = new Capacitor(20e-9m);
+            Potentiometer R1 = new Potentiometer() { Resistance = 250e3m };
+            VariableResistor R2 = new VariableResistor() { Resistance = 1e6m };
+            Potentiometer R3 = new Potentiometer() { Resistance = 25e3m };
+            Resistor R4 = new Resistor() { Resistance = 56e3m };
+            Capacitor C1 = new Capacitor() { Capacitance = 0.25e-9m };
+            Capacitor C2 = new Capacitor() { Capacitance = 20e-9m };
+            Capacitor C3 = new Capacitor() { Capacitance = 20e-9m };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -411,19 +411,19 @@ namespace CircuitTests
 
         public static Test Triode(Expression V)
         {
-            Capacitor Ci = new Capacitor(0.047e-6m);
-            Resistor Ri = new Resistor(1e6m);
-            Resistor Rg = new Resistor(70e3m);
-            Capacitor Cf = new Capacitor(2.5e-12m);
-            Resistor Rp = new Resistor(100e3m);
-            Resistor Rk = new Resistor(1500);
-            Capacitor Ck = new Capacitor(25e-6m);
-            VoltageSource VPP = new VoltageSource(325);
+            Resistor Ri = new Resistor() { Resistance = 1e6m };
+            Resistor Rg = new Resistor() { Resistance = 70e3m };
+            Resistor Rp = new Resistor() { Resistance = 100e3m };
+            Resistor Rk = new Resistor() { Resistance = 1500 };
+            Capacitor Ci = new Capacitor() { Capacitance = 0.047e-6m };
+            Capacitor Cf = new Capacitor() { Capacitance = 2.5e-12m };
+            Capacitor Ck = new Capacitor() { Capacitance = 25e-6m };
+            VoltageSource VPP = new VoltageSource() { Voltage = 325 };
             Triode T = new Triode();
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -473,20 +473,20 @@ namespace CircuitTests
         public static Test DiodeHalfClipper(Expression V)
         {
             Diode D1 = new Diode();
-            Resistor R1 = new Resistor(100m);
+            Resistor R1 = new Resistor() { Resistance = 100m };
 
             return new Test("Diode half wave clipper", CreateVoltageDivider(V, D1, R1));
         }
 
         public static Test DiodeClipper(Expression V)
         {
-            Resistor R1 = new Resistor(100);
+            Resistor R1 = new Resistor() { Resistance = 100 };
             Diode D1 = new Diode();
             Diode D2 = new Diode();
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -519,14 +519,14 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test MinimalMixedSystem(Expression V)
         {
-            Resistor R1 = new Resistor(1);
-            Resistor R2 = new Resistor(1);
+            Resistor R1 = new Resistor() { Resistance = 1 };
+            Resistor R2 = new Resistor() { Resistance = 1 };
 
-            Capacitor C1 = new Capacitor(1);
+            Capacitor C1 = new Capacitor() { Capacitance = 1 };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
             Ground G = new Ground();
 
             C.Components.Add(VS);
@@ -560,15 +560,15 @@ namespace CircuitTests
         /// <returns></returns>
         public static Test Supernode(Expression V)
         {
-            Resistor R1 = new Resistor(1);
-            Resistor R2 = new Resistor(1);
-            Resistor R3 = new Resistor(1);
-            Resistor R4 = new Resistor(1);
+            Resistor R1 = new Resistor() { Resistance = 1 };
+            Resistor R2 = new Resistor() { Resistance = 1 };
+            Resistor R3 = new Resistor() { Resistance = 1 };
+            Resistor R4 = new Resistor() { Resistance = 1 };
 
             Circuit.Circuit C = new Circuit.Circuit();
 
-            VoltageSource VS = new VoltageSource(V);
-            VoltageSource VSc = new VoltageSource(2);
+            VoltageSource VS = new VoltageSource() { Voltage = V };
+            VoltageSource VSc = new VoltageSource() { Voltage = 2 };
             Ground G = new Ground();
 
             C.Components.Add(VS);

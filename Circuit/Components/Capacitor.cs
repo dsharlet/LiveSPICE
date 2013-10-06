@@ -20,7 +20,6 @@ namespace Circuit
         public Quantity Capacitance { get { return capacitance; } set { if (capacitance.Set(value)) NotifyChanged("Capacitance"); } }
 
         public Capacitor() { Name = "C1"; }
-        public Capacitor(decimal C) : this() { capacitance.Value = Constant.New(C); }
 
         public override Expression i
         {
