@@ -68,10 +68,8 @@ namespace CircuitTests
             Simulation S = new Simulation(circuit, new Quantity(48000, Units.Hz), 8, 8);
             System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
 
-            // Run a sine wave through the circuit.
-            RunTest(S, ExprFunction.New("VS", "Sin[t*100*2*3.1415]", Component.t), 48000 * 100, name);
-            // Run 1V DC through the circuit.
-            //RunTest(S, "1", 1000, name);
+            RunTest(S, ExprFunction.New("VS", "Sin[t*100*2*3.1415]", Component.t), 48000 * 10, name);
+            //RunTest(S, ExprFunction.New("VS", "1", Component.t), 48000 * 10, name);
         }
     }
 
@@ -79,7 +77,7 @@ namespace CircuitTests
     {        
         static void Main(string[] args)
         {
-            //DiodeClipper(Test.VSt).Run();
+            DiodeClipper(Test.VSt).Run();
             Supernode(Test.VSt).Run();
             //ToneStack(Test.VSt).Run();
             //Triode(Test.VSt).Run();
@@ -591,7 +589,7 @@ namespace CircuitTests
             C.Components.Add(R4);
 
             VS.ConnectTo(Va, Vb);
-            VSc.ConnectTo(Vg, Vc);
+            VSc.ConnectTo(Vc, Vg);
             G.ConnectTo(Vg);
 
             R1.ConnectTo(Va, Vo);

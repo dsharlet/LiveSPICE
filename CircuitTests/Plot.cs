@@ -128,13 +128,15 @@ namespace CircuitTests
 
         public Plot(string Name, int Width, int Height, double x0, double y0, double x1, double y1, Series S) : this(Name, Width, Height, x0, y0, x1, y1, new Dictionary<string, Series> { { "", S } }) { }
 
-        private List<Color> colors = new List<Color>() { Color.Red, Color.Green, Color.Blue, Color.DarkRed, Color.DarkGreen, Color.DarkBlue, Color.Black };
+        private List<Color> colors = new List<Color>() { Color.Red, Color.Blue, Color.Green, Color.DarkRed, Color.DarkGreen, Color.DarkBlue, Color.Black };
 
         void Plot_Paint(object sender, PaintEventArgs e)
         {
             Graphics G = e.Graphics;
 
-            Matrix T = new Matrix(new RectangleF(new PointF(0.0f, 0.0f), (SizeF)e.ClipRectangle.Size), new PointF[] { x0, new PointF(x1.X, x0.Y), new PointF(x0.X, x1.Y) });
+            Matrix T = new Matrix(
+                new RectangleF(new PointF(0.0f, 0.0f), (SizeF)e.ClipRectangle.Size), 
+                new PointF[] { new PointF(x0.X, x1.Y), new PointF(x1.X, x1.Y), new PointF(x0.X, x0.Y) });
             T.Invert();
             G.Transform = T;
             G.SmoothingMode = SmoothingMode.AntiAlias;
