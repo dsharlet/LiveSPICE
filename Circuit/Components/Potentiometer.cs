@@ -44,11 +44,11 @@ namespace Circuit
         [SchematicPersistent]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
-        protected double wipe = 0.5;
+        protected decimal wipe = 0.5m;
         [Description("Position of the wiper as a ratio from 0 to 1. 1 corresponds to all the resistance between the wiper and the cathode.")]
         [SchematicPersistent]
         [RangedSimulationParameter(0.0, 1.0)]
-        public double Wipe { get { return wipe; } set { wipe = Math.Max(Math.Min(value, 1.0), 0.0); NotifyChanged("Wipe"); } }
+        public decimal Wipe { get { return wipe; } set { wipe = Math.Max(Math.Min(value, 1.0m), 0.0m); NotifyChanged("Wipe"); } }
 
 
         public void ConnectTo(Node A, Node C, Node W)
@@ -60,7 +60,7 @@ namespace Circuit
 
         public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
-            Expression R1 = resistance.Value * (1.0 - wipe);
+            Expression R1 = resistance.Value * (1.0m - wipe);
             Expression R2 = resistance.Value * wipe;
 
             Expression VR1 = Anode.V - Wiper.V;

@@ -10,10 +10,10 @@ namespace Circuit
     [CategoryAttribute("Controls")]
     public class VariableResistor : Resistor
     {
-        protected double wipe = 0.5;
+        protected decimal wipe = 0.5m;
         [SchematicPersistent]
-        [RangedSimulationParameter(0.0, 1.0)]
-        public double Wipe { get { return wipe; } set { wipe = Math.Max(Math.Min(value, 1.0), 0.0); NotifyChanged("Wipe"); } }
+        [RangedSimulationParameter(0, 1)]
+        public decimal Wipe { get { return wipe; } set { wipe = Math.Max(Math.Min(value, 1.0m), 0.0m); NotifyChanged("Wipe"); } }
 
         public VariableResistor() { }
 
