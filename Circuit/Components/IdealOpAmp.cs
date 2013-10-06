@@ -43,7 +43,10 @@ namespace Circuit
             // Infinite input impedance.
             Positive.i = Constant.Zero;
             Negative.i = Constant.Zero;
-            Out.i = null;
+
+            Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Unknowns.Add(i);
+            Out.i = i;
 
             // The voltage between the positive and negative terminals is 0.
             Kcl.Add(Equal.New(Positive.V, Negative.V));
