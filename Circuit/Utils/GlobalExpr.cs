@@ -21,6 +21,8 @@ namespace Circuit
         private LinqExpression expr;
         public LinqExpression Expr { get { return expr; } }
 
+        public static implicit operator LinqExpression(GlobalExpr<T> G) { return G.expr; }
+
         public GlobalExpr() { expr = LinqExpression.Field(LinqExpression.Constant(this), typeof(GlobalExpr<T>), "x"); }
         public GlobalExpr(T Init) : this() { x = Init; }
     }

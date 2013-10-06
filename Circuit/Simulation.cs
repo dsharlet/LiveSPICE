@@ -228,7 +228,7 @@ namespace Circuit
 
             // Get expressions for the state of each node. These may be replaced by input parameters.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                v[i.Key] = i.Value.Expr;
+                v[i.Key] = i.Value;
 
             // Lambda definition objects.
             List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
@@ -254,7 +254,7 @@ namespace Circuit
 
             // Trivial timestep expressions that are not a function of the input can be set once here.
             foreach (Arrow i in trivial.Where(i => !i.IsFunctionOf(Input)))
-                body.Add(LinqExpression.Assign(globals[i.Left.Evaluate(t, t0)].Expr, i.Right.Compile(v)));
+                body.Add(LinqExpression.Assign(globals[i.Left.Evaluate(t, t0)], i.Right.Compile(v)));
 
             // for (int n = 0; n < N; ++n)
             LinqExpressions.ParameterExpression vn = Declare<int>(locals, "n");
@@ -270,7 +270,7 @@ namespace Circuit
                     {
                         // Ensure that we have a global variable to store the previous sample in.
                         globals[i] = new GlobalExpr<double>(0.0);
-                        LinqExpression va = globals[i].Expr;
+                        LinqExpression va = globals[i];
                         LinqExpression vb = LinqExpression.MakeIndex(
                             buffers[i],
                             buffers[i].Type.GetProperty("Item"),
@@ -320,7 +320,7 @@ namespace Circuit
                             // Compile the trivial timestep expressions that are a function of the input.
                             foreach (Arrow i in trivial.Where(i => i.Right.IsFunctionOf(Input)))
                             {
-                                LinqExpression Vi = globals[i.Left.Evaluate(t, t0)].Expr;
+                                LinqExpression Vi = globals[i.Left.Evaluate(t, t0)];
                                 body.Add(LinqExpression.Assign(Vi, i.Right.Compile(v)));
                                 v[i.Left] = Vi;
                             }
@@ -328,7 +328,7 @@ namespace Circuit
                             // Compile the differential timestep expressions.
                             foreach (Arrow i in differential)
                             {
-                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
+                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
                                 LinqExpression Vt = i.Right.Compile(v);
                                 // Compute the value of v'(t) and store it in the map.
                                 LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString());
@@ -343,7 +343,7 @@ namespace Circuit
                             // And the linear timestep expressions.
                             foreach (Arrow i in linear)
                             {
-                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
+                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
                                 body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
                                 v[i.Left] = Vt0;
                             }
@@ -361,7 +361,7 @@ namespace Circuit
 
                                     foreach (Arrow i in iter)
                                     {
-                                        LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
+                                        LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
                                         body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
                                         v[i.Left] = Vt0;
                                     }
@@ -370,7 +370,7 @@ namespace Circuit
                             // Update f0.
                             foreach (Tuple<Equal, Expression> i in nonlinear)
                             {
-                                LinqExpression f0 = globals[i.Item2].Expr;
+                                LinqExpression f0 = globals[i.Item2];
                                 body.Add(LinqExpression.Assign(f0, i.Item1.Right.Compile(v)));
                             }
                             
