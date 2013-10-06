@@ -48,16 +48,16 @@ namespace Circuit
         /// </summary>
         public Expression Kcl()
         {
-            Expression sum = Constant.Zero;
+            List<Expression> sum = new List<Expression>();
             foreach (Terminal t in connected)
             {
                 // If there is a component with undefined current, this node does not have a useful KCL expression.
                 if (t.i == null)
                     return null;
 
-                sum = sum + t.i;
+                sum.Add(t.i);
             }
-            return sum;
+            return Add.New(sum);
         }
 
         public override string ToString() { return Name; }
