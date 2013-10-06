@@ -80,6 +80,10 @@ namespace Circuit
         /// <param name="S"></param>
         public abstract void LayoutSymbol(SymbolLayout Sym);
 
+        // This is too useful not to have.
+        protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
+
+        // object interface.
         public override string ToString() { return Name; }
 
         // INotifyPropertyChanged interface.
