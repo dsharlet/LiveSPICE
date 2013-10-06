@@ -10,63 +10,12 @@ using LinqExpressions = System.Linq.Expressions;
 using LinqExpression = System.Linq.Expressions.Expression;
 
 namespace Circuit
-{
+{    
     /// <summary>
     /// Simulate a circuit.
     /// </summary>
     public class Simulation
     {
-        // Holds an instance of T and a LinqExpression that maps to the instance.
-        class GlobalExpr<T>
-        {
-            private T x;
-            public T Value { get { return x; } set { x = value; } }
-
-            // A Linq Expression to refer to the voltage at this node.
-            private LinqExpression expr;
-            public LinqExpression Expr { get { return expr; } }
-
-            public GlobalExpr() { expr = LinqExpression.Field(LinqExpression.Constant(this), typeof(GlobalExpr<T>), "x"); }
-            public GlobalExpr(T Init) : this() { x = Init; }
-        }
-
-        // Stores a DAE as a linear/differential A and non-linear equation f, A = f.
-        class DiffAlgEq
-        {
-            private static int token = 0;
-
-            public Expression A = Constant.Zero, f = Constant.Zero;
-
-            // Token expressions representing the previous values of A, f.
-            public Expression A0 = Constant.Zero;
-            public Expression f0 = Constant.Zero;
-
-            public DiffAlgEq(Equal Eq, IEnumerable<Expression> x, IEnumerable<Expression> dxdt)
-            {
-                Expression eq = Eq.Left - Eq.Right;
-
-                foreach (Expression i in Add.TermsOf((Eq.Left - Eq.Right).Expand()))
-                {
-                    if (!i.IsFunctionOf(x.Concat(dxdt)) || IsLinearFunctionOf(i, x))
-                        A += i;
-                    else if (i.IsFunctionOf(dxdt))
-                        A += i;
-                    else
-                        f += -i;
-                }
-
-                if (!A.Equals(Constant.Zero))
-                    A0 = Variable.New("A0_" + Interlocked.Increment(ref token).ToString());
-                if (!f.Equals(Constant.Zero))
-                    f0 = Variable.New("f0_" + Interlocked.Increment(ref token).ToString());
-            }
-
-            public override string ToString()
-            {
-                return Equal.New(A, f).ToString();
-            }
-        };
-
         // Expression for t at the previous timestep.
         private static readonly Expression t0 = Variable.New("t0");
         private static readonly Expression t = Component.t;
@@ -303,6 +252,10 @@ namespace Circuit
             LinqExpressions.ParameterExpression vt = Declare<double>(locals, v, t);
             body.Add(LinqExpression.Assign(vt, pt0));
 
+            // Trivial timestep expressions that are not a function of the input can be set once here.
+            foreach (Arrow i in trivial.Where(i => !i.IsFunctionOf(Input)))
+                body.Add(LinqExpression.Assign(globals[i.Left.Evaluate(t, t0)].Expr, i.Right.Compile(v)));
+
             // for (int n = 0; n < N; ++n)
             LinqExpressions.ParameterExpression vn = Declare<int>(locals, "n");
             For(body,
@@ -329,7 +282,7 @@ namespace Circuit
 
                         // d_i (vb - va) / Oversample.
                         LinqExpressions.ParameterExpression dinputi = Declare<double>(locals, dinput, i, "d_" + i.ToString());
-                        body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, va), LinqExpression.Constant((double)Oversample))));
+                        body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, vi), LinqExpression.Constant((double)Oversample))));
 
                         // va = vb
                         body.Add(LinqExpression.Assign(va, vb));
@@ -364,21 +317,22 @@ namespace Circuit
                             foreach (Expression i in Input)
                                 body.Add(LinqExpression.AddAssign(v[i], dinput[i]));
 
-                            // Compile the timestep expressions.
-                            foreach (Arrow i in trivial)
+                            // Compile the trivial timestep expressions that are a function of the input.
+                            foreach (Arrow i in trivial.Where(i => i.Right.IsFunctionOf(Input)))
                             {
                                 LinqExpression Vi = globals[i.Left.Evaluate(t, t0)].Expr;
                                 body.Add(LinqExpression.Assign(Vi, i.Right.Compile(v)));
                                 v[i.Left] = Vi;
                             }
 
+                            // Compile the differential timestep expressions.
                             foreach (Arrow i in differential)
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
                                 LinqExpression Vt = i.Right.Compile(v);
                                 // Compute the value of v'(t) and store it in the map.
                                 LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString());
-                                body.Add(LinqExpression.Assign(dV, LinqExpression.Subtract(Vt, Vt0)));
+                                body.Add(LinqExpression.Assign(dV, LinqExpression.Multiply(LinqExpression.Subtract(Vt, Vt0), pT)));
                                 v[D(i.Left, t)] = dV;
 
                                 // Update Vt0.
@@ -386,6 +340,7 @@ namespace Circuit
                                 v[i.Left] = Vt;
                             }
 
+                            // And the linear timestep expressions.
                             foreach (Arrow i in linear)
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)].Expr;
@@ -393,7 +348,7 @@ namespace Circuit
                                 v[i.Left] = Vt0;
                             }
                             
-                            // Solve the non-linear system.
+                            // Solve the remaining non-linear system with Newton's method.
                             LinqExpressions.ParameterExpression it = Declare<int>(locals, "it");
                             For(body,
                                 () => body.Add(LinqExpression.Assign(it, LinqExpression.Constant(Iterations))),
@@ -591,21 +546,6 @@ namespace Circuit
             if (d.Target.Name == "D")
                 return d.Arguments.First();
             throw new InvalidOperationException("Expression is not a derivative");
-        }
-
-        private static bool IsLinearFunctionOf(Expression f, IEnumerable<Expression> x)
-        {
-            foreach (Expression i in x)
-            {
-                // TODO: There must be a more efficient way to do this...
-                Expression fi = f / i;
-                if (!fi.IsFunctionOf(i))
-                    return true;
-
-                //if (Add.TermsOf(f).Count(j => Multiply.TermsOf(j).Sum(k => k.Equals(i) ? 1 : k.IsFunctionOf(i) ? 2 : 0) == 1) == 1)
-                //    return true;
-            }
-            return false;
         }
     }
 }
