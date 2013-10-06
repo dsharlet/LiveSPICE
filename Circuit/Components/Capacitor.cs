@@ -21,9 +21,9 @@ namespace Circuit
 
         public Capacitor() { Name = "C1"; }
 
-        public override Expression i
+        public override Expression i(Expression V)
         {
-            get { return capacitance.Value * V.Differentiate(t); }
+            return Multiply.New(capacitance.Value, D(V, t));
         }
         
         protected override void DrawSymbol(SymbolLayout Sym)

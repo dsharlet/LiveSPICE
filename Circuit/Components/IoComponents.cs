@@ -45,9 +45,9 @@ namespace Circuit
     {
         public Output() { Name = "Output"; }
 
-        public override Expression i
+        public override Expression i(Expression V)
         {
-            get { return 0; }
+            return 0;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

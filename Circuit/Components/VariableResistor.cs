@@ -17,9 +17,9 @@ namespace Circuit
 
         public VariableResistor() { }
 
-        public override Expression i
+        public override Expression i(Expression V)
         {
-            get { return V / (Resistance.Value * wipe); }
+            return V / (Resistance.Value * wipe);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

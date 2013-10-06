@@ -122,14 +122,14 @@ namespace Circuit
         /// Current from the Anode to the Cathode.
         /// </summary>
         [Browsable(false)]
-        public abstract Expression i { get; }
+        public abstract Expression i(Expression V);
 
         public override sealed void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
-            Expression i = this.i;  
+            Expression i = this.i(V);  
 
             Anode.i = i;
-            Cathode.i = -i;
+            Cathode.i = Multiply.New(Constant.New(-1), i);
         }
     }
 }

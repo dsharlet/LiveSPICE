@@ -28,7 +28,7 @@ namespace Circuit
             Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
             Unknowns.Add(i);
 
-            Kcl.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * i.Differentiate(t)));
+            Kcl.Add(Equal.New(Anode.V - Cathode.V, Multiply.New(inductance.Value, D(i, t))));
             Anode.i = i;
             Cathode.i = -Anode.i;
         }

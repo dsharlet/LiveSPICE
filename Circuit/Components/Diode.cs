@@ -49,7 +49,10 @@ namespace Circuit
 
         public Diode() { Name = "D1"; }
 
-        public override Expression i { get { return model.Evaluate(V); } }
+        public override Expression i(Expression V) 
+        { 
+            return model.Evaluate(V); 
+        }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {

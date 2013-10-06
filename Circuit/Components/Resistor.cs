@@ -21,9 +21,9 @@ namespace Circuit
 
         public Resistor() { Name = "R1"; }
 
-        public override Expression i
+        public override Expression i(Expression V)
         {
-            get { return V / Resistance.Value; }
+            return V / Resistance.Value;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
