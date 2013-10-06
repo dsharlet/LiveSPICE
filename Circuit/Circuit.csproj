@@ -81,6 +81,7 @@
     <Compile Include="Components\IdealOpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
+    <Compile Include="Utils\Netlist.cs" />
     <Compile Include="Utils\NodeCollection.cs" />
     <Compile Include="Utils\Units.cs" />
     <Compile Include="Utils\QuantityConverter.cs" />

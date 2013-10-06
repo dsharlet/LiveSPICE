@@ -32,6 +32,16 @@ namespace Circuit
             }
         }
 
+        /// <summary>
+        /// Create a circuit from a SPICE netlist.
+        /// </summary>
+        /// <param name="Filename"></param>
+        /// <returns></returns>
+        public static Circuit FromNetlist(string Filename)
+        {
+            return Netlist.Parse(Filename);
+        }
+
         public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
         {
             foreach (Component c in Components)
