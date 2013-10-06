@@ -98,24 +98,22 @@ namespace Circuit
             kcl = kcl.Evaluate(trivial).OfType<Equal>().ToList();
             x.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
 
-            // Get the potential differential unknowns in the system.
-            List<Expression> dxdt = x.Select(i => D(i, t)).ToList();
+            // Separate x into differential and algebraic unknowns.
+            List<Expression> dx_dt = x.Where(i => IsD(i, t)).ToList();
+            x.RemoveAll(i => IsD(i, t));
             
             // These are the non-trivial KCL equations of the circuit, stored as differential algebraic equations (DAEs).
-            List<DiffAlgEq> dae = kcl.Select(i => new DiffAlgEq(i, x, dxdt)).ToList();
+            List<DiffAlgEq> dae = kcl.Select(i => new DiffAlgEq(i, x, dx_dt)).ToList();
             
             // First, work on the system where f(t) is constant (previous state).
             List<Equal> S = dae.Select(i => Equal.New(i.A, i.f0)).ToList();
-
-            // Only care about dx/dt that actually exist in the system.
-            dxdt.RemoveAll(i => !S.Any(j => j.IsFunctionOf(i)));
-
+            
             // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
-            List<Expression> xa = x.Where(i => dxdt.None(j => DOf(j).Equals(i))).ToList();
+            List<Expression> xa = x.Where(i => dx_dt.None(j => DOf(j).Equals(i))).ToList();
             differential = S
                 .Evaluate(S.Solve(xa)).OfType<Equal>()
                 .Evaluate(xa.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).Cast<Equal>()
-                .NDSolve(dxdt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
+                .NDSolve(dx_dt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
             x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
 
             // Find as many closed form solutions in the remaining system as possible.
@@ -506,7 +504,7 @@ namespace Circuit
             DoWhile(Target, (x, y) => Body(), Condition);
         }
 
-        private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr, string Name)
+        private static LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr, string Name)
         {
             LinqExpressions.ParameterExpression p = LinqExpression.Parameter(typeof(T), Name);
             Scope.Add(p);
@@ -515,14 +513,22 @@ namespace Circuit
             return p;
         }
 
-        private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr)
+        private static LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr)
         {
             return Declare<T>(Scope, Map, Expr, Expr.ToString());
         }
 
-        private LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, string Name)
+        private static LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, string Name)
         {
             return Declare<T>(Scope, null, null, Name);
+        }
+
+        private static LinqExpressions.ParameterExpression Declare(IList<LinqExpressions.ParameterExpression> Scope, IList<LinqExpression> Target, string Name, LinqExpression Init)
+        {
+            LinqExpressions.ParameterExpression p = LinqExpression.Parameter(Init.Type, Name);
+            Scope.Add(p);
+            Target.Add(LinqExpression.Assign(p, Init));
+            return p;
         }
 
         // Compile x to an expression, or NaN if compilation fails.
@@ -540,6 +546,15 @@ namespace Circuit
 
         // Shorthand for df/dx.
         private static Expression D(Expression f, Expression x) { return Call.D(f, x); }
+
+        // Check if x is a derivative
+        private static bool IsD(Expression f, Expression x) 
+        {
+            Call C = f as Call;
+            if (!ReferenceEquals(C, null))
+                return C.Target.Name == "D" && C.Arguments[1].Equals(x);
+            return false;
+        }
 
         // Get the expression that x is a derivative of.
         private static Expression DOf(Expression x)
