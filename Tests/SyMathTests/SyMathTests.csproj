@@ -51,13 +51,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SyMath\SyMath.csproj">
-      <Project>{2877C441-FD0B-4441-A469-E677003EE35A}</Project>
-      <Name>SyMath</Name>
-    </ProjectReference>
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <ProjectReference Include="..\..\SyMath\SyMath.csproj">
+      <Project>{2877c441-fd0b-4441-a469-e677003ee35a}</Project>
+      <Name>SyMath</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
