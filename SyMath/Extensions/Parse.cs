@@ -285,7 +285,6 @@ namespace SyMath
                 }
                 else
                 {
-                    Expression x;
                     try
                     {
                         return context.Resolve(tok);
