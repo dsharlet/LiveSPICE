@@ -82,8 +82,8 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(-10, 16));
             Sym.AddWire(Cathode, new Coord(-10, -16));
             Sym.DrawArrow(ShapeType.Black, new Coord(10, 0), new Coord(-6, 0), 0.2);
-            Sym.DrawPositive(ShapeType.Black, new Coord(-6, 16));
-            Sym.DrawNegative(ShapeType.Black, new Coord(-6, -16));
+            Sym.DrawPositive(ShapeType.Black, new Coord(-16, 16));
+            Sym.DrawNegative(ShapeType.Black, new Coord(-16, -16));
 
             int N = 7;
             Sym.DrawFunction(
