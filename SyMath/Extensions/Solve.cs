@@ -95,7 +95,7 @@ namespace SyMath
             }
             return result;
         }
-        
+
         /// <summary>
         /// Solve a linear equation or system of linear equations.
         /// </summary>
@@ -116,5 +116,13 @@ namespace SyMath
             // Solve for the variables.
             return S.Solve(x);
         }
+
+        /// <summary>
+        /// Solve a linear equation or system of linear equations.
+        /// </summary>
+        /// <param name="f">Equation or set of equations to solve.</param>
+        /// <param name="x">Variable of set of variables to solve for.</param>
+        /// <returns>The solved values of x, including non-independent solutions.</returns>
+        public static List<Arrow> Solve(this IEnumerable<Equal> f, params Expression[] x) { return f.Solve(x.AsEnumerable()); }
     }
 }
