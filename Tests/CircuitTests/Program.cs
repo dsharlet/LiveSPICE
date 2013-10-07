@@ -22,7 +22,7 @@ namespace CircuitTests
 
             //Run(SeriesDiodeClipper(), VS);
             //Run(CommonCathodeTriodeAmp(), VS);
-            Run(ToneStack(), VS);
+            //Run(ToneStack(), VS);
             Run(MinimalRepro(), VS);
             Run(PassiveHighPassRC(), VS);
             Run(PassiveLowPassRLC(), VS);
@@ -85,8 +85,8 @@ namespace CircuitTests
             Plot p = new Plot(
                 Name, 
                 800, 400, 
-                t0, series.Min(i => i.Min()) * 1.25, 
-                S.TimeStep * t1, series.Max(i => i.Max()) * 1.25, 
+                t0, series.Min(i => i.Min()) * 1.25 - 0.1, 
+                S.TimeStep * t1, series.Max(i => i.Max()) * 1.25 + 0.1, 
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
         }
 
