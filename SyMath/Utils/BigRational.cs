@@ -99,6 +99,19 @@ namespace SyMath
             Reduce();
         }
 
+        public string ToLaTeX()
+        {
+            string ns = n.ToString();
+            if (d == 1) return ns;
+
+            string nd = d.ToString();
+
+            if (ns.Length <= 2 && nd.Length <= 2)
+                return "^{" + ns + "}_{" + nd + "}";
+            else
+                return @"\frac{" + ns + "}{" + nd + "}";
+        }
+
         // IEquatable interface.
         public bool Equals(BigRational x) { return d == x.d && n == x.n; }
 

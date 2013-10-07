@@ -53,6 +53,7 @@
     <Compile Include="Expression\Equal.cs" />
     <Compile Include="Extensions\Compile.cs" />
     <Compile Include="Extensions\AlgebraicEquivalents.cs" />
+    <Compile Include="Extensions\LaTeX.cs" />
     <Compile Include="Extensions\NSolve.cs" />
     <Compile Include="Extensions\Simplify.cs" />
     <Compile Include="Namespace\GlobalNamespace.cs" />

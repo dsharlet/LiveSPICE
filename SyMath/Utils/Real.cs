@@ -199,6 +199,20 @@ namespace SyMath
                 return CompareTo(x) == 0;
         }
 
+        public string ToLaTeX()
+        {
+            if (rational != null)
+                return rational.Value.ToLaTeX();
+
+            string r = real.Value.ToString("G6");
+            int e = r.IndexOfAny("eE".ToCharArray());
+
+            if (e == -1)
+                return r;
+
+            return r.Substring(0, e) + "\times10^{" + r.Substring(e + 1);
+        }
+
         // IFormattable interface.
         public string ToString(string format, IFormatProvider formatProvider)
         {
