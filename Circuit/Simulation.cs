@@ -146,11 +146,12 @@ namespace Circuit
             // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
             List<Expression> xa = x.Where(i => dx_dt.None(j => DOf(j).Equals(i))).ToList();
             differential = kcl
+                // Solve for the algebraic variables and substitute them.
                 .Evaluate(kcl.Solve(xa)).OfType<Equal>()
-                .Evaluate(xa.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).Cast<Equal>()
+                // Solve the resulting system of differential equations.
                 .NDSolve(dx_dt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
             x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
-            
+
             // Find as many closed form solutions in the remaining system as possible.
             linear = kcl.Solve(x.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
             linear.RemoveAll(i => i.Right.IsFunctionOf(x.Except(linear.Select(j => j.Left))));
@@ -193,7 +194,9 @@ namespace Circuit
             List<object> parameters = new List<object>(3 + Input.Count + Output.Count + Arguments.Count());
             parameters.Add(N);
             parameters.Add((double)_t);
-            parameters.Add((double)_T / Oversample);
+            parameters.Add((double)_T);
+            parameters.Add(Oversample);
+            parameters.Add(Iterations);
             foreach (KeyValuePair<Expression, double[]> i in Input)
                 parameters.Add(i.Value);
             foreach (KeyValuePair<Expression, double[]> i in Output)
@@ -244,10 +247,11 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            d = DefineProcessFunction(Input, Output, Parameters).Compile();
-            compiled[hash] = d;
-            return d;
+            LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
+            return compiled[hash] = lambda.Compile();
         }
+
+        private static readonly Arrow t_t0 = Arrow.New(t, t0);
 
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  double Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
@@ -255,182 +259,208 @@ namespace Circuit
         private LinqExpressions.LambdaExpression DefineProcessFunction(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             // Map expressions to identifiers in the syntax tree.
-            Dictionary<Expression, LinqExpression> v = new Dictionary<Expression, LinqExpression>();
+            Dictionary<Expression, LinqExpression> map = new Dictionary<Expression, LinqExpression>();
             Dictionary<Expression, LinqExpression> buffers = new Dictionary<Expression, LinqExpression>();
 
             // Get expressions for the state of each node. These may be replaced by input parameters.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                v[i.Key] = i.Value;
+                map[i.Key] = i.Value;
 
             // Lambda definition objects.
             List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
             List<LinqExpressions.ParameterExpression> locals = new List<LinqExpressions.ParameterExpression>();
             List<LinqExpression> body = new List<LinqExpression>();
 
-            // Create parameters for the basic simulation info (N, t, T).
-            LinqExpressions.ParameterExpression pN = Declare<int>(parameters, "N");
-            LinqExpressions.ParameterExpression pt0 = Declare<double>(parameters, v, t0);
-            LinqExpressions.ParameterExpression pT = Declare<double>(parameters, v, Component.T);
+            // Create parameters for the basic simulation info (N, t, T, Oversample, Iterations).
+            LinqExpressions.ParameterExpression SampleCount = Declare<int>(parameters, "SampleCount");
+            LinqExpressions.ParameterExpression t0 = Declare<double>(parameters, map, Simulation.t0);
+            LinqExpressions.ParameterExpression T = Declare<double>(parameters, map, Component.T);
+            LinqExpressions.ParameterExpression Oversample = Declare<int>(parameters, "Oversample");
+            LinqExpressions.ParameterExpression Iterations = Declare<int>(parameters, "Iterations");
             // Create buffer parameters for each input, output.
             foreach (Expression i in Input.Concat(Output))
                 Declare<double[]>(parameters, buffers, i);
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
-                Declare<double>(parameters, v, i);
+                Declare<double>(parameters, map, i);
 
             // Define lambda body.
 
             // double t = t0
-            LinqExpressions.ParameterExpression vt = Declare<double>(locals, v, t);
-            body.Add(LinqExpression.Assign(vt, pt0));
+            LinqExpressions.ParameterExpression t = Declare<double>(locals, map, Simulation.t);
+            body.Add(LinqExpression.Assign(t, t0));
 
-            // Trivial timestep expressions that are not a function of the input can be set once here.
+            // double h = T / Oversample
+            LinqExpressions.ParameterExpression h = Declare<double>(locals, "h");
+            body.Add(LinqExpression.Assign(h, LinqExpression.Divide(T, LinqExpression.Convert(Oversample, typeof(double)))));
+
+            // double invOversample = 1 / (double)Oversample
+            LinqExpressions.ParameterExpression invOversample = Declare<double>(locals, "invOversample");
+            body.Add(LinqExpression.Assign(invOversample, LinqExpression.Divide(LinqExpression.Constant(1.0), LinqExpression.Convert(Oversample, typeof(double)))));
+
+            // Trivial timestep expressions that are not a function of the input can be set once here (outside the sample loop).
+            // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
             foreach (Arrow i in trivial.Where(i => !i.IsFunctionOf(Input)))
             {
-                LinqExpression Vi = globals[i.Left.Evaluate(t, t0)];
-                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(v)));
-                v[i.Left] = Vi;
+                LinqExpression Vi = globals[i.Left.Evaluate(t_t0)];
+                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(map)));
+                map[i.Left] = Vi;
             }
 
-            // for (int n = 0; n < N; ++n)
-            LinqExpressions.ParameterExpression vn = Declare<int>(locals, "n");
+            // for (int n = 0; n < SampleCount; ++n)
+            LinqExpressions.ParameterExpression n = Declare<int>(locals, "n");
             For(body,
-                () => body.Add(LinqExpression.Assign(vn, LinqExpression.Constant(0))),
-                LinqExpression.LessThan(vn, pN),
-                () => body.Add(LinqExpression.PreIncrementAssign(vn)),
+                () => body.Add(LinqExpression.Assign(n, LinqExpression.Constant(0))),
+                LinqExpression.LessThan(n, SampleCount),
+                () => body.Add(LinqExpression.PreIncrementAssign(n)),
                 () =>
                 {
                     // Prepare input samples for oversampling interpolation.
-                    Dictionary<Expression, LinqExpression> dinput = new Dictionary<Expression, LinqExpression>();
+                    Dictionary<Expression, LinqExpression> dVi = new Dictionary<Expression, LinqExpression>();
                     foreach (Expression i in Input)
                     {
                         // Ensure that we have a global variable to store the previous sample in.
                         globals[i] = new GlobalExpr<double>(0.0);
-                        LinqExpression va = globals[i];
-                        LinqExpression vb = LinqExpression.MakeIndex(
+                        LinqExpression Va = globals[i];
+                        LinqExpression Vb = LinqExpression.MakeIndex(
                             buffers[i],
                             buffers[i].Type.GetProperty("Item"),
-                            new LinqExpression[] { vn });
+                            new LinqExpression[] { n });
 
-                        // double vi = va
-                        LinqExpressions.ParameterExpression vi = Declare<double>(locals, v, i, i.ToString() + "_i");
-                        body.Add(LinqExpression.Assign(vi, va));
+                        // double Vi = Va
+                        body.Add(LinqExpression.Assign(
+                            Declare<double>(locals, map, i, i.ToString() + "i"),
+                            Va));
 
-                        // di = (vb - vi) / Oversample.
-                        LinqExpressions.ParameterExpression dinputi = Declare<double>(locals, dinput, i, "d" + i.ToString());
-                        body.Add(LinqExpression.Assign(dinputi, LinqExpression.Divide(LinqExpression.Subtract(vb, vi), LinqExpression.Constant((double)Oversample))));
-
-                        // va = vb
-                        body.Add(LinqExpression.Assign(va, vb));
+                        // dVi = (Vb - Vi) / Oversample.
+                        body.Add(LinqExpression.Assign(
+                            Declare<double>(locals, dVi, i, "d" + i.ToString()),
+                            LinqExpression.Multiply(LinqExpression.Subtract(Vb, Va), invOversample)));
 
                         if (!nodes.Contains(i))
                         {
-                            v[i.Evaluate(t, t0)] = v[i];
-                            // TODO: Is this really necessary?
-                            v[D(i, t).Evaluate(t, t0)] = v[D(i, t)] = LinqExpression.Divide(dinputi, pT);
+                            map[i.Evaluate(t_t0)] = map[i];
+                            // dVi/dt = (Vb - Va) / h.
+                            map[D(i, Simulation.t)] = LinqExpression.Divide(LinqExpression.Subtract(Vb, Va), h);
                         }
+
+                        // Va = Vb
+                        body.Add(LinqExpression.Assign(Va, Vb));
                     }
 
                     // Prepare output sample accumulators for low pass filtering.
-                    Dictionary<Expression, LinqExpression> output = new Dictionary<Expression, LinqExpression>();
+                    Dictionary<Expression, LinqExpression> Vo = new Dictionary<Expression, LinqExpression>();
                     foreach (Expression i in Output)
                     {
-                        // i_o = 0
-                        LinqExpression s = Declare<double>(locals, output, i, i.ToString() + "_o");
-                        body.Add(LinqExpression.Assign(s, LinqExpression.Constant(0.0)));
+                        // Vo = 0
+                        body.Add(LinqExpression.Assign(
+                            Declare<double>(locals, Vo, i, i.ToString()),
+                            LinqExpression.Constant(0.0)));
                     }
 
-                    // for (int ov = Oversample; ov > 0; --ov)
+                    // int ov = Oversample; 
+                    // do { -- ov; } while(ov > 0)
                     LinqExpressions.ParameterExpression ov = Declare<int>(locals, "ov");
-                    For(body,
-                        () => body.Add(LinqExpression.Assign(ov, LinqExpression.Constant(Oversample))),
-                        LinqExpression.GreaterThan(ov, LinqExpression.Constant(0)),
-                        () => body.Add(LinqExpression.PreDecrementAssign(ov)),
+                    body.Add(LinqExpression.Assign(ov, Oversample));
+                    DoWhile(body,
                         () =>
                         {
-                            // t += T
-                            body.Add(LinqExpression.AddAssign(vt, pT));
+                            // t += h
+                            body.Add(LinqExpression.AddAssign(t, h));
 
-                            // input_i += d_i
+                            // Interpolate the input samples.
+                            // Vi += dVi
                             foreach (Expression i in Input)
-                                body.Add(LinqExpression.AddAssign(v[i], dinput[i]));
+                                body.Add(LinqExpression.AddAssign(map[i], dVi[i]));
 
                             // Compile the trivial timestep expressions that are a function of the input.
                             foreach (Arrow i in trivial.Where(i => i.Right.IsFunctionOf(Input)))
                             {
-                                LinqExpression Vi = globals[i.Left.Evaluate(t, t0)];
-                                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(v)));
-                                v[i.Left] = Vi;
+                                LinqExpression Vi = globals[i.Left.Evaluate(t_t0)];
+                                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(map)));
+                                map[i.Left] = Vi;
                             }
 
                             // Compile the differential timestep expressions.
                             foreach (Arrow i in differential)
                             {
-                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
-                                LinqExpression Vt = Declare(locals, body, "v_" + i.Left.ToString(), i.Right.Compile(v));
+                                LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
+                                LinqExpression Vt = Declare(locals, body, i.Left.ToString(), i.Right.Compile(map));
                                 // Compute the value of v'(t) and store it in the map.
                                 LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString());
-                                body.Add(LinqExpression.Assign(dV, LinqExpression.Divide(LinqExpression.Subtract(Vt, Vt0), pT)));
-                                v[D(i.Left, t)] = dV;
+                                body.Add(LinqExpression.Assign(dV, LinqExpression.Divide(LinqExpression.Subtract(Vt, Vt0), h)));
+                                map[D(i.Left, Simulation.t)] = dV;
 
                                 // Update Vt0.
                                 body.Add(LinqExpression.Assign(Vt0, Vt));
-                                v[i.Left] = Vt0;
+                                map[i.Left] = Vt0;
                             }
 
                             // And the linear timestep expressions.
                             foreach (Arrow i in linear)
                             {
-                                LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
-                                body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
-                                v[i.Left] = Vt0;
+                                LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
+                                body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(map)));
+                                map[i.Left] = Vt0;
                             }
 
-                            // Solve the remaining non-linear system with Newton's method.
-                            LinqExpressions.ParameterExpression it = Declare<int>(locals, "it");
-                            For(body,
-                                () => body.Add(LinqExpression.Assign(it, LinqExpression.Constant(Iterations))),
-                                LinqExpression.GreaterThan(it, LinqExpression.Constant(0)),
-                                () => body.Add(LinqExpression.PreDecrementAssign(it)),
-                                () =>
-                                {
-                                    // Compute one iteration of newton's method.
-                                    List<Arrow> iter = nonlinear.NSolve(unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))), 1);
-
-                                    foreach (Arrow i in iter)
-                                    {
-                                        LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
-                                        body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
-                                        v[i.Left] = Vt0;
-                                    }
-                                });
-
-                            // Update f0.
-                            foreach (Arrow i in f0)
+                            if (unknowns.Any())
                             {
-                                LinqExpression f0i = globals[i.Left];
-                                body.Add(LinqExpression.Assign(f0i, i.Right.Compile(v)));
+                                // Solve the remaining non-linear system with Newton's method.
+
+                                // int it = Oversample
+                                // do { ... --it } while(it > 0)
+                                LinqExpressions.ParameterExpression it = Declare<int>(locals, "it");
+                                body.Add(LinqExpression.Assign(it, Iterations));
+                                DoWhile(body,
+                                    () =>
+                                    {
+                                        // Compute one iteration of Newton's method.
+                                        List<Arrow> iter = nonlinear.NSolve(unknowns.Select(i => Arrow.New(i, i.Evaluate(t_t0))), 1);
+
+                                        foreach (Arrow i in iter)
+                                        {
+                                            LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
+                                            body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(map)));
+                                            map[i.Left] = Vt0;
+                                        }
+
+                                        // --it;
+                                        body.Add(LinqExpression.PreDecrementAssign(it));
+                                    },
+                                    LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
+
+                                // Update f0.
+                                foreach (Arrow i in f0)
+                                {
+                                    LinqExpression f0i = globals[i.Left];
+                                    body.Add(LinqExpression.Assign(f0i, i.Right.Compile(map)));
+                                }
                             }
 
                             // t0 = t
-                            body.Add(LinqExpression.Assign(pt0, vt));
+                            body.Add(LinqExpression.Assign(t0, t));
 
                             // o_i += i.Evaluate()
                             foreach (Expression i in Output)
-                                body.Add(LinqExpression.AddAssign(output[i], CompileOrNaN(i, v)));
-                        });
+                                body.Add(LinqExpression.AddAssign(Vo[i], CompileOrNaN(i, map)));
+
+                            // --ov;
+                            body.Add(LinqExpression.PreDecrementAssign(ov));
+                        },
+                        LinqExpression.GreaterThan(ov, LinqExpression.Constant(0)));
 
                     // Output[i][n] = o_i / Oversample
                     foreach (Expression i in Output)
                         body.Add(LinqExpression.Assign(
-                            LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { vn }),
-                            LinqExpression.Divide(output[i], LinqExpression.Constant((double)Oversample))));
+                            LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n }),
+                            LinqExpression.Multiply(Vo[i], invOversample)));
                 });
 
             // return t
-            LinqExpressions.LabelTarget returnTo = LinqExpression.Label(vt.Type);
-            body.Add(LinqExpression.Return(returnTo, vt, vt.Type));
-            body.Add(LinqExpression.Label(returnTo, vt));
+            LinqExpressions.LabelTarget returnTo = LinqExpression.Label(t.Type);
+            body.Add(LinqExpression.Return(returnTo, t, t.Type));
+            body.Add(LinqExpression.Label(returnTo, t));
 
             // Put it all together.
             return LinqExpression.Lambda(LinqExpression.Block(locals, body), parameters);
