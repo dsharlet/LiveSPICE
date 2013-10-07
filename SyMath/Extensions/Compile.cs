@@ -213,7 +213,8 @@ namespace SyMath
         public static double Ceiling(double x) { return System.Math.Ceiling(x); }
         public static double Round(double x) { return System.Math.Round(x); }
 
-        public static double If(double x, double t, double f) { return x == 0 ? f : t; }
+        public static double If(bool x, double t, double f) { return x ? t : f; }
+        public static double If(double x, double t, double f) { return If(x != 0, t, f); }
 
 
         public static float Abs(float x) { return x < 0.0f ? -x : x; }
@@ -256,6 +257,7 @@ namespace SyMath
         public static float Ceiling(float x) { return (float)System.Math.Ceiling(x); }
         public static float Round(float x) { return (float)System.Math.Round(x); }
 
-        public static float If(float x, float t, float f) { return x == 0.0f ? f : t; }
+        public static float If(bool x, float t, float f) { return x ? t : f; }
+        public static float If(float x, float t, float f) { return If(x != 0.0f, t, f); }
     }
 }
