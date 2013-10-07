@@ -7,21 +7,23 @@ namespace SyMath
 {
     class LaTeXVisitor : ExpressionVisitor<string>
     {
+        private string Visit(Expression E, int Precedence)
+        {
+            string v = Visit(E);
+            if (Parser.Precedence(E) < Precedence)
+                v = "(" + v + ")";
+            return v;
+        }
+
         public override string Visit(Expression E)
         {
             return base.Visit(E);
         }
-
-        private static string Frac(string n, string d)
-        {
-            if (n.Length <= 2 && d.Length <= 2)
-                return @"^{n}/_{d}";
-            else
-                return @"\frac{" + n + "}{" + d + "}";
-        }
-
+        
         protected override string VisitMultiply(Multiply M)
         {
+            int pr = Parser.Precedence(Operator.Multiply);
+
             Expression N = Multiply.Numerator(M);
             string minus = "";
             if (IsNegative(N))
@@ -29,9 +31,9 @@ namespace SyMath
                 minus = "-";
                 N = -N;
             }
-            
-            string n = Multiply.TermsOf(N).Select(i => Visit(i)).UnSplit(' ');
-            string d = Multiply.TermsOf(Multiply.Denominator(M)).Select(i => Visit(i)).UnSplit(' ');
+
+            string n = Multiply.TermsOf(N).Select(i => Visit(i, pr)).UnSplit(' ');
+            string d = Multiply.TermsOf(Multiply.Denominator(M)).Select(i => Visit(i, pr)).UnSplit(' ');
 
             if (d != "1")
                 return minus + Frac(n, d);
@@ -41,24 +43,25 @@ namespace SyMath
 
         protected override string VisitAdd(Add A)
         {
+            int pr = Parser.Precedence(Operator.Add);
+
             StringBuilder s = new StringBuilder();
-            s.Append("(");
-            s.Append(Visit(A.Terms.First()));
+            s.Append(Visit(A.Terms.First(), pr));
             foreach (Expression i in A.Terms.Skip(1))
             {
-                string si = Visit(i);
+                string si = Visit(i, pr);
 
                 if (si[0] != '-')
                     s.Append("+");
                 s.Append(si);
             }
-            s.Append(")");
             return s.ToString();
         }
 
         protected override string VisitBinary(Binary B)
         {
-            return Visit(B.Left) + ToString(B.Operator) + Visit(B.Right);
+            int pr = Parser.Precedence(B.Operator);
+            return Visit(B.Left, pr) + ToString(B.Operator) + Visit(B.Right, pr);
         }
 
         protected override string VisitSet(Set S)
@@ -68,7 +71,7 @@ namespace SyMath
 
         protected override string VisitUnary(Unary U)
         {
-            return ToString(U.Operator) + Visit(U.Operand);
+            return ToString(U.Operator) + Visit(U.Operand, Parser.Precedence(U.Operator));
         }
 
         protected override string VisitCall(Call F)
@@ -82,7 +85,8 @@ namespace SyMath
 
         protected override string VisitPower(Power P)
         {
-            return Visit(P.Left) + "^{" + Visit(P.Right) + "}";
+            int pr = Parser.Precedence(Operator.Power);
+            return Visit(P.Left, pr) + "^{" + Visit(P.Right, pr) + "}";
         }
 
         protected override string VisitConstant(Constant C)
@@ -100,12 +104,20 @@ namespace SyMath
             switch (Op)
             {
                 case Operator.Equal: return "=";
-                case Operator.NotEqual: return @"\neq";
-                case Operator.GreaterEqual: return @"\geq";
-                case Operator.LessEqual: return @"\leq";
-                case Operator.Arrow: return @"\to";
+                case Operator.NotEqual: return @"\neq ";
+                case Operator.GreaterEqual: return @"\geq ";
+                case Operator.LessEqual: return @"\leq ";
+                case Operator.Arrow: return @"\to ";
                 default: return Binary.ToString(Op);
             }
+        }
+
+        private static string Frac(string n, string d)
+        {
+            if (n.Length <= 2 && d.Length <= 2)
+                return @"^{n}/_{d}";
+            else
+                return @"\frac{" + n + "}{" + d + "}";
         }
 
         private static readonly Dictionary<char, string> EscapeMap = new Dictionary<char,string>()

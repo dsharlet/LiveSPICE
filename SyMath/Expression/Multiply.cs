@@ -149,13 +149,14 @@ namespace SyMath
         public static Expression Numerator(Expression x) { return Multiply.New(Multiply.TermsOf(x).Where(i => !IsInDenominator(i))); }
         public static Expression Denominator(Expression x) { return Multiply.New(Multiply.TermsOf(x).Where(i => IsInDenominator(i)).Select(i => i ^ -1)); }
 
+        private static int Precedence = Parser.Precedence(Operator.Multiply);
         private static Constant NegativeOne = Constant.New(-1);
         public override string ToString()
         {
             Expression n = -this;
 
-            string s = terms.UnSplit("*");
-            string ns = Multiply.TermsOf(n).UnSplit("*");
+            string s = terms.Select(i => i.ToString(Precedence)).UnSplit("*");
+            string ns = Multiply.TermsOf(n).Select(i => i.ToString(Precedence)).UnSplit("*");
 
             IEnumerable<Expression> t;
             if (s.Length < ns.Length)
@@ -165,13 +166,7 @@ namespace SyMath
 
             StringBuilder sb = new StringBuilder();
 
-            if (t.Count() != 1)
-                sb.Append("(");
-
             sb.Append(s.Length < ns.Length ? s : "-" + ns);
-
-            if (t.Count() != 1)
-                sb.Append(")");
 
             return sb.ToString();
         }

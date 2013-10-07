@@ -130,21 +130,20 @@ namespace SyMath
         }
 
         // object interface.
+        private static int Precedence = Parser.Precedence(Operator.Add);
         public override string ToString() 
         {
             StringBuilder s = new StringBuilder();
-            s.Append("(");
-            s.Append(terms.First().ToString());
+            s.Append(terms.First().ToString(Precedence));
             foreach (Expression i in terms.Skip(1))
             {
-                string si = i.ToString();
-                string nsi = (-i).ToString();
+                string si = i.ToString(Precedence);
+                string nsi = (-i).ToString(Precedence);
                 if (si.Length < nsi.Length)
                     s.Append(" + " + si);
                 else
                     s.Append(" - " + nsi);
             }
-            s.Append(")");
             return s.ToString();
         }
         public override bool Equals(Expression E) { return ReferenceEquals(this, E) || terms.SequenceEqual(TermsOf(E)); }

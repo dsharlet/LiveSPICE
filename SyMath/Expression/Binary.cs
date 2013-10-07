@@ -110,7 +110,11 @@ namespace SyMath
         }
 
         // object interface.
-        public override string ToString() { return "(" + Left.ToString() + ToString(Operator) + Right.ToString() + ")"; }
+        public override string ToString() 
+        {
+            int pr = Parser.Precedence(Operator);
+            return Left.ToString(pr) + ToString(Operator) + Right.ToString(pr);
+        }
         public override int GetHashCode() { return Operator.GetHashCode() ^ Left.GetHashCode() ^ Right.GetHashCode(); }
 
         public override IEnumerable<Atom> Atoms { get { return Left.Atoms.Concat(Right.Atoms); } }

@@ -49,7 +49,7 @@ namespace SyMath
         // operator interface.
         public override string ToString()
         {
-            return "(" + ToString(Operator) + Operand.ToString() + ")";
+            return ToString(Operator) + Operand.ToString(Parser.Precedence(Operator));
         }
         public override int GetHashCode()
         {

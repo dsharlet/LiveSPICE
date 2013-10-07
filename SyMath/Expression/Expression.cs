@@ -117,6 +117,14 @@ namespace SyMath
         }
         public static explicit operator double(Expression x) { return (double)(Real)x; }
 
+        public string ToString(int Precedence)
+        {
+            string r = ToString();
+            if (Parser.Precedence(this) < Precedence)
+                r = "(" + r + ")";
+            return r;
+        }
+
         // object interface.
         public virtual bool Equals(Expression E) { return E != null ? CompareTo(E) == 0 : base.Equals(E); }
         public override bool Equals(object obj)

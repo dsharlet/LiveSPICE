@@ -106,7 +106,22 @@ namespace SyMath
             }
         }
 
-        static public int Precedence(Operator op)
+        public static int Precedence(Expression x)
+        {
+            if (x is Add)
+                return Precedence(Operator.Add);
+            else if (x is Multiply)
+                return Precedence(Operator.Multiply);
+            else if (x is Binary)
+                return Precedence(((Binary)x).Operator);
+            else if (x is Unary)
+                return Precedence(((Unary)x).Operator);
+            else if (x is Atom)
+                return 100;
+            return Precedence(Operator.Equal);
+        }
+
+        public static int Precedence(Operator op)
         {
             switch (op)
             {
@@ -134,7 +149,7 @@ namespace SyMath
             }
         }
 
-        static private bool IsLeftAssociative(Operator op)
+        private static bool IsLeftAssociative(Operator op)
         {
             switch (op)
             {
