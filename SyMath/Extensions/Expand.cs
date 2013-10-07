@@ -135,10 +135,14 @@ namespace SyMath
         {
             if (f is Multiply)
                 return ExpandMultiply(f, x);
-            if (f is Add)
+            else if (f is Add)
                 return Add.New(((Add)f).Terms.Select(i => i.Expand(x)));
-            if (f is Power)
+            else if (f is Power)
                 return ExpandPower((Power)f, x);
+            else if (f is Binary)
+                return Binary.New(((Binary)f).Operator, ((Binary)f).Left.Expand(), ((Binary)f).Right.Expand());
+            else if (f is Unary)
+                return Unary.New(((Unary)f).Operator, ((Unary)f).Operand.Expand());
 
             return f;
         }
