@@ -23,26 +23,15 @@ namespace SyMath
         protected override string VisitMultiply(Multiply M)
         {
             Expression N = Multiply.Numerator(M);
-            Expression D = Multiply.Denominator(M);
-
+            string minus = "";
+            if (IsNegative(N))
+            {
+                minus = "-";
+                N = -N;
+            }
+            
             string n = Multiply.TermsOf(N).Select(i => Visit(i)).UnSplit(' ');
-            string mn = Multiply.TermsOf(-N).Select(i => Visit(i)).UnSplit(' ');
-
-            string d = Multiply.TermsOf(D).Select(i => Visit(i)).UnSplit(' ');
-            string md = Multiply.TermsOf(-D).Select(i => Visit(i)).UnSplit(' ');
-
-            bool m = false;
-            if (mn.Length < n.Length)
-            {
-                m = !m;
-                n = mn;
-            }
-            if (md.Length < d.Length)
-            {
-                m = !m;
-                d = md;
-            }
-            string minus = m ? "-" : "";
+            string d = Multiply.TermsOf(Multiply.Denominator(M)).Select(i => Visit(i)).UnSplit(' ');
 
             if (d != "1")
                 return minus + Frac(n, d);
@@ -57,16 +46,11 @@ namespace SyMath
             s.Append(Visit(A.Terms.First()));
             foreach (Expression i in A.Terms.Skip(1))
             {
-                if (IsNegative(i))
-                {
-                    s.Append("-");
-                    s.Append(Visit(-i));
-                }
-                else
-                {
+                string si = Visit(i);
+
+                if (si[0] != '-')
                     s.Append("+");
-                    s.Append(Visit(i));
-                }
+                s.Append(si);
             }
             s.Append(")");
             return s.ToString();
@@ -124,9 +108,32 @@ namespace SyMath
             }
         }
 
+        private static readonly Dictionary<char, string> EscapeMap = new Dictionary<char,string>()
+        {
+            { '&', @"\&" },
+            { '%', @"\%" },
+            { '$', @"\$" },
+            { '#', @"\#" },
+            { '_', @"\_" },
+            { '{', @"\{" },
+            { '}', @"\}" },
+            { '~', @"\textasciitilde" },
+            { '^', @"\textasciicircum" },
+            { '\\', @"\textbackslash" },
+        };
+
         private static string Escape(string x)
         {
-            return x;
+            StringBuilder sb = new StringBuilder();
+            foreach (char i in x)
+            {
+                string e;
+                if (EscapeMap.TryGetValue(i, out e))
+                    sb.Append(e);
+                else
+                    sb.Append(i);
+            }
+            return sb.ToString();
         }
 
         private static bool IsNegative(Expression x)
