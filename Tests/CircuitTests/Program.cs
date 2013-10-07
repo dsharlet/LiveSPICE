@@ -15,18 +15,51 @@ namespace CircuitTests
     class Program
     {        
         public static Expression VSt = "VS[t]";
-        
-        public static void RunTest(Simulation S, Function VS, int N, string Name)
+
+        static void Main(string[] args)
         {
-            // Compile the VS expression for speed.
-            Func<double, double> VS_ = VS.Compile<Func<double, double>>();
-            
+            Func<double, double> VS = ExprFunction.New("VS", "Sin[t*100*2*3.1415]", Component.t).Compile<Func<double, double>>();
+
+            //Run(SeriesDiodeClipper(), VS);
+            //Run(CommonCathodeTriodeAmp(), VS);
+            Run(ToneStack(), VS);
+            Run(MinimalRepro(), VS);
+            Run(PassiveHighPassRC(), VS);
+            Run(PassiveLowPassRLC(), VS);
+            Run(PassiveBandPassRLC(), VS);
+            Run(VoltageDivider(), VS);
+            //Run(Potentiometer(), VS);
+            Run(PassiveLowPassRL(), VS);
+            Run(DiodeHalfClipper(), VS);
+            Run(ParallelDiodeClipper(), VS);
+            Run(Supernode(), VS);
+            Run(MinimalMixedSystem(), VS);
+            Run(PassiveLowPassRC(), VS);
+            Run(NonInvertingAmplifier(), VS);
+            //Run(InvertingAmplifier(), VS);
+            Run(ActiveLowPassRC(), VS);
+            Run(PassiveSecondOrderLowpassRC(), VS);
+        }
+
+        public static void Run(Circuit.Circuit Circuit, Func<double, double> VS)
+        {
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
+            System.Console.WriteLine(Circuit.Name);
+            timer.Start();
+            Simulation S = new Simulation(Circuit, new Quantity(48000, Units.Hz), 8, 8);
+            System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
+
+            RunTest(S, VS, 48000, Circuit.Name);
+        }
+
+        public static void RunTest(Simulation S, Func<double, double> VS, int N, string Name)
+        {            
             double t0 = (double)S.Time;
             
             Dictionary<Expression, double[]> input = new Dictionary<Expression, double[]>();
             double[] vs = new double[N];
             for (int n = 0; n < vs.Length; ++n)
-                vs[n] = VS_(n * S.TimeStep);
+                vs[n] = VS(n * S.TimeStep);
             input.Add(VSt, vs);
 
             Dictionary<Expression, double[]> output = S.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
@@ -47,43 +80,14 @@ namespace CircuitTests
                 plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
 
             System.Console.WriteLine("Run: {0}x", (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0));
-
-            Plot p = new Plot(Name, 400, 400, t0, -2.0, S.TimeStep * t1, 2.0, plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
-        }
-
-        public static void Run(Circuit.Circuit Circuit)
-        {
-            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-            System.Console.WriteLine(Circuit.Name);
-            timer.Start();
-            Simulation S = new Simulation(Circuit, new Quantity(48000, Units.Hz), 8, 8);
-            System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
-
-            RunTest(S, ExprFunction.New("VS", "Sin[t*100*2*3.1415]", Component.t), 48000 * 10, Circuit.Name);
-            //RunTest(S, ExprFunction.New("VS", "1", Component.t), 48000 * 10, name);
-        }
-
-        static void Main(string[] args)
-        {
-            //SeriesDiodeClipper(Test.VSt).Run();
-            Run(MinimalRepro());
-            Run(PassiveHighPassRC());
-            Run(PassiveLowPassRLC());
-            Run(PassiveBandPassRLC());
-            //Run(ToneStack());
-            //Run(CommonCathodeTriodeAmp());
-            Run(VoltageDivider());
-            Run(Potentiometer());
-            Run(PassiveLowPassRL());
-            Run(DiodeHalfClipper());
-            Run(ParallelDiodeClipper());
-            Run(Supernode());
-            Run(MinimalMixedSystem());
-            Run(PassiveLowPassRC());
-            Run(NonInvertingAmplifier());
-            Run(InvertingAmplifier());
-            Run(ActiveLowPassRC());
-            Run(PassiveSecondOrderLowpassRC());
+            
+            IEnumerable<double[]> series = input.Concat(output).Select(i => i.Value);
+            Plot p = new Plot(
+                Name, 
+                800, 400, 
+                t0, series.Min(i => i.Min()) * 1.25, 
+                S.TimeStep * t1, series.Max(i => i.Max()) * 1.25, 
+                plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
         }
 
         private static Circuit.Circuit CreateVoltageDivider(Expression V, TwoTerminal R1, TwoTerminal R2, string Name)
@@ -420,9 +424,9 @@ namespace CircuitTests
         {
             Circuit.Circuit C = new Circuit.Circuit() { Name = "Minimal repro" };
 
-            TwoTerminal R1 = new Resistor() { Resistance = 2 };
-            TwoTerminal R2 = new Resistor() { Resistance = 3 };
-            TwoTerminal C1 = new Capacitor() { Capacitance = 5 };
+            TwoTerminal R1 = new Resistor() { Resistance = 100 };
+            TwoTerminal R2 = new Resistor() { Resistance = 100 };
+            TwoTerminal C1 = new Capacitor() { Capacitance = 1e-5m };
             
             VoltageSource VS = new VoltageSource() { Voltage = VSt };
             Ground G = new Ground();
@@ -453,15 +457,7 @@ namespace CircuitTests
         public static Circuit.Circuit ToneStack()
         {
             Circuit.Circuit C = new Circuit.Circuit() { Name = "Tone stack" };
-
-            //Potentiometer R1 = new Potentiometer(2);
-            //VariableResistor R2 = new VariableResistor(2);
-            //Potentiometer R3 = new Potentiometer(2);
-            //Resistor R4 = new Resistor(1);
-            //Capacitor C1 = new Capacitor(1);
-            //Capacitor C2 = new Capacitor(1);
-            //Capacitor C3 = new Capacitor(1);
-
+            
             Potentiometer R1 = new Potentiometer() { Resistance = 250e3m };
             TwoTerminal R2 = new VariableResistor() { Resistance = 1e6m };
             Potentiometer R3 = new Potentiometer() { Resistance = 25e3m };
