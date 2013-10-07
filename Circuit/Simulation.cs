@@ -154,12 +154,11 @@ namespace Circuit
 
             // Find as many closed form solutions in the remaining system as possible.
             linear = kcl.Solve(x.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
-            linear.RemoveAll(i => i.Right.IsFunctionOf(x.Except(linear.Select(j => j.Left))));
             x.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
+            linear.RemoveAll(i => i.Right.IsFunctionOf(x));
 
             // The remaining non-linear system will be solved via Newton's method.
             nonlinear = kcl
-                .Evaluate(linear).OfType<Equal>()
                 .Where(i => i.IsFunctionOf(f0.Select(j => j.Left)))
                 .Evaluate(f0).OfType<Equal>().ToList();
             unknowns = x;
