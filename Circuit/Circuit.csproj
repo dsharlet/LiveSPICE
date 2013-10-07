@@ -82,7 +82,6 @@
     <Compile Include="Components\IdealOpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
-    <Compile Include="Utils\DiffAlgEq.cs" />
     <Compile Include="Utils\GlobalExpr.cs" />
     <Compile Include="Utils\Netlist.cs" />
     <Compile Include="Utils\NodeCollection.cs" />

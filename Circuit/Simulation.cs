@@ -10,7 +10,7 @@ using LinqExpressions = System.Linq.Expressions;
 using LinqExpression = System.Linq.Expressions.Expression;
 
 namespace Circuit
-{    
+{
     /// <summary>
     /// Simulate a circuit.
     /// </summary>
@@ -25,13 +25,13 @@ namespace Circuit
         /// Get the current time of the simulation.
         /// </summary>
         public double Time { get { return _t; } }
-        
+
         protected double _T;
         /// <summary>
         /// Get the timestep for the simulation.
         /// </summary>
         public double TimeStep { get { return _T; } }
-        
+
         protected int iterations;
         /// <summary>
         /// Get or set the maximum number of iterations to use when numerically solving equations.
@@ -55,9 +55,10 @@ namespace Circuit
         // Expressions for the solution of the differential equations.
         private List<Arrow> differential;
         // Expressions for the solution of the linear equations.
-        private List<Arrow> algebraic;
+        private List<Arrow> linear;
         // Implicit equations describing the non-linear system.
-        private List<Tuple<Equal, Expression>> nonlinear;
+        private List<Equal> nonlinear;
+        private List<Arrow> f0;
         private List<Expression> unknowns;
 
         // Stores any global state in the simulation (previous state values, mostly).
@@ -67,7 +68,43 @@ namespace Circuit
         /// Enumerate the nodes in the simulation.
         /// </summary>
         public IEnumerable<Expression> Nodes { get { return nodes; } }
-        
+
+        // Given a system of potentially non-linear equations f, extract the non-linear expressions and replace them with a variable f0.
+        // f0 is constructed such that ExtractNonLinear(f, x, f0).Evaluate(f0) == f.
+        private static List<Equal> ExtractNonLinear(List<Equal> f, List<Expression> x, List<Arrow> f0)
+        {
+            List<Equal> ex = new List<Equal>();
+            foreach (Equal i in f)
+            {
+                // Gather list of linear and non-linear terms.
+                List<Expression> linear = new List<Expression>();
+                List<Expression> nonlinear = new List<Expression>();
+                foreach (Expression t in Add.TermsOf((i.Left - i.Right).Expand()))
+                {
+                    if (t.IsFunctionOf(x) && !IsLinearFunctionOf(t, x))
+                        nonlinear.Add(t);
+                    else
+                        linear.Add(t);
+                }
+
+                // If there are any non-linear terms, create a token variable for them and add them to the linear system.
+                if (nonlinear.Any())
+                {
+                    Variable f0i = Variable.New("f0_" + f0.Count.ToString());
+                    linear.Add(f0i);
+                    f0.Add(Arrow.New(f0i, Add.New(nonlinear)));
+
+                    ex.Add(Equal.New(Add.New(linear), Constant.Zero));
+                }
+                else
+                {
+                    ex.Add(i);
+                }
+            }
+
+            return ex;
+        }
+
         /// <summary>
         /// Create a simulation for the given circuit.
         /// </summary>
@@ -98,36 +135,37 @@ namespace Circuit
             kcl = kcl.Evaluate(trivial).OfType<Equal>().ToList();
             x.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
 
+            // Separate the non-linear expressions of the KCL equations to a separate system.
+            f0 = new List<Arrow>();
+            kcl = ExtractNonLinear(kcl, x, f0);
+
             // Separate x into differential and algebraic unknowns.
             List<Expression> dx_dt = x.Where(i => IsD(i, t)).ToList();
             x.RemoveAll(i => IsD(i, t));
-            
-            // These are the non-trivial KCL equations of the circuit, stored as differential algebraic equations (DAEs).
-            List<DiffAlgEq> dae = kcl.Select(i => new DiffAlgEq(i, x, dx_dt)).ToList();
-            
-            // First, work on the system where f(t) is constant (previous state).
-            List<Equal> S = dae.Select(i => Equal.New(i.A, i.f0)).ToList();
-            
+
             // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
             List<Expression> xa = x.Where(i => dx_dt.None(j => DOf(j).Equals(i))).ToList();
-            differential = S
-                .Evaluate(S.Solve(xa)).OfType<Equal>()
+            differential = kcl
+                .Evaluate(kcl.Solve(xa)).OfType<Equal>()
                 .Evaluate(xa.Select(i => Arrow.New(i, i.Evaluate(t, t0)))).Cast<Equal>()
                 .NDSolve(dx_dt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
             x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
-
+            
             // Find as many closed form solutions in the remaining system as possible.
-            algebraic = S.Solve(x.Where(i => dae.None(j => j.f.IsFunctionOf(i))));
-            algebraic.RemoveAll(i => i.Right.IsFunctionOf(x.Except(algebraic.Select(j => j.Left))));
-            x.RemoveAll(i => algebraic.Any(j => j.Left.Equals(i)));
+            linear = kcl.Solve(x.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
+            linear.RemoveAll(i => i.Right.IsFunctionOf(x.Except(linear.Select(j => j.Left))));
+            x.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
 
             // The remaining non-linear system will be solved via Newton's method.
-            nonlinear = dae.Where(i => !i.f.IsZero()).Select(i => new Tuple<Equal, Expression>(Equal.New(i.A, i.f), i.f0)).ToList();
+            nonlinear = kcl
+                .Evaluate(linear).OfType<Equal>()
+                .Where(i => i.IsFunctionOf(f0.Select(j => j.Left)))
+                .Evaluate(f0).OfType<Equal>().ToList();
             unknowns = x;
 
             // Create a global variable for the value of each f0.
-            foreach (Tuple<Equal, Expression> i in nonlinear)
-                globals[i.Item2] = new GlobalExpr<double>(0.0);
+            foreach (Arrow i in f0)
+                globals[i.Left] = new GlobalExpr<double>(0.0);
         }
 
         /// <summary>
@@ -139,7 +177,7 @@ namespace Circuit
             foreach (GlobalExpr<double> i in globals.Values)
                 i.Value = 0.0;
         }
-        
+
         /// <summary>
         /// Process some samples with this simulation.
         /// </summary>
@@ -210,7 +248,7 @@ namespace Circuit
             compiled[hash] = d;
             return d;
         }
-        
+
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  double Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
         //  { ... }
@@ -239,7 +277,7 @@ namespace Circuit
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
                 Declare<double>(parameters, v, i);
-            
+
             // Define lambda body.
 
             // double t = t0
@@ -285,10 +323,10 @@ namespace Circuit
                         // va = vb
                         body.Add(LinqExpression.Assign(va, vb));
 
-                        // If i isn't a node, add the 
                         if (!nodes.Contains(i))
                         {
                             v[i.Evaluate(t, t0)] = v[i];
+                            // TODO: Is this really necessary?
                             v[D(i, t).Evaluate(t, t0)] = v[D(i, t)] = LinqExpression.Divide(dinputi, pT);
                         }
                     }
@@ -304,11 +342,11 @@ namespace Circuit
 
                     // for (int ov = Oversample; ov > 0; --ov)
                     LinqExpressions.ParameterExpression ov = Declare<int>(locals, "ov");
-                    For(body, 
+                    For(body,
                         () => body.Add(LinqExpression.Assign(ov, LinqExpression.Constant(Oversample))),
                         LinqExpression.GreaterThan(ov, LinqExpression.Constant(0)),
                         () => body.Add(LinqExpression.PreDecrementAssign(ov)),
-                        () => 
+                        () =>
                         {
                             // t += T
                             body.Add(LinqExpression.AddAssign(vt, pT));
@@ -329,7 +367,7 @@ namespace Circuit
                             foreach (Arrow i in differential)
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
-                                LinqExpression Vt = i.Right.Compile(v);
+                                LinqExpression Vt = Declare(locals, body, "v_" + i.Left.ToString(), i.Right.Compile(v));
                                 // Compute the value of v'(t) and store it in the map.
                                 LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString());
                                 body.Add(LinqExpression.Assign(dV, LinqExpression.Divide(LinqExpression.Subtract(Vt, Vt0), pT)));
@@ -337,17 +375,17 @@ namespace Circuit
 
                                 // Update Vt0.
                                 body.Add(LinqExpression.Assign(Vt0, Vt));
-                                v[i.Left] = Vt;
+                                v[i.Left] = Vt0;
                             }
 
                             // And the linear timestep expressions.
-                            foreach (Arrow i in algebraic)
+                            foreach (Arrow i in linear)
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t, t0)];
                                 body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(v)));
                                 v[i.Left] = Vt0;
                             }
-                            
+
                             // Solve the remaining non-linear system with Newton's method.
                             LinqExpressions.ParameterExpression it = Declare<int>(locals, "it");
                             For(body,
@@ -357,7 +395,7 @@ namespace Circuit
                                 () =>
                                 {
                                     // Compute one iteration of newton's method.
-                                    List<Arrow> iter = nonlinear.Select(i => i.Item1).NSolve(unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))), 1);
+                                    List<Arrow> iter = nonlinear.NSolve(unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))), 1);
 
                                     foreach (Arrow i in iter)
                                     {
@@ -368,12 +406,12 @@ namespace Circuit
                                 });
 
                             // Update f0.
-                            foreach (Tuple<Equal, Expression> i in nonlinear)
+                            foreach (Arrow i in f0)
                             {
-                                LinqExpression f0 = globals[i.Item2];
-                                body.Add(LinqExpression.Assign(f0, i.Item1.Right.Compile(v)));
+                                LinqExpression f0i = globals[i.Left];
+                                body.Add(LinqExpression.Assign(f0i, i.Right.Compile(v)));
                             }
-                            
+
                             // t0 = t
                             body.Add(LinqExpression.Assign(pt0, vt));
 
@@ -388,7 +426,7 @@ namespace Circuit
                             LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { vn }),
                             LinqExpression.Divide(output[i], LinqExpression.Constant((double)Oversample))));
                 });
-            
+
             // return t
             LinqExpressions.LabelTarget returnTo = LinqExpression.Label(vt.Type);
             body.Add(LinqExpression.Return(returnTo, vt, vt.Type));
@@ -548,7 +586,7 @@ namespace Circuit
         private static Expression D(Expression f, Expression x) { return Call.D(f, x); }
 
         // Check if x is a derivative
-        private static bool IsD(Expression f, Expression x) 
+        private static bool IsD(Expression f, Expression x)
         {
             Call C = f as Call;
             if (!ReferenceEquals(C, null))
@@ -563,6 +601,22 @@ namespace Circuit
             if (d.Target.Name == "D")
                 return d.Arguments.First();
             throw new InvalidOperationException("Expression is not a derivative");
+        }
+
+        // Test if f is a linear function of x.
+        private static bool IsLinearFunctionOf(Expression f, IEnumerable<Expression> x)
+        {
+            foreach (Expression i in x)
+            {
+                // TODO: There must be a more efficient way to do this...
+                Expression fi = f / i;
+                if (!fi.IsFunctionOf(i))
+                    return true;
+
+                //if (Add.TermsOf(f).Count(j => Multiply.TermsOf(j).Sum(k => k.Equals(i) ? 1 : k.IsFunctionOf(i) ? 2 : 0) == 1) == 1)
+                //    return true;
+            }
+            return false;
         }
     }
 }
