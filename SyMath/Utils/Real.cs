@@ -203,14 +203,14 @@ namespace SyMath
         {
             if (rational != null)
                 return rational.Value.ToLaTeX();
-
-            string r = real.Value.ToString("G6");
+            
+            string r = ((decimal)this).ToString("G6");
             int e = r.IndexOfAny("eE".ToCharArray());
 
             if (e == -1)
                 return r;
 
-            return r.Substring(0, e) + "\times10^{" + r.Substring(e + 1);
+            return r.Substring(0, e) + @"\times 10^{" + int.Parse(r.Substring(e + 1)).ToString() + "}";
         }
 
         // IFormattable interface.

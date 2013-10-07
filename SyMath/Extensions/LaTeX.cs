@@ -12,10 +12,8 @@ namespace SyMath
             return base.Visit(E);
         }
 
-        private string VisitDivide(Expression N, Expression D)
+        private static string Frac(string n, string d)
         {
-            string n = Visit(N);
-            string d = Visit(D);
             if (n.Length <= 2 && d.Length <= 2)
                 return @"^{n}/_{d}";
             else
@@ -27,28 +25,51 @@ namespace SyMath
             Expression N = Multiply.Numerator(M);
             Expression D = Multiply.Denominator(M);
 
-            bool negative = false;
-            if (N is Multiply && IsNegative(N))
-            {
-                negative = !negative;
-                N = -N;
-            }
-            if (D is Multiply && IsNegative(D))
-            {
-                negative = !negative;
-                D = -D;
-            }
-            string minus = negative ? "-" : "";
+            string n = Multiply.TermsOf(N).Select(i => Visit(i)).UnSplit(' ');
+            string mn = Multiply.TermsOf(-N).Select(i => Visit(i)).UnSplit(' ');
 
-            if (!D.IsOne())
-                return minus + VisitDivide(N, D);
+            string d = Multiply.TermsOf(D).Select(i => Visit(i)).UnSplit(' ');
+            string md = Multiply.TermsOf(-D).Select(i => Visit(i)).UnSplit(' ');
+
+            bool m = false;
+            if (mn.Length < n.Length)
+            {
+                m = !m;
+                n = mn;
+            }
+            if (md.Length < d.Length)
+            {
+                m = !m;
+                d = md;
+            }
+            string minus = m ? "-" : "";
+
+            if (d != "1")
+                return minus + Frac(n, d);
             else
-                return minus + Multiply.TermsOf(N).Select(i => Visit(i)).UnSplit(' ');
+                return minus + n;
         }
 
         protected override string VisitAdd(Add A)
         {
-            return A.Terms.Select(i => Visit(i)).UnSplit(" + ");
+            StringBuilder s = new StringBuilder();
+            s.Append("(");
+            s.Append(Visit(A.Terms.First()));
+            foreach (Expression i in A.Terms.Skip(1))
+            {
+                if (IsNegative(i))
+                {
+                    s.Append("-");
+                    s.Append(Visit(-i));
+                }
+                else
+                {
+                    s.Append("+");
+                    s.Append(Visit(i));
+                }
+            }
+            s.Append(")");
+            return s.ToString();
         }
 
         protected override string VisitBinary(Binary B)
@@ -94,6 +115,7 @@ namespace SyMath
         {
             switch (Op)
             {
+                case Operator.Equal: return "=";
                 case Operator.NotEqual: return @"\neq";
                 case Operator.GreaterEqual: return @"\geq";
                 case Operator.LessEqual: return @"\leq";

@@ -99,12 +99,29 @@ namespace SyMath
             Reduce();
         }
 
+        private static int InsignificantDigits(BigInteger x)
+        {
+            for (int i = 0; i < 1000; ++i)
+                if (x % BigInteger.Pow(10, i + 1) != 0)
+                    return i;
+            return 0;
+        }
+
+        private static string ToLaTeX(BigInteger x)
+        { 
+            int insig = InsignificantDigits(x);
+            if (insig >= 3)
+                return (x / BigInteger.Pow(10, insig)).ToString() + @"\times 10^{" + insig + "}";
+            else
+                return x.ToString();
+        }
+
         public string ToLaTeX()
         {
-            string ns = n.ToString();
+            string ns = ToLaTeX(n);
             if (d == 1) return ns;
 
-            string nd = d.ToString();
+            string nd = ToLaTeX(d);
 
             if (ns.Length <= 2 && nd.Length <= 2)
                 return "^{" + ns + "}_{" + nd + "}";
