@@ -143,7 +143,7 @@ namespace Circuit
             List<Expression> dx_dt = x.Where(i => IsD(i, t)).ToList();
             x.RemoveAll(i => IsD(i, t));
 
-            // NDSolve can solve this system if algebraic variables are substituted with constants (previous value).
+            // Find the differential solutions to the system.
             List<Expression> xa = x.Where(i => dx_dt.None(j => DOf(j).Equals(i))).ToList();
             differential = kcl
                 // Solve for the algebraic variables and substitute them.
@@ -151,6 +151,9 @@ namespace Circuit
                 // Solve the resulting system of differential equations.
                 .NDSolve(dx_dt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
             x.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
+            // After solving for the differentials, divide them by h so we don't have to do it in the simulation.
+            // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
+            kcl = kcl.Evaluate(dx_dt, dx_dt.Select(i => i / h)).Cast<Equal>().ToList();
 
             // Find as many closed form solutions in the remaining system as possible.
             linear = kcl.Solve(x.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
@@ -261,9 +264,17 @@ namespace Circuit
             Dictionary<Expression, LinqExpression> map = new Dictionary<Expression, LinqExpression>();
             Dictionary<Expression, LinqExpression> buffers = new Dictionary<Expression, LinqExpression>();
 
-            // Get expressions for the state of each node. These may be replaced by input parameters.
+            // Add the globals to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 map[i.Key] = i.Value;
+
+            // Create globals to store previous values of input.
+            foreach (Expression i in Input)
+            {
+                GlobalExpr<double> prev = new GlobalExpr<double>();
+                globals[i] = prev;
+                map[i.Evaluate(t_t0)] = prev;
+            }
 
             // Lambda definition objects.
             List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
@@ -336,13 +347,6 @@ namespace Circuit
                             Declare<double>(locals, dVi, i, "d" + i.ToString()),
                             LinqExpression.Multiply(LinqExpression.Subtract(Vb, Va), invOversample)));
 
-                        if (!nodes.Contains(i))
-                        {
-                            map[i.Evaluate(t_t0)] = map[i];
-                            // dVi/dt = (Vb - Va) / h.
-                            map[D(i, Simulation.t)] = LinqExpression.Divide(LinqExpression.Subtract(Vb, Va), h);
-                        }
-
                         // Va = Vb
                         body.Add(LinqExpression.Assign(Va, Vb));
                     }
@@ -385,12 +389,13 @@ namespace Circuit
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
                                 LinqExpression Vt = Declare(locals, body, i.Left.ToString(), i.Right.Compile(map));
-                                // Compute the value of v'(t) and store it in the map.
+                                
+                                // dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
                                 LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString());
-                                body.Add(LinqExpression.Assign(dV, LinqExpression.Divide(LinqExpression.Subtract(Vt, Vt0), h)));
+                                body.Add(LinqExpression.Assign(dV, LinqExpression.Subtract(Vt, Vt0)));
                                 map[D(i.Left, Simulation.t)] = dV;
 
-                                // Update Vt0.
+                                // Vt0 = Vt
                                 body.Add(LinqExpression.Assign(Vt0, Vt));
                                 map[i.Left] = Vt0;
                             }
@@ -431,18 +436,19 @@ namespace Circuit
 
                                 // Update f0.
                                 foreach (Arrow i in f0)
-                                {
-                                    LinqExpression f0i = globals[i.Left];
-                                    body.Add(LinqExpression.Assign(f0i, i.Right.Compile(map)));
-                                }
+                                    body.Add(LinqExpression.Assign(globals[i.Left], i.Right.Compile(map)));
                             }
 
                             // t0 = t
                             body.Add(LinqExpression.Assign(t0, t));
 
-                            // o_i += i.Evaluate()
+                            // Vo += i.Evaluate()
                             foreach (Expression i in Output)
                                 body.Add(LinqExpression.AddAssign(Vo[i], CompileOrNaN(i, map)));
+
+                            // Vi_t0 = Vi
+                            foreach (Expression i in Input)
+                                body.Add(LinqExpression.Assign(map[i.Evaluate(t_t0)], map[i]));
 
                             // --ov;
                             body.Add(LinqExpression.PreDecrementAssign(ov));
