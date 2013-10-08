@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using SyMath;
 using LinqExpressions = System.Linq.Expressions;
 using LinqExpression = System.Linq.Expressions.Expression;
+using ParameterExpression = System.Linq.Expressions.ParameterExpression;
 
 namespace Circuit
 {
@@ -297,16 +298,16 @@ namespace Circuit
             }
 
             // Lambda definition objects.
-            List<LinqExpressions.ParameterExpression> parameters = new List<LinqExpressions.ParameterExpression>();
-            List<LinqExpressions.ParameterExpression> locals = new List<LinqExpressions.ParameterExpression>();
+            List<ParameterExpression> parameters = new List<ParameterExpression>();
+            List<ParameterExpression> locals = new List<ParameterExpression>();
             List<LinqExpression> body = new List<LinqExpression>();
 
             // Create parameters for the basic simulation info (N, t, T, Oversample, Iterations).
-            LinqExpressions.ParameterExpression SampleCount = Declare<int>(parameters, "SampleCount");
-            LinqExpressions.ParameterExpression t0 = Declare<double>(parameters, map, Simulation.t0);
-            LinqExpressions.ParameterExpression T = Declare<double>(parameters, map, Component.T);
-            LinqExpressions.ParameterExpression Oversample = Declare<int>(parameters, "Oversample");
-            LinqExpressions.ParameterExpression Iterations = Declare<int>(parameters, "Iterations");
+            ParameterExpression SampleCount = Declare<int>(parameters, "SampleCount");
+            ParameterExpression t0 = Declare<double>(parameters, map, Simulation.t0);
+            ParameterExpression T = Declare<double>(parameters, map, Component.T);
+            ParameterExpression Oversample = Declare<int>(parameters, "Oversample");
+            ParameterExpression Iterations = Declare<int>(parameters, "Iterations");
             // Create buffer parameters for each input, output.
             foreach (Expression i in Input.Concat(Output))
                 Declare<double[]>(parameters, buffers, i);
@@ -317,15 +318,15 @@ namespace Circuit
             // Define lambda body.
 
             // double t = t0
-            LinqExpressions.ParameterExpression t = Declare<double>(locals, map, Simulation.t);
+            ParameterExpression t = Declare<double>(locals, map, Simulation.t);
             body.Add(LinqExpression.Assign(t, t0));
 
             // double h = T / Oversample
-            LinqExpressions.ParameterExpression h = Declare<double>(locals, "h");
+            ParameterExpression h = Declare<double>(locals, "h");
             body.Add(LinqExpression.Assign(h, LinqExpression.Divide(T, LinqExpression.Convert(Oversample, typeof(double)))));
 
             // double invOversample = 1 / (double)Oversample
-            LinqExpressions.ParameterExpression invOversample = Declare<double>(locals, "invOversample");
+            ParameterExpression invOversample = Declare<double>(locals, "invOversample");
             body.Add(LinqExpression.Assign(invOversample, LinqExpression.Divide(LinqExpression.Constant(1.0), LinqExpression.Convert(Oversample, typeof(double)))));
 
             // Trivial timestep expressions that are not a function of the input can be set once here (outside the sample loop).
@@ -336,7 +337,7 @@ namespace Circuit
                     i.Right.Compile(map)));
 
             // for (int n = 0; n < SampleCount; ++n)
-            LinqExpressions.ParameterExpression n = Declare<int>(locals, "n");
+            ParameterExpression n = Declare<int>(locals, "n");
             For(body,
                 () => body.Add(LinqExpression.Assign(n, LinqExpression.Constant(0))),
                 LinqExpression.LessThan(n, SampleCount),
@@ -379,7 +380,7 @@ namespace Circuit
 
                     // int ov = Oversample; 
                     // do { -- ov; } while(ov > 0)
-                    LinqExpressions.ParameterExpression ov = Declare<int>(locals, "ov");
+                    ParameterExpression ov = Declare<int>(locals, "ov");
                     body.Add(LinqExpression.Assign(ov, Oversample));
                     DoWhile(body,
                         () =>
@@ -401,10 +402,8 @@ namespace Circuit
                             Dictionary<Expression, LinqExpression> Vt = new Dictionary<Expression, LinqExpression>();
                             // Compile the differential timestep expressions.
                             foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
-                            {
-                                LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
                                 Vt[i.Left] = Declare(locals, body, i.Left.ToString(), i.Right.Compile(map));
-                            }
+                            // Update differentials.
                             foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
@@ -431,7 +430,7 @@ namespace Circuit
 
                                 // int it = Oversample
                                 // do { ... --it } while(it > 0)
-                                LinqExpressions.ParameterExpression it = Declare<int>(locals, "it");
+                                ParameterExpression it = Declare<int>(locals, "it");
                                 body.Add(LinqExpression.Assign(it, Iterations));
                                 DoWhile(body,
                                     () =>
@@ -594,28 +593,28 @@ namespace Circuit
             DoWhile(Target, (x, y) => Body(), Condition);
         }
 
-        private static LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr, string Name)
+        private static ParameterExpression Declare<T>(IList<ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr, string Name)
         {
-            LinqExpressions.ParameterExpression p = LinqExpression.Parameter(typeof(T), Name);
+            ParameterExpression p = LinqExpression.Parameter(typeof(T), Name);
             Scope.Add(p);
             if (Map != null)
                 Map.Add(Expr, p);
             return p;
         }
 
-        private static LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr)
+        private static ParameterExpression Declare<T>(IList<ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr)
         {
             return Declare<T>(Scope, Map, Expr, Expr.ToString());
         }
 
-        private static LinqExpressions.ParameterExpression Declare<T>(IList<LinqExpressions.ParameterExpression> Scope, string Name)
+        private static ParameterExpression Declare<T>(IList<ParameterExpression> Scope, string Name)
         {
             return Declare<T>(Scope, null, null, Name);
         }
 
-        private static LinqExpressions.ParameterExpression Declare(IList<LinqExpressions.ParameterExpression> Scope, IList<LinqExpression> Target, string Name, LinqExpression Init)
+        private static ParameterExpression Declare(IList<ParameterExpression> Scope, IList<LinqExpression> Target, string Name, LinqExpression Init)
         {
-            LinqExpressions.ParameterExpression p = LinqExpression.Parameter(Init.Type, Name);
+            ParameterExpression p = LinqExpression.Parameter(Init.Type, Name);
             Scope.Add(p);
             Target.Add(LinqExpression.Assign(p, Init));
             return p;
