@@ -32,6 +32,7 @@ namespace Circuit
             Unknowns.Add(Vac);
             Unknowns.Add(dVac_dt);
 
+            // Set the current on the terminals to C*dV/dt.
             Expression i = capacitance.Value * dVac_dt;
             Anode.i = i;
             Cathode.i = -i;
