@@ -270,7 +270,8 @@ namespace Circuit
                 return d;
 
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
-            return compiled[hash] = lambda.Compile();
+            d = lambda.Compile();
+            return compiled[hash] = d;
         }
         
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
@@ -459,7 +460,7 @@ namespace Circuit
 
                             // Vo += i.Evaluate()
                             foreach (Expression i in Output)
-                                body.Add(LinqExpression.AddAssign(Vo[i], CompileOrNaN(i, map)));
+                                body.Add(LinqExpression.AddAssign(Vo[i], i.Compile(map)));
 
                             // Vi_t0 = Vi
                             foreach (Expression i in Input)
@@ -618,20 +619,7 @@ namespace Circuit
             Target.Add(LinqExpression.Assign(p, Init));
             return p;
         }
-
-        // Compile x to an expression, or NaN if compilation fails.
-        private static LinqExpression CompileOrNaN(Expression x, IDictionary<Expression, LinqExpression> v)
-        {
-            try
-            {
-                return x.Compile(v);
-            }
-            catch (CompileException)
-            {
-                return LinqExpression.Constant(double.NaN);
-            }
-        }
-
+        
         // Shorthand for df/dx.
         private static Expression D(Expression f, Expression x) { return Call.D(f, x); }
 
