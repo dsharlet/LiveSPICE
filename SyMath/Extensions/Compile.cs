@@ -59,7 +59,12 @@ namespace SyMath
         {
             LinqExpression add = Visit(A.Terms.First());
             foreach (Expression i in A.Terms.Skip(1))
-                add = LinqExpression.Add(add, Visit(i));
+            {
+                if (IsNegative(i))
+                    add = LinqExpression.Subtract(add, Visit(-i));
+                else
+                    add = LinqExpression.Add(add, Visit(i));
+            }
             return add;
         }
 
@@ -136,6 +141,14 @@ namespace SyMath
         protected override LinqExpression VisitUnknown(Expression E)
         {
             throw new NotImplementedException("Unsupported expression type.");
+        }
+
+        private static bool IsNegative(Expression x)
+        {
+            Constant C = Multiply.TermsOf(x).FirstOrDefault(i => i is Constant) as Constant;
+            if (C != null)
+                return C.Value < 0;
+            return false;
         }
     }
     
