@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\OpAmp.cs" />
     <Compile Include="Components\VariableResistor.cs" />
     <Compile Include="Components\Wire.cs" />
     <Compile Include="Utils\ComponentCollection.cs" />
