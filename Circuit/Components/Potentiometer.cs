@@ -66,8 +66,8 @@ namespace Circuit
             Expression VR1 = Anode.V - Wiper.V;
             Expression VR2 = Wiper.V - Cathode.V;
 
-            Cathode.i = VR1 / R1;
-            Anode.i = VR2 / -R2;
+            Cathode.i = VR1 / -R1;
+            Anode.i = VR2 / R2;
             Wiper.i = Cathode.i + Anode.i;
         }
         
