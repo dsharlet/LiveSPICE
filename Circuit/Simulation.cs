@@ -127,7 +127,7 @@ namespace Circuit
 
             // Create global variables for the state of each non-differential unknown.
             foreach (Expression i in y.Where(i => !IsD(i, t)))
-                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(NamePreviousExpr(i), 0.0);
+                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0, i.ToString().Replace("[t]", "[t-1]"));
 
             // Find trivial solutions for x and substitute them into the system.
             trivial = kcl.Solve(y);
@@ -168,7 +168,7 @@ namespace Circuit
 
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
-                globals[i.Left] = new GlobalExpr<double>(i.Left.ToString(), 0.0);
+                globals[i.Left] = new GlobalExpr<double>(0.0, i.Left.ToString());
         }
 
         /// <summary>
@@ -265,9 +265,7 @@ namespace Circuit
                 differential.Any(i => i.Right.IsFunctionOf(x)) ||
                 nonlinear.Any(i => i.IsFunctionOf(x));
         }
-
-        private static string NamePreviousExpr(Expression x) { return x.ToString().Replace("[t]", "[t-1]"); }
-
+        
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  double Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
         //  { ... }
@@ -287,7 +285,7 @@ namespace Circuit
             // Create globals to store previous values of input.
             foreach (Expression i in Input)
             {
-                GlobalExpr<double> prev = new GlobalExpr<double>(NamePreviousExpr(i));
+                GlobalExpr<double> prev = new GlobalExpr<double>(i.ToString().Replace("[t]", "[t-1]"));
                 globals[i] = prev;
                 map[i.Evaluate(t_t0)] = prev;
             }
@@ -346,7 +344,7 @@ namespace Circuit
                     foreach (Expression i in Input)
                     {
                         // Ensure that we have a global variable to store the previous sample in.
-                        globals[i] = new GlobalExpr<double>(NamePreviousExpr(i), 0.0);
+                        globals[i] = new GlobalExpr<double>(0.0, i.ToString().Replace("[t]", "[t-1]"));
                         LinqExpression Va = globals[i];
                         LinqExpression Vb = LinqExpression.MakeIndex(
                             buffers[i],
@@ -674,6 +672,14 @@ namespace Circuit
                 //    return true;
             }
             return false;
+        }
+
+        private static IEnumerable<T> Concat<T>(IEnumerable<T> x0, params IEnumerable<T>[] x)
+        {
+            IEnumerable<T> concat = x0;
+            foreach (IEnumerable<T> i in x)
+                concat = concat.Concat(i);
+            return concat;
         }
     }
 }
