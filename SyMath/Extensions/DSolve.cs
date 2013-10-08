@@ -82,14 +82,14 @@ namespace SyMath
                 // Solve y[t] = y[t0] + h*f[t, y[t]] for y[t].
                 case IntegrationMethod.BackwardEuler:
                     return dydt.Select(i => Equal.New(
-                            DOf(i.Left),
-                            DOf(i.Left).Evaluate(t, t0) + h * i.Right)).Solve(y);
+                        DOf(i.Left),
+                        DOf(i.Left).Evaluate(t, t0) + h * i.Right)).Solve(y);
 
                 // Solve y[t] = y[t0] + (h/2)*(f[t0, y[t0]] + f[t, y[t]]) for y[t].
                 case IntegrationMethod.Trapezoid:
                     return dydt.Select(i => Equal.New(
-                            DOf(i.Left),
-                            DOf(i.Left).Evaluate(t, t0) + (h / 2) * (i.Right.Evaluate(t, t0) + i.Right))).Solve(y);
+                        DOf(i.Left),
+                        DOf(i.Left).Evaluate(t, t0) + (h / 2) * (i.Right.Evaluate(t, t0) + i.Right))).Solve(y);
 
                 default:
                     throw new NotImplementedException(method.ToString());
