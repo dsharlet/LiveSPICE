@@ -137,35 +137,38 @@ namespace Circuit
             List<Equal> kcl = new List<Equal>();
             Circuit.Analyze(kcl, y);
 
-            // Create global variables for the state of each non-differential unknown.
-            foreach (Expression i in y.Where(i => !IsD(i, t)))
-                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0, i.ToString().Replace("[t]", "[t-1]"));
-
-            // Find trivial solutions for x and substitute them into the system.
+            // Find trivial solutions for y and substitute them into the system.
             trivial = kcl.Solve(y);
             trivial.RemoveAll(i => i.Right.IsFunctionOf(y));
             kcl = kcl.Evaluate(trivial).OfType<Equal>().ToList();
             y.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
 
+
             // Separate the non-linear expressions of the KCL equations to a separate system.
             f0 = new List<Arrow>();
             kcl = ExtractNonLinear(kcl, y, f0);
 
-            // Separate x into differential and algebraic unknowns.
+
+            // Separate y into differential and algebraic unknowns.
             List<Expression> dy_dt = y.Where(i => IsD(i, t)).ToList();
             y.RemoveAll(i => IsD(i, t));
-
             // Find the differential solutions to the system.
-            List<Expression> xa = y.Where(i => dy_dt.None(j => DOf(j).Equals(i))).ToList();
+            List<Expression> ya = y.Where(i => dy_dt.None(j => DOf(j).Equals(i))).ToList();
             differential = kcl
                 // Solve for the algebraic variables and substitute them.
-                .Evaluate(kcl.Solve(xa)).OfType<Equal>()
+                .Evaluate(kcl.Solve(ya)).OfType<Equal>()
                 // Solve the resulting system of differential equations.
                 .NDSolve(dy_dt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
-            // After solving for the differentials, divide them by h so we don't have to do it in the simulation.
+            
+            // After solving for the differentials, divide them by h so we don't have to do it during simulation.
             // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
             kcl = kcl.Evaluate(dy_dt, dy_dt.Select(i => i / h)).Cast<Equal>().ToList();
+
+            // Create global variables for the previous value of each differential solution.
+            foreach (Arrow i in differential)
+                globals[i.Left.Evaluate(t, t0)] = new GlobalExpr<double>(0.0, i.Left.ToString().Replace("[t]", "[t-1]"));
+
 
             // Find as many closed form solutions in the remaining system as possible.
             linear = kcl.Solve(y.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
@@ -177,6 +180,10 @@ namespace Circuit
                 .Where(i => i.IsFunctionOf(f0.Select(j => j.Left)))
                 .Evaluate(f0).OfType<Equal>().ToList();
             unknowns = y;
+
+            // Create global variables for the non-linear unknowns.
+            foreach (Expression i in y)
+                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0, i.ToString().Replace("[t]", "[t-1]"));
 
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
@@ -324,11 +331,9 @@ namespace Circuit
             // Trivial timestep expressions that are not a function of the input can be set once here (outside the sample loop).
             // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
             foreach (Arrow i in trivial.Where(i => !i.IsFunctionOf(Input)))
-            {
-                LinqExpression Vi = globals[i.Left.Evaluate(t_t0)];
-                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(map)));
-                map[i.Left] = Vi;
-            }
+                body.Add(LinqExpression.Assign(
+                    Declare<double>(locals, map, i.Left), 
+                    i.Right.Compile(map)));
 
             // for (int n = 0; n < SampleCount; ++n)
             LinqExpressions.ParameterExpression n = Declare<int>(locals, "n");
@@ -367,12 +372,10 @@ namespace Circuit
                     // Prepare output sample accumulators for low pass filtering.
                     Dictionary<Expression, LinqExpression> Vo = new Dictionary<Expression, LinqExpression>();
                     foreach (Expression i in Output)
-                    {
-                        // Vo = 0
+                        // double Vo = 0
                         body.Add(LinqExpression.Assign(
                             Declare<double>(locals, Vo, i, i.ToString().Replace("[t]", "")),
                             LinqExpression.Constant(0.0)));
-                    }
 
                     // int ov = Oversample; 
                     // do { -- ov; } while(ov > 0)
@@ -385,17 +388,14 @@ namespace Circuit
                             body.Add(LinqExpression.AddAssign(t, h));
 
                             // Interpolate the input samples.
-                            // Vi += dVi
                             foreach (Expression i in Input)
                                 body.Add(LinqExpression.AddAssign(map[i], dVi[i]));
 
                             // Compile the trivial timestep expressions that are a function of the input.
                             foreach (Arrow i in trivial.Where(i => IsExpressionUsed(Output, i.Left) && i.Right.IsFunctionOf(Input)))
-                            {
-                                LinqExpression Vi = globals[i.Left.Evaluate(t_t0)];
-                                body.Add(LinqExpression.Assign(Vi, i.Right.Compile(map)));
-                                map[i.Left] = Vi;
-                            }
+                                body.Add(LinqExpression.Assign(
+                                    Declare<double>(locals, map, i.Left),
+                                    i.Right.Compile(map)));
 
                             // We have to compute all of the Vt expressions before updating the global, so store them here.
                             Dictionary<Expression, LinqExpression> Vt = new Dictionary<Expression, LinqExpression>();
@@ -410,9 +410,9 @@ namespace Circuit
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
 
                                 // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
-                                LinqExpression dV = Declare<double>(locals, "d" + i.Left.ToString().Replace("[t]", ""));
-                                body.Add(LinqExpression.Assign(dV, LinqExpression.Subtract(Vt[i.Left], Vt0)));
-                                map[D(i.Left, Simulation.t)] = dV;
+                                body.Add(LinqExpression.Assign(
+                                    Declare<double>(locals, map, D(i.Left, Simulation.t), "d" + i.Left.ToString().Replace("[t]", "")), 
+                                    LinqExpression.Subtract(Vt[i.Left], Vt0)));
 
                                 // Vt0 = Vt
                                 body.Add(LinqExpression.Assign(Vt0, Vt[i.Left]));
@@ -421,11 +421,9 @@ namespace Circuit
 
                             // And the linear timestep expressions.
                             foreach (Arrow i in linear.Where(i => IsExpressionUsed(Output, i.Left)))
-                            {
-                                LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
-                                body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(map)));
-                                map[i.Left] = Vt0;
-                            }
+                                body.Add(LinqExpression.Assign(
+                                    Declare<double>(locals, map, i.Left), 
+                                    i.Right.Compile(map)));
 
                             if (unknowns.Any())
                             {
