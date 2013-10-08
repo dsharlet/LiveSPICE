@@ -28,7 +28,7 @@ namespace Circuit
             expr = LinqExpression.Field(LinqExpression.Constant(this), typeof(GlobalExpr<T>), "x");
 
             // This is handy for debugging.
-            expr = LinqExpression.Variable(typeof(T), Name);
+            //expr = LinqExpression.Variable(typeof(T), Name);
         }
         public GlobalExpr(T Init, string Name) : this(Name) { x = Init; }
     }

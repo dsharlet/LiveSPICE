@@ -19,6 +19,9 @@ namespace Circuit
         // Expression for t at the previous timestep.
         private static readonly Expression t0 = Variable.New("t0");
         private static readonly Expression t = Component.t;
+        
+        // This is used often enough to shorten it a few characters.
+        private static readonly Arrow t_t0 = Arrow.New(t, t0);
 
         protected double _t = 0.0;
         /// <summary>
@@ -43,9 +46,12 @@ namespace Circuit
         /// Get or set the oversampling factor for the simulation.
         /// </summary>
         public int Oversample { get { return oversample; } }
-
-        // Nodes in this simulation.
+        
         private List<Expression> nodes;
+        /// <summary>
+        /// Enumerate the nodes in the simulation.
+        /// </summary>
+        public IEnumerable<Expression> Nodes { get { return nodes; } }
 
         // Simulation timestep.
         private Expression h;
@@ -61,13 +67,19 @@ namespace Circuit
         private List<Arrow> f0;
         private List<Expression> unknowns;
 
+        // Check if x is used anywhere in the simulation, including the outputs.
+        private bool IsExpressionUsed(IEnumerable<Expression> Extra, Expression x)
+        {
+            return
+                Extra.Any(i => i.IsFunctionOf(x)) ||
+                trivial.Any(i => i.Right.IsFunctionOf(x)) ||
+                linear.Any(i => i.Right.IsFunctionOf(x)) ||
+                differential.Any(i => i.Right.IsFunctionOf(x)) ||
+                nonlinear.Any(i => i.IsFunctionOf(x));
+        }
+
         // Stores any global state in the simulation (previous state values, mostly).
         private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
-
-        /// <summary>
-        /// Enumerate the nodes in the simulation.
-        /// </summary>
-        public IEnumerable<Expression> Nodes { get { return nodes; } }
 
         // Given a system of potentially non-linear equations f, extract the non-linear expressions and replace them with a variable f0.
         // f0 is constructed such that ExtractNonLinear(f, x, f0).Evaluate(f0) == f.
@@ -251,19 +263,6 @@ namespace Circuit
 
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
             return compiled[hash] = lambda.Compile();
-        }
-
-        private static readonly Arrow t_t0 = Arrow.New(t, t0);
-
-        // Check if x is used anywhere in the simulation, including the outputs.
-        private bool IsExpressionUsed(IEnumerable<Expression> Output, Expression x)
-        {
-            return
-                Output.Any(i => i.IsFunctionOf(x)) ||
-                trivial.Any(i => i.Right.IsFunctionOf(x)) ||
-                linear.Any(i => i.Right.IsFunctionOf(x)) ||
-                differential.Any(i => i.Right.IsFunctionOf(x)) ||
-                nonlinear.Any(i => i.IsFunctionOf(x));
         }
         
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
