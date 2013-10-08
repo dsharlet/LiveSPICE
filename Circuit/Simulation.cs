@@ -125,8 +125,8 @@ namespace Circuit
             List<Equal> kcl = new List<Equal>();
             Circuit.Analyze(kcl, y);
 
-            // Create global variables for the state of each unknown.
-            foreach (Expression i in y)
+            // Create global variables for the state of each non-differential unknown.
+            foreach (Expression i in y.Where(i => !IsD(i, t)))
                 globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(NamePreviousExpr(i), 0.0);
 
             // Find trivial solutions for x and substitute them into the system.
@@ -263,7 +263,7 @@ namespace Circuit
                 trivial.Any(i => i.Right.IsFunctionOf(x)) ||
                 linear.Any(i => i.Right.IsFunctionOf(x)) ||
                 differential.Any(i => i.Right.IsFunctionOf(x)) ||
-                nonlinear.Any(i => i.Right.IsFunctionOf(x));
+                nonlinear.Any(i => i.IsFunctionOf(x));
         }
 
         private static string NamePreviousExpr(Expression x) { return x.ToString().Replace("[t]", "[t-1]"); }
@@ -402,15 +402,12 @@ namespace Circuit
 
                             // We have to compute all of the Vt expressions before updating the global, so store them here.
                             Dictionary<Expression, LinqExpression> Vt = new Dictionary<Expression, LinqExpression>();
-
                             // Compile the differential timestep expressions.
                             foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
                                 Vt[i.Left] = Declare(locals, body, i.Left.ToString(), i.Right.Compile(map));
                             }
-
-                            // Update the function state after all the differentials have been computed.
                             foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
                             {
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
