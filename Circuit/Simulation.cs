@@ -373,7 +373,6 @@ namespace Circuit
                     // Prepare output sample accumulators for low pass filtering.
                     Dictionary<Expression, LinqExpression> Vo = new Dictionary<Expression, LinqExpression>();
                     foreach (Expression i in Output)
-                        // double Vo = 0
                         body.Add(LinqExpression.Assign(
                             Declare<double>(locals, Vo, i, i.ToString().Replace("[t]", "")),
                             LinqExpression.Constant(0.0)));
