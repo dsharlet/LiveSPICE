@@ -67,8 +67,15 @@ namespace LiveSPICE
 
             if (simulation != null)
             {
-                simulation.Process(input, Samples, output, Samples);
-                Scope.AddSignal(Output.ToString(), Samples);
+                try
+                {
+                    simulation.Process(input, Samples, output, Samples);
+                    Scope.AddSignal(Output.ToString(), Samples);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.ToString());
+                }
             }
         }
 
