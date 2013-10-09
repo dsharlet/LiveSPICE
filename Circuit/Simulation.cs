@@ -153,7 +153,7 @@ namespace Circuit
             // Separate y into differential and algebraic unknowns.
             List<Expression> dy_dt = y.Where(i => IsD(i, t)).ToList();
             y.RemoveAll(i => IsD(i, t));
-            // Find the differential solutions to the system.
+            // Find the solutions to the differential unknowns.
             List<Expression> ya = y.Where(i => dy_dt.None(j => DOf(j).Equals(i))).ToList();
             differential = mna
                 // Solve for the algebraic variables and substitute them.
@@ -162,7 +162,7 @@ namespace Circuit
                 .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
             
-            // After solving for the differentials, divide them by h so we don't have to do it during simulation.
+            // After solving for the differential unknowns, divide them by h so we don't have to do it during simulation.
             // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
             mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
 
@@ -406,12 +406,14 @@ namespace Circuit
                             // Update differentials.
                             foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
                             {
+                                Expression di_dt = D(i.Left, Simulation.t);
                                 LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
 
                                 // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
-                                body.Add(LinqExpression.Assign(
-                                    Declare<double>(locals, map, D(i.Left, Simulation.t), "d" + i.Left.ToString().Replace("[t]", "")), 
-                                    LinqExpression.Subtract(Vt[i.Left], Vt0)));
+                                if (IsExpressionUsed(Output, di_dt))
+                                    body.Add(LinqExpression.Assign(
+                                        Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
+                                        LinqExpression.Subtract(Vt[i.Left], Vt0)));
 
                                 // Vt0 = Vt
                                 body.Add(LinqExpression.Assign(Vt0, Vt[i.Left]));
