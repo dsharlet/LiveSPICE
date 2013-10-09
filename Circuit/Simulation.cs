@@ -133,21 +133,21 @@ namespace Circuit
             // Length of one timestep in the oversampled simulation.
             h = 1 / ((Expression)SampleRate * Oversample);
 
-            // Analyze the circuit to get the KCL equations and unknowns.
+            // Analyze the circuit to get the MNA system and unknowns.
             List<Expression> y = new List<Expression>();
-            List<Equal> kcl = new List<Equal>();
-            Circuit.Analyze(kcl, y);
+            List<Equal> mna = new List<Equal>();
+            Circuit.Analyze(mna, y);
 
             // Find trivial solutions for y and substitute them into the system.
-            trivial = kcl.Solve(y);
+            trivial = mna.Solve(y);
             trivial.RemoveAll(i => i.Right.IsFunctionOf(y));
-            kcl = kcl.Evaluate(trivial).OfType<Equal>().ToList();
+            mna = mna.Evaluate(trivial).OfType<Equal>().ToList();
             y.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
 
 
-            // Separate the non-linear expressions of the KCL equations to a separate system.
+            // Separate the non-linear equations of the MNA system to a separate system.
             f0 = new List<Arrow>();
-            kcl = ExtractNonLinear(kcl, y, f0);
+            mna = ExtractNonLinear(mna, y, f0);
 
 
             // Separate y into differential and algebraic unknowns.
@@ -155,16 +155,16 @@ namespace Circuit
             y.RemoveAll(i => IsD(i, t));
             // Find the differential solutions to the system.
             List<Expression> ya = y.Where(i => dy_dt.None(j => DOf(j).Equals(i))).ToList();
-            differential = kcl
+            differential = mna
                 // Solve for the algebraic variables and substitute them.
-                .Evaluate(kcl.Solve(ya)).OfType<Equal>()
+                .Evaluate(mna.Solve(ya)).OfType<Equal>()
                 // Solve the resulting system of differential equations.
-                .NDSolve(dy_dt.Select(i => DOf(i)).ToList(), t, t0, h, IntegrationMethod.Trapezoid);
+                .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
             
             // After solving for the differentials, divide them by h so we don't have to do it during simulation.
             // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
-            kcl = kcl.Evaluate(dy_dt, dy_dt.Select(i => i / h)).Cast<Equal>().ToList();
+            mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
 
             // Create global variables for the previous value of each differential solution.
             foreach (Arrow i in differential)
@@ -172,12 +172,12 @@ namespace Circuit
 
 
             // Find as many closed form solutions in the remaining system as possible.
-            linear = kcl.Solve(y.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
+            linear = mna.Solve(y.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
             y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
             linear.RemoveAll(i => i.Right.IsFunctionOf(y));
 
             // The remaining non-linear system will be solved via Newton's method.
-            nonlinear = kcl
+            nonlinear = mna
                 .Where(i => i.IsFunctionOf(f0.Select(j => j.Left)))
                 .Evaluate(f0).OfType<Equal>().ToList();
             unknowns = y;
