@@ -287,7 +287,6 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 map[i.Key] = i.Value;
             
-
             // Lambda definition objects.
             List<ParameterExpression> parameters = new List<ParameterExpression>();
             List<ParameterExpression> locals = new List<ParameterExpression>();
@@ -328,7 +327,7 @@ namespace Circuit
 
             // double invOversample = 1 / (double)Oversample
             ParameterExpression invOversample = Declare<double>(locals, "invOversample");
-            body.Add(LinqExpression.Assign(invOversample, LinqExpression.Divide(LinqExpression.Constant(1.0), LinqExpression.Convert(Oversample, typeof(double)))));
+            body.Add(LinqExpression.Assign(invOversample, Reciprocal(LinqExpression.Convert(Oversample, typeof(double)))));
 
             // Trivial timestep expressions that are not a function of the input can be set once here (outside the sample loop).
             // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
@@ -641,6 +640,17 @@ namespace Circuit
             if (d.Target.Name == "D")
                 return d.Arguments.First();
             throw new InvalidOperationException("Expression is not a derivative");
+        }
+
+        // Returns 1 / x.
+        private static LinqExpression Reciprocal(LinqExpression x)
+        {
+            LinqExpression one = null;
+            if (x.Type == typeof(double))
+                one = LinqExpression.Constant(1.0);
+            else if (x.Type == typeof(float))
+                one = LinqExpression.Constant(1.0f);
+            return LinqExpression.Divide(one, x);
         }
 
         // Test if f is a linear function of x.
