@@ -41,16 +41,13 @@ namespace LiveSPICE
             Circuit.Coord lb = element.LowerBound;
             Circuit.Coord ub = element.UpperBound;
 
-            if (lb.x == 0)
-            {
-                System.Diagnostics.Debug.Assert(false);
-            }
-
             Canvas.SetLeft(this, lb.x);
             Canvas.SetTop(this, lb.y);
 
             Width = ub.x - lb.x;
             Height = ub.y - lb.y;
+
+            InvalidateVisual();
         }
 
         public Element(Circuit.Element E)

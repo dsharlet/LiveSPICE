@@ -215,16 +215,19 @@ namespace LiveSPICE
         public IEnumerable<Circuit.Element> Elements { get { return schematic.Elements; } }
         public IEnumerable<Circuit.Symbol> Symbols { get { return schematic.Elements.OfType<Circuit.Symbol>(); } }
         public IEnumerable<Circuit.WireElement> Wires { get { return schematic.Elements.OfType<Circuit.WireElement>(); } }
-        public IEnumerable<Circuit.Element> InRect(Point x1, Point x2)
+
+        public IEnumerable<Circuit.Element> InRect(Circuit.Coord x1, Circuit.Coord x2)
         {
-            Circuit.Point a = new Circuit.Point(Math.Min(x1.X, x2.X) + 1, Math.Min(x1.Y, x2.Y) + 1);
-            Circuit.Point b = new Circuit.Point(Math.Max(x1.X, x2.X) - 1, Math.Max(x1.Y, x2.Y) - 1);
-            return Elements.Where(i => i.Intersects(
-                (Circuit.Coord)Circuit.Point.Ceiling(a), 
-                (Circuit.Coord)Circuit.Point.Floor(b))); 
+            Circuit.Coord a = new Circuit.Coord(Math.Min(x1.x, x2.x) + 1, Math.Min(x1.y, x2.y) + 1);
+            Circuit.Coord b = new Circuit.Coord(Math.Max(x1.x, x2.x) - 1, Math.Max(x1.y, x2.y) - 1);
+            return Elements.Where(i => i.Intersects(a, b));
         }
-        public IEnumerable<Circuit.Element> InRect(Rect In) { return InRect(In.TopLeft, In.BottomRight); }
-        public IEnumerable<Circuit.Element> AtPoint(Point At) { return InRect(At - One, At + One); }
+        public IEnumerable<Circuit.Element> AtPoint(Circuit.Coord At) { return InRect(At, At); }
+        public IEnumerable<Circuit.Element> InRect(Point x1, Point x2) { return InRect(ToCoord(x1), ToCoord(x2)); }
+        public IEnumerable<Circuit.Element> AtPoint(Point At) { return AtPoint(ToCoord(At)); }
+
+        private static Circuit.Coord ToCoord(Point x) { return new Circuit.Coord((int)Math.Round(x.X), (int)Math.Round(x.Y)); }
+
         public static Point LowerBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.LowerBound.x), Of.Min(i => i.LowerBound.y)); }
         public static Point UpperBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.UpperBound.x), Of.Min(i => i.UpperBound.y)); }
         public Point LowerBound() { return LowerBound(Elements); }
@@ -411,6 +414,7 @@ namespace LiveSPICE
         }
         public void Highlight(params Circuit.Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
 
+        public Circuit.Point SnapToGrid(Circuit.Point x) { return new Circuit.Point(Math.Round(x.x / Grid) * Grid, Math.Round(x.y / Grid) * Grid); }
         public Point SnapToGrid(Point x) { return new Point(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }
         public Vector SnapToGrid(Vector x) { return new Vector(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }
                 

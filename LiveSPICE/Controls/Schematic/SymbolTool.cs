@@ -21,15 +21,21 @@ namespace LiveSPICE
     public class SymbolTool : SchematicTool
     {
         protected Symbol overlay;
-        
+
+        protected Circuit.Coord offset;
+
         public SymbolTool(Schematic Target, Type Type) : base(Target)
         {
             overlay = new Symbol(Type) 
             { 
                 Visibility = Visibility.Hidden, 
                 ShowText = false,
+                Highlighted = true,
                 Pen = new Pen(Brushes.Gray, 1.0) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }
             };
+
+            Vector x = Target.SnapToGrid(overlay.Size / 2);
+            offset = new Circuit.Coord(0, 0);//(int)x.X, (int)x.Y);
         }
 
         public override void Begin() { Target.overlays.Children.Add(overlay); overlay.UpdateLayout(); Target.Cursor = Cursors.None; }
@@ -59,13 +65,15 @@ namespace LiveSPICE
 
         public override void MouseMove(Point At)
         {
-            //overlay.GetSymbol().Position = At - Target.SnapToGrid(overlay.GetSymbol().Size / 2);
+            Circuit.Symbol symbol = overlay.GetSymbol();
 
-            //// Don't allow symbols to be placed on an existing symbol.
-            //Target.Cursor = Target.InRect(
-            //    overlay.GetSymbol().Position,
-            //    overlay.GetSymbol().Position + (Vector)overlay.Size).Any() ? Cursors.No : Cursors.None;
-            //overlay.Visibility = Visibility.Visible;
+            symbol.Position = new Circuit.Coord((int)At.X, (int)At.Y) - offset;
+
+            // Don't allow symbols to be placed on an existing symbol.
+            Target.Cursor = Target.InRect(
+                symbol.Position,
+                symbol.Position + symbol.Size).Any() ? Cursors.No : Cursors.None;
+            overlay.Visibility = Visibility.Visible;
         }
 
         public override void MouseLeave(Point At)
@@ -75,19 +83,20 @@ namespace LiveSPICE
         
         public override bool KeyDown(Key Key)
         {
-            return base.KeyDown(Key);
-            //Point x = overlay.Position + Target.SnapToGrid((Vector)overlay.Size / 2);
-            //switch (Key)
-            //{
-            //    case System.Windows.Input.Key.Left: overlay.Rotation += 1; break;
-            //    case System.Windows.Input.Key.Right: overlay.Rotation -= 1; break;
-            //    case System.Windows.Input.Key.Down: overlay.Flip = !overlay.Flip; break;
-            //    case System.Windows.Input.Key.Up: overlay.Flip = !overlay.Flip; break;
-            //    default: return base.KeyDown(Key);
-            //}
+            Circuit.Symbol symbol = overlay.GetSymbol();
 
-            //overlay.Position = x - Target.SnapToGrid((Vector)overlay.Size / 2);
-            //return true;
+            Circuit.Coord x = symbol.Position + offset;
+            switch (Key)
+            {
+                case System.Windows.Input.Key.Left: symbol.Rotation += 1; break;
+                case System.Windows.Input.Key.Right: symbol.Rotation -= 1; break;
+                case System.Windows.Input.Key.Down: symbol.Flip = !symbol.Flip; break;
+                case System.Windows.Input.Key.Up: symbol.Flip = !symbol.Flip; break;
+                default: return base.KeyDown(Key);
+            }
+
+            symbol.Position = x - offset;
+            return true;
         }
     }
 }

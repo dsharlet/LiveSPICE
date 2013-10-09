@@ -37,6 +37,8 @@ namespace LiveSPICE
         protected double scale = 1.0;
         protected Point origin;
 
+        public Vector Size { get { return new Vector(symbol.Size.x, symbol.Size.y); } }
+
         protected Circuit.Symbol symbol;
         public Circuit.Component Component { get { return symbol.Component; } }
 
@@ -72,7 +74,7 @@ namespace LiveSPICE
 
             Size size = base.ArrangeOverride(arrangeBounds);
             scale = Math.Min(Math.Min(size.Width / width, size.Height / height), 1.0);
-            origin = new Point((b1.X + b2.X) / 2, (b1.Y + b2.Y) / 2);
+            origin = new Point((b1.X + b2.X) / 2 - symbol.Position.x, (b1.Y + b2.Y) / 2 - symbol.Position.y);
 
             return size;
         }
@@ -96,19 +98,20 @@ namespace LiveSPICE
             Circuit.SymbolLayout layout = new Circuit.SymbolLayout(this);
             Circuit.Component component = ((Circuit.Symbol)element).Component;
 
+            //transform.Translate(lbx, lby);
             component.LayoutSymbol(layout);
 
             double dx = TerminalSize / 2;
             foreach (Circuit.Terminal i in component.Terminals)
             {
-                Circuit.Point x = symbol.MapTerminal(i);
+                Circuit.Point x = symbol.MapTerminal(i) - symbol.Position;
                 Point x1 = MapToPoint(new Circuit.Point(x.x - dx, x.y - dx));
                 Point x2 = MapToPoint(new Circuit.Point(x.x + dx, x.y + dx));
                 dc.DrawRectangle(null, MapToPen(i.ConnectedTo == null ? Circuit.ShapeType.Red : Circuit.ShapeType.Black), new Rect(x1, x2));
             }
 
-            Point b1 = MapToPoint(symbol.LowerBound);
-            Point b2 = MapToPoint(symbol.UpperBound);
+            Point b1 = MapToPoint(symbol.LowerBound - symbol.Position);
+            Point b2 = MapToPoint(symbol.UpperBound - symbol.Position);
 
             Rect bounds = new Rect(b1, b2);
             if (Selected)

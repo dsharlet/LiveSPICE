@@ -40,8 +40,6 @@ namespace LiveSPICE
         public override void End() { Target.overlays.Children.Remove(path); }
         public override void Cancel() { path.Visibility = Visibility.Hidden; }
 
-        protected IEnumerable<Circuit.Element> InRect(Point A, Point B) { return A == B ? Target.AtPoint(A) : Target.InRect(A, B); }
-
         //public override void MouseDoubleClick(Point At, Symbol On)
         //{
         //    if (On != null)
@@ -84,7 +82,7 @@ namespace LiveSPICE
                 Vector dx = new Vector(-0.5, -0.5);
                 ((RectangleGeometry)path.Data).Rect = new Rect(a + dx, b + dx);
             }
-            Target.Highlight(InRect(a, b));
+            Target.Highlight(Target.InRect(a, b));
         }
 
         public override void MouseUp(Point At)
@@ -93,9 +91,9 @@ namespace LiveSPICE
             if (path.Visibility == Visibility.Visible)
             {
                 if (a == b)
-                    Target.ToggleSelect(InRect(a, b));
+                    Target.ToggleSelect(Target.InRect(a, b));
                 else
-                    Target.Select(InRect(a, b));
+                    Target.Select(Target.InRect(a, b));
                 path.Visibility = Visibility.Hidden;
                 Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross;
             }
