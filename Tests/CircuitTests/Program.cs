@@ -22,17 +22,18 @@ namespace CircuitTests
 
             //Run(SeriesDiodeClipper(), VS);
             //Run(CommonCathodeTriodeAmp(), VS);
-            //Run(ToneStack(), VS);
+            Run(ToneStack(), VS);
             Run(MinimalRepro(), VS);
             Run(PassiveHighPassRC(), VS);
             Run(PassiveLowPassRLC(), VS);
             Run(PassiveBandPassRLC(), VS);
-            Run(VoltageDivider(), VS);
             //Run(Potentiometer(), VS);
             Run(PassiveLowPassRL(), VS);
             Run(DiodeHalfClipper(), VS);
             Run(ParallelDiodeClipper(), VS);
+            Run(DiodeClipperFilter(), VS);
             Run(Supernode(), VS);
+            Run(VoltageDivider(), VS);
             Run(MinimalMixedSystem(), VS);
             Run(PassiveLowPassRC(), VS);
             Run(NonInvertingAmplifier(), VS);
@@ -63,6 +64,7 @@ namespace CircuitTests
             input.Add(VSt, vs);
 
             Dictionary<Expression, double[]> output = S.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
+            //Dictionary<Expression, double[]> output = new Expression[] { "Vo[t]" }.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is compiled before benchmarking.
             S.Process(1, input, output);
@@ -74,6 +76,8 @@ namespace CircuitTests
             timer.Stop();
 
             int t1 = 5000;
+
+            //output.RemoveAll(i => i.Value.Contains(double.NaN) || i.Value.Contains(double.NegativeInfinity) || i.Value.Contains(double.PositiveInfinity));
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
@@ -192,7 +196,7 @@ namespace CircuitTests
             C.Components.Add(VS);
             C.Components.Add(G);
 
-            IdealOpAmp A = new IdealOpAmp();
+            OpAmp A = new OpAmp();
 
             Node Vp = new Node("Vp");
             Node Vn = new Node("Vn");
@@ -277,7 +281,7 @@ namespace CircuitTests
             C.Components.Add(VS);
             C.Components.Add(G);
 
-            IdealOpAmp A = new IdealOpAmp();
+            OpAmp A = new OpAmp();
 
             Node Vin = new Node("Vin");
             Node Vn = new Node("Vn");
@@ -435,7 +439,7 @@ namespace CircuitTests
             C.Components.Add(G);
 
             Node Va = new Node("Va");
-            Node Vb = new Node("Vb");
+            Node Vb = new Node("Vo");
             Node Vc = new Node("Vc");
             Node Vg = new Node("Vg");
             C.Nodes = new NodeCollection() { Va, Vb, Vc, Vg };
@@ -457,7 +461,7 @@ namespace CircuitTests
         public static Circuit.Circuit ToneStack()
         {
             Circuit.Circuit C = new Circuit.Circuit() { Name = "Tone stack" };
-            
+
             Potentiometer R1 = new Potentiometer() { Resistance = 250e3m };
             TwoTerminal R2 = new VariableResistor() { Resistance = 1e6m };
             Potentiometer R3 = new Potentiometer() { Resistance = 25e3m };
@@ -465,7 +469,7 @@ namespace CircuitTests
             TwoTerminal C1 = new Capacitor() { Capacitance = 0.25e-9m };
             TwoTerminal C2 = new Capacitor() { Capacitance = 20e-9m };
             TwoTerminal C3 = new Capacitor() { Capacitance = 20e-9m };
-            
+
             VoltageSource VS = new VoltageSource() { Voltage = VSt };
             Ground G = new Ground();
 
@@ -608,6 +612,43 @@ namespace CircuitTests
             return C;
         }
 
+        public static Circuit.Circuit DiodeClipperFilter()
+        {
+            Circuit.Circuit C = new Circuit.Circuit() { Name = "Parallel diode clipper w/ filter" };
+
+            Resistor R1 = new Resistor() { Resistance = 2.2e4m };
+            Capacitor C1 = new Capacitor() { Capacitance = 0.01e-6m };
+            Diode D1 = new Diode();
+            Diode D2 = new Diode();
+
+            VoltageSource VS = new VoltageSource() { Voltage = VSt };
+            Ground G = new Ground();
+
+            C.Components.Add(VS);
+            C.Components.Add(G);
+
+            Node Vin = new Node("Vin");
+            Node Vo = new Node("Vo");
+            Node Vg = new Node("Vg");
+
+            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
+
+            C.Components.Add(R1);
+            C.Components.Add(D1);
+            C.Components.Add(D2);
+            C.Components.Add(C1);
+
+            VS.ConnectTo(Vin, Vg);
+            G.ConnectTo(Vg);
+
+            R1.ConnectTo(Vin, Vo);
+            D1.ConnectTo(Vo, Vg);
+            D2.ConnectTo(Vg, Vo);
+            C1.ConnectTo(Vg, Vo);
+
+            return C;
+        }
+        
         public static Circuit.Circuit SeriesDiodeClipper()
         {
             Circuit.Circuit C = new Circuit.Circuit() { Name = "Series diode clipper" };
