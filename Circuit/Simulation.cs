@@ -286,17 +286,7 @@ namespace Circuit
             // Add the globals to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 map[i.Key] = i.Value;
-
-            // Remove any inputs that aren't used anywhere in the system.
-            Input = Input.Where(i => IsExpressionUsed(Output, i)).ToList();
-
-            // Create globals to store previous values of input.
-            foreach (Expression i in Input)
-            {
-                GlobalExpr<double> prev = new GlobalExpr<double>(i.ToString().Replace("[t]", "[t-1]"));
-                globals[i] = prev;
-                map[i.Evaluate(t_t0)] = prev;
-            }
+            
 
             // Lambda definition objects.
             List<ParameterExpression> parameters = new List<ParameterExpression>();
@@ -315,6 +305,16 @@ namespace Circuit
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
                 Declare<double>(parameters, map, i);
+
+            // Remove any inputs that aren't used anywhere in the system.
+            Input = Input.Where(i => IsExpressionUsed(Output, i)).ToList();
+            // Create globals to store previous values of input.
+            foreach (Expression i in Input)
+            {
+                GlobalExpr<double> prev = new GlobalExpr<double>(i.ToString().Replace("[t]", "[t-1]"));
+                globals[i] = prev;
+                map[i.Evaluate(t_t0)] = prev;
+            }
 
             // Define lambda body.
 
