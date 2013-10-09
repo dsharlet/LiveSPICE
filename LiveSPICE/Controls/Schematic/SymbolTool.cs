@@ -40,11 +40,13 @@ namespace LiveSPICE
             if (overlay.Visibility != Visibility.Visible)
                 return;
 
-            Symbol S = new Symbol((Circuit.Component)Activator.CreateInstance(overlay.Component.GetType()));
+            Circuit.Symbol S = new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(overlay.Component.GetType()))
+            {
+                Rotation = overlay.GetSymbol().Rotation,
+                Flip = overlay.GetSymbol().Flip,
+                Position = overlay.GetSymbol().Position
+            };
             Target.Add(S);
-            S.Rotation = overlay.Rotation;
-            S.Flip = overlay.Flip;
-            S.Position = overlay.Position;
             
             overlay.Pen.Brush = Brushes.Black;
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
@@ -57,13 +59,13 @@ namespace LiveSPICE
 
         public override void MouseMove(Point At)
         {
-            overlay.Position = At - Target.SnapToGrid((Vector)overlay.Size / 2);
+            //overlay.GetSymbol().Position = At - Target.SnapToGrid(overlay.GetSymbol().Size / 2);
 
-            // Don't allow symbols to be placed on an existing symbol.
-            Target.Cursor = Target.InRect(
-                overlay.Position,
-                overlay.Position + (Vector)overlay.Size).Any() ? Cursors.No : Cursors.None;
-            overlay.Visibility = Visibility.Visible;
+            //// Don't allow symbols to be placed on an existing symbol.
+            //Target.Cursor = Target.InRect(
+            //    overlay.GetSymbol().Position,
+            //    overlay.GetSymbol().Position + (Vector)overlay.Size).Any() ? Cursors.No : Cursors.None;
+            //overlay.Visibility = Visibility.Visible;
         }
 
         public override void MouseLeave(Point At)
@@ -73,18 +75,19 @@ namespace LiveSPICE
         
         public override bool KeyDown(Key Key)
         {
-            Point x = overlay.Position + Target.SnapToGrid((Vector)overlay.Size / 2);
-            switch (Key)
-            {
-                case System.Windows.Input.Key.Left: overlay.Rotation += 1; break;
-                case System.Windows.Input.Key.Right: overlay.Rotation -= 1; break;
-                case System.Windows.Input.Key.Down: overlay.Flip = !overlay.Flip; break;
-                case System.Windows.Input.Key.Up: overlay.Flip = !overlay.Flip; break;
-                default: return base.KeyDown(Key);
-            }
+            return base.KeyDown(Key);
+            //Point x = overlay.Position + Target.SnapToGrid((Vector)overlay.Size / 2);
+            //switch (Key)
+            //{
+            //    case System.Windows.Input.Key.Left: overlay.Rotation += 1; break;
+            //    case System.Windows.Input.Key.Right: overlay.Rotation -= 1; break;
+            //    case System.Windows.Input.Key.Down: overlay.Flip = !overlay.Flip; break;
+            //    case System.Windows.Input.Key.Up: overlay.Flip = !overlay.Flip; break;
+            //    default: return base.KeyDown(Key);
+            //}
 
-            overlay.Position = x - Target.SnapToGrid((Vector)overlay.Size / 2);
-            return true;
+            //overlay.Position = x - Target.SnapToGrid((Vector)overlay.Size / 2);
+            //return true;
         }
     }
 }

@@ -22,26 +22,30 @@ using SyMath;
 namespace LiveSPICE
 {
     /// <summary>
-    /// Interaction logic for Schematic.xaml
+    /// Control for interacting with a Circuit.Schematic.
     /// </summary>
     public partial class Schematic : UserControl, INotifyPropertyChanged
     {
         public const string FileExtension = ".xml";
-        public const int DefaultWidth = 1600;
-        public const int DefaultHeight = 1600;
         public const int AutoScrollBorder = 1;
+
+        protected Circuit.Schematic schematic;
 
         public int Grid = 10;
 
-        public Schematic()
+        public Schematic() : this(new Circuit.Schematic()) { }
+
+        public Schematic(Circuit.Schematic S)
         {
             InitializeComponent();
+
+            schematic = S;
 
             Background = Brushes.LightGray;
             Cursor = Cursors.Cross;
             Focusable = true;
-            Width = DefaultWidth;
-            Height = DefaultHeight;
+            Width = schematic.Width;
+            Height = schematic.Height;
             
             PreviewMouseDown += Schematic_MouseDown;
             PreviewMouseUp += Schematic_MouseUp;
@@ -54,6 +58,8 @@ namespace LiveSPICE
 
             edits = new EditStack();
             edits.Dirtied += OnDirtied;
+
+            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(200, 200) });
         }
 
         // Schematic tools.
@@ -127,16 +133,9 @@ namespace LiveSPICE
         private bool Save(string FileName)
         {
             XDocument doc = new XDocument();
-            XElement root = new XElement("Schematic");
-            doc.Add(root);
-
-            foreach (Element i in Elements)
-                root.Add(i.Serialize());
-
-            root.SetAttributeValue("Width", ActualWidth);
-            root.SetAttributeValue("Height", ActualHeight);
-
+            doc.Add(schematic.Serialize());
             doc.Save(FileName);
+
             filename = FileName;
             NotifyChanged("FileName");
             Edits.Dirty = false;
@@ -168,22 +167,8 @@ namespace LiveSPICE
 
         public static Schematic Open(string FileName)
         {
-            Schematic s = new Schematic();
-
             XDocument doc = XDocument.Load(FileName);
-            XElement root = doc.Root;
-            try { s.Width = int.Parse(root.Attribute("Width").Value); }
-            catch (Exception) { s.Width = DefaultWidth; }
-            try { s.Height = int.Parse(root.Attribute("Height").Value); }
-            catch (Exception) { s.Height = DefaultHeight; }
-
-            foreach (XElement i in root.Elements("Element"))
-                Element.Deserialize(s, i);
-
-            s.edits = new EditStack();
-
-            s.filename = FileName;
-            return s;
+            return new Schematic(Circuit.Schematic.Deserialize(doc.Root));
         }
 
         // Edit.
@@ -191,7 +176,7 @@ namespace LiveSPICE
         public void Copy()
         {
             XElement copy = new XElement("Schematic");
-            foreach (Element i in Selected)
+            foreach (Circuit.Element i in Selected)
                 copy.Add(i.Serialize());
             Clipboard.SetData(DataFormats.StringFormat, copy.ToString());
         }
@@ -201,11 +186,9 @@ namespace LiveSPICE
             {
                 XElement X = XElement.Parse(Clipboard.GetData(DataFormats.StringFormat) as string);
 
-                Edits.BeginEditGroup();
-                List<Element> pasted = X.Elements("Element").Select(i => Element.Deserialize(this, i)).ToList();
-                Edits.EndEditGroup();
-
-                Select(pasted, false, true);
+                List<Circuit.Element> copied = X.Elements("Element").Select(i => Circuit.Element.Deserialize(i)).ToList();
+                Add(copied);
+                Select(copied, false, true);
             }
             catch (System.Exception) { }
         }
@@ -229,51 +212,62 @@ namespace LiveSPICE
         
         // Elements.
         private Vector One = new Vector(1, 1);
-        public IEnumerable<Element> Elements { get { return components.Children.OfType<Element>(); } }
-        public IEnumerable<Symbol> Symbols { get { return components.Children.OfType<Symbol>(); } }
-        public IEnumerable<Wire> Wires { get { return components.Children.OfType<Wire>(); } }
-        public IEnumerable<Element> InRect(Point x1, Point x2)
+        public IEnumerable<Circuit.Element> Elements { get { return schematic.Elements; } }
+        public IEnumerable<Circuit.Symbol> Symbols { get { return schematic.Elements.OfType<Circuit.Symbol>(); } }
+        public IEnumerable<Circuit.WireElement> Wires { get { return schematic.Elements.OfType<Circuit.WireElement>(); } }
+        public IEnumerable<Circuit.Element> InRect(Point x1, Point x2)
         {
-            Point a = new Point(Math.Min(x1.X, x2.X) + 1, Math.Min(x1.Y, x2.Y) + 1);
-            Point b = new Point(Math.Max(x1.X, x2.X) - 1, Math.Max(x1.Y, x2.Y) - 1);
-            return Elements.Where(i => i.Intersects(a, b)); 
+            Circuit.Point a = new Circuit.Point(Math.Min(x1.X, x2.X) + 1, Math.Min(x1.Y, x2.Y) + 1);
+            Circuit.Point b = new Circuit.Point(Math.Max(x1.X, x2.X) - 1, Math.Max(x1.Y, x2.Y) - 1);
+            return Elements.Where(i => i.Intersects(
+                (Circuit.Coord)Circuit.Point.Ceiling(a), 
+                (Circuit.Coord)Circuit.Point.Floor(b))); 
         }
-        public IEnumerable<Element> InRect(Rect In) { return InRect(In.TopLeft, In.BottomRight); }
-        public IEnumerable<Element> AtPoint(Point At) { return InRect(At - One, At + One); }
-        public static Point LowerBound(IEnumerable<Element> Of) { return new Point(Of.Min(i => i.X), Of.Min(i => i.Y)); }
-        public static Point UpperBound(IEnumerable<Element> Of) { return new Point(Of.Max(i => i.X + i.ActualWidth), Of.Max(i => i.Y + i.ActualHeight)); }
+        public IEnumerable<Circuit.Element> InRect(Rect In) { return InRect(In.TopLeft, In.BottomRight); }
+        public IEnumerable<Circuit.Element> AtPoint(Point At) { return InRect(At - One, At + One); }
+        public static Point LowerBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.LowerBound.x), Of.Min(i => i.LowerBound.y)); }
+        public static Point UpperBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.UpperBound.x), Of.Min(i => i.UpperBound.y)); }
         public Point LowerBound() { return LowerBound(Elements); }
         public Point UpperBound() { return UpperBound(Elements); }
 
-        public void Add(IEnumerable<Element> Elements)
+        public void DoAdd(IEnumerable<Circuit.Element> Elements)
+        {
+            foreach (Circuit.Element i in Elements)
+            {
+                Symbol s = new Symbol((Circuit.Symbol)i);
+                schematic.Elements.Add(i);
+                components.Children.Add(s);
+                Canvas.SetLeft(s, i.LowerBound.x);
+                Canvas.SetTop(s, i.LowerBound.y);
+            }
+        }
+
+        public void DoRemove(IEnumerable<Circuit.Element> Elements)
+        {
+            foreach (Circuit.Element i in Elements)
+            {
+                schematic.Elements.Remove(i);
+                components.Children.Remove((Element)i.Tag);
+            }
+        }
+
+        public void Add(IEnumerable<Circuit.Element> Elements)
         {
             if (!Elements.Any())
                 return;
-            foreach (Symbol i in Elements.Where(j => j is Symbol))
-            {
-                Circuit.Component C = i.Component;
-
-                if (Symbols.FirstOrDefault(j => j.Component.Name == C.Name) != null)
-                {
-                    string Prefix = Regex.Match(C.Name, @"(\D*).*").Groups[1].Value;
-                    C.Name = Circuit.Component.UniqueName(Symbols.Select(j => j.Component), Prefix);
-                }
-            }
-            //foreach (Element i in Elements)
-            //    i.LayoutChanged += (o, e) => UpdateCircuit(i);
 
             Edits.Do(new AddElements(this, Elements));
             OnSelectionChanged();
         }
-        public void Remove(IEnumerable<Element> Elements)
+        public void Remove(IEnumerable<Circuit.Element> Elements)
         {
             if (!Elements.Any())
                 return;
             Edits.Do(new RemoveElements(this, Elements));
             OnSelectionChanged();
         }
-        public void Add(params Element[] Elements) { Add(Elements.AsEnumerable()); }
-        public void Remove(params Element[] Elements) { Remove(Elements.AsEnumerable()); }
+        public void Add(params Circuit.Element[] Elements) { Add(Elements.AsEnumerable()); }
+        public void Remove(params Circuit.Element[] Elements) { Remove(Elements.AsEnumerable()); }
        
         public List<Point> FindWirePath(List<Point> Mouse)
         {
@@ -310,41 +304,41 @@ namespace LiveSPICE
         }
         public void AddWire(Point A, Point B)
         {
-            if (A == B) return;
+            //if (A == B) return;
 
-            Debug.Assert(A.X == B.X || A.Y == B.Y);
+            //Debug.Assert(A.X == B.X || A.Y == B.Y);
 
-            Edits.BeginEditGroup();
+            //Edits.BeginEditGroup();
 
-            // Find all of the wires that are parallel and overlapping this wire.
-            List<Wire> overlapping = Wires.Where(i =>
-                Wire.PointOnLine(A, i.A, i.B) && Wire.PointOnLine(B, i.A, i.B) && (
-                    Wire.PointOnSegment(A, i.A, i.B) || Wire.PointOnSegment(B, i.A, i.B) ||
-                    Wire.PointOnSegment(i.A, A, B) || Wire.PointOnSegment(i.B, A, B))).ToList();
+            //// Find all of the wires that are parallel and overlapping this wire.
+            //List<Wire> overlapping = Wires.Where(i =>
+            //    Wire.PointOnLine(A, i.A, i.B) && Wire.PointOnLine(B, i.A, i.B) && (
+            //        Wire.PointOnSegment(A, i.A, i.B) || Wire.PointOnSegment(B, i.A, i.B) ||
+            //        Wire.PointOnSegment(i.A, A, B) || Wire.PointOnSegment(i.B, A, B))).ToList();
 
-            if (overlapping.Count() > 1)
-                Remove(overlapping.Skip(1));
+            //if (overlapping.Count() > 1)
+            //    Remove(overlapping.Skip(1));
 
-            Wire w;
-            if (overlapping.Any())
-            {
-                w = overlapping.First();
-            }
-            else
-            {
-                w = new Wire();
-                Add(w);
-            }
-            w.SetWire(
-                new Point(
-                    overlapping.Min(i => Math.Min(i.A.X, i.B.X), Math.Min(A.X, B.X)), 
-                    overlapping.Min(i => Math.Min(i.A.Y, i.B.Y), Math.Min(A.Y, B.Y))),
-                new Point(
-                    overlapping.Max(i => Math.Max(i.A.X, i.B.X), Math.Max(A.X, B.X)),
-                    overlapping.Max(i => Math.Max(i.A.Y, i.B.Y), Math.Max(A.Y, B.Y))));
-            w.Selected = overlapping.Any(i => i.Selected);
+            //Wire w;
+            //if (overlapping.Any())
+            //{
+            //    w = overlapping.First();
+            //}
+            //else
+            //{
+            //    w = new Wire();
+            //    Add(w);
+            //}
+            //w.SetWire(
+            //    new Point(
+            //        overlapping.Min(i => Math.Min(i.A.X, i.B.X), Math.Min(A.X, B.X)), 
+            //        overlapping.Min(i => Math.Min(i.A.Y, i.B.Y), Math.Min(A.Y, B.Y))),
+            //    new Point(
+            //        overlapping.Max(i => Math.Max(i.A.X, i.B.X), Math.Max(A.X, B.X)),
+            //        overlapping.Max(i => Math.Max(i.A.Y, i.B.Y), Math.Max(A.Y, B.Y))));
+            //w.Selected = overlapping.Any(i => i.Selected);
 
-            Edits.EndEditGroup();
+            //Edits.EndEditGroup();
         }
         public void AddWire(IList<Point> x)
         {
@@ -353,130 +347,17 @@ namespace LiveSPICE
                 AddWire(x[i], x[i + 1]);
             Edits.EndEditGroup();
         }
-        public void MergeWires()
-        {
-            Edits.BeginEditGroup();
-            List<Wire> wires = Wires.ToList();
-            Remove(wires);
-            foreach (Wire i in wires)
-                AddWire(i.A, i.B);
-            Edits.EndEditGroup();
-        }
 
         // Circuit.
         protected List<Circuit.Node> nodes = new List<Circuit.Node>();
-
-        protected void UpdateCircuit(Element At)
-        {
-            // Find the nodes terminals are connected to.
-            Symbol S = At as Symbol;
-            if (S != null)
-            {
-                foreach (Circuit.Terminal i in S.Component.Terminals)
-                {
-                    try
-                    {
-                        Point x = S.MapTerminal(i);
-                        Circuit.Node node = null;
-                        Wire wire = Wires.FirstOrDefault(j => j.ConnectsTo(x));
-                        if (wire != null)
-                        {
-                            if (wire.Node == null)
-                                wire.Node = new Circuit.Node();
-                            node = wire.Node;
-                        }
-                        if (i.ConnectedTo != node)
-                        {
-                            i.ConnectTo(node);
-                            S.InvalidateVisual();
-                        }
-                    }
-                    catch (Exception) { }
-                }
-            }
-            Wire W = At as Wire;
-            if (W != null && W.Node != null)
-            {
-                foreach (Circuit.Terminal i in W.Node.Connected.ToList())
-                    UpdateCircuit((Symbol)i.Owner.Tag);
-            }
-        }
-
+        
         public Circuit.Circuit Build(ILog Output)
         {
-            Output.Begin();
-
-            Circuit.Circuit circuit = new Circuit.Circuit();
-
-            Dictionary<Wire, Circuit.Node> nodes = new Dictionary<Wire, Circuit.Node>();
-
-            // Wires form the nodes in the circuit.
-            foreach (Wire i in Wires)
-            {
-                try
-                {
-                    Circuit.Node node;
-                    List<KeyValuePair<Wire, Circuit.Node>> connected = nodes.Where(j => i.ConnectsTo(j.Key.A, j.Key.B) || j.Key.ConnectsTo(i.A, i.B)).ToList();
-                    if (connected.Any())
-                    {
-                        node = connected.First().Value;
-                        foreach (KeyValuePair<Wire, Circuit.Node> j in connected)
-                            nodes[j.Key] = node;
-                    }
-                    else
-                    {
-                        node = new Circuit.Node();
-                        circuit.Nodes.Add(node);
-                    }
-                    nodes[i] = node;
-                }
-                catch (Exception ex)
-                {
-                    Output.Write(LogType.Error, ex.Message);
-                }
-            }
-
-            // Find the nodes terminals are connected to.
-            foreach (Symbol i in Symbols)
-            {
-                foreach (Circuit.Terminal j in i.Component.Terminals)
-                {
-                    try
-                    {
-                        Point x = i.MapTerminal(j);
-                        Circuit.Node node = nodes.SingleOrDefault(k => k.Key.ConnectsTo(x)).Value;
-                        if (node == null)
-                            Output.Write(LogType.Warning, "Unconnected terminal '" + j.ToString() + "'.");
-                        j.ConnectTo(node);
-                    }
-                    catch (Exception ex)
-                    {
-                        Output.Write(LogType.Error, ex.Message);
-                    }
-                }
-                circuit.Components.Add(i.Component);
-            }
-
-            if (Output.End())
-            {
-                Output.Write(LogType.Info, "Build Successful.");
-                Output.Write(LogType.Info, "Nodes: ");
-                foreach (Circuit.Node i in circuit.Nodes)
-                    Output.Write(LogType.Info, "   '" + i.Name + "' connected to " + i.Connected.Select(k => "'" + k.ToString() + "'").UnSplit(", "));
-            }
-            else
-            {
-                Output.Write(LogType.Info, "Build Failed.");
-            }
-
-            foreach (Element i in Elements)
-                i.InvalidateVisual();
-
-            return circuit;
+            return schematic.Circuit;
         }
         
         // Selection.
-        public IEnumerable<Element> Selected { get { return Elements.Where(i => i.Selected); } }
+        public IEnumerable<Circuit.Element> Selected { get { return Elements.Where(i => ((Element)i.Tag).Selected); } }
 
         private List<EventHandler> selectionChanged = new List<EventHandler>();
         public event EventHandler SelectionChanged
@@ -490,25 +371,25 @@ namespace LiveSPICE
                 i(this, new EventArgs());
         }
 
-        public void Select(IEnumerable<Element> ToSelect, bool Only, bool Toggle)
+        public void Select(IEnumerable<Circuit.Element> ToSelect, bool Only, bool Toggle)
         {
             bool changed = false;
-            foreach (Element i in Elements)
+            foreach (Circuit.Element i in Elements)
             {
                 if (ToSelect.Contains(i))
                 {
-                    if (Toggle || !i.Selected)
+                    if (Toggle || !((Element)i.Tag).Selected)
                     {
                         changed = true;
-                        i.Selected = !i.Selected;
+                        ((Element)i.Tag).Selected = !((Element)i.Tag).Selected;
                     }
                 }
                 else if (Only)
                 {
-                    if (i.Selected)
+                    if (((Element)i.Tag).Selected)
                     {
                         changed = true;
-                        i.Selected = false;
+                        ((Element)i.Tag).Selected = false;
                     }
                 }
             }
@@ -517,18 +398,18 @@ namespace LiveSPICE
                 OnSelectionChanged();
         }
 
-        public void Select(IEnumerable<Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
-        public void Select(params Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
+        public void Select(IEnumerable<Circuit.Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
+        public void Select(params Circuit.Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
 
-        public void ToggleSelect(IEnumerable<Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
-        public void ToggleSelect(params Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
+        public void ToggleSelect(IEnumerable<Circuit.Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
+        public void ToggleSelect(params Circuit.Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
 
-        public void Highlight(IEnumerable<Element> ToHighlight)
+        public void Highlight(IEnumerable<Circuit.Element> ToHighlight)
         {
-            foreach (Element i in Elements) 
-                i.Highlighted = ToHighlight.Contains(i);
+            foreach (Circuit.Element i in Elements) 
+                ((Element)i.Tag).Highlighted = ToHighlight.Contains(i);
         }
-        public void Highlight(params Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
+        public void Highlight(params Circuit.Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
 
         public Point SnapToGrid(Point x) { return new Point(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }
         public Vector SnapToGrid(Vector x) { return new Vector(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }

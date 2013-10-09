@@ -46,8 +46,8 @@ namespace Circuit
             Sym.AddCircle(ShapeType.Black, new Coord(0, 0), r);
             Sym.DrawArrow(ShapeType.Black, new Coord(0, -7), new Coord(0, 7), 0.2f);
 
-            Sym.DrawText(Current.ToString(), new CoordD(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near);
-            Sym.DrawText(Name, new CoordD(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
+            Sym.DrawText(Current.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near);
+            Sym.DrawText(Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
         }
     }
 }

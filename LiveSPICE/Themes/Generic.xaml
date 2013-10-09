@@ -42,7 +42,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="{x:Type local:Wire}">
+    <!--Style TargetType="{x:Type local:Wire}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:Wire}">
@@ -53,5 +53,5 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
+    </Style-->
 </ResourceDictionary>

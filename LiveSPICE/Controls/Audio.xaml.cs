@@ -13,7 +13,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Circuit;
 
 namespace LiveSPICE
 {
@@ -24,15 +23,15 @@ namespace LiveSPICE
     {
         protected AudioIo.WaveIo waveIo = null;
 
-        protected Quantity sampleRate = new Quantity(48e3m, Units.Hz);
-        public Quantity SampleRate
+        protected Circuit.Quantity sampleRate = new Circuit.Quantity(48e3m, Circuit.Units.Hz);
+        public Circuit.Quantity SampleRate
         {
             get { return sampleRate; }
             set { sampleRate.Set(value); NotifyChanged("SampleRate"); }
         }
 
-        protected Quantity latency = new Quantity(30e-3m, Units.s);
-        public Quantity Latency
+        protected Circuit.Quantity latency = new Circuit.Quantity(30e-3m, Circuit.Units.s);
+        public Circuit.Quantity Latency
         {
             get { return latency; }
             set { latency.Set(value); NotifyChanged("Latency"); }
@@ -45,15 +44,15 @@ namespace LiveSPICE
             set { bitsPerSample = value; NotifyChanged("BitsPerSample"); } 
         }
 
-        protected Quantity inputGain = new Quantity(1, Units.None);
-        public Quantity InputGain
+        protected Circuit.Quantity inputGain = new Circuit.Quantity(1, Circuit.Units.None);
+        public Circuit.Quantity InputGain
         {
             get { return inputGain; }
             set { inputGain.Set(value); NotifyChanged("InputGain"); }
         }
 
-        protected Quantity outputGain = new Quantity(1, Units.None);
-        public Quantity OutputGain
+        protected Circuit.Quantity outputGain = new Circuit.Quantity(1, Circuit.Units.None);
+        public Circuit.Quantity OutputGain
         {
             get { return outputGain; }
             set { outputGain.Set(value); NotifyChanged("OutputGain"); }

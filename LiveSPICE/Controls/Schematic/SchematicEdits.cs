@@ -11,29 +11,29 @@ namespace LiveSPICE
 {
     class MoveElements : Edit
     {
-        List<Element> elements;
-        Vector dx;
+        List<Circuit.Element> elements;
+        Circuit.Coord dx;
 
-        public MoveElements(IEnumerable<Element> Elements, Vector dx)
+        public MoveElements(IEnumerable<Circuit.Element> Elements, Circuit.Coord dx)
         {
             Debug.Assert(Elements.Any());
             elements = Elements.ToList();
             this.dx = dx;
         }
 
-        public override void Do() { foreach (Element i in elements) i.Move(dx); }
-        public override void Undo() { foreach (Element i in elements) i.Move(-dx); }
+        public override void Do() { foreach (Circuit.Element i in elements) i.Move(dx); }
+        public override void Undo() { foreach (Circuit.Element i in elements) i.Move(-dx); }
 
         public override string ToString() { return "Move"; }
     }
 
     class RotateElements : Edit
     {
-        List<Element> elements;
+        List<Circuit.Element> elements;
         int delta;
-        Point around;
+        Circuit.Point around;
 
-        public RotateElements(IEnumerable<Element> Elements, int Delta, Point Around)
+        public RotateElements(IEnumerable<Circuit.Element> Elements, int Delta, Circuit.Point Around)
         {
             Debug.Assert(Elements.Any());
             elements = Elements.ToList();
@@ -41,26 +41,26 @@ namespace LiveSPICE
             around = Around;
         }
 
-        public override void Do() { foreach (Element i in elements) i.RotateAround(delta, around); }
-        public override void Undo() { foreach (Element i in elements) i.RotateAround(-delta, around); }
+        public override void Do() { foreach (Circuit.Element i in elements) i.RotateAround(delta, around); }
+        public override void Undo() { foreach (Circuit.Element i in elements) i.RotateAround(-delta, around); }
 
         public override string ToString() { return "Rotate"; }
     }
 
     class FlipElements : Edit
     {
-        List<Element> elements;
+        List<Circuit.Element> elements;
         double at;
 
-        public FlipElements(IEnumerable<Element> Elements, double At)
+        public FlipElements(IEnumerable<Circuit.Element> Elements, double At)
         {
             Debug.Assert(Elements.Any());
             elements = Elements.ToList();
             at = At;
         }
 
-        public override void Do() { foreach (Element i in elements) i.FlipOver(at); }
-        public override void Undo() { foreach (Element i in elements) i.FlipOver(at); }
+        public override void Do() { foreach (Circuit.Element i in elements) i.FlipOver(at); }
+        public override void Undo() { foreach (Circuit.Element i in elements) i.FlipOver(at); }
 
         public override string ToString() { return "Flip"; }
     }
@@ -68,18 +68,18 @@ namespace LiveSPICE
     class AddElements : Edit
     {
         Schematic target;
-        List<Element> elements;
+        List<Circuit.Element> elements;
 
-        public AddElements(Schematic Target, params Element[] Elements) : this(Target, Elements.AsEnumerable()) { }
-        public AddElements(Schematic Target, IEnumerable<Element> Elements)
+        public AddElements(Schematic Target, params Circuit.Element[] Elements) : this(Target, Elements.AsEnumerable()) { }
+        public AddElements(Schematic Target, IEnumerable<Circuit.Element> Elements)
         {
             Debug.Assert(Elements.Any());
             target = Target;
             elements = Elements.ToList();
         }
 
-        public override void Do() { foreach (Element i in elements) target.components.Children.Add(i); }
-        public override void Undo() { foreach (Element i in elements) target.components.Children.Remove(i); }
+        public override void Do() { target.DoAdd(elements); }
+        public override void Undo() { target.DoRemove(elements); }
 
         public override string ToString() 
         { 
@@ -93,17 +93,17 @@ namespace LiveSPICE
     class RemoveElements : Edit
     {
         Schematic target;
-        List<Element> elements;
+        List<Circuit.Element> elements;
 
-        public RemoveElements(Schematic Target, IEnumerable<Element> Elements)
+        public RemoveElements(Schematic Target, IEnumerable<Circuit.Element> Elements)
         {
             Debug.Assert(Elements.Any());
             target = Target;
             elements = Elements.ToList();
         }
 
-        public override void Do() { foreach (Element i in elements) target.components.Children.Remove(i); }
-        public override void Undo() { foreach (Element i in elements) target.components.Children.Add(i); }
+        public override void Do() { target.DoRemove(elements); }
+        public override void Undo() { target.DoAdd(elements); }
         
         public override string ToString()
         {

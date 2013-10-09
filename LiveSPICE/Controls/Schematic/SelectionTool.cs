@@ -40,7 +40,7 @@ namespace LiveSPICE
         public override void End() { Target.overlays.Children.Remove(path); }
         public override void Cancel() { path.Visibility = Visibility.Hidden; }
 
-        protected IEnumerable<Element> InRect(Point A, Point B) { return A == B ? Target.AtPoint(A) : Target.InRect(A, B); }
+        protected IEnumerable<Circuit.Element> InRect(Point A, Point B) { return A == B ? Target.AtPoint(A) : Target.InRect(A, B); }
 
         //public override void MouseDoubleClick(Point At, Symbol On)
         //{
@@ -53,7 +53,7 @@ namespace LiveSPICE
         private bool Movable(Point At)
         {
             return 
-                Target.AtPoint(At).Any(i => i.Selected) &&
+                Target.AtPoint(At).Any(i => ((Element)i.Tag).Selected) &&
                 (Keyboard.Modifiers & ModifierKeys.Control) == 0;
         }
 
@@ -101,15 +101,16 @@ namespace LiveSPICE
             }
         }
 
-        private Point GetSelectionCenter()
+        private Circuit.Point GetSelectionCenter()
         {
             Point x1 = Schematic.LowerBound(Target.Selected);
             Point x2 = Schematic.UpperBound(Target.Selected);
-            return Target.SnapToGrid((Point)(((Vector)x1 + (Vector)x2) / 2));
+            Point x = Target.SnapToGrid((Point)(((Vector)x1 + (Vector)x2) / 2));
+            return new Circuit.Point(x.X, x.Y);
         }
 
         protected void Rotate(int Delta) { if (Target.Selected.Any()) Target.Edits.Do(new RotateElements(Target.Selected, Delta, GetSelectionCenter())); }
-        protected void Flip() { if (Target.Selected.Any()) Target.Edits.Do(new FlipElements(Target.Selected, GetSelectionCenter().Y)); }
+        protected void Flip() { if (Target.Selected.Any()) Target.Edits.Do(new FlipElements(Target.Selected, GetSelectionCenter().y)); }
 
         public override bool KeyDown(Key Key)
         {

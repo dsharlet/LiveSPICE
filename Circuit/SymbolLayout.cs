@@ -26,11 +26,11 @@ namespace Circuit
     /// </summary>
     public interface ISymbolDrawing
     {
-        void DrawRectangle(ShapeType Type, CoordD x1, CoordD x2);
-        void DrawLine(ShapeType Type, CoordD x1, CoordD x2);
-        void DrawEllipse(ShapeType Type, CoordD x1, CoordD x2);
-        void DrawText(string S, CoordD x, Alignment Horizontal, Alignment Vertical);
-        void DrawLines(ShapeType Type, IEnumerable<CoordD> x);
+        void DrawRectangle(ShapeType Type, Point x1, Point x2);
+        void DrawLine(ShapeType Type, Point x1, Point x2);
+        void DrawEllipse(ShapeType Type, Point x1, Point x2);
+        void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical);
+        void DrawLines(ShapeType Type, IEnumerable<Point> x);
     }
     
     /// <summary>
@@ -38,8 +38,9 @@ namespace Circuit
     /// </summary>
     public class SymbolLayout
     {
-        protected ISymbolDrawing drawing;
+        protected ISymbolDrawing drawing = null;
 
+        public SymbolLayout() { }
         public SymbolLayout(ISymbolDrawing Drawing) { drawing = Drawing; }
      
         protected Coord x1 = new Coord(int.MaxValue, int.MaxValue);
@@ -84,7 +85,7 @@ namespace Circuit
         {
             InBounds(Points);
 
-            DrawLines(Type, Points.Select(i => (CoordD)i));
+            DrawLines(Type, Points.Select(i => (Point)i));
         }
         public void AddLines(ShapeType Type, params Coord[] Points) { AddLines(Type, Points.AsEnumerable()); }
         public void AddLoop(ShapeType Type, IEnumerable<Coord> Points)
@@ -110,43 +111,43 @@ namespace Circuit
         public void AddWire(params Terminal[] Terminals) { AddWire(Terminals.Select(i => terminals[i])); }
         
         // Raw drawing functions. These functions don't update the bounds.
-        public void DrawLine(ShapeType Type, CoordD x1, CoordD x2) { if (drawing != null) drawing.DrawLine(Type, x1, x2); }
-        public void DrawRectangle(ShapeType Type, CoordD x1, CoordD x2) { if (drawing != null) drawing.DrawRectangle(Type, x1, x2); }
-        public void DrawEllipse(ShapeType Type, CoordD x1, Coord x2) { if (drawing != null) drawing.DrawEllipse(Type, x1, x2); }
-        public void DrawText(string S, CoordD x, Alignment Horizontal, Alignment Vertical) { if (drawing != null) drawing.DrawText(S, x, Horizontal, Vertical); }
-        public void DrawText(string S, CoordD x) { DrawText(S, x, Alignment.Near, Alignment.Near); }
-        public void DrawLines(ShapeType Type, IEnumerable<CoordD> x) { if (drawing != null) drawing.DrawLines(Type, x); }
+        public void DrawLine(ShapeType Type, Point x1, Point x2) { if (drawing != null) drawing.DrawLine(Type, x1, x2); }
+        public void DrawRectangle(ShapeType Type, Point x1, Point x2) { if (drawing != null) drawing.DrawRectangle(Type, x1, x2); }
+        public void DrawEllipse(ShapeType Type, Point x1, Coord x2) { if (drawing != null) drawing.DrawEllipse(Type, x1, x2); }
+        public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical) { if (drawing != null) drawing.DrawText(S, x, Horizontal, Vertical); }
+        public void DrawText(string S, Point x) { DrawText(S, x, Alignment.Near, Alignment.Near); }
+        public void DrawLines(ShapeType Type, IEnumerable<Point> x) { if (drawing != null) drawing.DrawLines(Type, x); }
 
         // Add common shapes to the schematic.
         public void DrawArrow(ShapeType Type, Coord x1, Coord x2, double dh)
         {
-            CoordD dy = new CoordD((x2.x - x1.x) * dh, (x2.y - x1.y) * dh);
-            CoordD dx = new CoordD(-dy.y, dy.x);
+            Point dy = new Point((x2.x - x1.x) * dh, (x2.y - x1.y) * dh);
+            Point dx = new Point(-dy.y, dy.x);
 
             DrawLine(Type, x1, x2);
-            DrawLine(Type, (CoordD)x2, new CoordD(x2.x + dx.x - dy.x, x2.y + dx.y - dy.y));
-            DrawLine(Type, (CoordD)x2, new CoordD(x2.x - dx.x - dy.x, x2.y - dx.y - dy.y));
+            DrawLine(Type, (Point)x2, new Point(x2.x + dx.x - dy.x, x2.y + dx.y - dy.y));
+            DrawLine(Type, (Point)x2, new Point(x2.x - dx.x - dy.x, x2.y - dx.y - dy.y));
         }
         public void DrawPositive(ShapeType Type, Coord x)
         {
-            DrawLine(Type, new CoordD(x.x - 1.5, x.y), new CoordD(x.x + 1.5, x.y));
-            DrawLine(Type, new CoordD(x.x, x.y - 1.5), new CoordD(x.x, x.y + 1.5));
+            DrawLine(Type, new Point(x.x - 1.5, x.y), new Point(x.x + 1.5, x.y));
+            DrawLine(Type, new Point(x.x, x.y - 1.5), new Point(x.x, x.y + 1.5));
         }
         public void DrawNegative(ShapeType Type, Coord x)
         {
-            DrawLine(Type, new CoordD(x.x - 1.5, x.y), new CoordD(x.x + 1.5, x.y));
+            DrawLine(Type, new Point(x.x - 1.5, x.y), new Point(x.x + 1.5, x.y));
         }
 
         // Add a parametric function to the schematic.
         public void DrawFunction(ShapeType Type, Func<double, double> xt, Func<double, double> yt, double t1, double t2, int N)
         {
-            CoordD[] Points = new CoordD[N + 1];
+            Point[] Points = new Point[N + 1];
 
             double dt = (t2 - t1) / (double)N;
             for (int i = 0; i <= N; ++i)
             {
                 double t = t1 + i * dt;
-                Points[i] = new CoordD(xt(t), yt(t));
+                Points[i] = new Point(xt(t), yt(t));
             }
 
             DrawLines(Type, Points);

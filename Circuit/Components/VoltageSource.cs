@@ -49,9 +49,9 @@ namespace Circuit
                     ShapeType.Black, 
                     (t) => t * r * 0.75,
                     (t) => Math.Sin(t * 3.1415) * r * 0.5, -1, 1);
-            Sym.DrawText(Voltage.ToString(), new CoordD(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near); 
+            Sym.DrawText(Voltage.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near); 
 
-            Sym.DrawText(Name, new CoordD(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
+            Sym.DrawText(Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
         }
     }
 }

@@ -24,8 +24,16 @@ namespace Circuit
             else
                 return false;
         }
-        public override string ToString() { return "(" + x.ToString() + ", " + y.ToString() + ")"; }
-        
+        public override string ToString() { return x.ToString() + "," + y.ToString(); }
+
+        public static Coord Parse(string s)
+        {
+            string[] x = s.Split(',');
+            return new Coord(int.Parse(x[0]), int.Parse(x[1]));
+        }
+
+        public static explicit operator Coord(Point x) { return new Coord((int)x.x, (int)x.y); }
+
         public static int operator *(Coord l, Coord r) { return l.x * r.x + l.y * r.y; }
         public static Coord operator +(Coord l, Coord r) { return new Coord(l.x + r.x, l.y + r.y); }
         public static Coord operator -(Coord l, Coord r) { return new Coord(l.x - r.x, l.y - r.y); }
@@ -42,12 +50,4 @@ namespace Circuit
 
         public static double Abs(Coord x) { return Math.Sqrt(x.x * x.x + x.y * x.y); }
     };
-
-    public struct CoordD
-    {
-        public double x, y;
-
-        public CoordD(double x, double y) { this.x = x; this.y = y; }
-        public static implicit operator CoordD(Coord x) { return new CoordD(x.x, x.y); }
-    }
 }

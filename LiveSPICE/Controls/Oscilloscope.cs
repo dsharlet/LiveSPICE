@@ -15,7 +15,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Numerics;
 using SyMath;
-using Circuit;
 
 namespace LiveSPICE
 {
@@ -27,20 +26,20 @@ namespace LiveSPICE
         static Oscilloscope() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Oscilloscope), new FrameworkPropertyMetadata(typeof(Oscilloscope))); }
 
         private int sampleRate;
-        public Quantity SampleRate 
-        { 
-            get { return new Quantity(sampleRate, Units.Hz); } 
+        public Circuit.Quantity SampleRate 
+        {
+            get { return new Circuit.Quantity(sampleRate, Circuit.Units.Hz); } 
             protected set
             {
-                if (value.Units != Units.Hz)
+                if (value.Units != Circuit.Units.Hz)
                     throw new ArgumentException("SampleRate units must be Hz");
                 sampleRate = (int)value;
                 NotifyChanged("SampleRate"); 
             } 
         }
 
-        private Quantity a4 = new Quantity(440, Units.Hz);
-        public Quantity A4
+        private Circuit.Quantity a4 = new Circuit.Quantity(440, Circuit.Units.Hz);
+        public Circuit.Quantity A4
         {
             get { return a4; }
             set
@@ -191,7 +190,7 @@ namespace LiveSPICE
                 if (Rate != 0)
                 {
                     if (sampleRate != Rate)
-                        SampleRate = new Quantity(Rate, Units.Hz);
+                        SampleRate = new Circuit.Quantity(Rate, Circuit.Units.Hz);
 
                     t = S.Last;
                     signals.RemoveAll(i => i.Value.Last < t);
@@ -312,7 +311,7 @@ namespace LiveSPICE
                 DC.DrawLine(AxisPen, new Point(x, y - 3), new Point(x, y + 3));
 
                 FormattedText time = new FormattedText(
-                    Quantity.ToString(-t, Units.s),
+                    Circuit.Quantity.ToString(-t, Circuit.Units.s),
                     System.Globalization.CultureInfo.CurrentCulture,
                     System.Windows.FlowDirection.LeftToRight,
                     typeface, FontSize,
@@ -352,7 +351,7 @@ namespace LiveSPICE
                     DC.DrawLine(AxisPen, new Point(x - 3, y), new Point(x + 3, y));
 
                     FormattedText volts = new FormattedText(
-                        Quantity.ToString(v, Units.V, "+G3"),
+                        Circuit.Quantity.ToString(v, Circuit.Units.V, "+G3"),
                         System.Globalization.CultureInfo.CurrentCulture,
                         System.Windows.FlowDirection.LeftToRight,
                         typeface, FontSize,
@@ -413,7 +412,7 @@ namespace LiveSPICE
 
             double t = MapToTime(Bounds, At.X);
             FormattedText time = new FormattedText(
-                Quantity.ToString(-t, Units.s),
+                Circuit.Quantity.ToString(-t, Circuit.Units.s),
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
                 typeface, FontSize,
@@ -429,7 +428,7 @@ namespace LiveSPICE
 
             double v = MapToSignal(Bounds, At.Y);
             FormattedText volts = new FormattedText(
-                Quantity.ToString(v, Units.V, "+G3"),
+                Circuit.Quantity.ToString(v, Circuit.Units.V, "+G3"),
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
                 typeface, FontSize,
@@ -443,8 +442,8 @@ namespace LiveSPICE
                 String.Format(
                     "\u0192\u2080:   {0}\nPeak: {1}\nRms:  {2}", 
                     FrequencyToString(Freq),
-                    Quantity.ToString(Peak, Units.V, "+G3"),
-                    Quantity.ToString(Rms, Units.V, "+G3")),
+                    Circuit.Quantity.ToString(Peak, Circuit.Units.V, "+G3"),
+                    Circuit.Quantity.ToString(Rms, Circuit.Units.V, "+G3")),
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
                 new Typeface(FontFamily, FontStyle, FontWeight, FontStretch), FontSize,
@@ -465,7 +464,7 @@ namespace LiveSPICE
             if (ShowNotes)
                 return FrequencyToNote(f, (double)A4);
             else
-                return Quantity.ToString(f, Units.Hz);
+                return Circuit.Quantity.ToString(f, Circuit.Units.Hz);
         }
 
         private static double Partition(double P)

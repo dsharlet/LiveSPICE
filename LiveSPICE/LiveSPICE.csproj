@@ -95,13 +95,15 @@
     <Compile Include="Controls\Simulation.xaml.cs">
       <DependentUpon>Simulation.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Symbol.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Windows\ClosingDialog.xaml.cs">
       <DependentUpon>ClosingDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Audio.xaml.cs">
       <DependentUpon>Audio.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Wire.cs" />
     <Compile Include="Controls\Schematic\WireTool.cs" />
     <Compile Include="Controls\Schematic\MoveTool.cs" />
     <Compile Include="Controls\Schematic\SchematicEdits.cs" />
@@ -112,7 +114,6 @@
       <DependentUpon>SchematicViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Schematic\SchematicTool.cs" />
-    <Compile Include="Controls\Symbol.cs" />
     <Compile Include="Controls\Toolbox.xaml.cs">
       <DependentUpon>Toolbox.xaml</DependentUpon>
     </Compile>

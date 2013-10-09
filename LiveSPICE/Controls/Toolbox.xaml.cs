@@ -42,7 +42,7 @@ namespace LiveSPICE
         public static IEnumerable<Type> GetComponentTypes()
         {
             Type root = typeof(Circuit.Component);
-            return Assembly.GetAssembly(root).GetTypes().Where(t => !t.IsAbstract && root.IsAssignableFrom(t));
+            return Assembly.GetAssembly(root).GetTypes().Where(t => !t.IsAbstract && root.IsAssignableFrom(t)).Concat(new Type[] { typeof(Circuit.Wire) });
         }
 
         public void Init(Window ShortcutKeys, RoutedEventHandler OnClick)
@@ -76,7 +76,7 @@ namespace LiveSPICE
                 StackPanel content = new StackPanel() { Orientation = Orientation.Vertical };
 
                 // Add image to the button.
-                Symbol symbol = new Symbol((Circuit.Component)Activator.CreateInstance(T))
+                Symbol symbol = new Symbol(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T)))
                 {
                     Width = 48,
                     Height = 32,

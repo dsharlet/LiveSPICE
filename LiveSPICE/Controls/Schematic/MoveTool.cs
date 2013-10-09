@@ -40,7 +40,7 @@ namespace LiveSPICE
         public override void MouseMove(Point At)
         {
             Vector dx = At - x;
-            Target.Edits.Do(new MoveElements(Target.Selected, dx));
+            Target.Edits.Do(new MoveElements(Target.Selected, new Circuit.Coord((int)Math.Round(dx.X), (int)Math.Round(dx.Y))));
             x = At;
         }
     }
