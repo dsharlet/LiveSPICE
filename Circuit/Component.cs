@@ -23,7 +23,7 @@ namespace Circuit
     }
 
     /// <summary>
-    /// Components are capable of performing a KCL analysis to produce a set of expressions.
+    /// Components are capable of performing MNA to produce a set of equations and unknowns describing their behavior.
     /// </summary>
     public abstract class Component : INotifyPropertyChanged
     {
@@ -68,11 +68,11 @@ namespace Circuit
         public abstract IEnumerable<Terminal> Terminals { get; }
 
         /// <summary>
-        /// Compute the KCL equations associated with this component.
+        /// Add any extra MNA equations required by this component.
         /// </summary>
-        /// <param name="Kcl"></param>
+        /// <param name="Mna"></param>
         /// <param name="Unknowns"></param>
-        public virtual void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns) { }
+        public virtual void Analyze(IList<Equal> Mna, IList<Expression> Unknowns) { }
         
         /// <summary>
         /// Define the schematic layout of this component.

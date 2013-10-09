@@ -17,14 +17,14 @@ namespace Circuit
     {
         public Wire() { Name = "W1"; }
 
-        public override void Analyze(IList<Equal> Kcl, IList<SyMath.Expression> Unknowns) 
+        public override void Analyze(IList<Equal> Mna, IList<SyMath.Expression> Unknowns) 
         {
             Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
-            Unknowns.Add(i);
-
-            Kcl.Add(Equal.New(Anode.V, Cathode.V));
             Anode.i = i;
             Cathode.i = -i;
+            Unknowns.Add(i);
+
+            Mna.Add(Equal.New(Anode.V, Cathode.V));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym) { Sym.AddWire(Anode, Cathode); }

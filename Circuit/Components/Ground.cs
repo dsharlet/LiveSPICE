@@ -16,10 +16,11 @@ namespace Circuit
     {
         public Ground() { Name = "GND"; }
 
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             // Nodes connected to ground have V = 0.
-            Kcl.Add(Equal.New(Terminal.V, Constant.Zero));
+            Mna.Add(Equal.New(Terminal.V, Constant.Zero));
+            Terminal.i = null;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

@@ -42,16 +42,16 @@ namespace Circuit
             return Netlist.Parse(Filename);
         }
 
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             foreach (Component c in Components)
-                c.Analyze(Kcl, Unknowns);
+                c.Analyze(Mna, Unknowns);
             foreach (Node n in Nodes)
             {
                 Unknowns.Add(n.V);
                 Expression i = n.Kcl();
                 if (i != null)
-                    Kcl.Add(Equal.New(i, Constant.Zero));
+                    Mna.Add(Equal.New(i, Constant.Zero));
             }
         }
 

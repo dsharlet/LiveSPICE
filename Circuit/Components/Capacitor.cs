@@ -21,21 +21,19 @@ namespace Circuit
 
         public Capacitor() { Name = "C1"; }
 
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
-            // Create a new unknown for the drop across this capacitor.
+            // Vac = Va - Vc
             Expression Vac = Call.New(ExprFunction.New("V" + Name, t), t);
-            Expression dVac_dt = D(Vac, t);
-            Kcl.Add(Equal.New(Vac, V));
-
-            // Vac and dVac/dt are unknowns.
+            Mna.Add(Equal.New(Vac, V));
             Unknowns.Add(Vac);
-            Unknowns.Add(dVac_dt);
-
-            // Set the current on the terminals to C*dV/dt.
+            
+            // i = C*dV/dt.
+            Expression dVac_dt = D(Vac, t);
             Expression i = capacitance.Value * dVac_dt;
             Anode.i = i;
             Cathode.i = -i;
+            Unknowns.Add(dVac_dt);
         }
                 
         protected override void DrawSymbol(SymbolLayout Sym)

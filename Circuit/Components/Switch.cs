@@ -23,11 +23,16 @@ namespace Circuit
         public Switch() { Name = "S1"; }
         public Switch(bool Closed) : this() { closed = Closed; }
 
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             if (closed)
             {
-                Kcl.Add(Equal.New(Anode.V, Cathode.V));
+                Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
+                Anode.i = i;
+                Cathode.i = -i;
+                Unknowns.Add(i);
+
+                Mna.Add(Equal.New(Anode.V, Cathode.V));
             }
             else
             {

@@ -117,7 +117,7 @@ namespace Circuit
         }
 
 
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             Expression Ip, Ig, Ik;
             model.Evaluate(p.V, g.V, k.V, out Ip, out Ig, out Ik);

@@ -22,17 +22,17 @@ namespace Circuit
         public Inductor() { Name = "L1"; }
 
         // Inductor is modeled as a voltage source where V = L*di/dt.
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             // Define a new unknown for the current through this inductor.
             Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
-            Unknowns.Add(i);
             Anode.i = i;
             Cathode.i = -i;
+            Unknowns.Add(i);
 
-            // Add a KCL equation for V = i*di/dt
+            // V = i*di/dt
             Expression di_dt = D(i, t);
-            Kcl.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * di_dt));
+            Mna.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * di_dt));
             Unknowns.Add(di_dt);
         }
 

@@ -53,22 +53,23 @@ namespace Circuit
             o = new Terminal(this, "Out");
         }
 
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
-            // Equations for the input.
+            // The input terminals are connected by a resistor Rin.
+            Expression Vin = Positive.V - Negative.V;
             Expression iin = Call.New(ExprFunction.New("in" + Name, t), t);
-            Unknowns.Add(iin);
+
+            Mna.Add(Equal.New(Vin / (Expression)Rin, iin));
             Positive.i = iin;
             Negative.i = -iin;
-            Expression Vin = Positive.V - Negative.V;
-            Kcl.Add(Equal.New(Vin / (Expression)Rin, iin));
+            Unknowns.Add(iin);
 
-            // For output.
+            // Vo = (G*Vin - Out.V) / Rout
             Expression iout = Call.New(ExprFunction.New("out" + Name, t), t);
             Unknowns.Add(iout);
             Out.i = iout;
 
-            Kcl.Add(Equal.New((G * Vin - Out.V) / (Expression)Rout, iout));
+            Mna.Add(Equal.New((G * Vin - Out.V) / (Expression)Rout, iout));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

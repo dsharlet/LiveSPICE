@@ -13,13 +13,13 @@ namespace Circuit
     {
         public Input() { Name = "Input"; }
         
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             // A voltage source supplies any current necessary to maintain the voltage.
             Anode.i = null;
             Cathode.i = null;
 
-            Kcl.Add(Equal.New(V, Call.New(ExprFunction.New(Name, t), t)));
+            Mna.Add(Equal.New(V, Call.New(ExprFunction.New(Name, t), t)));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

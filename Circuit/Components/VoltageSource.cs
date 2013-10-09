@@ -23,15 +23,15 @@ namespace Circuit
         public Quantity Voltage { get { return voltage; } set { if (voltage.Set(value)) NotifyChanged("Voltage"); } }
 
         public VoltageSource() { Name = "V1"; }
-
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
-            Unknowns.Add(i);
-
-            Kcl.Add(Equal.New(Anode.V - Cathode.V, Voltage.Value));
             Anode.i = i;
             Cathode.i = -i;
+            Unknowns.Add(i);
+
+            Mna.Add(Equal.New(Anode.V - Cathode.V, Voltage.Value));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

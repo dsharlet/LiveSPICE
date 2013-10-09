@@ -14,12 +14,16 @@ namespace Circuit
     [DisplayName("Buffer")]
     public class Buffer : TwoTerminal
     {
-        public override void Analyze(IList<Equal> Kcl, IList<Expression> Unknowns)
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
+            // Infinite input impedance.
             Anode.i = Constant.Zero;
-            Cathode.i = null;
 
-            Kcl.Add(Equal.New(Anode.V, Cathode.V));
+            // Unknown output current.
+            Cathode.i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Unknowns.Add(Cathode.i);
+
+            Mna.Add(Equal.New(Anode.V, Cathode.V));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
