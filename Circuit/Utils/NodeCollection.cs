@@ -14,11 +14,7 @@ namespace Circuit
     {
         protected List<Node> x = new List<Node>();
         
-        public Node this[int index]
-        {
-            get { return x[index]; }
-            set { x.Insert(index, value); }
-        }
+        public Node this[int index] { get { return x[index]; } }
 
         // ICollection<Node>
         public int Count { get { return x.Count; } }
