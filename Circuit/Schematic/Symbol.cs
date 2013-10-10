@@ -57,7 +57,7 @@ namespace Circuit
         protected Coord MapToGlobal(Coord Local)
         {
             int x = Local.x;
-            int y = flip ? -Local.y : Local.y;
+            int y = flip ? Local.y : -Local.y;
 
             int cos = Cos(rotation);
             int sin = Sin(rotation);

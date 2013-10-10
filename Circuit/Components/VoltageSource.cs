@@ -49,14 +49,14 @@ namespace Circuit
                     EdgeType.Black, 
                     (t) => t * r * 0.75,
                     (t) => Math.Sin(t * 3.1415) * r * 0.5, -1, 1);
-            Sym.DrawText(Voltage.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near); 
 
+            Sym.DrawText(Voltage.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near); 
             Sym.DrawText(Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
         }
     }
 
     [CategoryAttribute("IO")]
-    [DisplayName("Voltage source for accepting an input signal.")]
+    [DisplayName("Input")]
     public class Input : VoltageSource
     {
         public Input() 
@@ -75,6 +75,9 @@ namespace Circuit
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r1);
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r2);
             Sym.AddCircle(EdgeType.Black, new Coord(0, -r1), 1);
+
+            Sym.DrawText(Voltage.ToString(), new Point(r1 * 0.7, r1 * 0.7), Alignment.Near, Alignment.Near);
+            Sym.DrawText(Name, new Point(r1 * 0.7, r1 * -0.7), Alignment.Near, Alignment.Far); 
         }
     }
 }

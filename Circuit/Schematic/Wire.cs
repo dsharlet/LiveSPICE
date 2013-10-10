@@ -43,7 +43,13 @@ namespace Circuit
         }                
 
         public Wire() { }
-        public Wire(Coord A, Coord B) { a = A; b = B; }
+        public Wire(Coord A, Coord B)
+        {
+            if (A == B)
+                throw new ArgumentException("Wire has length 0");
+            a = A; 
+            b = B;
+        }
 
         public override IEnumerable<Terminal> Terminals { get { yield return anode; yield return cathode; } }
         public override Coord MapTerminal(Terminal T)
@@ -51,6 +57,12 @@ namespace Circuit
             if (T == anode) return a;
             else if (T == cathode) return b;
             else throw new ArgumentOutOfRangeException("T");
+        }
+        
+        public bool IsConnectedTo(Wire Other)
+        {
+            return PointOnSegment(Other.A, A, B) || PointOnSegment(Other.B, A, B) ||
+                PointOnSegment(A, Other.A, Other.B) || PointOnSegment(B, Other.A, Other.B);
         }
 
         public override bool Intersects(Coord x1, Coord x2)

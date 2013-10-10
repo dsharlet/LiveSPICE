@@ -263,7 +263,7 @@ namespace LiveSPICE
         {
             if (!Elements.Any())
                 return;
-
+            
             Edits.Do(new AddElements(this, Elements));
             OnSelectionChanged();
         }
@@ -315,6 +315,29 @@ namespace LiveSPICE
                 return d;
             });
         }
+
+        private void BreakWiresAtTerminal(Circuit.Coord x)
+        {
+            List<Circuit.Wire> wires = Wires.Where(i => 
+                x != i.A && x != i.B && 
+                Circuit.Wire.PointOnSegment(x, i.A, i.B)).ToList();
+            // Find the wires at x and split them.
+            foreach (Circuit.Wire i in wires)
+            {
+                Remove(i);
+                AddWire(i.A, x);
+                AddWire(x, i.B);
+            }
+        }
+
+        private IEnumerable<Circuit.Wire> CoincidentWires(Circuit.Coord A, Circuit.Coord B)
+        {
+            return Wires.Where(i =>
+                   Circuit.Wire.PointOnLine(A, i.A, i.B) && Circuit.Wire.PointOnLine(B, i.A, i.B) && (
+                       Circuit.Wire.PointOnSegment(A, i.A, i.B) || Circuit.Wire.PointOnSegment(B, i.A, i.B) ||
+                       Circuit.Wire.PointOnSegment(i.A, A, B) || Circuit.Wire.PointOnSegment(i.B, A, B)));
+        }
+
         public void AddWire(Circuit.Coord A, Circuit.Coord B)
         {
             if (A == B) return;
@@ -322,34 +345,40 @@ namespace LiveSPICE
             Debug.Assert(A.x == B.x || A.y == B.y);
 
             Edits.BeginEditGroup();
-
+            
             // Find all of the wires that are parallel and overlapping this wire.
-            List<Circuit.Wire> overlapping = Wires.Where(i =>
-                Circuit.Wire.PointOnLine(A, i.A, i.B) && Circuit.Wire.PointOnLine(B, i.A, i.B) && (
-                    Circuit.Wire.PointOnSegment(A, i.A, i.B) || Circuit.Wire.PointOnSegment(B, i.A, i.B) ||
-                    Circuit.Wire.PointOnSegment(i.A, A, B) || Circuit.Wire.PointOnSegment(i.B, A, B))).ToList();
-
-            if (overlapping.Count() > 1)
-                Remove(overlapping.Skip(1));
-
-            Circuit.Wire w;
-            if (overlapping.Any())
-            {
-                w = overlapping.First();
-            }
-            else
-            {
-                w = new Circuit.Wire();
-                Add(w);
-            }
-            w.A = new Circuit.Coord(
+            List<Circuit.Wire> overlapping = CoincidentWires(A, B).ToList();
+            bool selected = overlapping.Any(i => ((Wire)i.Tag).Selected);
+            
+            Circuit.Coord a = new Circuit.Coord(
                 overlapping.Min(i => Math.Min(i.A.x, i.B.x), Math.Min(A.x, B.x)),
                 overlapping.Min(i => Math.Min(i.A.y, i.B.y), Math.Min(A.y, B.y)));
-            w.B = new Circuit.Coord(
+            Circuit.Coord b = new Circuit.Coord(
                 overlapping.Max(i => Math.Max(i.A.x, i.B.x), Math.Max(A.x, B.x)),
                 overlapping.Max(i => Math.Max(i.A.y, i.B.y), Math.Max(A.y, B.y)));
-            //w.Selected = overlapping.Any(i => i.Selected);
 
+            // Find all of the terminals between a and b.
+            List<Circuit.Coord> terminals = new List<Circuit.Coord>() { a, b };
+            //foreach (Circuit.Element i in InRect(a, b))
+            //{
+            //    foreach (Circuit.Terminal j in i.Terminals)
+            //    {
+            //        if (Circuit.Wire.PointOnLine(i.MapTerminal(j), a, b))
+            //        {
+            //            // If i is not a wire, or it is a wire that is not coincident with a, b, add the terminal to the list.
+            //            if (!(i is Circuit.Wire) || 
+            //                i.Terminals.Any(k => !Circuit.Wire.PointOnLine(i.MapTerminal(k), a, b)))
+            //                terminals.Add(i.MapTerminal(j));
+            //        }
+            //    }
+            //}
+            terminals.Sort((t1, t2) => t1.x == t2.x ? t1.y.CompareTo(t2.y) : t1.x.CompareTo(t2.x));
+            
+            // Remove the original wires, and add new ones between each terminal between a and b.
+            Remove(overlapping);
+            for (int i = 0; i < terminals.Count - 1; ++i )
+                Add(new Circuit.Wire(terminals[i], terminals[i + 1]));
+            
             Edits.EndEditGroup();
         }
         public void AddWire(IList<Circuit.Coord> x)

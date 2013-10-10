@@ -23,20 +23,25 @@ namespace Circuit
             Anode.i = 0;
             Cathode.i = 0;
             
+            // This equation just defines signal.
             Mna.Add(Equal.New(V, signal.Value));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {
-            int r1 = 10;
-            int r2 = 4;
+            int y = 15;
+            Sym.AddWire(Anode, new Coord(0, y));
+            Sym.AddWire(Cathode, new Coord(0, -y));
 
-            Sym.AddWire(Anode, new Coord(0, r1));
-            Sym.AddWire(Cathode, new Coord(0, -r2));
+            Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
-            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r1);
-            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r2);
-            Sym.AddCircle(EdgeType.Black, new Coord(0, -r2), 1);
+            Sym.AddLine(EdgeType.Black, new Coord(-5, y), new Coord(5, y));
+            Sym.DrawPositive(EdgeType.Black, new Coord(0, y - 3));
+            Sym.AddLine(EdgeType.Black, new Coord(-5, -y), new Coord(5, -y));
+            Sym.DrawNegative(EdgeType.Black, new Coord(0, -y + 3));
+
+            Sym.DrawText(Signal.ToString(), new Point(5, 0), Alignment.Near, Alignment.Center);
+            Sym.DrawText(Name.ToString(), new Point(-5, 0), Alignment.Far, Alignment.Center);
         }
     }
 }

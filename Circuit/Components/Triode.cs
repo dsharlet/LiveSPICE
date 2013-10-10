@@ -85,7 +85,7 @@ namespace Circuit
     /// <summary>
     /// Base class for a triode.
     /// </summary>
-    [CategoryAttribute("Valves")]
+    [CategoryAttribute("Vacuum Tubes")]
     [DisplayName("Triode")]
     public class Triode : Component
     {

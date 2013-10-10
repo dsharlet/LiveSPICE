@@ -26,19 +26,26 @@ namespace Circuit
         /// </summary>
         public ElementCollection Elements { get { return elements; } }
 
-        protected int width = 1600;
-        protected int height = 1600;
+        protected int width;
+        protected int height;
         /// <summary>
         /// Get the dimensions of the schematic.
         /// </summary>
         public int Width { get { return width; } }
         public int Height { get { return height; } }
         
-        public Schematic()
+        public Schematic(int Width, int Height)
         {
+            width = Width;
+            height = Height;
+
             elements = new ElementCollection();
             elements.ItemAdded += OnElementAdded;
             elements.ItemRemoved += OnElementRemoved;
+        }
+
+        public Schematic() : this(1600, 1600) 
+        {
         }
 
         /// <summary>
@@ -92,7 +99,7 @@ namespace Circuit
             List<List<Wire>> nodes = new List<List<Wire>>();
             foreach (Wire i in Elements.OfType<Wire>())
             {
-                List<Wire> n = nodes.FirstOrDefault(j => j.Any(k => i.A == k.A || i.A == k.B || i.B == k.A || i.B == k.B));
+                List<Wire> n = nodes.FirstOrDefault(j => j.Any(k => k.IsConnectedTo(i)));
                 if (n != null)
                     n.Add(i);
                 else
@@ -106,10 +113,14 @@ namespace Circuit
                 Node n = new Node();
                 Circuit.Nodes.Add(n);
 
-                foreach (Coord j in i.SelectMany(k => new Coord[] { k.A, k.B }))
-                    foreach (Terminal k in TerminalsAt(j))
-                        if (!(k.Owner is Conductor))
+                foreach (Element j in Elements)
+                {
+                    foreach (Terminal k in j.Terminals)
+                    {
+                        if (i.Any(l => l != j && Wire.PointOnSegment(j.MapTerminal(k), l.A, l.B)))
                             k.ConnectTo(n);
+                    }
+                }
             }
         }
 
@@ -170,12 +181,14 @@ namespace Circuit
 
         public static Schematic Deserialize(XElement X)
         {
-            Schematic s = new Schematic();
+            int width, height;
 
-            try { s.width = int.Parse(X.Attribute("Width").Value); }
-            catch (Exception) { }
-            try { s.height = int.Parse(X.Attribute("Height").Value); }
-            catch (Exception) { }
+            try { width = int.Parse(X.Attribute("Width").Value); }
+            catch (Exception) { width = 1600;  }
+            try { height = int.Parse(X.Attribute("Height").Value); }
+            catch (Exception) { height = 1600;  }
+
+            Schematic s = new Schematic(width, height);
 
             s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
 

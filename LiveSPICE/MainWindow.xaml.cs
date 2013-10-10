@@ -156,7 +156,7 @@ namespace LiveSPICE
 
         private void schematic_SelectionChanged(object Sender, EventArgs Args)
         {
-            properties.SelectedObject = ((Schematic)Sender).Selected.OfType<Symbol>().Select(i => i.Component).FirstOrDefault();
+            properties.SelectedObject = ((Schematic)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).FirstOrDefault();
         }
 
         private void toolbox_Click(object s, RoutedEventArgs e) 
