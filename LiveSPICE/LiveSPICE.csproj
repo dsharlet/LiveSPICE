@@ -92,12 +92,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\Component.cs" />
+    <Compile Include="Controls\Elements\Wire.cs" />
     <Compile Include="Controls\Simulation.xaml.cs">
       <DependentUpon>Simulation.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Elements\Symbol.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Utils\RootExtension.cs" />
     <Compile Include="Windows\ClosingDialog.xaml.cs">
       <DependentUpon>ClosingDialog.xaml</DependentUpon>
     </Compile>
@@ -114,8 +117,8 @@
       <DependentUpon>SchematicViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Schematic\SchematicTool.cs" />
-    <Compile Include="Controls\Toolbox.xaml.cs">
-      <DependentUpon>Toolbox.xaml</DependentUpon>
+    <Compile Include="Controls\ComponentLibrary.xaml.cs">
+      <DependentUpon>ComponentLibrary.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Schematic\Schematic.xaml.cs">
       <DependentUpon>Schematic.xaml</DependentUpon>
@@ -147,7 +150,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\Toolbox.xaml">
+    <Page Include="Controls\ComponentLibrary.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

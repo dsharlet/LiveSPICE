@@ -59,10 +59,13 @@ namespace LiveSPICE
             edits = new EditStack();
             edits.Dirtied += OnDirtied;
 
-            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(100, 200), Rotation = 0 });
-            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(200, 200), Rotation = 1 });
-            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(300, 200), Rotation = 2 });
-            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(400, 200), Rotation = 3 });
+            foreach (Circuit.Element i in S.Elements)
+            {
+                Element e = Element.New(i);
+                components.Children.Add(e);
+                Canvas.SetLeft(e, i.LowerBound.x);
+                Canvas.SetTop(e, i.LowerBound.y);
+            }
         }
 
         // Schematic tools.
@@ -214,18 +217,17 @@ namespace LiveSPICE
         private void Redo_Executed(object sender, ExecutedRoutedEventArgs e) { Edits.Redo(); }
         
         // Elements.
-        private Vector One = new Vector(1, 1);
         public IEnumerable<Circuit.Element> Elements { get { return schematic.Elements; } }
         public IEnumerable<Circuit.Symbol> Symbols { get { return schematic.Elements.OfType<Circuit.Symbol>(); } }
-        public IEnumerable<Circuit.WireElement> Wires { get { return schematic.Elements.OfType<Circuit.WireElement>(); } }
+        public IEnumerable<Circuit.Wire> Wires { get { return schematic.Elements.OfType<Circuit.Wire>(); } }
 
         public IEnumerable<Circuit.Element> InRect(Circuit.Coord x1, Circuit.Coord x2)
         {
-            Circuit.Coord a = new Circuit.Coord(Math.Min(x1.x, x2.x) + 1, Math.Min(x1.y, x2.y) + 1);
-            Circuit.Coord b = new Circuit.Coord(Math.Max(x1.x, x2.x) - 1, Math.Max(x1.y, x2.y) - 1);
+            Circuit.Coord a = new Circuit.Coord(Math.Min(x1.x, x2.x), Math.Min(x1.y, x2.y));
+            Circuit.Coord b = new Circuit.Coord(Math.Max(x1.x, x2.x), Math.Max(x1.y, x2.y));
             return Elements.Where(i => i.Intersects(a, b));
         }
-        public IEnumerable<Circuit.Element> AtPoint(Circuit.Coord At) { return InRect(At, At); }
+        public IEnumerable<Circuit.Element> AtPoint(Circuit.Coord At) { return InRect(At - 1, At + 1); }
         public IEnumerable<Circuit.Element> InRect(Point x1, Point x2) { return InRect(ToCoord(x1), ToCoord(x2)); }
         public IEnumerable<Circuit.Element> AtPoint(Point At) { return AtPoint(ToCoord(At)); }
 
@@ -240,11 +242,11 @@ namespace LiveSPICE
         {
             foreach (Circuit.Element i in Elements)
             {
-                Symbol s = new Symbol((Circuit.Symbol)i);
+                Element e = Element.New(i);
                 schematic.Elements.Add(i);
-                components.Children.Add(s);
-                Canvas.SetLeft(s, i.LowerBound.x);
-                Canvas.SetTop(s, i.LowerBound.y);
+                components.Children.Add(e);
+                Canvas.SetLeft(e, i.LowerBound.x);
+                Canvas.SetTop(e, i.LowerBound.y);
             }
         }
 
@@ -274,17 +276,22 @@ namespace LiveSPICE
         }
         public void Add(params Circuit.Element[] Elements) { Add(Elements.AsEnumerable()); }
         public void Remove(params Circuit.Element[] Elements) { Remove(Elements.AsEnumerable()); }
-       
-        public List<Point> FindWirePath(List<Point> Mouse)
+
+        private static Circuit.Coord Round(Point x)
         {
-            Point A = Mouse.First();
-            Point B = Mouse.Last();
+            return new Circuit.Coord((int)Math.Round(x.X), (int)Math.Round(x.Y));
+        }
+
+        public List<Circuit.Coord> FindWirePath(List<Point> Mouse)
+        {
+            Circuit.Coord A = Round(Mouse.First());
+            Circuit.Coord B = Round(Mouse.Last());
 
             // Candidate wire paths.
-            List<List<Point>> Candidates = new List<List<Point>>()
+            List<List<Circuit.Coord>> Candidates = new List<List<Circuit.Coord>>()
             {
-                new List<Point>() { A, new Point(A.X, B.Y), B },
-                new List<Point>() { A, new Point(B.X, A.Y), B },
+                new List<Circuit.Coord>() { A, new Circuit.Coord(A.x, B.y), B },
+                new List<Circuit.Coord>() { A, new Circuit.Coord(B.x, A.y), B },
             };
 
             // Find the path with the minimum cost:
@@ -293,13 +300,13 @@ namespace LiveSPICE
             return Candidates.ArgMin(i =>
             {
                 double d = 0.0;
-                foreach (Point j in Mouse)
+                foreach (Circuit.Coord j in Mouse.Select(x => Round(x)))
                 {
                     double dj = double.PositiveInfinity;
                     for (int k = 0; k < i.Count - 1; ++k)
                     {
-                        Point a = i[k];
-                        Point b = i[k + 1];
+                        Circuit.Coord a = i[k];
+                        Circuit.Coord b = i[k + 1];
 
                         dj = Math.Min(dj, Distance(a, b, j));
                     }
@@ -308,45 +315,44 @@ namespace LiveSPICE
                 return d;
             });
         }
-        public void AddWire(Point A, Point B)
+        public void AddWire(Circuit.Coord A, Circuit.Coord B)
         {
-            //if (A == B) return;
+            if (A == B) return;
 
-            //Debug.Assert(A.X == B.X || A.Y == B.Y);
+            Debug.Assert(A.x == B.x || A.y == B.y);
 
-            //Edits.BeginEditGroup();
+            Edits.BeginEditGroup();
 
-            //// Find all of the wires that are parallel and overlapping this wire.
-            //List<Wire> overlapping = Wires.Where(i =>
-            //    Wire.PointOnLine(A, i.A, i.B) && Wire.PointOnLine(B, i.A, i.B) && (
-            //        Wire.PointOnSegment(A, i.A, i.B) || Wire.PointOnSegment(B, i.A, i.B) ||
-            //        Wire.PointOnSegment(i.A, A, B) || Wire.PointOnSegment(i.B, A, B))).ToList();
+            // Find all of the wires that are parallel and overlapping this wire.
+            List<Circuit.Wire> overlapping = Wires.Where(i =>
+                Circuit.Wire.PointOnLine(A, i.A, i.B) && Circuit.Wire.PointOnLine(B, i.A, i.B) && (
+                    Circuit.Wire.PointOnSegment(A, i.A, i.B) || Circuit.Wire.PointOnSegment(B, i.A, i.B) ||
+                    Circuit.Wire.PointOnSegment(i.A, A, B) || Circuit.Wire.PointOnSegment(i.B, A, B))).ToList();
 
-            //if (overlapping.Count() > 1)
-            //    Remove(overlapping.Skip(1));
+            if (overlapping.Count() > 1)
+                Remove(overlapping.Skip(1));
 
-            //Wire w;
-            //if (overlapping.Any())
-            //{
-            //    w = overlapping.First();
-            //}
-            //else
-            //{
-            //    w = new Wire();
-            //    Add(w);
-            //}
-            //w.SetWire(
-            //    new Point(
-            //        overlapping.Min(i => Math.Min(i.A.X, i.B.X), Math.Min(A.X, B.X)), 
-            //        overlapping.Min(i => Math.Min(i.A.Y, i.B.Y), Math.Min(A.Y, B.Y))),
-            //    new Point(
-            //        overlapping.Max(i => Math.Max(i.A.X, i.B.X), Math.Max(A.X, B.X)),
-            //        overlapping.Max(i => Math.Max(i.A.Y, i.B.Y), Math.Max(A.Y, B.Y))));
+            Circuit.Wire w;
+            if (overlapping.Any())
+            {
+                w = overlapping.First();
+            }
+            else
+            {
+                w = new Circuit.Wire();
+                Add(w);
+            }
+            w.A = new Circuit.Coord(
+                overlapping.Min(i => Math.Min(i.A.x, i.B.x), Math.Min(A.x, B.x)),
+                overlapping.Min(i => Math.Min(i.A.y, i.B.y), Math.Min(A.y, B.y)));
+            w.B = new Circuit.Coord(
+                overlapping.Max(i => Math.Max(i.A.x, i.B.x), Math.Max(A.x, B.x)),
+                overlapping.Max(i => Math.Max(i.A.y, i.B.y), Math.Max(A.y, B.y)));
             //w.Selected = overlapping.Any(i => i.Selected);
 
-            //Edits.EndEditGroup();
+            Edits.EndEditGroup();
         }
-        public void AddWire(IList<Point> x)
+        public void AddWire(IList<Circuit.Coord> x)
         {
             Edits.BeginEditGroup();
             for (int i = 0; i < x.Count - 1; ++i)
@@ -465,6 +471,7 @@ namespace LiveSPICE
                 e.Handled = true;
             }
         }
+        
         void Schematic_MouseEnter(object sender, MouseEventArgs e)
         {
             Point at = SnapToGrid(e.GetPosition(this));
@@ -479,23 +486,25 @@ namespace LiveSPICE
             Tool.MouseLeave(at);
             e.Handled = true;
         }
-        
-        private static double Distance(Point x1, Point x2, Point p)
+
+        private static double LengthSquared(Circuit.Coord x) { return x * x; }
+        private static double Length(Circuit.Coord x) { return Math.Sqrt(x * x); }
+
+        private static double Distance(Circuit.Coord x1, Circuit.Coord x2, Circuit.Coord p)
         {
             // http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
             // Return minimum distance between line segment vw and point p
-            double l2 = (x1 - x2).LengthSquared;  // i.e. |w-v|^2 -  avoid a sqrt
+            double l2 = LengthSquared(x1 - x2);  // i.e. |w-v|^2 -  avoid a sqrt
             if (l2 == 0.0)
-                return (p - x1).Length;   // v == w case
+                return Length(p - x1);   // v == w case
 
             // Consider the line extending the segment, parameterized as v + t (w - v).
             // We find projection of point p onto the line. 
             // It falls where t = [(p-v) . (w-v)] / |w-v|^2
-            double t = Vector.Multiply(p - x1, x2 - x1) / l2;
-            if (t < 0.0) return (p - x1).Length;       // Beyond the 'v' end of the segment
-            else if (t > 1.0) return (p - x2).Length;  // Beyond the 'w' end of the segment
-            Point proj = x1 + t * (x2 - x1);  // Projection falls on the segment
-            return (p - proj).Length;
+            double t = ((p - x1) * (x2 - x1)) / l2;
+            if (t < 0.0) return Length(p - x1);       // Beyond the 'v' end of the segment
+            else if (t > 1.0) return Length(p - x2);  // Beyond the 'w' end of the segment
+            return (new Vector(p.x - x1.x, p.y - x1.y) + t * new Vector(x2.x - x1.x, x2.y - x1.y)).Length;
         }
 
         // INotifyPropertyChanged interface.

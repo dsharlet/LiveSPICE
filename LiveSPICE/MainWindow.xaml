@@ -54,7 +54,7 @@
             <MenuItem Header="_View">
                 <MenuItem Header="Oscilloscope" IsChecked="True" />
                 <MenuItem Header="Properties" IsChecked="True" />
-                <MenuItem Header="Toolbox" IsChecked="True" />
+                <MenuItem Header="Components" IsChecked="True" />
                 <MenuItem Header="Log" IsChecked="True" />
                 <MenuItem Header="Speaker" IsChecked="True" />
             </MenuItem>
@@ -103,10 +103,10 @@
             </xcad:DockingManager.DocumentHeaderTemplate>
             <xcad:LayoutRoot>
                 <xcad:LayoutPanel Orientation="Horizontal">
-                    <!-- Toolbox -->
+                    <!-- Components -->
                     <xcad:LayoutAnchorablePane DockWidth="205">
-                        <xcad:LayoutAnchorable ContentId="toolbox" Title="Toolbox" CanHide="False" CanClose="False" AutoHideWidth="240">
-                            <ls:Toolbox x:Name="toolbox" />
+                        <xcad:LayoutAnchorable ContentId="components" Title="Components" CanHide="False" CanClose="False" AutoHideWidth="240">
+                            <ls:ComponentLibrary x:Name="components" />
                         </xcad:LayoutAnchorable>
                     </xcad:LayoutAnchorablePane>
 

@@ -50,7 +50,7 @@ namespace Circuit
             float y2 = t2 + coil * (float)Math.Cos(t2);
 
             Sym.DrawFunction(
-                ShapeType.Black,
+                EdgeType.Black,
                 (t) => (float)Math.Sin(t) * 4.0f, 
                 (t) => ((t + coil * (float)Math.Cos(t)) - y1) / (y2 - y1) * 32.0f - 16.0f, 
                 t1, t2, 64);

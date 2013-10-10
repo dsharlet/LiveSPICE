@@ -70,9 +70,7 @@ namespace LiveSPICE
             symbol.Position = new Circuit.Coord((int)At.X, (int)At.Y) - offset;
 
             // Don't allow symbols to be placed on an existing symbol.
-            Target.Cursor = Target.InRect(
-                symbol.Position,
-                symbol.Position + symbol.Size).Any() ? Cursors.No : Cursors.None;
+            Target.Cursor = Target.InRect(symbol.LowerBound, symbol.UpperBound).Any() ? Cursors.No : Cursors.None;
             overlay.Visibility = Visibility.Visible;
         }
 

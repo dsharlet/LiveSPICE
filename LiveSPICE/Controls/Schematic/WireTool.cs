@@ -36,7 +36,7 @@ namespace LiveSPICE
             };
         }
 
-        public override void Begin() { Target.overlays.Children.Add(path); Target.Cursor = Cursors.Cross; }
+        public override void Begin() { Target.overlays.Children.Add(path); Target.Cursor = Cursors.Pen; }
         public override void End() { Target.overlays.Children.Remove(path); }
 
         public override void MouseDown(Point At)
@@ -45,19 +45,21 @@ namespace LiveSPICE
             path.Visibility = Visibility.Visible;
         }
 
+
+        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
         public override void MouseMove(Point At)
         {
             if (mouse == null)
                 return;
             mouse.Add(At);
-            List<Point> points = Target.FindWirePath(mouse);
+            List<Circuit.Coord> points = Target.FindWirePath(mouse);
             ((PathGeometry)path.Data).Clear();
             for (int i = 0; i < points.Count - 1; ++i)
             {
                 LineGeometry line = new LineGeometry()
                 {
-                    StartPoint = points[i] + new Vector(0.5, -0.5),
-                    EndPoint = points[i + 1] + new Vector(0.5, -0.5)
+                    StartPoint = ToPoint(points[i]) + new Vector(0.5, -0.5),
+                    EndPoint = ToPoint(points[i + 1]) + new Vector(0.5, -0.5)
                 };
                 ((PathGeometry)path.Data).AddGeometry(line);
             }

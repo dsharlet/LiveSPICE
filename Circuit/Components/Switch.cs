@@ -44,8 +44,8 @@ namespace Circuit
         {
             Sym.AddWire(Anode, new Coord(0, 12));
             Sym.AddWire(Cathode, new Coord(0, -12));
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 12), 2);
-            Sym.AddCircle(ShapeType.Black, new Coord(0, -12), 2);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 12), 2);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, -12), 2);
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
             if (closed)

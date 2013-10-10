@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using SyMath;
+using System.Diagnostics;
 
 namespace Circuit
 {
@@ -34,61 +36,121 @@ namespace Circuit
         
         public Schematic()
         {
-            elements = new ElementCollection(this);
+            elements = new ElementCollection();
+            elements.ItemAdded += OnElementAdded;
+            elements.ItemRemoved += OnElementRemoved;
         }
-                
+
         /// <summary>
-        /// Map the coordinate x to a Node.
+        /// Get the terminals located at x.
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public Node NodeAt(Coord x)
+        public IEnumerable<Terminal> TerminalsAt(Coord x)
         {
-            WireElement e = elements.OfType<WireElement>().FirstOrDefault(i => i.Intersects(x, x));
-            if (e == null)
-                return null;
-            if (e.Node == null)
+            return elements
+                .Select(i => i.Terminals.SingleOrDefault(j => i.MapTerminal(j) == x))
+                .Where(i => i != null);
+        }
+
+        /// <summary>
+        /// Build a node at the coordinate x.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        //public Node BuildNodeAt(Coord x)
+        //{
+        //    // Find all the terminals at x.
+        //    IEnumerable<Terminal> terminals = elements.SelectMany(i => i.Terminals.Where(j => i.MapTerminal(j) == x)).ToList();
+        //    // If there aren't two terminals to connect here, we don't need a node.
+        //    if (terminals.Count() <= 1)
+        //    {
+        //        foreach (Terminal i in terminals)
+        //            i.ConnectTo(null);
+        //        return null;
+        //    }
+
+        //    // Find all the nodes at the terminals at x.
+        //    IEnumerable<Node> connected = terminals.Select(i => i.ConnectedTo).Distinct();
+        //    // Find or make a non-null node.
+        //    Node n = connected.FirstOrDefault(i => i != null);
+        //    if (n == null)
+        //        n = new Node();
+
+        //    // Connect all the terminals at x to n.
+        //    foreach (Terminal i in terminals)
+        //        i.ConnectTo(n);
+
+        //    return n;
+        //}
+
+        protected void RebuildNodes()
+        {
+            foreach (Element i in Elements)
+                foreach (Terminal j in i.Terminals)
+                    j.ConnectTo(null);
+
+            // Build a list of wires that are connected to other wires in the circuit.
+            List<List<Wire>> nodes = new List<List<Wire>>();
+            foreach (Wire i in Elements.OfType<Wire>())
             {
-                e.Node = new Node();
-                circuit.Nodes.Add(e.Node);
+                List<Wire> n = nodes.FirstOrDefault(j => j.Any(k => i.A == k.A || i.A == k.B || i.B == k.A || i.B == k.B));
+                if (n != null)
+                    n.Add(i);
+                else
+                    nodes.Add(new List<Wire> { i });
             }
-            return e.Node;
+
+            Circuit.Nodes.Clear();
+
+            foreach (List<Wire> i in nodes)
+            {
+                Node n = new Node();
+                Circuit.Nodes.Add(n);
+
+                foreach (Coord j in i.SelectMany(k => new Coord[] { k.A, k.B }))
+                    foreach (Terminal k in TerminalsAt(j))
+                        if (!(k.Owner is Conductor))
+                            k.ConnectTo(n);
+            }
+        }
+
+        protected void OnElementAdded(object sender, ElementEventArgs e)
+        {
+            ConnectTerminals(e.Element);
+
+            e.Element.LayoutChanged += OnLayoutChanged;
+        }
+
+        protected void OnElementRemoved(object sender, ElementEventArgs e)
+        {
+            e.Element.LayoutChanged -= OnLayoutChanged;
+
+            foreach (Terminal i in e.Element.Terminals)
+                i.ConnectTo(null);
+            RemoveOrphanNodes();
+        }
+
+        // Find and remove orphan nodes (not connected to anything) in the circuit.
+        protected void RemoveOrphanNodes()
+        {
+            foreach (Node i in circuit.Nodes.Where(i => i.Connected.Count() <= 1).ToArray())
+            {
+                foreach (Terminal j in i.Connected)
+                    j.ConnectTo(null);
+                circuit.Nodes.Remove(i);
+            }
         }
 
         // When an element moves, we will need to update its connections.
-        private List<Element> dirty = new List<Element>();
         protected void OnLayoutChanged(object sender, EventArgs e)
         {
-            dirty.Add((Element)sender);
-            Update();
+            ConnectTerminals((Element)sender);
         }
 
-        protected void Update()
+        protected void ConnectTerminals(Element e)
         {
-            Element[] update = dirty.ToArray();
-            dirty.Clear();
-            foreach (Element i in update)
-            {
-                foreach (Terminal j in i.Terminals)
-                {
-                    Coord x = i.MapTerminal(j);
-
-                    // Get the node at this location.
-                    Node n = NodeAt(x);
-
-                    // If this coord lands in the middle of a wire, we need to split the wire.
-                    WireElement split = elements.OfType<WireElement>().SingleOrDefault(k => k.Intersects(x, x));
-                    if (split != null)
-                    {
-                        WireElement other = new WireElement(split.A, x);
-                        split.A = x;
-
-                        elements.Add(other);
-                    }
-
-                    j.ConnectTo(NodeAt(x));
-                }
-            }
+            RebuildNodes();
         }
 
         public XElement Serialize()

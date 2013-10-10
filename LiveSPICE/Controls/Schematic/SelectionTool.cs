@@ -82,7 +82,7 @@ namespace LiveSPICE
                 Vector dx = new Vector(-0.5, -0.5);
                 ((RectangleGeometry)path.Data).Rect = new Rect(a + dx, b + dx);
             }
-            Target.Highlight(Target.InRect(a, b));
+            Target.Highlight(a == b ? Target.AtPoint(a) : Target.InRect(a, b));
         }
 
         public override void MouseUp(Point At)
@@ -91,7 +91,7 @@ namespace LiveSPICE
             if (path.Visibility == Visibility.Visible)
             {
                 if (a == b)
-                    Target.ToggleSelect(Target.InRect(a, b));
+                    Target.ToggleSelect(Target.AtPoint(a));
                 else
                     Target.Select(Target.InRect(a, b));
                 path.Visibility = Visibility.Hidden;

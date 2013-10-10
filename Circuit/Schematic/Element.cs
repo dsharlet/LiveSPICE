@@ -9,12 +9,8 @@ namespace Circuit
 {
     public abstract class Element
     {
-        private List<EventHandler> layoutChanged = new List<EventHandler>();
-        protected void OnLayoutChanged()
-        {
-            foreach (EventHandler i in layoutChanged)
-                i(this, null);
-        }
+        private EventHandlerList layoutChanged = new EventHandlerList();
+        protected void OnLayoutChanged() { layoutChanged.On(this, null); }
 
         /// <summary>
         /// Event for when the layout of this node changes.
@@ -45,10 +41,10 @@ namespace Circuit
         public virtual bool Intersects(Coord x1, Coord x2)
         {
             Coord l = LowerBound;
-            if (l.x > x2.x || l.y > x2.y) return false;
+            if (l.x >= x2.x || l.y >= x2.y) return false;
 
             Coord u = UpperBound;
-            if (u.x < x1.x || u.y < x1.y) return false;
+            if (u.x <= x1.x || u.y <= x1.y) return false;
             return true;
         }
 
@@ -87,15 +83,11 @@ namespace Circuit
             X.SetAttributeValue("ElementType", GetType().AssemblyQualifiedName);
             return X;
         }
-
-        protected virtual void OnDeserialize(XElement X) { }
-
+        
         public static Element Deserialize(XElement X)
         {
             Type T = Type.GetType(X.Attribute("ElementType").Value);
-            Element E = (Element)Activator.CreateInstance(T);
-            E.OnDeserialize(X);
-            return E;
+            return (Element)T.GetMethod("Deserialize").Invoke(null, new object[] { X });
         }
 
         protected static Point RotateAround(Point x, int dt, Point at)

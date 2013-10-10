@@ -31,7 +31,7 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(0, 10));
             Sym.AddWire(Cathode, new Coord(0, -10));
 
-            Sym.AddLoop(ShapeType.Black,
+            Sym.AddLoop(EdgeType.Black,
                 new Coord(-10, 10),
                 new Coord(10, 10),
                 new Coord(0, -10));

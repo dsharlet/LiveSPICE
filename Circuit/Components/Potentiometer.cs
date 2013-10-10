@@ -77,17 +77,17 @@ namespace Circuit
             Sym.AddTerminal(Cathode, new Coord(-10, -20));
             Sym.AddTerminal(Wiper, new Coord(10, 0));
 
-            Sym.InBounds(new Coord(-20, -20), new Coord(10, 20));
+            Sym.InBounds(new Coord(-30, -20), new Coord(10, 20));
             
             Sym.AddWire(Anode, new Coord(-10, 16));
             Sym.AddWire(Cathode, new Coord(-10, -16));
-            Sym.DrawArrow(ShapeType.Black, new Coord(10, 0), new Coord(-6, 0), 0.2);
-            Sym.DrawPositive(ShapeType.Black, new Coord(-16, 16));
-            Sym.DrawNegative(ShapeType.Black, new Coord(-16, -16));
+            Sym.DrawArrow(EdgeType.Black, new Coord(10, 0), new Coord(-6, 0), 0.2);
+            Sym.DrawPositive(EdgeType.Black, new Coord(-16, 16));
+            Sym.DrawNegative(EdgeType.Black, new Coord(-16, -16));
 
             int N = 7;
             Sym.DrawFunction(
-                ShapeType.Black,
+                EdgeType.Black,
                 (t) => Math.Abs((t + 0.5) % 2 - 1) * 8 - 4 - 10,
                 (t) => t * 32 / N - 16,
                 0, N, N * 2);

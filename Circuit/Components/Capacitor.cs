@@ -41,8 +41,8 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(0, 2));
             Sym.AddWire(Cathode, new Coord(0, -2));
 
-            Sym.AddLine(ShapeType.Black, new Coord(-10, 2), new Coord(10, 2));
-            Sym.AddLine(ShapeType.Black, new Coord(-10, -2), new Coord(10, -2));
+            Sym.AddLine(EdgeType.Black, new Coord(-10, 2), new Coord(10, 2));
+            Sym.AddLine(EdgeType.Black, new Coord(-10, -2), new Coord(10, -2));
 
             Sym.DrawText(Name, new Coord(12, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(capacitance.ToString(), new Coord(-12, 0), Alignment.Far, Alignment.Center);

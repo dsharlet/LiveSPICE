@@ -88,7 +88,7 @@ namespace Circuit
             Sym.AddWire(e, new Coord(10, 17));
             Sym.AddWire(c, new Coord(10, -17));
 
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 0), 20);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
         }
     }
 }

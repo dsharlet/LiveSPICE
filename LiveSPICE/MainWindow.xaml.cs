@@ -29,7 +29,7 @@ namespace LiveSPICE
         {
             InitializeComponent();
             
-            toolbox.Init(this, toolbox_Click);
+            components.Init(this, toolbox_Click);
             New(new Schematic());
         }
 
@@ -166,7 +166,7 @@ namespace LiveSPICE
                 return;
 
             Type type = (Type)((Button)s).Tag;
-            if (type == typeof(Circuit.Wire))
+            if (type == typeof(Circuit.Conductor))
                 active.Tool = new WireTool(active);
             else
                 active.Tool = new SymbolTool(active, type);

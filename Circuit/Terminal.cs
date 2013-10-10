@@ -37,11 +37,23 @@ namespace Circuit
         /// <param name="n"></param>
         public void ConnectTo(Node N)
         {
+            if (connectedTo == N)
+                return;
+
             if (connectedTo != null)
                 connectedTo.Disconnect(this);
             connectedTo = N;
             if (connectedTo != null)
                 connectedTo.Connect(this);
+
+            connectionChanged.On(this, new EventArgs());
+        }
+
+        private EventHandlerList connectionChanged = new EventHandlerList();
+        public event EventHandler ConnectionChanged
+        {
+            add { connectionChanged.Add(value); }
+            remove { connectionChanged.Remove(value); }
         }
 
         public Expression i = null;

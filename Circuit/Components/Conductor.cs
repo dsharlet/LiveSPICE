@@ -13,9 +13,9 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Wire")]
-    public class Wire : TwoTerminal
+    public class Conductor : TwoTerminal
     {
-        public Wire() { Name = "W1"; }
+        public Conductor() { Name = "C1"; }
 
         public override void Analyze(IList<Equal> Mna, IList<SyMath.Expression> Unknowns) 
         {

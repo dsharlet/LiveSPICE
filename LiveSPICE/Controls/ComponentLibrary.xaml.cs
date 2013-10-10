@@ -19,13 +19,13 @@ using SyMath;
 namespace LiveSPICE
 {
     /// <summary>
-    /// Interaction logic for Toolbox.xaml
+    /// Interaction logic for ComponentLibrary.xaml
     /// </summary>
-    public partial class Toolbox : UserControl
+    public partial class ComponentLibrary : UserControl
     {
         private static Tuple<Type, Key[]>[] CommonTypes = 
         {
-            new Tuple<Type, Key[]> (typeof(Circuit.Wire), new Key[] { Key.W }),
+            new Tuple<Type, Key[]> (typeof(Circuit.Conductor), new Key[] { Key.W }),
             new Tuple<Type, Key[]> (typeof(Circuit.Ground), new Key[] { Key.G }),
             new Tuple<Type, Key[]> (typeof(Circuit.Resistor), new Key[] { Key.R }),
             new Tuple<Type, Key[]> (typeof(Circuit.Capacitor), new Key[] { Key.F }),
@@ -34,7 +34,7 @@ namespace LiveSPICE
             new Tuple<Type, Key[]> (typeof(Circuit.TaggedWire), null),
         };
                 
-        public Toolbox()
+        public ComponentLibrary()
         {
             InitializeComponent();
         }
@@ -42,7 +42,7 @@ namespace LiveSPICE
         public static IEnumerable<Type> GetComponentTypes()
         {
             Type root = typeof(Circuit.Component);
-            return Assembly.GetAssembly(root).GetTypes().Where(t => !t.IsAbstract && root.IsAssignableFrom(t)).Concat(new Type[] { typeof(Circuit.Wire) });
+            return Assembly.GetAssembly(root).GetTypes().Where(t => !t.IsAbstract && root.IsAssignableFrom(t)).Concat(new Type[] { typeof(Circuit.Conductor) });
         }
 
         public void Init(Window ShortcutKeys, RoutedEventHandler OnClick)
@@ -76,7 +76,7 @@ namespace LiveSPICE
                 StackPanel content = new StackPanel() { Orientation = Orientation.Vertical };
 
                 // Add image to the button.
-                Symbol symbol = new Symbol(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T)))
+                Component symbol = new Component((Circuit.Component)Activator.CreateInstance(T))
                 {
                     Width = 48,
                     Height = 32,

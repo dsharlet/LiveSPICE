@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Circuit
 {
     /// <summary>
-    /// Collection of circuit components.
+    /// Collection of nodes. Ensures that the node names are unique.
     /// </summary>
     public class NodeCollection : ICollection<Node>, IEnumerable<Node>
     {
@@ -25,6 +25,12 @@ namespace Circuit
                 throw new InvalidOperationException("Node with name '" + item.Name + "' already exists.");
             x.Add(item);
         }
+        public void AddRange(IEnumerable<Node> items)
+        {
+            foreach (Node i in items)
+                Add(i);
+        }
+        public void AddRange(params Node[] items) { AddRange(items.AsEnumerable()); }
         public void Clear() { x.Clear(); }
         public bool Contains(Node item) { return x.Contains(item); }
         public void CopyTo(Node[] array, int arrayIndex) { x.CopyTo(array, arrayIndex); }

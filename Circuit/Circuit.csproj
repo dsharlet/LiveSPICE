@@ -68,12 +68,12 @@
   <ItemGroup>
     <Compile Include="Components\OpAmp.cs" />
     <Compile Include="Components\VariableResistor.cs" />
-    <Compile Include="Components\Wire.cs" />
+    <Compile Include="Components\Conductor.cs" />
     <Compile Include="Schematic\Element.cs" />
     <Compile Include="Schematic\Symbol.cs" />
     <Compile Include="Schematic\Schematic.cs" />
     <Compile Include="Schematic\ElementCollection.cs" />
-    <Compile Include="Schematic\WireElement.cs" />
+    <Compile Include="Schematic\Wire.cs" />
     <Compile Include="Utils\ComponentCollection.cs" />
     <Compile Include="Components\BaseComponents.cs" />
     <Compile Include="Components\Transistor.cs" />
@@ -88,6 +88,7 @@
     <Compile Include="Components\IdealOpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
+    <Compile Include="Utils\EventHandlerList.cs" />
     <Compile Include="Utils\Matrix.cs" />
     <Compile Include="Utils\Point.cs" />
     <Compile Include="Utils\GlobalExpr.cs" />

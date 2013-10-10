@@ -20,7 +20,7 @@ namespace Circuit
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {
-            Sym.AddLoop(ShapeType.Black,
+            Sym.AddLoop(EdgeType.Black,
                 new Coord(-10, -20),
                 new Coord(0, -30),
                 new Coord(10, -20),

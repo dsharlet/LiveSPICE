@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Circuit
 {
     /// <summary>
-    /// Collection of circuit components.
+    /// Collection of circuit components. Ensures that the names of the components are unique.
     /// </summary>
     public class ComponentCollection : ICollection<Component>, IEnumerable<Component>
     {
@@ -25,6 +25,12 @@ namespace Circuit
                 item.Name = Component.UniqueName(x, GetPrefix(item.Name));
             x.Add(item);
         }
+        public void AddRange(IEnumerable<Component> items)
+        {
+            foreach (Component i in items)
+                Add(i);
+        }
+        public void AddRange(params Component[] items) { AddRange(items.AsEnumerable()); }
         public void Clear() { x.Clear(); }
         public bool Contains(Component item) { return x.Contains(item); }
         public void CopyTo(Component[] array, int arrayIndex) { x.CopyTo(array, arrayIndex); }

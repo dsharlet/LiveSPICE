@@ -82,10 +82,10 @@ namespace Circuit
             Sym.AddWire(Negative, new Coord(-20, -10));
             Sym.AddWire(Out, new Coord(20, 0));
 
-            Sym.DrawPositive(ShapeType.Black, new Coord(-17, 10));
-            Sym.DrawNegative(ShapeType.Black, new Coord(-17, -10));
+            Sym.DrawPositive(EdgeType.Black, new Coord(-17, 10));
+            Sym.DrawNegative(EdgeType.Black, new Coord(-17, -10));
 
-            Sym.AddLoop(ShapeType.Black,
+            Sym.AddLoop(EdgeType.Black,
                 new Coord(-20, 20),
                 new Coord(-20, -20),
                 new Coord(20, 0));

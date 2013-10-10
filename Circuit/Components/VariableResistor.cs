@@ -28,11 +28,11 @@ namespace Circuit
             Sym.AddWire(Cathode, new Coord(0, -16));
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
-            Sym.DrawArrow(ShapeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
+            Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
 
             int N = 7;
             Sym.DrawFunction(
-                ShapeType.Black,
+                EdgeType.Black,
                 (t) => Math.Abs((t + 0.5) % 2 - 1) * 8 - 4,
                 (t) => t * 32 / N - 16,
                 0, N, N * 2);

@@ -149,23 +149,25 @@ namespace Circuit
             return X;
         }
 
-        protected override void OnDeserialize(XElement X)
+        public new static Symbol Deserialize(XElement X)
         {
             Type T = Type.GetType(X.Attribute("Type").Value);
-            rotation = int.Parse(X.Attribute("Rotation").Value);
-            flip = bool.Parse(X.Attribute("Flip").Value);
-            position = Coord.Parse(X.Attribute("Position").Value);
+            Symbol S = new Symbol((Component)Activator.CreateInstance(T));
+
+            S.Rotation = int.Parse(X.Attribute("Rotation").Value);
+            S.Flip = bool.Parse(X.Attribute("Flip").Value);
+            S.Position = Coord.Parse(X.Attribute("Position").Value);
             
-            component = (Component)Activator.CreateInstance(T);
             foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<SchematicPersistent>() != null))
             {
                 XAttribute attr = X.Attribute(i.Name);
                 if (attr != null)
                 {
                     System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
-                    i.SetValue(component, tc.ConvertFromString(attr.Value));
+                    i.SetValue(S.Component, tc.ConvertFromString(attr.Value));
                 }
             }
+            return S;
         }
     }
 }

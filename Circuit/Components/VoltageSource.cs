@@ -41,12 +41,12 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(0, r));
             Sym.AddWire(Cathode, new Coord(0, -r));
 
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 0), r);
-            Sym.DrawPositive(ShapeType.Black, new Coord(0, 7));
-            Sym.DrawNegative(ShapeType.Black, new Coord(0, -7));
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r);
+            Sym.DrawPositive(EdgeType.Black, new Coord(0, 7));
+            Sym.DrawNegative(EdgeType.Black, new Coord(0, -7));
             if (!(Voltage.Value is Constant))
                 Sym.DrawFunction(
-                    ShapeType.Black, 
+                    EdgeType.Black, 
                     (t) => t * r * 0.75,
                     (t) => Math.Sin(t * 3.1415) * r * 0.5, -1, 1);
             Sym.DrawText(Voltage.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near); 

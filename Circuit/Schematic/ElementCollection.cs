@@ -7,17 +7,40 @@ using System.Threading.Tasks;
 
 namespace Circuit
 {
+    public class ElementEventArgs : EventArgs
+    {
+        private Element e;
+        public Element Element { get { return e; } }
+
+        public ElementEventArgs(Element E) { e = E; }
+    }
+
     /// <summary>
-    /// Collection of circuit components.
+    /// Collection of circuit elements.
     /// </summary>
     public class ElementCollection : ICollection<Element>, IEnumerable<Element>
     {
         protected List<Element> x = new List<Element>();
-        protected Schematic owner;
-
-        public ElementCollection(Schematic Owner) { owner = Owner; }
 
         public Element this[int index] { get { return x[index]; } }
+
+        public delegate void ElementEventHandler(object sender, ElementEventArgs e);
+
+        private List<ElementEventHandler> itemAdded = new List<ElementEventHandler>();
+        protected void OnItemAdded(ElementEventArgs e) { foreach (ElementEventHandler i in itemAdded) i(this, e); }
+        public event ElementEventHandler ItemAdded
+        {
+            add { itemAdded.Add(value); }
+            remove { itemAdded.Remove(value); }
+        }
+
+        private List<ElementEventHandler> itemRemoved = new List<ElementEventHandler>();
+        protected void OnItemRemoved(ElementEventArgs e) { foreach (ElementEventHandler i in itemRemoved) i(this, e); }
+        public event ElementEventHandler ItemRemoved
+        {
+            add { itemRemoved.Add(value); }
+            remove { itemRemoved.Remove(value); }
+        }
 
         // ICollection<Node>
         public int Count { get { return x.Count; } }
@@ -25,20 +48,21 @@ namespace Circuit
         public void Add(Element item)
         {
             x.Add(item);
-            //owner.Update();
+            OnItemAdded(new ElementEventArgs(item));
         }
         public void AddRange(IEnumerable<Element> items)
         {
             x.AddRange(items);
-            //owner.Update();
+            foreach (Element i in items)
+                OnItemAdded(new ElementEventArgs(i));
         }
         public void Clear() 
         {
-            foreach (Element i in x)
-                foreach (Terminal j in i.Terminals)
-                    j.ConnectTo(null);
-            x.Clear(); 
-            //owner.Update(); 
+            Element[] removed = x.ToArray();
+            x.Clear();
+
+            foreach (Element i in removed)
+                OnItemRemoved(new ElementEventArgs(i));
         }
         public bool Contains(Element item) { return x.Contains(item); }
         public void CopyTo(Element[] array, int arrayIndex) { x.CopyTo(array, arrayIndex); }
@@ -46,8 +70,7 @@ namespace Circuit
         { 
             bool ret = x.Remove(item);
             if (ret)
-                foreach (Terminal i in item.Terminals)
-                    i.ConnectTo(null);
+                OnItemRemoved(new ElementEventArgs(item));
             return ret;
         }
 

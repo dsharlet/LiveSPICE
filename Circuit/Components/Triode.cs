@@ -139,7 +139,7 @@ namespace Circuit
             Sym.AddTerminal(g, new Coord(-30, 0));
             Sym.AddTerminal(k, new Coord(-10, -30));
 
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 0), 20);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
 
             Sym.AddWire(p, new Coord(0, 4));
             Sym.AddWire(new Coord(-10, 4), new Coord(10, 4));

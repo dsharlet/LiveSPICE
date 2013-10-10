@@ -59,16 +59,16 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(0, 10));
             Sym.AddWire(Cathode, new Coord(0, -10));
 
-            Sym.AddLoop(ShapeType.Black,
+            Sym.AddLoop(EdgeType.Black,
                 new Coord(-10, 10),
                 new Coord(10, 10),
                 new Coord(0, -10));
-            Sym.AddLine(ShapeType.Black, new Coord(-10, -10), new Coord(10, -10));
+            Sym.AddLine(EdgeType.Black, new Coord(-10, -10), new Coord(10, -10));
 
             if (model.IsLed())
             {
-                Sym.DrawArrow(ShapeType.Black, new Coord(-12, 5), new Coord(-20, -3), 0.2);
-                Sym.DrawArrow(ShapeType.Black, new Coord(-8, -2), new Coord(-16, -10), 0.2);
+                Sym.DrawArrow(EdgeType.Black, new Coord(-12, 5), new Coord(-20, -3), 0.2);
+                Sym.DrawArrow(EdgeType.Black, new Coord(-8, -2), new Coord(-16, -10), 0.2);
             }
 
             Sym.DrawText(Name, new Coord(10, 0), Alignment.Near, Alignment.Center);

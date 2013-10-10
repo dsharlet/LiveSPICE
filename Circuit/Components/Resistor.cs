@@ -34,7 +34,7 @@ namespace Circuit
 
             int N = 7;
             Sym.DrawFunction(
-                ShapeType.Black,
+                EdgeType.Black,
                 (t) => Math.Abs((t + 0.5) % 2 - 1) * 8 - 4, 
                 (t) => t * 32 / N - 16,
                 0, N, N * 2);

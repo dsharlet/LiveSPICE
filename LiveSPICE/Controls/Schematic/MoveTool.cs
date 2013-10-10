@@ -39,8 +39,9 @@ namespace LiveSPICE
 
         public override void MouseMove(Point At)
         {
-            Vector dx = At - x;
-            Target.Edits.Do(new MoveElements(Target.Selected, new Circuit.Coord((int)Math.Round(dx.X), (int)Math.Round(dx.Y))));
+            Circuit.Coord dx = new Circuit.Coord((int)Math.Round(At.X - x.X), (int)Math.Round(At.Y - x.Y));
+            if (dx.x != 0 || dx.y != 0)
+                Target.Edits.Do(new MoveElements(Target.Selected, dx));
             x = At;
         }
     }

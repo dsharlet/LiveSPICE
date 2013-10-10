@@ -107,7 +107,7 @@ namespace CircuitTests
             Node Vin = new Node("Vin");
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
-            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
+            C.Nodes.AddRange(Vin, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -142,7 +142,7 @@ namespace CircuitTests
             Node Vin = new Node("Vin");
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
-            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
+            C.Nodes.AddRange(Vin, Vo, Vg);
 
             C.Components.Add(R1);
 
@@ -202,7 +202,7 @@ namespace CircuitTests
             Node Vn = new Node("Vn");
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
-            C.Nodes = new NodeCollection() { Vp, Vn, Vo, Vg };
+            C.Nodes.AddRange(Vp, Vn, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -244,7 +244,7 @@ namespace CircuitTests
             Node Vn = new Node("Vn");
             Node Vp = new Node("Vp");
             Node Vo = new Node("Vo");
-            C.Nodes = new NodeCollection() { Vin, Vn, Vp, Vo };
+            C.Nodes.AddRange(Vin, Vn, Vp, Vo);
 
             C.Components.Add(Rin);
             C.Components.Add(Rf);
@@ -287,7 +287,7 @@ namespace CircuitTests
             Node Vn = new Node("Vn");
             Node Vp = new Node("Vp");
             Node Vo = new Node("Vo");
-            C.Nodes = new NodeCollection() { Vin, Vn, Vp, Vo };
+            C.Nodes.AddRange(Vin, Vn, Vp, Vo);
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -330,7 +330,7 @@ namespace CircuitTests
             Node Va = new Node("Va");
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
-            C.Nodes = new NodeCollection() { Vin, Va, Vo, Vg };
+            C.Nodes.AddRange(Vin, Va, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -371,7 +371,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new NodeCollection() { Vin, Va, Vo, Vg };
+            C.Nodes.AddRange(Vin, Va, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(L1);
@@ -408,7 +408,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
+            C.Nodes.AddRange(Vin, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(L1);
@@ -442,7 +442,7 @@ namespace CircuitTests
             Node Vb = new Node("Vo");
             Node Vc = new Node("Vc");
             Node Vg = new Node("Vg");
-            C.Nodes = new NodeCollection() { Va, Vb, Vc, Vg };
+            C.Nodes.AddRange(Va, Vb, Vc, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -485,7 +485,7 @@ namespace CircuitTests
             Node Ve = new Node("Ve");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new NodeCollection() { Vin, Vo, Va, Vb, Vc, Vd, Ve, Vg };
+            C.Nodes.AddRange(Vin, Vo, Va, Vb, Vc, Vd, Ve, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -538,7 +538,7 @@ namespace CircuitTests
             Node Vx = new Node("Vx");
             Node Vpp = new Node("Vpp");
 
-            C.Nodes = new NodeCollection() { Vin, Vp, Vg, Vk, Vx, Vpp, Vgr };
+            C.Nodes.AddRange(Vin, Vp, Vg, Vk, Vx, Vpp, Vgr);
 
             C.Components.Add(Ci);
             C.Components.Add(Ri);
@@ -596,7 +596,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
+            C.Nodes.AddRange(Vin, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(D1);
@@ -631,7 +631,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new NodeCollection() { Vin, Vo, Vg };
+            C.Nodes.AddRange(Vin, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(D1);
@@ -668,7 +668,7 @@ namespace CircuitTests
             Node Va = new Node("Va");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new NodeCollection() { Vin, Vo, Va, Vg };
+            C.Nodes.AddRange(Vin, Vo, Va, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(D1);
@@ -709,7 +709,7 @@ namespace CircuitTests
             Node Vg = new Node("Vg");
             Node Vx = new Node("Vx");
 
-            C.Nodes = new NodeCollection() { Vin, Vo, Vg, Vx };
+            C.Nodes.AddRange(Vin, Vo, Vg, Vx);
 
             C.Components.Add(R1);
             C.Components.Add(R2);
@@ -753,7 +753,7 @@ namespace CircuitTests
             Node Vo = new Node("Vo");
             Node Vg = new Node("Vg");
 
-            C.Nodes = new NodeCollection() { Va, Vb, Vc, Vo, Vg };
+            C.Nodes.AddRange(Va, Vb, Vc, Vo, Vg);
 
             C.Components.Add(R1);
             C.Components.Add(R2);

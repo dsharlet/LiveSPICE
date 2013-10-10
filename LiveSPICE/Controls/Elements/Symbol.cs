@@ -21,42 +21,35 @@ namespace LiveSPICE
     /// <summary>
     /// Element for a symbol.
     /// </summary>
-    public class Symbol : Element, Circuit.ISymbolDrawing
-    {
-        protected static double TerminalSize = 5.0;
-        
+    public class Symbol : Element
+    {       
         static Symbol() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Symbol), new FrameworkPropertyMetadata(typeof(Symbol))); }
         
         protected bool showText = true;
         public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); } }
-
-        protected bool showTerminals = true;
-        public bool ShowTerminals { get { return showTerminals; } set { showTerminals = value; InvalidateVisual(); } }
-
-        protected Matrix layout;
-        protected double scale = 1.0;
+        
+        protected Matrix transform;
         protected Point origin;
+        protected double scale = 1.0;
 
-        public Vector Size { get { return new Vector(symbol.Size.x, symbol.Size.y); } }
+        public Vector Size { get { return new Vector(GetSymbol().Size.x, GetSymbol().Size.y); } }
 
-        protected Circuit.Symbol symbol;
-        public Circuit.Component Component { get { return symbol.Component; } }
+        protected Circuit.SymbolLayout layout = new Circuit.SymbolLayout();
+        public Circuit.Component Component { get { return GetSymbol().Component; } }
 
         public Symbol(Circuit.Symbol S) : base(S)
         {
-            symbol = S;
-            //FontFamily = new FontFamily("Courier New");
-            //FontSize = 10;
+            Component.LayoutSymbol(layout);
         }
 
         public Symbol(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
 
-        public Circuit.Symbol GetSymbol() { return symbol; }
+        public Circuit.Symbol GetSymbol() { return (Circuit.Symbol)element; }
 
         protected override Size MeasureOverride(Size constraint)
         {
-            Point b1 = ConvertToPoint(symbol.LowerBound - symbol.Position);
-            Point b2 = ConvertToPoint(symbol.UpperBound - symbol.Position);
+            Point b1 = ToPoint(GetSymbol().LowerBound - GetSymbol().Position);
+            Point b2 = ToPoint(GetSymbol().UpperBound - GetSymbol().Position);
             double width = Math.Abs(b2.X - b1.X);
             double height = Math.Abs(b2.Y - b1.Y);
 
@@ -67,8 +60,8 @@ namespace LiveSPICE
 
         protected override Size ArrangeOverride(Size arrangeBounds)
         {
-            Point b1 = ConvertToPoint(symbol.LowerBound - symbol.Position);
-            Point b2 = ConvertToPoint(symbol.UpperBound - symbol.Position);
+            Point b1 = ToPoint(GetSymbol().LowerBound - GetSymbol().Position);
+            Point b2 = ToPoint(GetSymbol().UpperBound - GetSymbol().Position);
             double width = Math.Abs(b2.X - b1.X);
             double height = Math.Abs(b2.Y - b1.Y);
 
@@ -79,44 +72,33 @@ namespace LiveSPICE
             return size;
         }
 
-        protected Point LayoutToLocal(Circuit.Point x) { return layout.Transform(new Point(x.x, x.y)); }
+        protected Point LayoutToLocal(Circuit.Point x) { return transform.Transform(new Point(x.x, x.y)); }
         protected Point SymbolToLocal(Circuit.Point x) 
         { 
             return new Point(
                 x.x * scale - origin.X + ActualWidth / 2,
-                x.y * -scale + origin.Y + ActualHeight / 2);
+                x.y * scale - origin.Y + ActualHeight / 2);
         }
 
         protected DrawingContext dc;
         protected override void OnRender(DrawingContext drawingContext)
         {
             dc = drawingContext;
-            dc.PushGuidelineSet(Guidelines);
+            dc.PushGuidelineSet(Symbol.Guidelines);
 
-            layout.SetIdentity();
-            layout.Scale(scale, -scale);
-            layout.Translate(-origin.X, origin.Y);
+            transform.SetIdentity();
+            transform.Scale(scale, -scale);
+            transform.Translate(-origin.X, origin.Y);
             if (((Circuit.Symbol)element).Flip)
-                layout.Scale(1, -1);
-            layout.Rotate(((Circuit.Symbol)element).Rotation * -90);
-            layout.Translate(ActualWidth / 2, ActualHeight / 2);
+                transform.Scale(1, -1);
+            transform.Rotate(((Circuit.Symbol)element).Rotation * -90);
+            transform.Translate(ActualWidth / 2, ActualHeight / 2);
             
-            Circuit.Component component = ((Circuit.Symbol)element).Component;
+            DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
 
-            //transform.Translate(lbx, lby);
-            component.LayoutSymbol(new Circuit.SymbolLayout(this));
-
-            double dx = TerminalSize / 2;
-            foreach (Circuit.Terminal i in component.Terminals)
-            {
-                Circuit.Point x = symbol.MapTerminal(i) - symbol.Position;
-                Point x1 = SymbolToLocal(new Circuit.Point(x.x - dx, x.y - dx));
-                Point x2 = SymbolToLocal(new Circuit.Point(x.x + dx, x.y + dx));
-                dc.DrawRectangle(null, MapToPen(i.ConnectedTo == null ? Circuit.ShapeType.Red : Circuit.ShapeType.Black), new Rect(x1, x2));
-            }
-
-            Point b1 = SymbolToLocal(symbol.LowerBound - symbol.Position);
-            Point b2 = SymbolToLocal(symbol.UpperBound - symbol.Position);
+            Circuit.Symbol sym = GetSymbol();
+            Point b1 = SymbolToLocal(sym.LowerBound - sym.Position);
+            Point b2 = SymbolToLocal(sym.UpperBound - sym.Position);
 
             Rect bounds = new Rect(b1, b2);
             if (Selected)
@@ -127,72 +109,141 @@ namespace LiveSPICE
             dc.Pop();
             dc = null;
         }
+        
+        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
 
-        void Circuit.ISymbolDrawing.DrawRectangle(Circuit.ShapeType Type, Circuit.Point x1, Circuit.Point x2)
+        public static double TerminalSize = 3.0;
+        public static double EdgeThickness = 1.0;
+        public static GuidelineSet Guidelines = new GuidelineSet(new double[] { EdgeThickness / 2 }, new double[] { EdgeThickness / 2 });
+
+        public static Brush WireBrush = Brushes.Black;
+        public static Pen WirePen = new Pen(WireBrush, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen TerminalPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+
+        public static Pen BlackPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+
+        private static Point T(Matrix Tx, Circuit.Point x)
         {
-            if (dc == null) return;
-
-            dc.DrawRectangle(null, MapToPen(Type), new Rect(LayoutToLocal(x1), LayoutToLocal(x2)));
+            return Tx.Transform(new Point(x.x, x.y));
         }
 
-        void Circuit.ISymbolDrawing.DrawLine(Circuit.ShapeType Type, Circuit.Point x1, Circuit.Point x2)
+        public static void DrawLayout(
+            Circuit.SymbolLayout Layout,
+            DrawingContext Context, Matrix Tx, 
+            Pen Pen, FontFamily FontFamily, FontWeight FontWeight, double FontSize)
         {
-            if (dc == null) return;
+            Context.PushGuidelineSet(Guidelines);
 
-            dc.DrawLine(MapToPen(Type), LayoutToLocal(x1), LayoutToLocal(x2));
-        }
-
-        void Circuit.ISymbolDrawing.DrawLines(Circuit.ShapeType Type, IEnumerable<Circuit.Point> x)
-        {
-            if (dc == null) return;
-
-            IEnumerator<Circuit.Point> e = x.GetEnumerator();
-            if (!e.MoveNext())
-                return;
-
-            Pen pen = MapToPen(Type);
-            Point x1 = LayoutToLocal(e.Current);
-            while (e.MoveNext())
+            foreach (Circuit.SymbolLayout.Shape i in Layout.Lines)
+                Context.DrawLine(Pen != null ? Pen : MapToPen(i.Edge), T(Tx, i.x1), T(Tx, i.x2));
+            foreach (Circuit.SymbolLayout.Shape i in Layout.Rectangles)
+                Context.DrawRectangle(null, Pen != null ? Pen : MapToPen(i.Edge), new Rect(T(Tx, i.x1), T(Tx, i.x2)));
+            foreach (Circuit.SymbolLayout.Shape i in Layout.Ellipses)
             {
-                Point x2 = LayoutToLocal(e.Current);
-                dc.DrawLine(pen, x1, x2);
-                x1 = x2;
+                Pen pen = Pen != null ? Pen : MapToPen(i.Edge);
+                Point p1 = T(Tx, i.x1);
+                Point p2 = T(Tx, i.x2);
+
+                Context.DrawEllipse(null, pen, new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2), (p2.X - p1.X) / 2, (p2.Y - p1.Y) / 2);
+            }
+            foreach (Circuit.SymbolLayout.Curve i in Layout.Curves)
+            {
+                IEnumerator<Circuit.Point> e = i.x.AsEnumerable().GetEnumerator();
+                if (!e.MoveNext())
+                    return;
+
+                Pen pen = Pen != null ? Pen : MapToPen(i.Edge);
+                Point x1 = T(Tx, e.Current);
+                while (e.MoveNext())
+                {
+                    Point x2 = T(Tx, e.Current);
+                    Context.DrawLine(pen, x1, x2);
+                    x1 = x2;
+                }
+            }
+
+            if (FontFamily != null)
+            {
+                // Not sure if this matrix has row or column vectors... want the y axis scaling here.
+                double scale = Math.Sqrt(Tx.M11 * Tx.M11 + Tx.M21 * Tx.M21);
+
+                foreach (Circuit.SymbolLayout.Text i in Layout.Texts)
+                {
+                    FormattedText text = new FormattedText(
+                        i.String,
+                        CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+                        new Typeface(FontFamily, FontStyles.Normal, FontWeight, FontStretches.Normal), FontSize * scale,
+                        Brushes.Black);
+
+                    Point p = T(Tx, i.x);
+                    Vector p1 = T(Tx, new Circuit.Point(i.x.x - MapAlignment(i.HorizontalAlign), i.x.y + (1 - MapAlignment(i.VerticalAlign)))) - p;
+                    Vector p2 = T(Tx, new Circuit.Point(i.x.x - (1 - MapAlignment(i.HorizontalAlign)), i.x.y + MapAlignment(i.VerticalAlign))) - p;
+
+                    p1.X *= text.Width; p2.X *= text.Width;
+                    p1.Y *= text.Height; p2.Y *= text.Height;
+
+                    Context.DrawText(text, new Point(Math.Min(p.X + p1.X, p.X - p2.X), Math.Min(p.Y + p1.Y, p.Y - p2.Y)));
+                }
+            }
+
+            foreach (Circuit.Terminal i in Layout.Terminals)
+                DrawTerminal(Context, T(Tx, Layout.MapTerminal(i)), i.ConnectedTo != null);
+
+            Context.Pop();
+        }
+
+        public static void DrawLayout(
+            Circuit.SymbolLayout Layout,
+            DrawingContext Context, Matrix Tx,
+            FontFamily FontFamily, FontWeight FontWeight, double FontSize)
+        {
+            DrawLayout(Layout, Context, Tx, null, FontFamily, FontWeight, FontSize);
+        }
+
+        public static void DrawLayout(
+            Circuit.SymbolLayout Layout,
+            DrawingContext Context, Matrix Tx,
+            FontFamily FontFamily)
+        {
+            DrawLayout(Layout, Context, Tx, null, FontFamily, FontWeights.Normal, 10.0);
+        }
+
+        public static void DrawLayout(
+            Circuit.SymbolLayout Layout,
+            DrawingContext Context, Matrix Tx)
+        {
+            DrawLayout(Layout, Context, Tx, new FontFamily("Courier New"));
+        }
+
+        public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
+        {
+            Vector dx = new Vector(TerminalSize / 2, TerminalSize / 2);
+            Context.DrawRectangle(null, MapToPen(Connected ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(x - dx, x + dx));
+        }
+
+        public static Pen MapToPen(Circuit.EdgeType Edge)
+        {
+            switch (Edge)
+            {
+                case Circuit.EdgeType.Wire: return WirePen;
+                case Circuit.EdgeType.Black: return BlackPen;
+                case Circuit.EdgeType.Gray: return GrayPen;
+                case Circuit.EdgeType.Red: return RedPen;
+                default: throw new ArgumentException();
             }
         }
 
-        void Circuit.ISymbolDrawing.DrawEllipse(Circuit.ShapeType Type, Circuit.Point x1, Circuit.Point x2)
+        public static double MapAlignment(Circuit.Alignment Align)
         {
-            if (dc == null) return;
-
-            Point p1 = LayoutToLocal(x1);
-            Point p2 = LayoutToLocal(x2);
-
-            dc.DrawEllipse(null, MapToPen(Type), new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2), (p2.X - p1.X) / 2, (p2.Y - p1.Y) / 2);
-        }
-
-        void Circuit.ISymbolDrawing.DrawText(string S, Circuit.Point x, Circuit.Alignment Horizontal, Circuit.Alignment Vertical)
-        {
-            if (dc == null || !ShowText) return;
-
-            FormattedText text = new FormattedText(
-                S, 
-                CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, 
-                new Typeface(FontFamily, FontStyle, FontWeight, FontStretch), FontSize * scale, 
-                Brushes.Black);
-
-            Point p = LayoutToLocal(x);
-            Vector p1 = LayoutToLocal(new Circuit.Point(x.x - MapAlignment(Horizontal), x.y + (1 - MapAlignment(Vertical)))) - p;
-            Vector p2 = LayoutToLocal(new Circuit.Point(x.x - (1 - MapAlignment(Horizontal)), x.y + MapAlignment(Vertical))) - p;
-
-            p1.X *= text.Width; p2.X *= text.Width;
-            p1.Y *= text.Height; p2.Y *= text.Height;
-            
-            dc.DrawText(text, new Point(Math.Min(p.X + p1.X, p.X - p2.X), Math.Min(p.Y + p1.Y, p.Y - p2.Y)));
-        }
-        
-        static Point ConvertToPoint(Circuit.Coord x)
-        {
-            return new Point(x.x, x.y);
+            switch (Align)
+            {
+                case Circuit.Alignment.Near: return 0.0;
+                case Circuit.Alignment.Center: return 0.5;
+                case Circuit.Alignment.Far: return 1.0;
+                default: throw new ArgumentException();
+            }
         }
     }
 }

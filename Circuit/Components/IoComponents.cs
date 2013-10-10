@@ -30,9 +30,9 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(0, r2));
             Sym.AddWire(Cathode, new Coord(0, -r1));
 
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 0), r1);
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 0), r2);
-            Sym.AddCircle(ShapeType.Black, new Coord(0, -r1), 1);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r1);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r2);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, -r1), 1);
         }
     }
 
@@ -55,9 +55,9 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(0, r1));
             Sym.AddWire(Cathode, new Coord(0, -r2));
 
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 0), r1);
-            Sym.AddCircle(ShapeType.Black, new Coord(0, 0), r2);
-            Sym.AddCircle(ShapeType.Black, new Coord(0, -r2), 1);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r1);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r2);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, -r2), 1);
         }
     }
 }
