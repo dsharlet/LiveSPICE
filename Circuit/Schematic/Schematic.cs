@@ -48,9 +48,7 @@ namespace Circuit
         /// <returns></returns>
         public IEnumerable<Terminal> TerminalsAt(Coord x)
         {
-            return elements
-                .Select(i => i.Terminals.SingleOrDefault(j => i.MapTerminal(j) == x))
-                .Where(i => i != null);
+            return elements.SelectMany(i => i.Terminals.Where(j => i.MapTerminal(j) == x));
         }
 
         /// <summary>

@@ -78,7 +78,7 @@
     <Compile Include="Components\BaseComponents.cs" />
     <Compile Include="Components\Transistor.cs" />
     <Compile Include="Components\Triode.cs" />
-    <Compile Include="Components\IoComponents.cs" />
+    <Compile Include="Components\Output.cs" />
     <Compile Include="Components\Switch.cs" />
     <Compile Include="Components\CurrentSource.cs" />
     <Compile Include="Components\Ground.cs" />

@@ -54,5 +54,28 @@ namespace Circuit
             Sym.DrawText(Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
         }
     }
+
+    [CategoryAttribute("IO")]
+    [DisplayName("Voltage source for accepting an input signal.")]
+    public class Input : VoltageSource
+    {
+        public Input() 
+        {
+            Voltage = Call.New(ExprFunction.New("Vin", t), t);
+        }
+        
+        protected override void DrawSymbol(SymbolLayout Sym)
+        {
+            int r1 = 10;
+            int r2 = 4;
+
+            Sym.AddWire(Anode, new Coord(0, r2));
+            Sym.AddWire(Cathode, new Coord(0, -r1));
+
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r1);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r2);
+            Sym.AddCircle(EdgeType.Black, new Coord(0, -r1), 1);
+        }
+    }
 }
 
