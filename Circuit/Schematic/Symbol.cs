@@ -110,6 +110,8 @@ namespace Circuit
             } 
         }
         public Coord Size { get { return UpperBound - LowerBound; } }
+        public int Width { get { return Size.x; } }
+        public int Height { get { return Size.y; } }
         
         public override void Move(Coord dx)
         {

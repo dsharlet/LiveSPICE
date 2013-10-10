@@ -77,7 +77,7 @@ namespace Circuit
             Sym.AddTerminal(Cathode, new Coord(-10, -20));
             Sym.AddTerminal(Wiper, new Coord(10, 0));
 
-            Sym.InBounds(new Coord(-30, -20), new Coord(10, 20));
+            Sym.InBounds(new Coord(-20, -20), new Coord(10, 20));
             
             Sym.AddWire(Anode, new Coord(-10, 16));
             Sym.AddWire(Cathode, new Coord(-10, -16));

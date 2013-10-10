@@ -24,81 +24,55 @@ namespace LiveSPICE
     public class Symbol : Element
     {       
         static Symbol() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Symbol), new FrameworkPropertyMetadata(typeof(Symbol))); }
-        
-        protected bool showText = true;
-        public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); } }
-        
-        protected Matrix transform;
-        protected Point origin;
-        protected double scale = 1.0;
 
-        public Vector Size { get { return new Vector(GetSymbol().Size.x, GetSymbol().Size.y); } }
-
+        private bool showText = true;
+        public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual();  } }
+    
         protected Circuit.SymbolLayout layout = new Circuit.SymbolLayout();
-        public Circuit.Component Component { get { return GetSymbol().Component; } }
 
         public Symbol(Circuit.Symbol S) : base(S)
         {
             Component.LayoutSymbol(layout);
         }
-
         public Symbol(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
 
         public Circuit.Symbol GetSymbol() { return (Circuit.Symbol)element; }
+        public Circuit.Component Component { get { return GetSymbol().Component; } }
+        public Vector Size { get { return new Vector(GetSymbol().Size.x, GetSymbol().Size.y); } }
 
         protected override Size MeasureOverride(Size constraint)
         {
-            Point b1 = ToPoint(GetSymbol().LowerBound - GetSymbol().Position);
-            Point b2 = ToPoint(GetSymbol().UpperBound - GetSymbol().Position);
-            double width = Math.Abs(b2.X - b1.X);
-            double height = Math.Abs(b2.Y - b1.Y);
-
+            Circuit.Symbol sym = GetSymbol();
+            Point b1 = ToPoint(sym.LowerBound - sym.Position);
+            Point b2 = ToPoint(sym.UpperBound - sym.Position);
             return new Size(
-                Math.Min(width, constraint.Width),
-                Math.Min(height, constraint.Height));
+                Math.Min(Math.Abs(b2.X - b1.X), constraint.Width),
+                Math.Min(Math.Abs(b2.Y - b1.Y), constraint.Height));
         }
-
-        protected override Size ArrangeOverride(Size arrangeBounds)
-        {
-            Point b1 = ToPoint(GetSymbol().LowerBound - GetSymbol().Position);
-            Point b2 = ToPoint(GetSymbol().UpperBound - GetSymbol().Position);
-            double width = Math.Abs(b2.X - b1.X);
-            double height = Math.Abs(b2.Y - b1.Y);
-
-            Size size = base.ArrangeOverride(arrangeBounds);
-            scale = Math.Min(Math.Min(size.Width / width, size.Height / height), 1.0);
-            origin = new Point((b1.X + b2.X) / 2, (b1.Y + b2.Y) / 2);
-
-            return size;
-        }
-
-        protected Point LayoutToLocal(Circuit.Point x) { return transform.Transform(new Point(x.x, x.y)); }
-        protected Point SymbolToLocal(Circuit.Point x) 
-        { 
-            return new Point(
-                x.x * scale - origin.X + ActualWidth / 2,
-                x.y * scale - origin.Y + ActualHeight / 2);
-        }
-
+        
         protected DrawingContext dc;
         protected override void OnRender(DrawingContext drawingContext)
         {
+            Circuit.Symbol sym = GetSymbol();
+            layout = new Circuit.SymbolLayout();
+            sym.Component.LayoutSymbol(layout);
+
             dc = drawingContext;
             dc.PushGuidelineSet(Symbol.Guidelines);
 
-            transform.SetIdentity();
-            transform.Scale(scale, -scale);
-            transform.Translate(-origin.X, origin.Y);
-            if (((Circuit.Symbol)element).Flip)
-                transform.Scale(1, -1);
-            transform.Rotate(((Circuit.Symbol)element).Rotation * -90);
+            Circuit.Coord center = (layout.LowerBound + layout.UpperBound) / 2;
+            double scale = Math.Min(Math.Min(ActualWidth / sym.Width, ActualHeight / sym.Height), 1.0);
+
+            Matrix transform = new Matrix();
+            transform.Translate(-center.x, -center.y);
+            transform.Scale(scale, sym.Flip ? scale : -scale);
+            transform.Rotate(sym.Rotation * -90);
             transform.Translate(ActualWidth / 2, ActualHeight / 2);
             
             DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
 
-            Circuit.Symbol sym = GetSymbol();
-            Point b1 = SymbolToLocal(sym.LowerBound - sym.Position);
-            Point b2 = SymbolToLocal(sym.UpperBound - sym.Position);
+            Point b1 = T(transform, layout.LowerBound);
+            Point b2 = T(transform, layout.UpperBound);
 
             Rect bounds = new Rect(b1, b2);
             if (Selected)
@@ -124,10 +98,7 @@ namespace LiveSPICE
         public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
 
-        private static Point T(Matrix Tx, Circuit.Point x)
-        {
-            return Tx.Transform(new Point(x.x, x.y));
-        }
+        private static Point T(Matrix Tx, Circuit.Point x) { return Tx.Transform(new Point(x.x, x.y)); }
 
         public static void DrawLayout(
             Circuit.SymbolLayout Layout,

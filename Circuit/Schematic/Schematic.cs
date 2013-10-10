@@ -117,6 +117,8 @@ namespace Circuit
 
         protected void OnElementAdded(object sender, ElementEventArgs e)
         {
+            if (e.Element is Symbol)
+                Circuit.Components.Add(((Symbol)e.Element).Component);
             ConnectTerminals(e.Element);
 
             e.Element.LayoutChanged += OnLayoutChanged;
@@ -128,6 +130,8 @@ namespace Circuit
 
             foreach (Terminal i in e.Element.Terminals)
                 i.ConnectTo(null);
+            if (e.Element is Symbol)
+                Circuit.Components.Remove(((Symbol)e.Element).Component);
             RemoveOrphanNodes();
         }
 

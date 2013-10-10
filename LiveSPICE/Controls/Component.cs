@@ -25,17 +25,15 @@ namespace LiveSPICE
     {
         static Component() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Component), new FrameworkPropertyMetadata(typeof(Component))); }
 
-        protected bool showText = true;
+        private bool showText = true;
         public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); } }
         
-        protected Circuit.Component component;
         protected Circuit.SymbolLayout layout;
 
         public Component(Circuit.Component C)
         {
-            component = C;
             layout = new Circuit.SymbolLayout();
-            component.LayoutSymbol(layout);
+            C.LayoutSymbol(layout);
         }
         
         protected override Size MeasureOverride(Size constraint)
@@ -55,12 +53,7 @@ namespace LiveSPICE
             transform.Scale(scale, -scale);
             transform.Translate(ActualWidth / 2, ActualHeight / 2);
 
-            Symbol.DrawLayout(layout, drawingContext, transform, null);
-        }
-
-        private static Point ToPoint(Circuit.Coord x)
-        {
-            return new Point(x.x, x.y);
+            Symbol.DrawLayout(layout, drawingContext, transform, ShowText ? FontFamily : null, FontWeight, FontSize);
         }
     }
 }
