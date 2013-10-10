@@ -247,6 +247,8 @@ namespace LiveSPICE
                 components.Children.Add(e);
                 Canvas.SetLeft(e, i.LowerBound.x);
                 Canvas.SetTop(e, i.LowerBound.y);
+
+                i.LayoutChanged += OnLayoutChanged;
             }
         }
 
@@ -254,6 +256,8 @@ namespace LiveSPICE
         {
             foreach (Circuit.Element i in Elements)
             {
+                i.LayoutChanged -= OnLayoutChanged;
+
                 schematic.Elements.Remove(i);
                 components.Children.Remove((Element)i.Tag);
             }
@@ -389,6 +393,13 @@ namespace LiveSPICE
             Edits.EndEditGroup();
         }
 
+        protected void OnLayoutChanged(object sender, EventArgs e)
+        {
+            Circuit.Element E = (Circuit.Element)sender;
+
+            
+        }
+
         // Circuit.
         protected List<Circuit.Node> nodes = new List<Circuit.Node>();
         
@@ -516,24 +527,18 @@ namespace LiveSPICE
             e.Handled = true;
         }
 
-        private static double LengthSquared(Circuit.Coord x) { return x * x; }
-        private static double Length(Circuit.Coord x) { return Math.Sqrt(x * x); }
+        private static double Distance(Circuit.Coord x1, Circuit.Coord x2) 
+        {
+            Circuit.Coord dx = x2 - x1;
+            return Math.Sqrt(dx * dx); 
+        }
 
         private static double Distance(Circuit.Coord x1, Circuit.Coord x2, Circuit.Coord p)
         {
-            // http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
-            // Return minimum distance between line segment vw and point p
-            double l2 = LengthSquared(x1 - x2);  // i.e. |w-v|^2 -  avoid a sqrt
-            if (l2 == 0.0)
-                return Length(p - x1);   // v == w case
-
-            // Consider the line extending the segment, parameterized as v + t (w - v).
-            // We find projection of point p onto the line. 
-            // It falls where t = [(p-v) . (w-v)] / |w-v|^2
-            double t = ((p - x1) * (x2 - x1)) / l2;
-            if (t < 0.0) return Length(p - x1);       // Beyond the 'v' end of the segment
-            else if (t > 1.0) return Length(p - x2);  // Beyond the 'w' end of the segment
-            return (new Vector(p.x - x1.x, p.y - x1.y) + t * new Vector(x2.x - x1.x, x2.y - x1.y)).Length;
+            // TODO: This is wrong.
+            return Math.Min(
+                Math.Min(Distance(p, x1), Distance(p, x2)),
+                x1.y == x2.y ? Math.Abs(p.y - x1.y) : Math.Abs(p.x - x1.x));
         }
 
         // INotifyPropertyChanged interface.

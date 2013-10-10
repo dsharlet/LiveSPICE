@@ -124,10 +124,16 @@ namespace Circuit
             }
         }
 
+        private static Element IT = null;
+
         protected void OnElementAdded(object sender, ElementEventArgs e)
         {
             if (e.Element is Symbol)
+            {
                 Circuit.Components.Add(((Symbol)e.Element).Component);
+                if (((Symbol)e.Element).Component.Name == "V1")
+                    IT = (Symbol)e.Element;
+            }
             ConnectTerminals(e.Element);
 
             e.Element.LayoutChanged += OnLayoutChanged;
@@ -182,14 +188,12 @@ namespace Circuit
         public static Schematic Deserialize(XElement X)
         {
             int width, height;
-
             try { width = int.Parse(X.Attribute("Width").Value); }
             catch (Exception) { width = 1600;  }
             try { height = int.Parse(X.Attribute("Height").Value); }
             catch (Exception) { height = 1600;  }
 
             Schematic s = new Schematic(width, height);
-
             s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
 
             return s;

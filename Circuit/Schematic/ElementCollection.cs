@@ -52,9 +52,8 @@ namespace Circuit
         }
         public void AddRange(IEnumerable<Element> items)
         {
-            x.AddRange(items);
             foreach (Element i in items)
-                OnItemAdded(new ElementEventArgs(i));
+                Add(i);
         }
         public void Clear() 
         {

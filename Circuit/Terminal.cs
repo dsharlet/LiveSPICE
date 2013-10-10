@@ -46,10 +46,10 @@ namespace Circuit
             if (connectedTo != null)
                 connectedTo.Connect(this);
 
-            connectionChanged.On(this, new EventArgs());
+            foreach (EventHandler i in connectionChanged) i(this, null);
         }
 
-        private EventHandlerList connectionChanged = new EventHandlerList();
+        private List<EventHandler> connectionChanged = new List<EventHandler>();
         public event EventHandler ConnectionChanged
         {
             add { connectionChanged.Add(value); }

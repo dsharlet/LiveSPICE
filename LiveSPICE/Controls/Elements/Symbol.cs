@@ -68,17 +68,14 @@ namespace LiveSPICE
             transform.Scale(scale, sym.Flip ? scale : -scale);
             transform.Rotate(sym.Rotation * -90);
             transform.Translate(ActualWidth / 2, ActualHeight / 2);
-            
-            DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
 
-            Point b1 = T(transform, layout.LowerBound);
-            Point b2 = T(transform, layout.UpperBound);
-
-            Rect bounds = new Rect(b1, b2);
+            Rect bounds = new Rect(T(transform, layout.LowerBound), T(transform, layout.UpperBound));
             if (Selected)
                 dc.DrawRectangle(null, SelectedPen, bounds);
             else if (Highlighted)
                 dc.DrawRectangle(null, HighlightPen, bounds);
+
+            DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
 
             dc.Pop();
             dc = null;

@@ -9,8 +9,8 @@ namespace Circuit
 {
     public abstract class Element
     {
-        private EventHandlerList layoutChanged = new EventHandlerList();
-        protected void OnLayoutChanged() { layoutChanged.On(this, null); }
+        private List<EventHandler> layoutChanged = new List<EventHandler>();
+        protected void OnLayoutChanged() { foreach (EventHandler i in layoutChanged) i(this, null); }
 
         /// <summary>
         /// Event for when the layout of this node changes.
