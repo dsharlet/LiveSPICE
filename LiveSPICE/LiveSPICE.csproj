@@ -95,7 +95,7 @@
     <Compile Include="Controls\Simulation.xaml.cs">
       <DependentUpon>Simulation.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Symbol.cs">
+    <Compile Include="Controls\Elements\Symbol.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Windows\ClosingDialog.xaml.cs">
@@ -109,7 +109,7 @@
     <Compile Include="Controls\Schematic\SchematicEdits.cs" />
     <Compile Include="Controls\Schematic\SelectionTool.cs" />
     <Compile Include="Controls\Schematic\SymbolTool.cs" />
-    <Compile Include="Controls\Element.cs" />
+    <Compile Include="Controls\Elements\Element.cs" />
     <Compile Include="Controls\SchematicViewer.xaml.cs">
       <DependentUpon>SchematicViewer.xaml</DependentUpon>
     </Compile>

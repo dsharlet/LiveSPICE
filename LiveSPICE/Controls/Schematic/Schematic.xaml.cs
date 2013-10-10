@@ -59,7 +59,10 @@ namespace LiveSPICE
             edits = new EditStack();
             edits.Dirtied += OnDirtied;
 
-            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(200, 200) });
+            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(100, 200), Rotation = 0 });
+            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(200, 200), Rotation = 1 });
+            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(300, 200), Rotation = 2 });
+            Add(new Circuit.Symbol(new Circuit.Resistor()) { Position = new Circuit.Coord(400, 200), Rotation = 3 });
         }
 
         // Schematic tools.
@@ -229,7 +232,7 @@ namespace LiveSPICE
         private static Circuit.Coord ToCoord(Point x) { return new Circuit.Coord((int)Math.Round(x.X), (int)Math.Round(x.Y)); }
 
         public static Point LowerBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.LowerBound.x), Of.Min(i => i.LowerBound.y)); }
-        public static Point UpperBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.UpperBound.x), Of.Min(i => i.UpperBound.y)); }
+        public static Point UpperBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Max(i => i.UpperBound.x), Of.Max(i => i.UpperBound.y)); }
         public Point LowerBound() { return LowerBound(Elements); }
         public Point UpperBound() { return UpperBound(Elements); }
 

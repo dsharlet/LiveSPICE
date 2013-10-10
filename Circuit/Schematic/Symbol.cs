@@ -53,7 +53,18 @@ namespace Circuit
             } 
         }
 
-        public Coord Size { get { return layout.UpperBound - layout.LowerBound; } }
+        // Map a local coordinate to a global coordinate.
+        protected Coord MapToGlobal(Coord Local)
+        {
+            int x = Local.x;
+            int y = flip ? -Local.y : Local.y;
+
+            int cos = Cos(rotation);
+            int sin = Sin(rotation);
+            return new Coord(
+                x * cos + y * sin + position.x,
+                y * cos - x * sin + position.y);
+        }
 
         public Symbol(Component Component) 
         { 
@@ -64,32 +75,42 @@ namespace Circuit
             component.LayoutSymbol(layout);
         }
 
-        // Map a local coordinate to a global coordinate.
-        public Coord MapToGlobal(Coord Local)
-        {
-            int x = Local.x;
-            int y = flip ? -Local.y : Local.y;
-
-            int cos = Cos(rotation);
-            int sin = Cos(rotation - 1);
-            return new Coord(
-                x * cos + y * sin + position.x,
-                y * cos - x * sin + position.y);
-        }
-        
-        // Map a global coordinate to the coordinates of this symbol.
-        public Coord MapToLocal(Coord Global)
-        {
-            throw new NotImplementedException("MapToLocal");
-        }
-
         // Element interface.
         public override IEnumerable<Terminal> Terminals { get { return component.Terminals; } }
         public override Coord MapTerminal(Terminal T) { return MapToGlobal(layout.MapTerminal(T)); }
-        
-        public override Coord LowerBound { get { return position + layout.LowerBound; } }
-        public override Coord UpperBound { get { return position + layout.UpperBound; } }
 
+        protected Coord[] Corners()
+        {
+            Coord lb = layout.LowerBound;
+            Coord ub = layout.UpperBound;
+            Coord[] x = 
+            {
+                MapToGlobal(new Coord(lb.x, lb.y)),
+                MapToGlobal(new Coord(ub.x, lb.y)),
+                MapToGlobal(new Coord(lb.x, ub.y)),
+                MapToGlobal(new Coord(ub.x, ub.y)),
+            };
+            return x;
+        }
+
+        public override Coord LowerBound 
+        { 
+            get 
+            {
+                Coord[] corners = Corners();
+                return new Coord(corners.Min(i => i.x), corners.Min(i => i.y)); 
+            } 
+        }
+        public override Coord UpperBound 
+        { 
+            get 
+            {
+                Coord[] corners = Corners();
+                return new Coord(corners.Max(i => i.x), corners.Max(i => i.y));
+            } 
+        }
+        public Coord Size { get { return UpperBound - LowerBound; } }
+        
         public override void Move(Coord dx)
         {
             position += dx;
@@ -98,23 +119,15 @@ namespace Circuit
 
         public override void RotateAround(int dt, Point at)
         {
-            Point size = Size;
-            Point x = (Point)position + size / 2;
-            x = RotateAround(x, dt, at);
-
-            position = (Coord)Point.Round(x - size / 2);
+            position = (Coord)Point.Round(RotateAround(position, dt, at));
             rotation += dt;
             OnLayoutChanged();
         }
 
         public override void FlipOver(double y)
         {
-            Point size = Size;
-            Point at = (Point)position + size / 2;
-            at.y += 2 * (y - at.y);
-
+            position.y += (int)Math.Round(2 * (y - position.y));
             flip = !flip;
-            position = (Coord)Point.Round(at - size / 2);
             OnLayoutChanged();
         }
 
@@ -135,6 +148,7 @@ namespace Circuit
             }
             return X;
         }
+
         protected override void OnDeserialize(XElement X)
         {
             Type T = Type.GetType(X.Attribute("Type").Value);
