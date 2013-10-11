@@ -33,9 +33,16 @@ namespace Circuit
         /// </summary>
         public int Width { get { return width; } }
         public int Height { get { return height; } }
-        
-        public Schematic(int Width, int Height)
+
+        protected ILog log = new ConsoleLog();
+        /// <summary>
+        /// Get or set the log for messages associated with this schematic.
+        /// </summary>
+        public ILog Log { get { return log; } set { log = value; } }
+
+        public Schematic(int Width, int Height, ILog Log)
         {
+            log = Log;
             width = Width;
             height = Height;
 
@@ -44,9 +51,11 @@ namespace Circuit
             elements.ItemRemoved += OnElementRemoved;
         }
 
-        public Schematic() : this(1600, 1600) 
+        public Schematic(ILog Log) : this(1600, 1600, Log) 
         {
         }
+
+        public Circuit Build() { return Circuit; }
 
         /// <summary>
         /// Get the terminals located at x.
@@ -57,86 +66,16 @@ namespace Circuit
         {
             return elements.SelectMany(i => i.Terminals.Where(j => i.MapTerminal(j) == x));
         }
-
-        /// <summary>
-        /// Build a node at the coordinate x.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        //public Node BuildNodeAt(Coord x)
-        //{
-        //    // Find all the terminals at x.
-        //    IEnumerable<Terminal> terminals = elements.SelectMany(i => i.Terminals.Where(j => i.MapTerminal(j) == x)).ToList();
-        //    // If there aren't two terminals to connect here, we don't need a node.
-        //    if (terminals.Count() <= 1)
-        //    {
-        //        foreach (Terminal i in terminals)
-        //            i.ConnectTo(null);
-        //        return null;
-        //    }
-
-        //    // Find all the nodes at the terminals at x.
-        //    IEnumerable<Node> connected = terminals.Select(i => i.ConnectedTo).Distinct();
-        //    // Find or make a non-null node.
-        //    Node n = connected.FirstOrDefault(i => i != null);
-        //    if (n == null)
-        //        n = new Node();
-
-        //    // Connect all the terminals at x to n.
-        //    foreach (Terminal i in terminals)
-        //        i.ConnectTo(n);
-
-        //    return n;
-        //}
-
-        protected void RebuildNodes()
-        {
-            foreach (Element i in Elements)
-                foreach (Terminal j in i.Terminals)
-                    j.ConnectTo(null);
-
-            // Build a list of wires that are connected to other wires in the circuit.
-            List<List<Wire>> nodes = new List<List<Wire>>();
-            foreach (Wire i in Elements.OfType<Wire>())
-            {
-                List<Wire> n = nodes.FirstOrDefault(j => j.Any(k => k.IsConnectedTo(i)));
-                if (n != null)
-                    n.Add(i);
-                else
-                    nodes.Add(new List<Wire> { i });
-            }
-
-            Circuit.Nodes.Clear();
-
-            foreach (List<Wire> i in nodes)
-            {
-                Node n = new Node();
-                Circuit.Nodes.Add(n);
-
-                foreach (Element j in Elements)
-                {
-                    foreach (Terminal k in j.Terminals)
-                    {
-                        if (i.Any(l => l != j && Wire.PointOnSegment(j.MapTerminal(k), l.A, l.B)))
-                            k.ConnectTo(n);
-                    }
-                }
-            }
-        }
-
-        private static Element IT = null;
-
+        
         protected void OnElementAdded(object sender, ElementEventArgs e)
         {
             if (e.Element is Symbol)
-            {
                 Circuit.Components.Add(((Symbol)e.Element).Component);
-                if (((Symbol)e.Element).Component.Name == "V1")
-                    IT = (Symbol)e.Element;
-            }
-            ConnectTerminals(e.Element);
+            UpdateTerminals(e.Element);
 
             e.Element.LayoutChanged += OnLayoutChanged;
+
+            Log.WriteLine(MessageType.Info, "Added '" + e.Element.ToString() + "'");
         }
 
         protected void OnElementRemoved(object sender, ElementEventArgs e)
@@ -144,32 +83,45 @@ namespace Circuit
             e.Element.LayoutChanged -= OnLayoutChanged;
 
             foreach (Terminal i in e.Element.Terminals)
+            {
+                Node n = i.ConnectedTo;
                 i.ConnectTo(null);
+
+                // If the node that this terminal was connected to has no more connections, remove it from the circuit.
+                if (n != null && n.Connected.Empty())
+                {
+                    Log.WriteLine(MessageType.Info, "Removed node '" + n.ToString() + "'");
+                    circuit.Nodes.Remove(n);
+                }
+            }
             if (e.Element is Symbol)
                 Circuit.Components.Remove(((Symbol)e.Element).Component);
-            RemoveOrphanNodes();
-        }
 
-        // Find and remove orphan nodes (not connected to anything) in the circuit.
-        protected void RemoveOrphanNodes()
-        {
-            foreach (Node i in circuit.Nodes.Where(i => i.Connected.Count() <= 1).ToArray())
-            {
-                foreach (Terminal j in i.Connected)
-                    j.ConnectTo(null);
-                circuit.Nodes.Remove(i);
-            }
+            Log.WriteLine(MessageType.Info, "Removed '" + e.Element.ToString() + "'");
         }
 
         // When an element moves, we will need to update its connections.
         protected void OnLayoutChanged(object sender, EventArgs e)
         {
-            ConnectTerminals((Element)sender);
+            UpdateTerminals((Element)sender);
         }
 
-        protected void ConnectTerminals(Element e)
+        protected void UpdateTerminals(Element e)
         {
-            RebuildNodes();
+        }
+
+        
+        public void Save(string FileName)
+        {
+            XDocument doc = new XDocument();
+            doc.Add(Serialize());
+            doc.Save(FileName);
+        }
+
+        public static Schematic Load(string FileName, ILog Log)
+        {
+            XDocument doc = XDocument.Load(FileName);
+            return Schematic.Deserialize(doc.Root, Log);
         }
 
         public XElement Serialize()
@@ -185,7 +137,7 @@ namespace Circuit
             return x;
         }
 
-        public static Schematic Deserialize(XElement X)
+        public static Schematic Deserialize(XElement X, ILog Log)
         {
             int width, height;
             try { width = int.Parse(X.Attribute("Width").Value); }
@@ -193,7 +145,7 @@ namespace Circuit
             try { height = int.Parse(X.Attribute("Height").Value); }
             catch (Exception) { height = 1600;  }
 
-            Schematic s = new Schematic(width, height);
+            Schematic s = new Schematic(width, height, Log);
             s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
 
             return s;

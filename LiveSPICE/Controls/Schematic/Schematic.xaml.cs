@@ -33,7 +33,7 @@ namespace LiveSPICE
 
         public int Grid = 10;
 
-        public Schematic() : this(new Circuit.Schematic()) { }
+        public Schematic() : this(new Circuit.Schematic(Log.Instance)) { }
 
         public Schematic(Circuit.Schematic S)
         {
@@ -138,9 +138,7 @@ namespace LiveSPICE
 
         private bool Save(string FileName)
         {
-            XDocument doc = new XDocument();
-            doc.Add(schematic.Serialize());
-            doc.Save(FileName);
+            schematic.Save(FileName);
 
             filename = FileName;
             NotifyChanged("FileName");
@@ -173,8 +171,7 @@ namespace LiveSPICE
 
         public static Schematic Open(string FileName)
         {
-            XDocument doc = XDocument.Load(FileName);
-            return new Schematic(Circuit.Schematic.Deserialize(doc.Root));
+            return new Schematic(Circuit.Schematic.Load(FileName, Log.Instance));
         }
 
         // Edit.
@@ -401,12 +398,7 @@ namespace LiveSPICE
         }
 
         // Circuit.
-        protected List<Circuit.Node> nodes = new List<Circuit.Node>();
-        
-        public Circuit.Circuit Build(ILog Output)
-        {
-            return schematic.Circuit;
-        }
+        public Circuit.Circuit Build() { return schematic.Build(); }
         
         // Selection.
         public IEnumerable<Circuit.Element> Selected { get { return Elements.Where(i => ((Element)i.Tag).Selected); } }

@@ -15,24 +15,10 @@ using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
-    public enum LogType
-    {
-        Error,
-        Warning,
-        Info,
-    };
-
-    public interface ILog
-    {
-        void Begin();
-        void Write(LogType Type, string Message);
-        bool End();
-    }
-
     /// <summary>
     /// Interaction logic for Output.xaml
     /// </summary>
-    public partial class Log : UserControl, ILog
+    public partial class Log : UserControl, Circuit.ILog
     {
         private static Log single;
         public static Log Instance { get { return single; } }
@@ -51,13 +37,17 @@ namespace LiveSPICE
             text.Text = "";
         }
 
-        private bool error;
-        public void Begin() { Clear(); error = false; }
-        public void Write(LogType Type, string Message)
+        public void WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
         {
-            text.AppendText(Type.ToString() + ": " + Message + "\r\n");
-            error = error || Type == LogType.Error;
+            if (Type != Circuit.MessageType.Info)
+                text.AppendText("[" + Type.ToString() + "]");
+            text.AppendText(Message + "\r\n");
+            text.ScrollToEnd();
         }
-        public bool End() { return !error; }
+
+        void Circuit.ILog.WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
+        {
+            WriteLine(Type, Message, Format);
+        }
     }
 }

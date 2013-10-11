@@ -6,8 +6,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
-        <ToolBar DockPanel.Dock="Top">
-            
+        <ToolBar Height="28" DockPanel.Dock="Top">
+            <Button Content="Clear" />
         </ToolBar>
         <TextBox x:Name="text"
                      VerticalAlignment="Stretch"

@@ -106,14 +106,14 @@ namespace LiveSPICE
 
             try
             {
-                Circuit.Circuit circuit = active.Build(log);
+                Circuit.Circuit circuit = active.Build();
 
                 simulation.Run(circuit, audio.SampleRate);
             }
             catch (Exception ex)
             {
-                log.Write(LogType.Error, "Error building circuit for simulation: " + ex.GetType().ToString());
-                log.Write(LogType.Error, ex.ToString());
+                log.WriteLine(Circuit.MessageType.Error, "Error building circuit for simulation: " + ex.GetType().ToString());
+                log.WriteLine(Circuit.MessageType.Error, ex.ToString());
             }
             audio.Run(ProcessSamples);
         }

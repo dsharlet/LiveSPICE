@@ -47,18 +47,15 @@ namespace CircuitTests
 
         public static void Run(Circuit.Circuit Circuit, Func<double, double> VS)
         {
-            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-            System.Console.WriteLine(Circuit.Name);
-            timer.Start();
-            Simulation S = new Simulation(Circuit, new Quantity(48000, Units.Hz), 8, 8);
-            System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
+            Simulation S = new Simulation(Circuit, new Quantity(48000, Units.Hz), 8, 8, new ConsoleLog());
+            System.Console.WriteLine("");
 
             RunTest(S, VS, 48000, Circuit.Name);
         }
 
         public static void Run(string FileName, Func<double, double> VS)
         {
-            Run(Schematic.Load(FileName).Circuit, VS);
+            Run(Schematic.Load(FileName, new ConsoleLog()).Circuit, VS);
         }
 
         public static void RunTest(Simulation S, Func<double, double> VS, int N, string Name)

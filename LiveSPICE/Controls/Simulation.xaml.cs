@@ -58,7 +58,7 @@ namespace LiveSPICE
 
         public void Run(Circuit.Circuit Circuit, Circuit.Quantity Rate) 
         {
-            simulation = new Circuit.Simulation(Circuit, Rate, Oversample, Iterations);
+            simulation = new Circuit.Simulation(Circuit, Rate, Oversample, Iterations, Log.Instance);
         }
         
         public void Process(double[] Samples, int Rate, Oscilloscope Scope)
@@ -74,7 +74,8 @@ namespace LiveSPICE
                 }
                 catch (Exception e)
                 {
-                    System.Diagnostics.Debug.WriteLine(e.ToString());
+                    Log.Instance.WriteLine(Circuit.MessageType.Error, e.ToString());
+                    simulation = null;
                 }
             }
         }

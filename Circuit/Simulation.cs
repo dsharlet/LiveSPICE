@@ -54,6 +54,12 @@ namespace Circuit
         /// </summary>
         public IEnumerable<Expression> Nodes { get { return nodes; } }
 
+        private ILog log = new ConsoleLog();
+        /// <summary>
+        /// Get or set the log associated with this simulation.
+        /// </summary>
+        public ILog Log { get { return log; } set { log = value; } }
+
         // Simulation timestep.
         private Expression h;
 
@@ -120,14 +126,15 @@ namespace Circuit
 
             return ex;
         }
-
+        
         /// <summary>
         /// Create a simulation for the given circuit.
         /// </summary>
         /// <param name="C">Circuit to simulate.</param>
         /// <param name="T">Sampling period.</param>
-        public Simulation(Circuit Circuit, Quantity SampleRate, int Oversample, int Iterations)
+        public Simulation(Circuit Circuit, Quantity SampleRate, int Oversample, int Iterations, ILog Log)
         {
+            log = Log;
             oversample = Oversample;
             iterations = Iterations;
             _T = 1.0 / (double)SampleRate;
@@ -136,16 +143,29 @@ namespace Circuit
             // Length of one timestep in the oversampled simulation.
             h = 1 / ((Expression)SampleRate * Oversample);
 
+            LogTime(MessageType.Info, "Building simulation for circuit '" + Circuit.Name + "'", true);
+            log.WriteLine(MessageType.Info, "\tSample Rate: " + SampleRate.ToString());
+            log.WriteLine(MessageType.Info, "\tOversample: " + Oversample);
+            log.WriteLine(MessageType.Info, "\tIterations: " + Iterations);
+
+            LogTime(MessageType.Info, "Performing MNA on circuit...");
+
             // Analyze the circuit to get the MNA system and unknowns.
             List<Expression> y = new List<Expression>();
             List<Equal> mna = new List<Equal>();
             Circuit.Analyze(mna, y);
+            LogTime(MessageType.Info, "Done.");
+            LogExpressions("System:", mna);
+            LogExpressions("Unknowns:", y);
+
+            LogTime(MessageType.Info, "Solving system...");
 
             // Find trivial solutions for y and substitute them into the system.
             trivial = mna.Solve(y);
             trivial.RemoveAll(i => i.Right.IsFunctionOf(y));
             mna = mna.Evaluate(trivial).OfType<Equal>().ToList();
             y.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
+            LogExpressions("Trivial solutions:", trivial);
 
 
             // Separate the non-linear equations of the MNA system to a separate system.
@@ -164,6 +184,7 @@ namespace Circuit
                 // Solve the resulting system of differential equations.
                 .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
+            LogExpressions("Differential solutions:", trivial);
             
             // After solving for the differential unknowns, divide them by h so we don't have to do it during simulation.
             // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
@@ -178,6 +199,7 @@ namespace Circuit
             linear = mna.Solve(y.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
             y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
             linear.RemoveAll(i => i.Right.IsFunctionOf(y));
+            LogExpressions("Linear solutions:", linear);
 
             // The remaining non-linear system will be solved via Newton's method.
             nonlinear = mna
@@ -193,10 +215,16 @@ namespace Circuit
             foreach (Arrow i in f0)
                 globals[i.Left] = new GlobalExpr<double>(0.0, i.Left.ToString());
 
+            LogExpressions("Non-linear system:", nonlinear);
+            LogExpressions("Unknowns:", unknowns);
+
+            LogTime(MessageType.Info, "System solved.");
+            
             // Add solutions for the voltage across all the components.
             components = Circuit.Components.OfType<TwoTerminal>()
                 .Select(i => Arrow.New(Call.New(ExprFunction.New(i.Name, t), t), i.V))
                 .ToList();
+            LogExpressions("Component voltages:", components);
         }
         
         /// <summary>
@@ -204,6 +232,8 @@ namespace Circuit
         /// </summary>
         public void Reset()
         {
+            Log.WriteLine(MessageType.Warning, "Reset simulation at " + t.ToString() + " s.");
+
             _t = 0.0;
             foreach (GlobalExpr<double> i in globals.Values)
                 i.Value = 0.0;
@@ -277,8 +307,17 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
+            LogTime(MessageType.Info, "Compiling simulation...", true);
+            LogExpressions("Input:", Input);
+            LogExpressions("Output:", Output);
+            LogExpressions("Parameters:", Parameters);
+
+            LogTime(MessageType.Info, "Defining lambda...");
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
+            LogTime(MessageType.Info, "Compiling lambda...");
             d = lambda.Compile();
+            LogTime(MessageType.Info, "Done.");
+
             return compiled[hash] = d;
         }
         
@@ -633,7 +672,27 @@ namespace Circuit
             Target.Add(LinqExpression.Assign(p, Init));
             return p;
         }
-        
+
+        // Logging helpers.
+        private void LogExpressions(string Title, IEnumerable<Expression> Expressions)
+        {
+            log.WriteLine(MessageType.Info, Title);
+            foreach (Expression i in Expressions)
+                log.WriteLine(MessageType.Info, "\t" + i.ToString());
+        }
+
+        private System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+        private void LogTime(MessageType Type, string Message, bool Reset)
+        {
+            if (Reset)
+            {
+                watch.Reset();
+                watch.Start();
+            }
+            log.WriteLine(Type, "[" + watch.ElapsedMilliseconds + " ms] " + Message);
+        }
+        private void LogTime(MessageType Type, string Message) { LogTime(Type, Message, false); }
+
         // Shorthand for df/dx.
         private static Expression D(Expression f, Expression x) { return Call.D(f, x); }
 
