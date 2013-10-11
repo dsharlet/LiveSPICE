@@ -83,25 +83,6 @@ namespace CircuitTests
                 points.CopyTo(Tpoints, 0);
                 T.TransformPoints(Tpoints);
                 G.DrawLines(pen, Tpoints);
-                return;
-                switch (pointStyle)
-                {
-                    case CircuitTests.PointStyle.Square:
-                        foreach (PointF i in points)
-                            G.FillRectangle(brush, i.X - dx.X, i.Y - dx.Y, dx.X * 2.0f, dx.Y * 2.0f);
-                        break;
-                    case CircuitTests.PointStyle.Circle:
-                        foreach (PointF i in points)
-                            G.FillEllipse(brush, i.X - dx.X, i.Y - dx.Y, dx.X * 2.0f, dx.Y * 2.0f);
-                        break;
-                    case CircuitTests.PointStyle.Cross:
-                        foreach (PointF i in points)
-                        {
-                            G.DrawLine(pen, i.X - dx.X, i.Y - dx.Y, i.X + dx.X, i.Y + dx.Y);
-                            G.DrawLine(pen, i.X + dx.X, i.Y - dx.Y, i.X - dx.X, i.Y + dx.Y);
-                        }
-                        break;
-                }
             }
         }
 
