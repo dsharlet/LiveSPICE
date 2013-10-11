@@ -67,7 +67,8 @@ namespace Circuit
                 if (t.i == null)
                     return null;
 
-                sum.Add(t.i);
+                if (!t.i.IsZero())
+                    sum.Add(t.i);
             }
             return Add.New(sum);
         }
