@@ -143,10 +143,11 @@ namespace Circuit
             // Length of one timestep in the oversampled simulation.
             h = 1 / ((Expression)SampleRate * Oversample);
 
+            log.WriteLine(MessageType.Info, "--------");
             LogTime(MessageType.Info, "Building simulation for circuit '" + Circuit.Name + "'", true);
-            log.WriteLine(MessageType.Info, "\tSample Rate: " + SampleRate.ToString());
-            log.WriteLine(MessageType.Info, "\tOversample: " + Oversample);
-            log.WriteLine(MessageType.Info, "\tIterations: " + Iterations);
+            log.WriteLine(MessageType.Info, "  Sample Rate: " + SampleRate.ToString());
+            log.WriteLine(MessageType.Info, "  Oversample: " + Oversample);
+            log.WriteLine(MessageType.Info, "  Iterations: " + Iterations);
 
             LogTime(MessageType.Info, "Performing MNA on circuit...");
 
@@ -184,7 +185,7 @@ namespace Circuit
                 // Solve the resulting system of differential equations.
                 .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
-            LogExpressions("Differential solutions:", trivial);
+            LogExpressions("Differential solutions:", differential);
             
             // After solving for the differential unknowns, divide them by h so we don't have to do it during simulation.
             // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
@@ -262,17 +263,17 @@ namespace Circuit
 
             _t = (double)processor.DynamicInvoke(parameters.ToArray());
 
-            // Check the last samples for infinity/NaN.
-            foreach (KeyValuePair<Expression, double[]> i in Output)
-            {
-                double v = i.Value[i.Value.Length - 1];
-                if (double.IsInfinity(v) || double.IsNaN(v))
-                {
-                    Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
-                    Reset();
-                    return;
-                }
-            }
+            //// Check the last samples for infinity/NaN.
+            //foreach (KeyValuePair<Expression, double[]> i in Output)
+            //{
+            //    double v = i.Value[i.Value.Length - 1];
+            //    if (double.IsInfinity(v) || double.IsNaN(v))
+            //    {
+            //        Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
+            //        Reset();
+            //        return;
+            //    }
+            //}
         }
 
         /// <summary>
@@ -315,16 +316,16 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            LogTime(MessageType.Info, "Compiling simulation...", true);
-            LogExpressions("Input:", Input);
-            LogExpressions("Output:", Output);
-            LogExpressions("Parameters:", Parameters);
+            //LogTime(MessageType.Info, "Compiling simulation...", true);
+            //LogExpressions("Input:", Input);
+            //LogExpressions("Output:", Output);
+            //LogExpressions("Parameters:", Parameters);
 
-            LogTime(MessageType.Info, "Defining lambda...");
+            //LogTime(MessageType.Info, "Defining lambda...");
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
-            LogTime(MessageType.Info, "Compiling lambda...");
+            //LogTime(MessageType.Info, "Compiling lambda...");
             d = lambda.Compile();
-            LogTime(MessageType.Info, "Done.");
+            //LogTime(MessageType.Info, "Done.");
 
             return compiled[hash] = d;
         }
@@ -686,7 +687,7 @@ namespace Circuit
         {
             log.WriteLine(MessageType.Info, Title);
             foreach (Expression i in Expressions)
-                log.WriteLine(MessageType.Info, "\t" + i.ToString());
+                log.WriteLine(MessageType.Info, "  " + i.ToString());
         }
 
         private System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
