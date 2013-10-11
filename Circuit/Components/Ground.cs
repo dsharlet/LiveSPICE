@@ -14,7 +14,7 @@ namespace Circuit
     [DisplayName("Ground")]
     public class Ground : OneTerminal
     {
-        public Ground() { Name = "GND"; }
+        public Ground() { Name = "GND1"; }
 
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {

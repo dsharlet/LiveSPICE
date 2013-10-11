@@ -15,7 +15,7 @@ namespace Circuit
     [DisplayName("Wire")]
     public class Conductor : TwoTerminal
     {
-        public Conductor() { Name = "C1"; }
+        public Conductor() { Name = "_1"; }
 
         public override void Analyze(IList<Equal> Mna, IList<SyMath.Expression> Unknowns) 
         {
