@@ -12,12 +12,10 @@ namespace Circuit
     /// </summary>
     public class Wire : Element
     {
-        protected Terminal anode = new Terminal(null);
-        public Terminal Anode { get { return anode; } }
-        protected Terminal cathode = new Terminal(null);
-        public Terminal Cathode { get { return cathode; } }
+        protected Conductor conductor = new Conductor();
 
-        public Node Node { get { return anode.ConnectedTo; } set { anode.ConnectTo(value); cathode.ConnectTo(value); } }
+        public Terminal Anode { get { return conductor.Anode; } }
+        public Terminal Cathode { get { return conductor.Cathode; } }
 
         protected Coord a, b;
 
@@ -42,23 +40,27 @@ namespace Circuit
             }
         }                
 
-        public Wire() { }
-        public Wire(Coord A, Coord B)
+        public Wire() 
+        { 
+            conductor = new Conductor();
+            conductor.Tag = this;
+        }
+        public Wire(Coord A, Coord B) : this()
         {
-            if (A == B)
-                throw new ArgumentException("Wire has length 0");
             a = A; 
             b = B;
         }
 
-        public override IEnumerable<Terminal> Terminals { get { yield return anode; yield return cathode; } }
+        public override IEnumerable<Terminal> Terminals { get { return conductor.Terminals; } }
         public override Coord MapTerminal(Terminal T)
         {
-            if (T == anode) return a;
-            else if (T == cathode) return b;
+            if (T == conductor.Anode) return a;
+            else if (T == conductor.Cathode) return b;
             else throw new ArgumentOutOfRangeException("T");
         }
-        
+
+        public bool IsConnectedTo(Coord x) { return PointOnSegment(x, A, B); }
+
         public bool IsConnectedTo(Wire Other)
         {
             return PointOnSegment(Other.A, A, B) || PointOnSegment(Other.B, A, B) ||
