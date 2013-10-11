@@ -39,6 +39,8 @@ namespace LiveSPICE
 
         public void WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
         {
+            if (Type == Circuit.MessageType.Verbose)
+                return;
             if (Type != Circuit.MessageType.Info)
                 text.AppendText("[" + Type.ToString() + "]");
             text.AppendText(Message + "\r\n");

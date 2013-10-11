@@ -11,6 +11,7 @@ namespace Circuit
         Error,
         Warning,
         Info,
+        Verbose,
     }
 
     public interface ILog
