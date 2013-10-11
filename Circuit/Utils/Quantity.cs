@@ -135,7 +135,7 @@ namespace Circuit
         {
             StringBuilder SB = new StringBuilder();
 
-            Constant constant = Multiply.TermsOf(Value).FirstOrDefault(i => i is Constant) as Constant;
+            Constant constant = Value as Constant;
             if (constant != null)
             {
                 if (format != null && format.StartsWith("+"))
