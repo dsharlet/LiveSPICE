@@ -189,8 +189,12 @@ namespace Circuit
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
                 globals[i.Left] = new GlobalExpr<double>(0.0, i.Left.ToString());
-        }
 
+            // Add solutions for the voltage across all the components.
+            linear.AddRange(Circuit.Components.OfType<TwoTerminal>()
+                .Select(i => Arrow.New(Call.New(ExprFunction.New(i.Name, t), t), i.V)));
+        }
+        
         /// <summary>
         /// Clear all state from the simulation.
         /// </summary>
