@@ -18,16 +18,19 @@ namespace CircuitTests
 
         static void Main(string[] args)
         {
-            Func<double, double> VS = ExprFunction.New("VS", "Sin[t*100*2*3.1415]", Component.t).Compile<Func<double, double>>();
+            Func<double, double> VS = ExprFunction.New("VS", "Sin[t*100*2*3.1415] + 0.5*Sin[t*200*2*3.1415] + 0.25*Sin[t*400*2*3.1415] + 0.1*Sin[t*800*2*3.1415]", Component.t).Compile<Func<double, double>>();
+
+            //Run(@"C:\Users\Dillon\My Documents\Circuits\Diode Clipper.xml", VS);
 
             //Run(SeriesDiodeClipper(), VS);
             //Run(CommonCathodeTriodeAmp(), VS);
+            Run(Trivial(), VS);
             Run(ToneStack(), VS);
             Run(MinimalRepro(), VS);
             Run(PassiveHighPassRC(), VS);
             Run(PassiveLowPassRLC(), VS);
             Run(PassiveBandPassRLC(), VS);
-            //Run(Potentiometer(), VS);
+            Run(Potentiometer(), VS);
             Run(PassiveLowPassRL(), VS);
             Run(DiodeHalfClipper(), VS);
             Run(ParallelDiodeClipper(), VS);
@@ -37,7 +40,7 @@ namespace CircuitTests
             Run(MinimalMixedSystem(), VS);
             Run(PassiveLowPassRC(), VS);
             Run(NonInvertingAmplifier(), VS);
-            //Run(InvertingAmplifier(), VS);
+            Run(InvertingAmplifier(), VS);
             Run(ActiveLowPassRC(), VS);
             Run(PassiveSecondOrderLowpassRC(), VS);
         }
@@ -51,6 +54,11 @@ namespace CircuitTests
             System.Console.WriteLine("Build: {0} ms", timer.ElapsedMilliseconds);
 
             RunTest(S, VS, 48000, Circuit.Name);
+        }
+
+        public static void Run(string FileName, Func<double, double> VS)
+        {
+            Run(Schematic.Load(FileName).Circuit, VS);
         }
 
         public static void RunTest(Simulation S, Func<double, double> VS, int N, string Name)
@@ -92,6 +100,31 @@ namespace CircuitTests
                 t0, series.Min(i => i.Min()) * 1.25 - 0.1, 
                 S.TimeStep * t1, series.Max(i => i.Max()) * 1.25 + 0.1, 
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
+        }
+
+        private static Circuit.Circuit Trivial()
+        {
+            Output O1 = new Output() { Signal = Call.New(ExprFunction.New("Vo", Component.t), Component.t) };
+
+            Circuit.Circuit C = new Circuit.Circuit() { Name = "Trivial" };
+
+            VoltageSource VS = new VoltageSource() { Voltage = VSt };
+            Ground G = new Ground();
+
+            C.Components.Add(VS);
+            C.Components.Add(G);
+
+            Node Vin = new Node("Vin");
+            Node Vg = new Node("Vg");
+            C.Nodes.AddRange(Vin, Vg);
+
+            C.Components.Add(O1);
+
+            VS.ConnectTo(Vin, Vg);
+            G.ConnectTo(Vg);
+            O1.ConnectTo(Vin, Vg);
+            
+            return C;
         }
 
         private static Circuit.Circuit CreateVoltageDivider(Expression V, TwoTerminal R1, TwoTerminal R2, string Name)
