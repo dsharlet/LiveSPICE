@@ -78,8 +78,8 @@ namespace SyMath
         {
             switch (o)
             {
-                case Operator.Add: return "+";
-                case Operator.Subtract: return "-";
+                case Operator.Add: return " + ";
+                case Operator.Subtract: return " - ";
                 case Operator.Multiply: return "*";
                 case Operator.Divide: return "/";
                 case Operator.Power: return "^";
@@ -87,14 +87,14 @@ namespace SyMath
                 case Operator.And: return "&";
                 case Operator.Or: return "|";
 
-                case Operator.Equal: return "==";
-                case Operator.NotEqual: return "!=";
-                case Operator.Greater: return ">";
-                case Operator.Less: return "<";
-                case Operator.GreaterEqual: return ">=";
-                case Operator.LessEqual: return "<=";
+                case Operator.Equal: return " == ";
+                case Operator.NotEqual: return " != ";
+                case Operator.Greater: return " > ";
+                case Operator.Less: return " < ";
+                case Operator.GreaterEqual: return " >= ";
+                case Operator.LessEqual: return " <= ";
 
-                case Operator.Arrow: return "->";
+                case Operator.Arrow: return " -> ";
                 case Operator.Substitute: return ":";
                 default: return "<unknown>";
             }
