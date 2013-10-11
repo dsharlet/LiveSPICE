@@ -15,6 +15,24 @@ namespace Circuit
         protected List<Node> x = new List<Node>();
         
         public Node this[int index] { get { return x[index]; } }
+        /// <summary>
+        /// Get the node with the given Name. If it doesn't exist, it will be created.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns></returns>
+        public Node this[string Name] 
+        { 
+            get 
+            {
+                Node n = x.SingleOrDefault(i => i.Name == Name);
+                if (n != null)
+                    return n;
+
+                n = new Node(Name);
+                x.Add(n);
+                return n;
+            }
+        }
 
         // ICollection<Node>
         public int Count { get { return x.Count; } }

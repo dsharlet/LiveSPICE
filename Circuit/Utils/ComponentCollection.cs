@@ -13,8 +13,14 @@ namespace Circuit
     public class ComponentCollection : ICollection<Component>, IEnumerable<Component>
     {
         protected List<Component> x = new List<Component>();
-        
+
         public Component this[int index] { get { return x[index]; } }
+        /// <summary>
+        /// Get the component with the given Name.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns></returns>
+        public Component this[string Name] { get { return x.Single(i => i.Name == Name); } }
 
         // ICollection<Component>
         public int Count { get { return x.Count; } }
