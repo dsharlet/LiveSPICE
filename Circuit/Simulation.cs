@@ -67,6 +67,8 @@ namespace Circuit
         private List<Equal> nonlinear;
         private List<Arrow> f0;
         private List<Expression> unknowns;
+        // Expressions for the voltage of each two terminal component.
+        private List<Arrow> components;
 
         // Check if x is used anywhere in the simulation, including the outputs.
         private bool IsExpressionUsed(IEnumerable<Expression> Extra, Expression x)
@@ -76,6 +78,7 @@ namespace Circuit
                 trivial.Any(i => i.Right.IsFunctionOf(x)) ||
                 linear.Any(i => i.Right.IsFunctionOf(x)) ||
                 differential.Any(i => i.Right.IsFunctionOf(x)) ||
+                components.Any(i => i.Right.IsFunctionOf(x)) ||
                 nonlinear.Any(i => i.IsFunctionOf(x));
         }
 
@@ -191,8 +194,9 @@ namespace Circuit
                 globals[i.Left] = new GlobalExpr<double>(0.0, i.Left.ToString());
 
             // Add solutions for the voltage across all the components.
-            linear.AddRange(Circuit.Components.OfType<TwoTerminal>()
-                .Select(i => Arrow.New(Call.New(ExprFunction.New(i.Name, t), t), i.V)));
+            components = Circuit.Components.OfType<TwoTerminal>()
+                .Select(i => Arrow.New(Call.New(ExprFunction.New(i.Name, t), t), i.V))
+                .ToList();
         }
         
         /// <summary>
@@ -429,10 +433,9 @@ namespace Circuit
                                     Declare<double>(locals, map, i.Left), 
                                     i.Right.Compile(map)));
 
+                            // Solve the remaining non-linear system with Newton's method.
                             if (unknowns.Any())
                             {
-                                // Solve the remaining non-linear system with Newton's method.
-
                                 // int it = Oversample
                                 // do { ... --it } while(it > 0)
                                 ParameterExpression it = Declare<int>(locals, "it");
@@ -459,6 +462,12 @@ namespace Circuit
                                 foreach (Arrow i in f0)
                                     body.Add(LinqExpression.Assign(globals[i.Left], i.Right.Compile(map)));
                             }
+
+                            // Compile the component voltage expressions.
+                            foreach (Arrow i in components.Where(i => IsExpressionUsed(Output, i.Left)))
+                                body.Add(LinqExpression.Assign(
+                                    Declare<double>(locals, map, i.Left),
+                                    i.Right.Compile(map)));
 
                             // t0 = t
                             body.Add(LinqExpression.Assign(t0, t));
