@@ -171,5 +171,10 @@ namespace Circuit
             }
             return S;
         }
+
+        public override string ToString()
+        {
+            return component.ToString() + " at " + Position.ToString();
+        }
     }
 }

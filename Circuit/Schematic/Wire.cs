@@ -124,6 +124,11 @@ namespace Circuit
                 Coord.Parse(X.Attribute("B").Value));
         }
 
+        public override string ToString()
+        {
+            return "Wire from " + A.ToString() + " to " + B.ToString();
+        }
+
         // http://www.bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
         private static bool Ccw(Coord A, Coord B, Coord C) { return (C.y - A.y) * (B.x - A.x) >= (B.y - A.y) * (C.x - A.x); }
         public static bool SegmentsIntersect(Coord A, Coord B, Coord C, Coord D) { return Ccw(A, C, D) != Ccw(B, C, D) && Ccw(A, B, C) != Ccw(A, B, D); }
