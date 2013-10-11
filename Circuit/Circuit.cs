@@ -53,7 +53,7 @@ namespace Circuit
             {
                 Unknowns.Add(n.V);
                 Expression i = n.Kcl();
-                if (i != null)
+                if (i != null && !i.IsZero())
                     Mna.Add(Equal.New(i, Constant.Zero));
             }
         }
