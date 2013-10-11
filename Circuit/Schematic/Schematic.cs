@@ -26,6 +26,9 @@ namespace Circuit
         /// </summary>
         public ElementCollection Elements { get { return elements; } }
 
+        public IEnumerable<Symbol> Symbols { get { return elements.OfType<Symbol>(); } }
+        public IEnumerable<Wire> Wires { get { return elements.OfType<Wire>(); } }
+
         protected int width;
         protected int height;
         /// <summary>
@@ -66,21 +69,33 @@ namespace Circuit
         {
             return elements.SelectMany(i => i.Terminals.Where(j => i.MapTerminal(j) == x));
         }
-        
+
+        public Node NodeAt(Coord x)
+        {
+            Wire w = Wires.FirstOrDefault(i => i.IsConnectedTo(x));
+            return w != null ? w.Node : null;
+        }
+
         protected void OnElementAdded(object sender, ElementEventArgs e)
         {
             if (e.Element is Symbol)
                 Circuit.Components.Add(((Symbol)e.Element).Component);
-            UpdateTerminals(e.Element);
+            OnLayoutChanged(e.Element, null);
 
             e.Element.LayoutChanged += OnLayoutChanged;
 
-            Log.WriteLine(MessageType.Info, "Added '" + e.Element.ToString() + "'");
+            Log.WriteLine(MessageType.Verbose, "Added '" + e.Element.ToString() + "'");
         }
 
         protected void OnElementRemoved(object sender, ElementEventArgs e)
         {
             e.Element.LayoutChanged -= OnLayoutChanged;
+
+            // If the removed element is a wire, we might have to split the node it was a part of.
+            if (e.Element is Symbol)
+                Circuit.Components.Remove(((Symbol)e.Element).Component);
+            if (e.Element is Wire)
+                RebuildNodes();
 
             foreach (Terminal i in e.Element.Terminals)
             {
@@ -90,38 +105,134 @@ namespace Circuit
                 // If the node that this terminal was connected to has no more connections, remove it from the circuit.
                 if (n != null && n.Connected.Empty())
                 {
-                    Log.WriteLine(MessageType.Info, "Removed node '" + n.ToString() + "'");
+                    Log.WriteLine(MessageType.Verbose, "Removed node '" + n.ToString() + "'");
                     circuit.Nodes.Remove(n);
                 }
             }
-            if (e.Element is Symbol)
-                Circuit.Components.Remove(((Symbol)e.Element).Component);
 
-            Log.WriteLine(MessageType.Info, "Removed '" + e.Element.ToString() + "'");
+            Log.WriteLine(MessageType.Verbose, "Removed '" + e.Element.ToString() + "'");
         }
 
         // When an element moves, we will need to update its connections.
         protected void OnLayoutChanged(object sender, EventArgs e)
         {
-            UpdateTerminals((Element)sender);
+            Element of = (Element)sender;
+
+            if (of is Wire)
+                RebuildNodes();
+            else if (of is Symbol)
+                UpdateTerminals((Symbol)of);
         }
 
-        protected void UpdateTerminals(Element e)
+        // Wires was a single node but it is now two. Break it into two sets of nodes
+        // and return the one containing Target.
+        private IEnumerable<Wire> ConnectedTo(IEnumerable<Wire> Wires, Wire Target)
         {
+            // Repeatedly search for connections with the target.
+            IEnumerable<Wire> connected = new Wire[] { Target };
+            int count = connected.Count();
+            while (true)
+            {
+                connected = Wires.Where(i => connected.Any(j => i.IsConnectedTo(j))).ToArray();
+                if (connected.Count() == count)
+                    break;
+                count = connected.Count();
+            }
+
+            return connected;
         }
 
-        
+        // Merge all of the nodes contained in wires to one.
+        private Node MergeNode(IEnumerable<Wire> Wires)
+        {
+            // All the existing nodes contained in wires.
+            List<Node> nodes = Wires.Select(i => i.Node).Distinct().ToList();
+
+            Node n = nodes.FirstOrDefault(i => i != null);
+            if (n == null)
+            {
+                n = new Node();
+                circuit.Nodes.Add(n);
+                Log.WriteLine(MessageType.Verbose, "Created new node '" + n.ToString() + "'");
+            }
+
+            foreach (Wire i in Wires)
+                i.Node = n;
+
+            // Everything connected to a node in nodes should now be connected to n.
+            foreach (Node i in nodes.Where(j => j != null && j != n))
+            {
+                foreach (Terminal j in i.Connected.ToArray())
+                    j.ConnectTo(n);
+                circuit.Nodes.Remove(i);
+                Log.WriteLine(MessageType.Verbose, "Removed node '" + i.ToString() + "'");
+            }
+            return n;
+        }
+
+        private void RebuildNodes()
+        {
+            IEnumerable<Wire> wires = Wires;
+
+            while (!wires.Empty())
+            {
+                // Find all the wires connected to the first wire in the list.
+                IEnumerable<Wire> connected = ConnectedTo(wires, wires.First());
+
+                // Merge all the connected wires into one node.
+                Node node = MergeNode(connected);
+
+                // Remove the wires we just made into a node from the list.
+                wires = wires.Except(connected);
+
+                // Any reminaing wires cannot be connected to the new node.
+                foreach (Wire i in wires.Where(j => j.Node == node))
+                    i.Node = null;
+            }
+
+            foreach (Symbol i in Symbols)
+                UpdateTerminals(i);
+        }
+
+        private void UpdateTerminals(Symbol Of)
+        {
+            foreach (Terminal i in Of.Terminals)
+            {
+                Node n = NodeAt(Of.MapTerminal(i));
+                if (n != i.ConnectedTo)
+                {
+                    i.ConnectTo(n);
+                    if (n != null)
+                        Log.WriteLine(MessageType.Verbose, "Terminal '" + i.ToString() + "' connected to node '" + n.ToString() + "'");
+                    else
+                        Log.WriteLine(MessageType.Verbose, "Terminal '" + i.ToString() + "' disconnected");
+                }
+            }
+        }
+
+        private void LogComponents()
+        {
+            foreach (Element i in Symbols)
+                Log.WriteLine(MessageType.Info, "  " + i.ToString());
+            Log.WriteLine(MessageType.Info, "  (" + Wires.Count() + " wires)");
+        }
+
         public void Save(string FileName)
         {
             XDocument doc = new XDocument();
             doc.Add(Serialize());
             doc.Save(FileName);
+            Log.WriteLine(MessageType.Info, "Schematic saved to '" + FileName + "'");
+            LogComponents();
         }
 
         public static Schematic Load(string FileName, ILog Log)
         {
             XDocument doc = XDocument.Load(FileName);
-            return Schematic.Deserialize(doc.Root, Log);
+            Schematic S = Schematic.Deserialize(doc.Root, Log);
+            Log.WriteLine(MessageType.Info, "Schematic loaded from '" + FileName + "'");
+            S.LogComponents();
+            return S;
         }
 
         public XElement Serialize()

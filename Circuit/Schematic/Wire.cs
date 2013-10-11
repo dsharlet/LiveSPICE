@@ -12,10 +12,16 @@ namespace Circuit
     /// </summary>
     public class Wire : Element
     {
-        protected Conductor conductor = new Conductor();
+        protected Conductor conductor;
 
         public Terminal Anode { get { return conductor.Anode; } }
         public Terminal Cathode { get { return conductor.Cathode; } }
+
+        public Node Node
+        {
+            get { return Anode.ConnectedTo; }
+            set { Anode.ConnectedTo = Cathode.ConnectedTo = value; }
+        }
 
         protected Coord a, b;
 
@@ -44,6 +50,7 @@ namespace Circuit
         { 
             conductor = new Conductor();
             conductor.Tag = this;
+            Anode.i = Cathode.i = 0;
         }
         public Wire(Coord A, Coord B) : this()
         {
