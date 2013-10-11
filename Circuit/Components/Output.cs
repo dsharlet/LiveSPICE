@@ -25,6 +25,7 @@ namespace Circuit
             
             // This equation just defines signal.
             Mna.Add(Equal.New(V, signal.Value));
+            Unknowns.Add(signal.Value);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
