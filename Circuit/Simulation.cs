@@ -206,11 +206,9 @@ namespace Circuit
                 .Where(i => i.IsFunctionOf(f0.Select(j => j.Left)))
                 .Evaluate(f0).OfType<Equal>().ToList();
             unknowns = y;
-
             // Create global variables for the non-linear unknowns.
             foreach (Expression i in y)
                 globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0, i.ToString().Replace("[t]", "[t-1]"));
-
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
                 globals[i.Left] = new GlobalExpr<double>(0.0, i.Left.ToString());
@@ -232,8 +230,6 @@ namespace Circuit
         /// </summary>
         public void Reset()
         {
-            Log.WriteLine(MessageType.Warning, "Reset simulation at " + t.ToString() + " s.");
-
             _t = 0.0;
             foreach (GlobalExpr<double> i in globals.Values)
                 i.Value = 0.0;
@@ -265,6 +261,18 @@ namespace Circuit
                 parameters.Add((double)i.Right);
 
             _t = (double)processor.DynamicInvoke(parameters.ToArray());
+
+            // Check the last samples for infinity/NaN.
+            foreach (KeyValuePair<Expression, double[]> i in Output)
+            {
+                double v = i.Value[i.Value.Length - 1];
+                if (double.IsInfinity(v) || double.IsNaN(v))
+                {
+                    Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
+                    Reset();
+                    return;
+                }
+            }
         }
 
         /// <summary>
