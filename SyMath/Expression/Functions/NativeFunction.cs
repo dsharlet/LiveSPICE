@@ -36,21 +36,31 @@ namespace SyMath
 
         public override Expression Call(IEnumerable<Expression> Args)
         {
-            object Result;
-            if (Method.IsStatic)
-                Result = Method.Invoke(null, Args.ToArray<object>());
-            else
-                Result = Method.Invoke(Args.First(), Args.Skip(1).ToArray<object>());
+            object _this = null;
+            if (!Method.IsStatic)
+            {
+                _this = Args.First();
+                //if (!Method.DeclaringType.IsAssignableFrom(_this.GetType()))
+                //    return SyMath.Call.New(this, Args);
+                Args = Args.Skip(1);
+            }
+            //if (!Args.Zip(Method.GetParameters(), (a, p) => new { a, p })
+            //    .All(i => i.p.ParameterType.IsAssignableFrom(i.a.GetType())))
+            //    return SyMath.Call.New(this, Args);
 
-            if (Result is Expression)
-                return Result as Expression;
+            object ret = Method.Invoke(_this, Args.ToArray<object>());
+            if (ret is Expression)
+                return ret as Expression;
             else
-                return Constant.New(Result);
+                return Constant.New(ret);
         }
 
         public override bool CanCall(IEnumerable<Expression> Args)
         {
-            return Method.GetParameters().Length == Args.Count() - (Method.IsStatic ? 0 : 1);
+            if (!Method.IsStatic)
+                Args = Args.Skip(1);
+
+            return Method.GetParameters().Length == Args.Count();
         }
         
         public override Expression Substitute(Call C, IDictionary<Expression, Expression> x0, bool IsTransform)
