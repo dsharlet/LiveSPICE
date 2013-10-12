@@ -35,6 +35,8 @@ namespace Circuit
                 new Coord(-10, 10),
                 new Coord(10, 10),
                 new Coord(0, -10));
+
+            Sym.DrawText(Name, new Coord(10, 0), Alignment.Near, Alignment.Center);
         }
     }
 }
