@@ -269,7 +269,7 @@ namespace Circuit
                 double v = i.Value[i.Value.Length - 1];
                 if (double.IsInfinity(v) || double.IsNaN(v))
                 {
-                    //Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
+                    Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
                     Reset();
                     return;
                 }
@@ -316,16 +316,16 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            //LogTime(MessageType.Info, "Compiling simulation...", true);
-            //LogExpressions("Input:", Input);
-            //LogExpressions("Output:", Output);
-            //LogExpressions("Parameters:", Parameters);
+            LogTime(MessageType.Info, "Compiling simulation...", true);
+            LogExpressions("Input:", Input);
+            LogExpressions("Output:", Output);
+            LogExpressions("Parameters:", Parameters);
 
-            //LogTime(MessageType.Info, "Defining lambda...");
+            LogTime(MessageType.Info, "Defining lambda...");
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
-            //LogTime(MessageType.Info, "Compiling lambda...");
+            LogTime(MessageType.Info, "Compiling lambda...");
             d = lambda.Compile();
-            //LogTime(MessageType.Info, "Done.");
+            LogTime(MessageType.Info, "Done.");
 
             return compiled[hash] = d;
         }
@@ -684,9 +684,12 @@ namespace Circuit
         // Logging helpers.
         private void LogExpressions(string Title, IEnumerable<Expression> Expressions)
         {
-            log.WriteLine(MessageType.Info, Title);
-            foreach (Expression i in Expressions)
-                log.WriteLine(MessageType.Info, "  " + i.ToString());
+            if (Expressions.Any())
+            {
+                log.WriteLine(MessageType.Info, Title);
+                foreach (Expression i in Expressions)
+                    log.WriteLine(MessageType.Info, "  " + i.ToString());
+            }
         }
 
         private System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();

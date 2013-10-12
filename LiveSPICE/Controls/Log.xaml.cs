@@ -41,10 +41,13 @@ namespace LiveSPICE
         {
             if (Type == Circuit.MessageType.Verbose)
                 return;
-            if (Type != Circuit.MessageType.Info)
-                text.AppendText("[" + Type.ToString() + "]");
-            text.AppendText(Message + "\r\n");
-            text.ScrollToEnd();
+            Dispatcher.Invoke(() =>
+                {
+                    if (Type != Circuit.MessageType.Info)
+                        text.AppendText("[" + Type.ToString() + "]");
+                    text.AppendText(Message + "\r\n");
+                    text.ScrollToEnd();
+                });
         }
 
         void Circuit.ILog.WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
