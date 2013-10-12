@@ -9,11 +9,21 @@ namespace Circuit
 {
     [CategoryAttribute("IO")]
     [DisplayName("Input")]
-    public class Input : VoltageSource
+    public class Input : TwoTerminal
     {
         public Input() 
         {
-            Voltage = DependentVariable("Vin", t);
+            Name = "V1";
+        }
+        
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        {
+            Expression i = DependentVariable("i" + Name, t);
+            Anode.i = i;
+            Cathode.i = -i;
+            Unknowns.Add(i);
+
+            Mna.Add(Equal.New(Anode.V - Cathode.V, DependentVariable(Name, t)));
         }
         
         protected override void DrawSymbol(SymbolLayout Sym)
@@ -29,8 +39,7 @@ namespace Circuit
             Sym.AddLine(EdgeType.Black, new Coord(-5, -y), new Coord(5, -y));
             Sym.DrawNegative(EdgeType.Black, new Coord(0, -y + 3));
 
-            Sym.DrawText(Voltage.ToString(), new Point(5, 0), Alignment.Near, Alignment.Center);
-            Sym.DrawText(Name.ToString(), new Point(-5, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(Name.ToString(), new Point(0, 0), Alignment.Center, Alignment.Center);
         }
     }
 }

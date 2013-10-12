@@ -35,14 +35,14 @@ namespace LiveSPICE
             set { iterations = value; NotifyChanged("Iterations"); }
         }
 
-        protected Circuit.Quantity input = new Circuit.Quantity("Vin[t]", Circuit.Units.V);
+        protected Circuit.Quantity input = new Circuit.Quantity("V1[t]", Circuit.Units.V);
         public Circuit.Quantity Input
         {
             get { return input; }
             set { input = value; NotifyChanged("Input"); }
         }
 
-        protected Circuit.Quantity output = new Circuit.Quantity("Vout[t]", Circuit.Units.V);
+        protected Circuit.Quantity output = new Circuit.Quantity("O1[t]", Circuit.Units.V);
         public Circuit.Quantity Output
         {
             get { return output; }

@@ -11,21 +11,12 @@ namespace Circuit
     [DisplayName("Output")]
     public class Output : TwoTerminal
     {
-        private Quantity signal = new Quantity(DependentVariable("Vout", t), Units.V);
-        [Description("Name of the output signal.")]
-        [SchematicPersistent]
-        public Quantity Signal { get { return signal; } set { if (signal.Set(value)) NotifyChanged("Signal"); } }
-
         public Output() { Name = "O1"; }
 
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             Anode.i = 0;
             Cathode.i = 0;
-            
-            // This equation just defines signal.
-            Mna.Add(Equal.New(V, signal.Value));
-            Unknowns.Add(signal.Value);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
@@ -41,8 +32,7 @@ namespace Circuit
             Sym.AddLine(EdgeType.Black, new Coord(-5, -y), new Coord(5, -y));
             Sym.DrawNegative(EdgeType.Black, new Coord(0, -y + 3));
 
-            Sym.DrawText(Signal.ToString(), new Point(5, 0), Alignment.Near, Alignment.Center);
-            Sym.DrawText(Name.ToString(), new Point(-5, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(Name.ToString(), new Point(0, 0), Alignment.Center, Alignment.Center);
         }
     }
 }
