@@ -203,7 +203,7 @@ namespace SyMath
 
         protected override PrettyString VisitBinary(Binary B)
         {
-            return PrettyString.ConcatColumns(Visit(B.Left), " " + Binary.ToString(B.Operator) + " ", Visit(B.Right));
+            return PrettyString.ConcatColumns(Visit(B.Left), Binary.ToString(B.Operator), Visit(B.Right));
         }
 
         protected override PrettyString VisitSet(Set S)
