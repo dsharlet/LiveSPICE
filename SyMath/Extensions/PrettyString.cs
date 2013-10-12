@@ -167,6 +167,9 @@ namespace SyMath
             PrettyString DS = Visit(D);
             precedence.Pop();
 
+            if (DS.ColumnCount <= 2 && DS.ColumnCount <= 2)
+                return PrettyString.ConcatColumns(NS, "/", DS);
+
             int Cols = Math.Max(NS.ColumnCount, DS.ColumnCount);
             return PrettyString.ConcatLines(NS.LineCount, NS, PrettyString.ConcatLines(0, new string('-', Cols), DS));
         }
