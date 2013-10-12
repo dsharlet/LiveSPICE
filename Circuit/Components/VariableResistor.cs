@@ -10,10 +10,10 @@ namespace Circuit
     [CategoryAttribute("Controls")]
     public class VariableResistor : Resistor
     {
-        protected decimal wipe = 0.5m;
+        protected Expression wipe = 0.5m;
         [SchematicPersistent]
         [RangedSimulationParameter(0, 1)]
-        public decimal Wipe { get { return wipe; } set { wipe = Math.Max(Math.Min(value, 1.0m), 0.0m); NotifyChanged("Wipe"); } }
+        public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
         public VariableResistor() { }
 
@@ -38,7 +38,7 @@ namespace Circuit
                 0, N, N * 2);
 
             Sym.DrawText(resistance.ToString(), new Coord(-7, 0), Alignment.Far, Alignment.Center);
-            Sym.DrawText(wipe.ToString("G2"), new Coord(9, 3), Alignment.Near, Alignment.Near);
+            Sym.DrawText(wipe.ToString(), new Coord(9, 3), Alignment.Near, Alignment.Near);
             Sym.DrawText(Name, new Coord(9, -3), Alignment.Near, Alignment.Far);
         }
 

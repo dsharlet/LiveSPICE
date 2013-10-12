@@ -44,11 +44,11 @@ namespace Circuit
         [SchematicPersistent]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
-        protected decimal wipe = 0.5m;
+        protected Expression wipe = 0.5m;
         [Description("Position of the wiper as a ratio from 0 to 1. 1 corresponds to all the resistance between the wiper and the cathode.")]
         [SchematicPersistent]
-        [RangedSimulationParameter(0.0, 1.0)]
-        public decimal Wipe { get { return wipe; } set { wipe = Math.Max(Math.Min(value, 1.0m), 0.0m); NotifyChanged("Wipe"); } }
+        [RangedSimulationParameter(0, 1)]
+        public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
 
         public void ConnectTo(Node A, Node C, Node W)
@@ -60,7 +60,7 @@ namespace Circuit
 
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
-            Expression R1 = resistance.Value * (1.0m - wipe);
+            Expression R1 = resistance.Value * (1 - wipe);
             Expression R2 = resistance.Value * wipe;
 
             Expression VR1 = Anode.V - Wiper.V;
@@ -93,7 +93,7 @@ namespace Circuit
                 0, N, N * 2);
 
             Sym.DrawText(resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
-            Sym.DrawText(wipe.ToString("G2"), new Coord(-4, 4), Alignment.Near, Alignment.Near);
+            Sym.DrawText(wipe.ToString(), new Coord(-4, 4), Alignment.Near, Alignment.Near);
             Sym.DrawText(Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
         }
 
