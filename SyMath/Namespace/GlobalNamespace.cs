@@ -19,6 +19,9 @@ namespace SyMath
         public static Expression Abs(Constant x) { return Constant.New(Real.Abs(x)); }
         public static Expression Sign(Constant x) { return Constant.New(Real.Sign(x)); }
 
+        public static Expression Min(Constant x, Constant y) { return Real.Min((Real)x, (Real)y); }
+        public static Expression Max(Constant x, Constant y) { return Real.Max((Real)x, (Real)y); }
+
         public static Expression Sin(Constant x) { return Constant.New(Real.Sin(x)); }
         public static Expression Cos(Constant x) { return Constant.New(Real.Cos(x)); }
         public static Expression Tan(Constant x) { return Constant.New(Real.Tan(x)); }
@@ -69,7 +72,7 @@ namespace SyMath
         public static Expression IsNatural(Constant x) { return Constant.New((Real)x % 1 == 0 && (Real)x > 0); }
 
         public static Expression If(Constant x, Expression t, Expression f) { return (Real)x == 0 ? f : t; }
-
+        
         public static Expression IsFunctionOf(Expression f, Expression x) { return Constant.New(f.IsFunctionOf(x)); }
         
         public static Expression Simplify(Expression x) { return x.Simplify(); }

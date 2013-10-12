@@ -189,6 +189,9 @@ namespace SyMath
         public static double Abs(double x) { return x < 0 ? -x : x; }
         public static double Sign(double x) { return x < 0 ? -1 : 1; }
 
+        public static double Min(double x, double y) { return System.Math.Min(x, y); }
+        public static double Max(double x, double y) { return System.Math.Max(x, y); }
+
         public static double Sin(double x) { return System.Math.Sin(x); }
         public static double Cos(double x) { return System.Math.Cos(x); }
         public static double Tan(double x) { return System.Math.Tan(x); }
@@ -229,9 +232,11 @@ namespace SyMath
         public static double If(bool x, double t, double f) { return x ? t : f; }
         public static double If(double x, double t, double f) { return If(x != 0, t, f); }
 
-
         public static float Abs(float x) { return x < 0.0f ? -x : x; }
         public static float Sign(float x) { return x < 0.0f ? -1.0f : 1.0f; }
+
+        public static float Min(float x, float y) { return System.Math.Min(x, y); }
+        public static float Max(float x, float y) { return System.Math.Max(x, y); }
 
         public static float Sin(float x) { return (float)System.Math.Sin(x); }
         public static float Cos(float x) { return (float)System.Math.Cos(x); }

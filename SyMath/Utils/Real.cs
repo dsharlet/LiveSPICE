@@ -124,8 +124,8 @@ namespace SyMath
         public static Real Abs(Real x) { return x > 0 ? x : -x; }
         public static Real Sign(Real x) { return new Real(x < 0 ? -1 : 1); }
 
-        public static Real Min(Real a, Real b) { return a < b ? a : b; }
-        public static Real Max(Real a, Real b) { return a > b ? a : b; }
+        public static Real Min(Real x, Real y) { return x < y ? x : y; }
+        public static Real Max(Real x, Real y) { return x > y ? x : y; }
 
         public static Real Sin(Real x) { return new Real(Math.Sin((double)x)); }
         public static Real Cos(Real x) { return new Real(Math.Cos((double)x)); }

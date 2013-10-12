@@ -80,7 +80,7 @@ namespace SyMath
             return base.CompareTo(R);
         }
 
-        public static Expression If(Expression C, Expression T, Expression F) { return Call.New("If", C, T, F); }
+        public static Expression If(Expression c, Expression t, Expression f) { return Call.New("If", c, t, f); }
 
         public static Expression IsFunctionOf(Expression f, Expression x) { return Call.New("IsFunctionOf", f, x); }
         public static Expression IsConstant(Expression x) { return Call.New("IsConstant", x); }
@@ -89,6 +89,9 @@ namespace SyMath
 
         public static Expression Abs(Expression x) { return Call.New("Abs", x); }
         public static Expression Sign(Expression x) { return Call.New("Sign", x); }
+
+        public static Expression Min(Expression a, Expression b) { return Call.New("Min", a, b); }
+        public static Expression Max(Expression a, Expression b) { return Call.New("Max", a, b); }
 
         public static Expression Sin(Expression x) { return Call.New("Sin", x); }
         public static Expression Cos(Expression x) { return Call.New("Cos", x); }
