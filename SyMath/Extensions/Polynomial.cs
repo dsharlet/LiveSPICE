@@ -118,7 +118,7 @@ namespace SyMath
             }
 
             // Assemble expression from factors.
-            return Multiply.New(factors.Select(i => Power.New(Binary.Subtract(x, i.Key), i.Value)));
+            //return Multiply.New(factors.Select(i => Power.New(Binary.Subtract(x, i.Key), i.Value)));
         }
 
         /// <summary>
