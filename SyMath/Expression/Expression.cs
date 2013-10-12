@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.ComponentModel;
 
 namespace SyMath
 {
@@ -42,6 +43,7 @@ namespace SyMath
         Substitute,
     }
 
+    [TypeConverter(typeof(ExpressionConverter))]
     public abstract class Expression : IComparable<Expression>, IEquatable<Expression>
     {
         /// <summary>

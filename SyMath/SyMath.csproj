@@ -74,6 +74,7 @@
     <Compile Include="Utils\DictionaryExtensions.cs" />
     <Compile Include="Utils\EnumerableExtensions.cs" />
     <Compile Include="Utils\Exceptions.cs" />
+    <Compile Include="Utils\ExpressionConverter.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Utils\MatchContext.cs" />
     <Compile Include="Utils\Real.cs" />
