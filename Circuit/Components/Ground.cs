@@ -19,7 +19,9 @@ namespace Circuit
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             // Nodes connected to ground have V = 0.
-            Mna.Add(Equal.New(Terminal.V, Constant.Zero));
+            Equal V_0 = Equal.New(Terminal.V, Constant.Zero);
+            if (!Mna.Contains(V_0))
+                Mna.Add(V_0);
             Terminal.i = null;
         }
 
