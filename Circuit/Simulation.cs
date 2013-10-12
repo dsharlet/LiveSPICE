@@ -180,7 +180,7 @@ namespace Circuit
             // Find the solutions to the differential unknowns.
             List<Expression> ya = y.Where(i => dy_dt.None(j => DOf(j).Equals(i))).ToList();
             differential = mna
-                // Solve for the algebraic variables and substitute them.
+                // Solve for the algebraic unknowns in terms of the rest and substitute them.
                 .Evaluate(mna.Solve(ya)).OfType<Equal>()
                 // Solve the resulting system of differential equations.
                 .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
@@ -405,7 +405,6 @@ namespace Circuit
                     foreach (Expression i in Input)
                     {
                         // Ensure that we have a global variable to store the previous sample in.
-                        globals[i] = new GlobalExpr<double>(0.0, i.ToString().Replace("[t]", "[t-1]"));
                         LinqExpression Va = globals[i];
                         LinqExpression Vb = LinqExpression.MakeIndex(
                             buffers[i],
