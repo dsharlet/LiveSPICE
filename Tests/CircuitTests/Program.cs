@@ -13,10 +13,23 @@ using LinqExpression = System.Linq.Expressions.Expression;
 namespace CircuitTests
 {
     class Program
-    {        
+    {
+        static readonly Variable t = Component.t;
+
+        // Generate a function with the first N harmonics of f0.
+        static Function Harmonics(Variable t, Expression f0, int N)
+        {
+            Expression s = 0;
+            for (int i = 1; i <= N; ++i)
+                s += Call.Sin(t * f0 * 2 * 3.1415m * i) / N;
+            return ExprFunction.New(s, t);
+        }
+
         static void Main(string[] args)
         {
-            Func<double, double> Vin = ExprFunction.New("Vin", "Sin[t*100*2*3.1415] + 0.5*Sin[t*200*2*3.1415] + 0.25*Sin[t*400*2*3.1415] + 0.1*Sin[t*800*2*3.1415]", Component.t).Compile<Func<double, double>>();
+            Func<double, double> Vin = Harmonics(t, 82, 4).Compile<Func<double, double>>();
+
+            List<string> errors = new List<string>();
 
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
             {
@@ -24,17 +37,25 @@ namespace CircuitTests
                 {
                     Run(File, Vin);
                 }
-                catch (Exception) { }
+                catch (Exception Ex) 
+                {
+                    errors.Add(File);
+                    System.Console.WriteLine(Ex.ToString());
+                }
             }
+
+            System.Console.WriteLine("{0} Tests failed:", errors.Count);
+            foreach (string i in errors)
+                System.Console.WriteLine(i);
         }
                 
         public static void Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, new ConsoleLog()).Circuit;
-            Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, 4, new ConsoleLog());
+            Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, 4, new ConsoleLog(MessageType.Info));
             System.Console.WriteLine("");
 
-            RunTest(S, Vin, 48000 * 10, FileName);
+            RunTest(S, Vin, 48000 * 10, System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
         public static void RunTest(Simulation S, Func<double, double> Vin, int N, string Name)
@@ -45,7 +66,7 @@ namespace CircuitTests
             double[] vs = new double[N];
             for (int n = 0; n < vs.Length; ++n)
                 vs[n] = Vin(n * S.TimeStep);
-            input.Add("Vin[t]", vs);
+            input.Add("V1[t]", vs);
 
             Dictionary<Expression, double[]> output = S.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
             //Dictionary<Expression, double[]> output = new Expression[] { "Vo[t]" }.ToDictionary(i => i, i => new double[vs.Length]);
