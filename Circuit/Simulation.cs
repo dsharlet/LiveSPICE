@@ -263,17 +263,17 @@ namespace Circuit
 
             _t = (double)processor.DynamicInvoke(parameters.ToArray());
 
-            //// Check the last samples for infinity/NaN.
-            //foreach (KeyValuePair<Expression, double[]> i in Output)
-            //{
-            //    double v = i.Value[i.Value.Length - 1];
-            //    if (double.IsInfinity(v) || double.IsNaN(v))
-            //    {
-            //        Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
-            //        Reset();
-            //        return;
-            //    }
-            //}
+            // Check the last samples for infinity/NaN.
+            foreach (KeyValuePair<Expression, double[]> i in Output)
+            {
+                double v = i.Value[i.Value.Length - 1];
+                if (double.IsInfinity(v) || double.IsNaN(v))
+                {
+                    //Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
+                    Reset();
+                    return;
+                }
+            }
         }
 
         /// <summary>
@@ -549,7 +549,7 @@ namespace Circuit
         }
 
         // Generate a for loop given the header and body expressions.
-        private void For(
+        private static void For(
             IList<LinqExpression> Target,
             Action Init,
             LinqExpression Condition,
@@ -579,7 +579,7 @@ namespace Circuit
         }
 
         // Generate a for loop given the header and body expressions.
-        private void For(
+        private static void For(
             IList<LinqExpression> Target,
             Action Init,
             LinqExpression Condition,
@@ -590,7 +590,7 @@ namespace Circuit
         }
 
         // Generate a while loop given the condition and body expressions.
-        private void While(
+        private static void While(
             IList<LinqExpression> Target,
             LinqExpression Condition,
             Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body)
@@ -614,7 +614,7 @@ namespace Circuit
         }
 
         // Generate a while loop given the condition and body expressions.
-        private void While(
+        private static void While(
             IList<LinqExpression> Target,
             LinqExpression Condition,
             Action Body)
@@ -623,7 +623,7 @@ namespace Circuit
         }
 
         // Generate a do-while loop given the condition and body expressions.
-        private void DoWhile(
+        private static void DoWhile(
             IList<LinqExpression> Target,
             Action<LinqExpressions.LabelTarget, LinqExpressions.LabelTarget> Body,
             LinqExpression Condition)
@@ -646,7 +646,7 @@ namespace Circuit
         }
 
         // Generate a do-while loop given the condition and body expressions.
-        private void DoWhile(
+        private static void DoWhile(
             IList<LinqExpression> Target,
             Action Body,
             LinqExpression Condition)
