@@ -34,6 +34,11 @@ namespace LiveSPICE
         public int Grid = 10;
 
         public Schematic() : this(new Circuit.Schematic(Log.Instance)) { }
+        public Schematic(string FileName) : this(Circuit.Schematic.Load(FileName, Log.Instance)) 
+        {
+            filename = FileName;
+            NotifyChanged("FileName");
+        }
 
         public Schematic(Circuit.Schematic S)
         {
@@ -171,7 +176,7 @@ namespace LiveSPICE
 
         public static Schematic Open(string FileName)
         {
-            return new Schematic(Circuit.Schematic.Load(FileName, Log.Instance));
+            return new Schematic(FileName);
         }
 
         // Edit.
