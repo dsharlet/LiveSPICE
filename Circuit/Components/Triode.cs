@@ -46,6 +46,7 @@ namespace Circuit
             Expression E1 = Call.If(ex > 10, ex, Call.Ln(1 + Call.Exp(ex))) * Vpk / Kp;
 
             Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, Constant.Zero);
+            // TODO: Use Max instead?
             Ig = Call.If(Vgk > Vg, (Vgk - Vg) / Rgk, Constant.Zero);
             Ik = -(Ip + Ig);
         }

@@ -20,13 +20,13 @@ namespace Circuit
     public class ShockleyDiodeModel : DiodeModel
     {
         // Shockley diode model parameters.
-        protected decimal Is = 1e-12m; // A
+        protected decimal IS = 6.734e-15m; // A
         protected decimal VT = 25.85e-3m; // V
         protected decimal n = 1.0m;
 
-        public ShockleyDiodeModel(decimal Is, decimal VT, decimal n)
+        public ShockleyDiodeModel(decimal IS, decimal VT, decimal n)
         {
-            this.Is = Is;
+            this.IS = IS;
             this.VT = VT;
             this.n = n;
         }
@@ -37,7 +37,7 @@ namespace Circuit
 
         public override Expression Evaluate(Expression V)
         {
-            return Is * (Call.Exp(V / (n * VT)) - 1);
+            return IS * (Call.Exp(V / (n * VT)) - 1);
         }
     };
 

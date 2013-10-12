@@ -7,14 +7,18 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    public abstract class TransistorModel
+    public abstract class BJTModel
     {
-        public abstract void Evaluate(Expression Vc, Expression Vb, Expression Ve, out Expression Ic, out Expression Ib, out Expression Ie);
+        public abstract void Evaluate(Expression VC, Expression VB, Expression VE, out Expression iC, out Expression iB, out Expression iE);
     }
 
-    public class EbersMollTransistor : TransistorModel
+    public class EbersMollTransistor : BJTModel
     {
-        protected decimal BF, BR, IS, VT;
+        protected decimal IS = 6.734e-15m; // A
+        protected decimal VT = 25.85e-3m; // V
+
+        protected decimal BF = 200m;
+        protected decimal BR = 0.1m;
 
         public EbersMollTransistor(decimal BF, decimal BR, decimal IS, decimal VT)
         {
@@ -26,21 +30,23 @@ namespace Circuit
 
         public EbersMollTransistor() : this(260, 10, 10e-12m, 25.85e-3m) { }
 
-        public override void Evaluate(Expression Vc, Expression Vb, Expression Ve, out Expression Ic, out Expression Ib, out Expression Ie)
+        public override void Evaluate(Expression VC, Expression VB, Expression VE, out Expression iC, out Expression iB, out Expression iE)
         {
-            Expression Vbe = Vb - Ve;
-            Expression Vbc = Vb - Vc;
+            Expression eVBC = Call.Exp((VB - VC) / VT);
+            Expression eVBE = Call.Exp((VB - VE) / VT);
 
-            Ic = Ib = Ie = 0;
+            iC = IS * (eVBE - eVBC)         - (IS / BR) * (eVBC - 1);
+            iB = (IS / BF) * (eVBE - 1)     + (IS / BR) * (eVBC - 1);
+            iE = IS * (eVBE - eVBC)         + (IS / BF) * (eVBE - 1);
         }
     };
 
     /// <summary>
-    /// Base class for a triode.
+    /// Transistors.
     /// </summary>
     [CategoryAttribute("Transistors")]
-    [DisplayName("Transistor")]
-    public class Transistor : Component
+    [DisplayName("BJT")]
+    public class BJT : Component
     {
         protected Terminal c, e, b;
         public override IEnumerable<Terminal> Terminals 
@@ -59,9 +65,9 @@ namespace Circuit
         [Browsable(false)]
         public Terminal Base { get { return b; } }
 
-        protected TransistorModel model = new EbersMollTransistor();
+        protected BJTModel model = new EbersMollTransistor();
 
-        public Transistor()
+        public BJT()
         {
             c = new Terminal(this, "C");
             e = new Terminal(this, "E");
