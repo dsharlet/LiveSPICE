@@ -41,7 +41,7 @@ namespace SyMath
                 return base.Visit(E);
         }
 
-        protected override Expression VisitAdd(Add A) { return Add.New(A.Terms.Select(i => Visit(i))); }
+        protected override Expression VisitAdd(Add A) { return Add.New(A.Terms.Select(i => Visit(i)).Where(i => !i.IsZero())); }
 
         protected Expression ProductRule(Expression L, IEnumerable<Expression> R)
         {
