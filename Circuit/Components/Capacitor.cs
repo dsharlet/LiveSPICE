@@ -24,7 +24,7 @@ namespace Circuit
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             // Vac = Va - Vc
-            Expression Vac = Call.New(ExprFunction.New("V" + Name, t), t);
+            Expression Vac = DependentVariable("V" + Name, t);
             Mna.Add(Equal.New(Vac, V));
             Unknowns.Add(Vac);
             

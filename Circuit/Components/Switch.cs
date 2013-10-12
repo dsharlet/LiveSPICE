@@ -27,7 +27,7 @@ namespace Circuit
         {
             if (closed)
             {
-                Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
+                Expression i = DependentVariable("i" + Name, t);
                 Anode.i = i;
                 Cathode.i = -i;
                 Unknowns.Add(i);

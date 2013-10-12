@@ -26,7 +26,7 @@ namespace Circuit
         
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
-            Expression i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Expression i = DependentVariable("i" + Name, t);
             Anode.i = i;
             Cathode.i = -i;
             Unknowns.Add(i);

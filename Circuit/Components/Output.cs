@@ -11,7 +11,7 @@ namespace Circuit
     [DisplayName("Output")]
     public class Output : TwoTerminal
     {
-        private Quantity signal = new Quantity(Call.New(ExprFunction.New("Vout", t), t), Units.V);
+        private Quantity signal = new Quantity(DependentVariable("Vout", t), Units.V);
         [Description("Name of the output signal.")]
         [SchematicPersistent]
         public Quantity Signal { get { return signal; } set { if (signal.Set(value)) NotifyChanged("Signal"); } }

@@ -13,7 +13,7 @@ namespace Circuit
     {
         public Input() 
         {
-            Voltage = Call.New(ExprFunction.New("Vin", t), t);
+            Voltage = DependentVariable("Vin", t);
         }
         
         protected override void DrawSymbol(SymbolLayout Sym)

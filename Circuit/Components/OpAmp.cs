@@ -33,7 +33,7 @@ namespace Circuit
         {
             // The input terminals are connected by a resistor Rin.
             Expression Vin = Positive.V - Negative.V;
-            Expression iin = Call.New(ExprFunction.New("in" + Name, t), t);
+            Expression iin = DependentVariable("in" + Name, t);
 
             Mna.Add(Equal.New(Vin / (Expression)Rin, iin));
             Positive.i = iin;
@@ -41,7 +41,7 @@ namespace Circuit
             Unknowns.Add(iin);
 
             // Vo = (G*Vin - Out.V) / Rout
-            Expression iout = Call.New(ExprFunction.New("out" + Name, t), t);
+            Expression iout = DependentVariable("out" + Name, t);
             Unknowns.Add(iout);
             Out.i = iout;
 

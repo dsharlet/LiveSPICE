@@ -20,7 +20,7 @@ namespace Circuit
             Anode.i = Constant.Zero;
 
             // Unknown output current.
-            Cathode.i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Cathode.i = DependentVariable("i" + Name, t);
             Unknowns.Add(Cathode.i);
 
             Mna.Add(Equal.New(Anode.V, Cathode.V));

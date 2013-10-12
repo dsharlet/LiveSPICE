@@ -18,8 +18,8 @@ namespace Circuit
     public class Simulation
     {
         // Expression for t at the previous timestep.
-        private static readonly Expression t0 = Variable.New("t0");
-        private static readonly Expression t = Component.t;
+        private static readonly Variable t0 = Variable.New("t0");
+        private static readonly Variable t = Component.t;
         
         // This is used often enough to shorten it a few characters.
         private static readonly Arrow t_t0 = Arrow.New(t, t0);
@@ -221,7 +221,7 @@ namespace Circuit
             
             // Add solutions for the voltage across all the components.
             components = Circuit.Components.OfType<TwoTerminal>()
-                .Select(i => Arrow.New(Call.New(ExprFunction.New(i.Name, t), t), i.V))
+                .Select(i => Arrow.New(DependentVariable(i.Name, t), i.V))
                 .ToList();
             LogExpressions("Component voltages:", components);
         }
@@ -723,6 +723,12 @@ namespace Circuit
             if (d.Target.Name == "D")
                 return d.Arguments.First();
             throw new InvalidOperationException("Expression is not a derivative");
+        }
+
+        // Make a variable Name dependent on On.
+        private static Call DependentVariable(string Name, params Variable[] On) 
+        { 
+            return Call.New(ExprFunction.New(Name, On), On); 
         }
 
         // Returns 1 / x.

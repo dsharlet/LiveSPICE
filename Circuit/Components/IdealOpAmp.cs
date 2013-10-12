@@ -45,7 +45,7 @@ namespace Circuit
             Negative.i = Constant.Zero;
 
             // Unknown output current.
-            Out.i = Call.New(ExprFunction.New("i" + Name, t), t);
+            Out.i = DependentVariable("i" + Name, t);
             Unknowns.Add(Out.i);
 
             // The voltage between the positive and negative terminals is 0.

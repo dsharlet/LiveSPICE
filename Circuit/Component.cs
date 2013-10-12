@@ -82,6 +82,8 @@ namespace Circuit
 
         // This is too useful not to have.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
+        // Make a variable Name dependent on On.
+        protected static Call DependentVariable(string Name, params Variable[] On) { return Call.New(ExprFunction.New(Name, On), On); }
 
         // object interface.
         public override string ToString() { return Name; }
