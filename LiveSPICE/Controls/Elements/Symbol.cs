@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
 using System.Reflection;
+using System.ComponentModel;
 
 namespace LiveSPICE
 {
@@ -39,6 +40,30 @@ namespace LiveSPICE
         public Circuit.Symbol GetSymbol() { return (Circuit.Symbol)element; }
         public Circuit.Component Component { get { return GetSymbol().Component; } }
         public Vector Size { get { return new Vector(GetSymbol().Size.x, GetSymbol().Size.y); } }
+
+        protected override void UpdateToolTip()
+        {
+            Circuit.Component component = GetSymbol().Component;
+            ToolTip = component.ToString();
+
+            //StringBuilder sb = new StringBuilder();
+
+            //Type T = component.GetType();
+
+            //DisplayNameAttribute name = T.GetCustomAttribute<DisplayNameAttribute>();
+            //if (name != null)
+            //    sb.AppendLine(name.DisplayName);
+            //else
+            //    sb.AppendLine(T.ToString());
+
+            //foreach (PropertyInfo i in T.GetProperties().Where(j => j.GetCustomAttribute<Circuit.SchematicPersistent>() != null))
+            //{
+            //    System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
+            //    sb.AppendLine(i.Name + " = " + tc.ConvertToString(i.GetValue(component)));
+            //}
+
+            //ToolTip = sb.ToString();
+        }
 
         protected override Size MeasureOverride(Size constraint)
         {
@@ -81,20 +106,6 @@ namespace LiveSPICE
             dc = null;
         }
         
-        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
-
-        public static double TerminalSize = 3.0;
-        public static double EdgeThickness = 1.0;
-        public static GuidelineSet Guidelines = new GuidelineSet(new double[] { EdgeThickness / 2 }, new double[] { EdgeThickness / 2 });
-
-        public static Brush WireBrush = Brushes.Black;
-        public static Pen WirePen = new Pen(WireBrush, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen TerminalPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-
-        public static Pen BlackPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-
         private static Point T(Matrix Tx, Circuit.Point x) { return Tx.Transform(new Point(x.x, x.y)); }
 
         public static void DrawLayout(
@@ -183,35 +194,6 @@ namespace LiveSPICE
             DrawingContext Context, Matrix Tx)
         {
             DrawLayout(Layout, Context, Tx, new FontFamily("Courier New"));
-        }
-
-        public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
-        {
-            Vector dx = new Vector(TerminalSize / 2, TerminalSize / 2);
-            Context.DrawRectangle(null, MapToPen(Connected ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(x - dx, x + dx));
-        }
-
-        public static Pen MapToPen(Circuit.EdgeType Edge)
-        {
-            switch (Edge)
-            {
-                case Circuit.EdgeType.Wire: return WirePen;
-                case Circuit.EdgeType.Black: return BlackPen;
-                case Circuit.EdgeType.Gray: return GrayPen;
-                case Circuit.EdgeType.Red: return RedPen;
-                default: throw new ArgumentException();
-            }
-        }
-
-        public static double MapAlignment(Circuit.Alignment Align)
-        {
-            switch (Align)
-            {
-                case Circuit.Alignment.Near: return 0.0;
-                case Circuit.Alignment.Center: return 0.5;
-                case Circuit.Alignment.Far: return 1.0;
-                default: throw new ArgumentException();
-            }
         }
     }
 }

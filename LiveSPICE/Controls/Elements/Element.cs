@@ -28,28 +28,45 @@ namespace LiveSPICE
 
         protected static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash };
         protected static Pen SelectedPen = new Pen(Brushes.Blue, 0.5f) { DashStyle = DashStyles.Dash };
-
-        protected Circuit.Element element;
-
+        
         private Pen pen = null;
         public Pen Pen { get { return pen; } set { pen = value; InvalidateVisual(); } }
 
         protected bool showTerminals = true;
         public bool ShowTerminals { get { return showTerminals; } set { showTerminals = value; InvalidateVisual(); } }
+        
+        private List<EventHandler> selectedChanged = new List<EventHandler>();
+        public event EventHandler SelectedChanged { add { selectedChanged.Add(value); } remove { selectedChanged.Remove(value); } }
 
-        protected void OnLayoutChanged(object sender, EventArgs e)
+        private bool selected = false;
+        public bool Selected
         {
-            Circuit.Coord lb = element.LowerBound;
-            Circuit.Coord ub = element.UpperBound;
+            get { return selected; }
+            set
+            {
+                if (selected == value) return;
 
-            Canvas.SetLeft(this, lb.x);
-            Canvas.SetTop(this, lb.y);
-
-            Width = ub.x - lb.x;
-            Height = ub.y - lb.y;            
-
-            InvalidateVisual();
+                selected = value;
+                InvalidateVisual();
+                foreach (EventHandler i in selectedChanged)
+                    i(this, new EventArgs());
+            }
         }
+
+        private bool highlighted = false;
+        public bool Highlighted
+        {
+            get { return highlighted; }
+            set
+            {
+                if (highlighted == value) return;
+                highlighted = value;
+                if (highlighted) UpdateToolTip();
+                InvalidateVisual();
+            }
+        }
+
+        protected Circuit.Element element;
 
         protected Element(Circuit.Element E)
         {
@@ -60,9 +77,26 @@ namespace LiveSPICE
             OnLayoutChanged(null, null);
 
             UseLayoutRounding = true;
+            Background = Brushes.Transparent;
 
             foreach (Circuit.Terminal i in E.Terminals)
                 i.ConnectionChanged += (x, y) => InvalidateVisual();
+        }
+
+        protected virtual void UpdateToolTip() { }
+        
+        protected void OnLayoutChanged(object sender, EventArgs e)
+        {
+            Circuit.Coord lb = element.LowerBound;
+            Circuit.Coord ub = element.UpperBound;
+
+            Canvas.SetLeft(this, lb.x);
+            Canvas.SetTop(this, lb.y);
+
+            Width = ub.x - lb.x;
+            Height = ub.y - lb.y;
+
+            InvalidateVisual();
         }
 
         public static Element New(Circuit.Element E)
@@ -74,35 +108,48 @@ namespace LiveSPICE
             else
                 throw new NotImplementedException();
         }
-        
-        private List<EventHandler> selectedChanged = new List<EventHandler>();
-        public event EventHandler SelectedChanged { add { selectedChanged.Add(value); } remove { selectedChanged.Remove(value); } }
 
-        private bool selected = false;
-        public bool Selected 
+        protected static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
+
+        public static double TerminalSize = 3.0;
+        public static double EdgeThickness = 1.0;
+        public static GuidelineSet Guidelines = new GuidelineSet(new double[] { EdgeThickness / 2 }, new double[] { EdgeThickness / 2 });
+
+        public static Brush WireBrush = Brushes.Black;
+        public static Pen WirePen = new Pen(WireBrush, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen TerminalPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+
+        public static Pen BlackPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+
+        public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
         {
-            get { return selected; } 
-            set 
-            {
-                if (selected == value) return;
-
-                selected = value;
-                InvalidateVisual();
-                foreach (EventHandler i in selectedChanged)
-                    i(this, new EventArgs());
-            } 
+            Vector dx = new Vector(TerminalSize / 2, TerminalSize / 2);
+            Context.DrawRectangle(null, MapToPen(Connected ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(x - dx, x + dx));
         }
 
-        private bool highlighted = false;
-        public bool Highlighted 
-        { 
-            get { return highlighted; } 
-            set 
+        public static Pen MapToPen(Circuit.EdgeType Edge)
+        {
+            switch (Edge)
             {
-                if (highlighted == value) return;
-                highlighted = value; 
-                InvalidateVisual(); 
-            } 
+                case Circuit.EdgeType.Wire: return WirePen;
+                case Circuit.EdgeType.Black: return BlackPen;
+                case Circuit.EdgeType.Gray: return GrayPen;
+                case Circuit.EdgeType.Red: return RedPen;
+                default: throw new ArgumentException();
+            }
+        }
+
+        public static double MapAlignment(Circuit.Alignment Align)
+        {
+            switch (Align)
+            {
+                case Circuit.Alignment.Near: return 0.0;
+                case Circuit.Alignment.Center: return 0.5;
+                case Circuit.Alignment.Far: return 1.0;
+                default: throw new ArgumentException();
+            }
         }
     }
 }

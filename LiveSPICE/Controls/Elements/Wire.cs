@@ -28,25 +28,32 @@ namespace LiveSPICE
         protected Circuit.Wire wire;
         public Wire(Circuit.Wire W) : base(W) { wire = W; }
 
-        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
+        protected override void UpdateToolTip()
+        {
+            ToolTip = wire.Node != null ? wire.Node.ToString() : null;
+        }
+
         protected override void OnRender(DrawingContext dc)
         {
-            dc.PushGuidelineSet(Symbol.Guidelines);
+            dc.PushGuidelineSet(Guidelines);
+
+            // This isn't pointless, it makes WPF mouse hit tests succeed near the wire instead of exactly on it.
+            dc.DrawRectangle(Brushes.Transparent, null, new Rect(-5, -5, ActualWidth + 10, ActualHeight + 10));
 
             if (Selected)
                 dc.DrawLine(SelectedWirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
             else if (Highlighted)
                 dc.DrawLine(HighlightedWirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
             else
-                dc.DrawLine(Symbol.WirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
+                dc.DrawLine(WirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
 
-            dc.DrawRectangle(Symbol.WireBrush, Symbol.MapToPen(wire.Anode.ConnectedTo != null ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(-1, -1, 2, 2));
-            dc.DrawRectangle(Symbol.WireBrush, Symbol.MapToPen(wire.Cathode.ConnectedTo != null ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(ActualWidth - 1, ActualHeight - 1, 2, 2));
+            dc.DrawRectangle(WireBrush, MapToPen(wire.Anode.ConnectedTo != null ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(-1, -1, 2, 2));
+            dc.DrawRectangle(WireBrush, MapToPen(wire.Cathode.ConnectedTo != null ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(ActualWidth - 1, ActualHeight - 1, 2, 2));
 
             dc.Pop();
         }
         
-        protected static Pen SelectedWirePen = new Pen(Brushes.Blue, Symbol.EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        protected static Pen HighlightedWirePen = new Pen(Brushes.Gray, Symbol.EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        protected static Pen SelectedWirePen = new Pen(Brushes.Blue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        protected static Pen HighlightedWirePen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
     }
 }
