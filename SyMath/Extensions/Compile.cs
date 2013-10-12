@@ -130,7 +130,7 @@ namespace SyMath
             if (F.Target.CanCall(F.Arguments))
                 return F.Target.CompileCall(F.Arguments.Select(i => Visit(i)), libraries);
             else
-                throw new InvalidOperationException("Call cannot be resolved.");
+                throw new InvalidOperationException("Call to '" + F.Target.ToString() + "' cannot be resolved.");
         }
 
         protected override LinqExpression VisitVariable(Variable V)
