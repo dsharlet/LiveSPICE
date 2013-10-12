@@ -53,6 +53,8 @@ namespace Circuit
             Sym.DrawText(Voltage.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near); 
             Sym.DrawText(Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
         }
+
+        public override string ToString() { return Name + " = " + Voltage.ToString(); }
     }
 
     [CategoryAttribute("IO")]
