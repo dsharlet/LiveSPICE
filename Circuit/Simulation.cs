@@ -339,9 +339,6 @@ namespace Circuit
             Dictionary<Expression, LinqExpression> map = new Dictionary<Expression, LinqExpression>();
             Dictionary<Expression, LinqExpression> buffers = new Dictionary<Expression, LinqExpression>();
 
-            // Add the globals to the map.
-            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                map[i.Key] = i.Value;
             
             // Lambda definition objects.
             List<ParameterExpression> parameters = new List<ParameterExpression>();
@@ -365,13 +362,13 @@ namespace Circuit
             Input = Input.Where(i => IsExpressionUsed(Output, i)).ToList();
             // Create globals to store previous values of input.
             foreach (Expression i in Input)
-            {
-                GlobalExpr<double> prev = new GlobalExpr<double>(i.ToString().Replace("[t]", "[t-1]"));
-                globals[i] = prev;
-                map[i.Evaluate(t_t0)] = prev;
-            }
+                globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(i.ToString().Replace("[t]", "[t-1]"));
 
             // Define lambda body.
+
+            // Add the globals to the map.
+            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+                map[i.Key] = i.Value;
 
             // double t = t0
             ParameterExpression t = Declare<double>(locals, map, Simulation.t);
@@ -404,8 +401,7 @@ namespace Circuit
                     Dictionary<Expression, LinqExpression> dVi = new Dictionary<Expression, LinqExpression>();
                     foreach (Expression i in Input)
                     {
-                        // Ensure that we have a global variable to store the previous sample in.
-                        LinqExpression Va = globals[i];
+                        LinqExpression Va = globals[i.Evaluate(t_t0)];
                         LinqExpression Vb = LinqExpression.MakeIndex(
                             buffers[i],
                             buffers[i].Type.GetProperty("Item"),
