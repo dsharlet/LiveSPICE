@@ -23,13 +23,10 @@ namespace Circuit
 
         public static implicit operator LinqExpression(GlobalExpr<T> G) { return G.expr; }
 
-        public GlobalExpr(string Name) 
+        public GlobalExpr() 
         {
             expr = LinqExpression.Field(LinqExpression.Constant(this), typeof(GlobalExpr<T>), "x");
-
-            // This is handy for debugging.
-            //expr = LinqExpression.Variable(typeof(T), Name);
         }
-        public GlobalExpr(T Init, string Name) : this(Name) { x = Init; }
+        public GlobalExpr(T Init) : this() { x = Init; }
     }
 }

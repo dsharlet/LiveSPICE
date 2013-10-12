@@ -193,7 +193,7 @@ namespace Circuit
 
             // Create global variables for the previous value of each differential solution.
             foreach (Arrow i in differential)
-                globals[i.Left.Evaluate(t, t0)] = new GlobalExpr<double>(0.0, i.Left.ToString().Replace("[t]", "[t-1]"));
+                globals[i.Left.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
 
 
             // Find as many closed form solutions in the remaining system as possible.
@@ -209,10 +209,10 @@ namespace Circuit
             unknowns = y;
             // Create global variables for the non-linear unknowns.
             foreach (Expression i in y)
-                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0, i.ToString().Replace("[t]", "[t-1]"));
+                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
-                globals[i.Left] = new GlobalExpr<double>(0.0, i.Left.ToString());
+                globals[i.Left] = new GlobalExpr<double>(0.0);
 
             LogExpressions("Non-linear system:", nonlinear);
             LogExpressions("Unknowns:", unknowns);
@@ -362,13 +362,9 @@ namespace Circuit
             Input = Input.Where(i => IsExpressionUsed(Output, i)).ToList();
             // Create globals to store previous values of input.
             foreach (Expression i in Input)
-                globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(i.ToString().Replace("[t]", "[t-1]"));
+                globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(0.0);
 
             // Define lambda body.
-
-            // Add the globals to the map.
-            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                map[i.Key] = i.Value;
 
             // double t = t0
             ParameterExpression t = Declare<double>(locals, map, Simulation.t);
@@ -381,6 +377,10 @@ namespace Circuit
             // double invOversample = 1 / (double)Oversample
             ParameterExpression invOversample = Declare<double>(locals, "invOversample");
             body.Add(LinqExpression.Assign(invOversample, Reciprocal(LinqExpression.Convert(Oversample, typeof(double)))));
+
+            // Load the globals to local variables and add them to the map.
+            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Key), i.Value));
 
             // Trivial timestep expressions that are not a function of the input can be set once here (outside the sample loop).
             // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
@@ -401,7 +401,7 @@ namespace Circuit
                     Dictionary<Expression, LinqExpression> dVi = new Dictionary<Expression, LinqExpression>();
                     foreach (Expression i in Input)
                     {
-                        LinqExpression Va = globals[i.Evaluate(t_t0)];
+                        LinqExpression Va = map[i.Evaluate(t_t0)];
                         LinqExpression Vb = LinqExpression.MakeIndex(
                             buffers[i],
                             buffers[i].Type.GetProperty("Item"),
@@ -457,7 +457,7 @@ namespace Circuit
                             foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
                             {
                                 Expression di_dt = D(i.Left, Simulation.t);
-                                LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
+                                LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
 
                                 // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
                                 if (IsExpressionUsed(Output, di_dt))
@@ -491,7 +491,7 @@ namespace Circuit
 
                                         foreach (Arrow i in iter)
                                         {
-                                            LinqExpression Vt0 = globals[i.Left.Evaluate(t_t0)];
+                                            LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
                                             body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(map)));
                                             map[i.Left] = Vt0;
                                         }
@@ -503,7 +503,7 @@ namespace Circuit
 
                                 // Update f0.
                                 foreach (Arrow i in f0)
-                                    body.Add(LinqExpression.Assign(globals[i.Left], i.Right.Compile(map)));
+                                    body.Add(LinqExpression.Assign(map[i.Left], i.Right.Compile(map)));
                             }
 
                             // Compile the component voltage expressions.
@@ -534,6 +534,10 @@ namespace Circuit
                             LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n }),
                             LinqExpression.Multiply(Vo[i], invOversample)));
                 });
+
+            // Copy the global state variables back to the globals.
+            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+                body.Add(LinqExpression.Assign(i.Value, map[i.Key]));
 
             // return t
             LinqExpressions.LabelTarget returnTo = LinqExpression.Label(t.Type);
