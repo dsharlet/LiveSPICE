@@ -12,47 +12,23 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Op-Amp")]
-    public class OpAmp : Component
+    public class OpAmp : IdealOpAmp
     {
-        protected Terminal p, n, o;
-        public override IEnumerable<Terminal> Terminals 
-        { 
-            get 
-            {
-                yield return p;
-                yield return n;
-                yield return o;
-            } 
-        }
-        [Browsable(false)]
-        public Terminal Positive { get { return p; } }
-        [Browsable(false)]
-        public Terminal Negative { get { return n; } }
-        [Browsable(false)]
-        public Terminal Out { get { return o; } }
-
         protected Quantity rin = new Quantity(1e6m, Units.Ohm);
         [Description("Input resistance.")]
         [SchematicPersistent]
         public Quantity Rin { get { return rin; } set { if (rin.Set(value)) NotifyChanged("Rin"); } }
 
         protected Quantity rout = new Quantity(1e2m, Units.Ohm);
-        [Description("Input resistance.")]
+        [Description("Output resistance.")]
         [SchematicPersistent]
         public Quantity Rout { get { return rout; } set { if (rout.Set(value)) NotifyChanged("Rout"); } }
 
-        protected decimal g = 1e6m;
+        protected decimal gain = 1e6m;
         [Description("Gain.")]
         [SchematicPersistent]
-        public decimal G { get { return g; } set { g = value; NotifyChanged("G"); } }
-
-        public OpAmp()
-        {
-            p = new Terminal(this, "+");
-            n = new Terminal(this, "-");
-            o = new Terminal(this, "Out");
-        }
-
+        public decimal Gain { get { return gain; } set { gain = value; NotifyChanged("Gain"); } }
+        
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             // The input terminals are connected by a resistor Rin.
@@ -69,28 +45,7 @@ namespace Circuit
             Unknowns.Add(iout);
             Out.i = iout;
 
-            Mna.Add(Equal.New((G * Vin - Out.V) / (Expression)Rout, iout));
-        }
-
-        public override void LayoutSymbol(SymbolLayout Sym)
-        {
-            Sym.AddTerminal(Positive, new Coord(-30, 10));
-            Sym.AddTerminal(Negative, new Coord(-30, -10));
-            Sym.AddTerminal(Out, new Coord(30, 0));
-
-            Sym.AddWire(Positive, new Coord(-20, 10));
-            Sym.AddWire(Negative, new Coord(-20, -10));
-            Sym.AddWire(Out, new Coord(20, 0));
-
-            Sym.DrawPositive(EdgeType.Black, new Coord(-17, 10));
-            Sym.DrawNegative(EdgeType.Black, new Coord(-17, -10));
-
-            Sym.AddLoop(EdgeType.Black,
-                new Coord(-20, 20),
-                new Coord(-20, -20),
-                new Coord(20, 0));
-
-            Sym.DrawText(Name, new Coord(0, -10), Alignment.Near, Alignment.Far);
+            Mna.Add(Equal.New(Gain * Vin - Out.V, iout * (Expression)Rout));
         }
     }
 }
