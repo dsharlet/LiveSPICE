@@ -385,9 +385,7 @@ namespace Circuit
             // Trivial timestep expressions that are not a function of the input can be set once here (outside the sample loop).
             // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
             foreach (Arrow i in trivial.Where(i => !i.IsFunctionOf(Input)))
-                body.Add(LinqExpression.Assign(
-                    Declare<double>(locals, map, i.Left), 
-                    i.Right.Compile(map)));
+                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
             // for (int n = 0; n < SampleCount; ++n)
             ParameterExpression n = Declare<int>(locals, "n");
@@ -402,15 +400,10 @@ namespace Circuit
                     foreach (Expression i in Input)
                     {
                         LinqExpression Va = map[i.Evaluate(t_t0)];
-                        LinqExpression Vb = LinqExpression.MakeIndex(
-                            buffers[i],
-                            buffers[i].Type.GetProperty("Item"),
-                            new LinqExpression[] { n });
+                        LinqExpression Vb = LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n });
 
                         // double Vi = Va
-                        body.Add(LinqExpression.Assign(
-                            Declare<double>(locals, map, i, i.ToString()),
-                            Va));
+                        body.Add(LinqExpression.Assign(Declare<double>(locals, map, i, i.ToString()), Va));
 
                         // dVi = (Vb - Vi) / Oversample.
                         body.Add(LinqExpression.Assign(
@@ -444,9 +437,7 @@ namespace Circuit
 
                             // Compile the trivial timestep expressions that are a function of the input.
                             foreach (Arrow i in trivial.Where(i => IsExpressionUsed(Output, i.Left) && i.Right.IsFunctionOf(Input)))
-                                body.Add(LinqExpression.Assign(
-                                    Declare<double>(locals, map, i.Left),
-                                    i.Right.Compile(map)));
+                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                             // We have to compute all of the Vt expressions before updating the global, so store them here.
                             Dictionary<Expression, LinqExpression> Vt = new Dictionary<Expression, LinqExpression>();
@@ -472,9 +463,7 @@ namespace Circuit
 
                             // And the linear timestep expressions.
                             foreach (Arrow i in linear.Where(i => IsExpressionUsed(Output, i.Left)))
-                                body.Add(LinqExpression.Assign(
-                                    Declare<double>(locals, map, i.Left), 
-                                    i.Right.Compile(map)));
+                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                             // Solve the remaining non-linear system with Newton's method.
                             if (unknowns.Any())
@@ -507,10 +496,8 @@ namespace Circuit
                             }
 
                             // Compile the component voltage expressions.
-                            foreach (Arrow i in components.Where(i => IsExpressionUsed(Output, i.Left)))
-                                body.Add(LinqExpression.Assign(
-                                    Declare<double>(locals, map, i.Left),
-                                    i.Right.Compile(map)));
+                            foreach (Arrow i in components.Where(i => !map.ContainsKey(i.Left) && IsExpressionUsed(Output, i.Left)))
+                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                             // t0 = t
                             body.Add(LinqExpression.Assign(t0, t));
