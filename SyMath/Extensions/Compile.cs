@@ -165,14 +165,7 @@ namespace SyMath
             if (Libraries == null)
                 Libraries = new Type[] { typeof(StandardMath) };
 
-            try
-            {
-                return new CompileVisitor(Map, Libraries).Visit(This);
-            }
-            catch (System.Exception Ex)
-            {
-                throw new CompileException("Exception compiling expression", Ex);
-            }
+            return new CompileVisitor(Map, Libraries).Visit(This);
         }
 
         public static LinqExpression Compile(this Expression This, IDictionary<Expression, LinqExpression> Map)
