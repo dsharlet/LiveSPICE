@@ -32,8 +32,15 @@ namespace Circuit
     /// </summary>
     public class ConsoleLog : ILog
     {
+        private MessageType verbosity;
+
+        public ConsoleLog() : this(MessageType.Verbose) { }
+        public ConsoleLog(MessageType Verbosity) { verbosity = Verbosity; }
+
         void ILog.WriteLine(MessageType Type, string Text, params object[] Format) 
-        { 
+        {
+            if (Type >= verbosity)
+                return;
             if (Type != MessageType.Info)
                 System.Console.Write("[" + Type.ToString() + "]"); 
             System.Console.WriteLine(Text, Format);
