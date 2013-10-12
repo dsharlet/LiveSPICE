@@ -133,7 +133,6 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Oscilloscope.cs" />
-    <Compile Include="Utils\TaggedWire.cs" />
     <Page Include="Controls\Simulation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

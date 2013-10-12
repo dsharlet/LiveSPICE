@@ -31,7 +31,7 @@ namespace LiveSPICE
             new Tuple<Type, Key[]> (typeof(Circuit.Capacitor), new Key[] { Key.F }),
             new Tuple<Type, Key[]> (typeof(Circuit.Inductor), new Key[] { Key.L, Key.H }),
             new Tuple<Type, Key[]> (typeof(Circuit.VoltageSource), null),
-            new Tuple<Type, Key[]> (typeof(Circuit.TaggedWire), null),
+            new Tuple<Type, Key[]> (typeof(Circuit.NamedWire), null),
         };
                 
         public ComponentLibrary()

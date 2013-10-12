@@ -148,7 +148,30 @@ namespace Circuit
             // All the existing nodes contained in wires.
             List<Node> nodes = Wires.Select(i => i.Node).Distinct().ToList();
 
-            Node n = nodes.FirstOrDefault(i => i != null);
+            // If this set of wires is connected to a NamedWire, use that as the node.
+            Node n = null;
+            foreach (NamedWire i in Symbols.Select(j => j.Component).OfType<NamedWire>())
+            {
+                if (Wires.Any(j => j.IsConnectedTo(((Symbol)i.Tag).MapTerminal(i.Terminal))))
+                {
+                    if (n != null)
+                        Log.WriteLine(MessageType.Warning, "Multiple Named Wires connected to node.");
+                    n = circuit.Nodes[i.WireName];
+                }
+            }
+
+            // Only make one node for ground. This isn't strictly necessary, but it results in less log spew.
+            foreach (Ground i in Symbols.Select(j => j.Component).OfType<Ground>())
+            {
+                if (Wires.Any(j => j.IsConnectedTo(((Symbol)i.Tag).MapTerminal(i.Terminal))))
+                    n = circuit.Nodes["v0"];
+            }
+
+            // If there are no NamedWires, use one of the nodes already in the set.
+            if (n == null)
+                n = nodes.FirstOrDefault(i => i != null);
+
+            // If there were no nodes in the set, just make a new one.
             if (n == null)
             {
                 n = new Node();
@@ -208,6 +231,10 @@ namespace Circuit
                         Log.WriteLine(MessageType.Verbose, "Terminal '" + i.ToString() + "' disconnected");
                 }
             }
+
+            // If Of is a named wire, the nodes might have changed.
+            if (Of.Component is NamedWire)
+                RebuildNodes();
         }
 
         private void LogComponents()
