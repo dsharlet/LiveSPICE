@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SyMath;
 
 namespace Circuit
@@ -16,8 +17,16 @@ namespace Circuit
         public string Name { get { return name != null ? name : owner.Name; } set { name = value; } }
         public string Description { get { return name != null ? owner.Name + "." + name : owner.Name; } }
 
-        public Terminal(Component Owner) { owner = Owner; }
-        public Terminal(Component Owner, string Name) { owner = Owner; name = Name; }
+        // A unique function of t to use when this node isn't connected.
+        protected Expression unconnected;
+        private static long count = 0;
+
+        public Terminal(Component Owner) 
+        {
+            unconnected = Call.New(ExprFunction.New("_v" + Interlocked.Increment(ref count), Component.t), Component.t);
+            owner = Owner; 
+        }
+        public Terminal(Component Owner, string Name) : this(Owner) { name = Name; }
         
         protected Node connectedTo;
         /// <summary>
@@ -57,7 +66,7 @@ namespace Circuit
         }
 
         public Expression i = null;
-        public Expression V { get { return ConnectedTo.V; } }
+        public Expression V { get { return ConnectedTo != null ? ConnectedTo.V : unconnected; } }
 
         public override string ToString() { return Description; }
     }

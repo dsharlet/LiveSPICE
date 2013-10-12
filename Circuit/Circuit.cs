@@ -48,7 +48,17 @@ namespace Circuit
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             foreach (Component c in Components)
+            {
                 c.Analyze(Mna, Unknowns);
+                // Make a fake node for the unconnected terminals.
+                foreach (Terminal t in c.Terminals.Where(i => i.ConnectedTo == null))
+                {
+                    Unknowns.Add(t.V);
+                    Expression i = t.i;
+                    if (i != null && !i.IsZero())
+                        Mna.Add(Equal.New(i, Constant.Zero));
+                }
+            }
             foreach (Node n in Nodes)
             {
                 Unknowns.Add(n.V);
