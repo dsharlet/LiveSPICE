@@ -39,7 +39,7 @@ namespace Circuit
 
         void ILog.WriteLine(MessageType Type, string Text, params object[] Format) 
         {
-            if (Type >= verbosity)
+            if (Type > verbosity)
                 return;
             if (Type != MessageType.Info)
                 System.Console.Write("[" + Type.ToString() + "]"); 
