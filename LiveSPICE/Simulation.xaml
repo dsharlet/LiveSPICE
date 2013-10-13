@@ -42,6 +42,7 @@
         <ToolBarTray Grid.Row="2" Background="{StaticResource ResourceKey=Background}">
             <ToolBar Band="1" BandIndex="1">
                 <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
+                <Button Click="Probe_Click"  Content="Probe" />
             </ToolBar>
             <!-- View -->
             <ToolBar Band="1" BandIndex="2">
@@ -92,8 +93,7 @@
                                         <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
                                         <Separator />
                                         <ComboBox Width="70"
-                                                    ItemsSource="{Binding ElementName=oscilloscope, Path=SignalNames}" 
-                                                    SelectedValue="{Binding ElementName=oscilloscope, Path=FocusSignalName}">
+                                                    ItemsSource="{Binding ElementName=oscilloscope, Path=SignalNames}">
                                         </ComboBox>
                                         <Separator />
                                         <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding Path=ShowNotes, ElementName=oscilloscope}" />

@@ -24,7 +24,7 @@ namespace LiveSPICE
     /// <summary>
     /// SchematicTool for adding symbols to the schematic.
     /// </summary>
-    public class ProbeTool : SchematicTool
+    public class ProbeTool : SimulationTool
     {
         protected static Circuit.EdgeType[] Colors =
         {
@@ -38,9 +38,7 @@ namespace LiveSPICE
 
         protected Probe probe = new Probe();
         protected SymbolControl overlay;
-
-        protected Circuit.Coord offset;
-
+        
         public ProbeTool(SimulationSchematic Target)
             : base(Target)
         {
@@ -51,32 +49,28 @@ namespace LiveSPICE
                 Highlighted = false,
                 Pen = new Pen(Brushes.Gray, 1.0) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }
             };
-
-            Vector x = Target.SnapToGrid(overlay.Size / 2);
-            offset = new Circuit.Coord(0, 0);//(int)x.X, (int)x.Y);
         }
 
-        public override void Begin() { Target.overlays.Children.Add(overlay); overlay.UpdateLayout(); Target.Cursor = Cursors.None; }
-        public override void End() { Target.overlays.Children.Remove(overlay); }
+        public override void Begin() { base.Begin(); Target.overlays.Children.Add(overlay); overlay.UpdateLayout(); Target.Cursor = Cursors.None; }
+        public override void End() { Target.overlays.Children.Remove(overlay); base.End(); }
 
         public override void MouseDown(Point At)
         {
             if (overlay.Visibility != Visibility.Visible || Target.Cursor == Cursors.No)
                 return;
 
-            Circuit.Symbol S = new Circuit.Symbol(new Probe(probe.Color))
+            Probe p = new Probe(Colors.ArgMin(i => Simulation.Probes.Count(j => j.Color == i)));
+            Circuit.Symbol S = new Circuit.Symbol(p)
             {
-                Rotation = overlay.GetSymbol().Rotation,
-                Flip = overlay.GetSymbol().Flip,
-                Position = overlay.GetSymbol().Position
+                Rotation = overlay.Symbol.Rotation,
+                Flip = overlay.Symbol.Flip,
+                Position = overlay.Symbol.Position
             };
             Target.Schematic.Add(S);
 
-            probe.Color = Colors.ArgMin(i => ((SimulationSchematic)Target).Probes.Count(j => j.Color == i));
-
             overlay.Pen.Brush = Brushes.Black;
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
-                Target.Tool = null;
+                Target.Tool = new ProbeSelectionTool(Simulation);
         }
         public override void MouseUp(Point At)
         {
@@ -85,9 +79,9 @@ namespace LiveSPICE
 
         public override void MouseMove(Point At)
         {
-            Circuit.Symbol symbol = overlay.GetSymbol();
+            Circuit.Symbol symbol = overlay.Symbol;
 
-            symbol.Position = new Circuit.Coord((int)At.X, (int)At.Y) - offset;
+            symbol.Position = new Circuit.Coord((int)At.X, (int)At.Y);
 
             Circuit.Coord x = symbol.MapTerminal(probe.Terminal);
 
@@ -103,9 +97,9 @@ namespace LiveSPICE
 
         public override bool KeyDown(Key Key)
         {
-            Circuit.Symbol symbol = overlay.GetSymbol();
+            Circuit.Symbol symbol = overlay.Symbol;
 
-            Circuit.Coord x = symbol.Position + offset;
+            Circuit.Coord x = symbol.Position;
             switch (Key)
             {
                 case System.Windows.Input.Key.Left: symbol.Rotation += 1; break;
@@ -115,7 +109,7 @@ namespace LiveSPICE
                 default: return base.KeyDown(Key);
             }
 
-            symbol.Position = x - offset;
+            symbol.Position = x;
             return true;
         }
     }

@@ -30,12 +30,25 @@ namespace LiveSPICE
         {
             InitializeComponent();
 
+            CommandBindings.Add(new CommandBinding(ApplicationCommands.Delete, Delete_Executed, Delete_CanExecute));
+            CommandBindings.Add(new CommandBinding(ApplicationCommands.SelectAll, SelectAll_Executed, SelectAll_CanExecute));
+
             Focusable = true;
             Cursor = Cursors.Cross;
 
-            Tool = new ProbeTool(this);
+            Tool = new ProbeSelectionTool(this);
         }
 
+        private void Delete_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = !ProbesOf(Selected).Empty(); }
+        private void SelectAll_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = !ProbesOf(Elements).Empty(); }
+        private void Delete_Executed(object sender, ExecutedRoutedEventArgs e) { Schematic.Remove(ProbesOf(Selected).ToList()); }
+        private void SelectAll_Executed(object sender, ExecutedRoutedEventArgs e) { Select(ProbesOf(Elements)); }
+
         public IEnumerable<Probe> Probes { get { return Symbols.Select(i => i.Component).OfType<Probe>(); } }
+
+        public static IEnumerable<Circuit.Element> ProbesOf(IEnumerable<Circuit.Element> Of)
+        {
+            return Of.OfType<Circuit.Symbol>().Where(i => i.Component is Probe);
+        }
     }
 }

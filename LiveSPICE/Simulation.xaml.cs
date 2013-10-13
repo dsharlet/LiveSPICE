@@ -70,8 +70,8 @@ namespace LiveSPICE
             // Make a clone of the schematic so we can mess with it.
             Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), log);
 
-            clone.Elements.ItemAdded += RefreshProbes;
-            clone.Elements.ItemRemoved += RefreshProbes;
+            clone.Elements.ItemAdded += OnElementAdded;
+            clone.Elements.ItemRemoved += (o, e) => RefreshProbes();
 
             schematic.Schematic = new SimulationSchematic(clone);
             sampleRate = SampleRate;
@@ -81,11 +81,24 @@ namespace LiveSPICE
             Build();
         }
 
-        public void RefreshProbes(object sender, Circuit.ElementEventArgs e)
+        private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
+        {
+            if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
+                e.Element.LayoutChanged += (x, y) => RefreshProbes();
+            RefreshProbes();
+        }
+
+        private void Probe_Click(object sender, RoutedEventArgs e)
+        {
+            schematic.Schematic.Tool = new ProbeTool((SimulationSchematic)schematic.Schematic);
+            schematic.Schematic.Focus();
+        }
+
+        public void RefreshProbes()
         {
             lock (signals)
             {
-                Probe[] probes = ((SimulationSchematic)schematic.Schematic).Probes.ToArray();
+                Probe[] probes = ((SimulationSchematic)schematic.Schematic).Probes.Where(i => i.ConnectedTo != null).ToArray();
 
                 signals = probes.ToDictionary(i => i.V, i => new double[0]);
             }

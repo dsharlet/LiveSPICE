@@ -93,8 +93,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
-    <Compile Include="Controls\ProbeTool.cs" />
-    <Compile Include="Controls\SimulationSchematic.cs" />
+    <Compile Include="Controls\Simulation\MoveProbeTool.cs" />
+    <Compile Include="Controls\Simulation\SimulationTool.cs" />
+    <Compile Include="Controls\Simulation\ProbeSelectionTool.cs" />
+    <Compile Include="Controls\Simulation\ProbeTool.cs" />
+    <Compile Include="Controls\Simulation\SimulationSchematic.cs" />
     <Compile Include="Controls\Parameters.xaml.cs">
       <DependentUpon>Parameters.xaml</DependentUpon>
     </Compile>

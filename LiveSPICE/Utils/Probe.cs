@@ -29,7 +29,7 @@ namespace LiveSPICE
             base.DrawSymbol(Sym);
 
             Coord w = Sym.MapTerminal(Terminal);
-            Coord dw = new Coord(1, -1);
+            Coord dw = new Coord(1, 1);
             Coord pw = new Coord(dw.y, -dw.x);
 
             w += dw * 10;
