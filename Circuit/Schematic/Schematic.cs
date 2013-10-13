@@ -22,6 +22,11 @@ namespace Circuit
         /// </summary>
         public ElementCollection Elements { get { return elements; } }
 
+        public void Add(IEnumerable<Element> Elements) { elements.AddRange(Elements); }
+        public void Add(params Element[] Elements) { elements.AddRange(Elements); }
+        public void Remove(IEnumerable<Element> Elements) { elements.RemoveRange(Elements); }
+        public void Remove(params Element[] Elements) { elements.RemoveRange(Elements); }
+
         public IEnumerable<Symbol> Symbols { get { return elements.OfType<Symbol>(); } }
         public IEnumerable<Wire> Wires { get { return elements.OfType<Wire>(); } }
 

@@ -67,19 +67,19 @@ namespace LiveSPICE
 
     class AddElements : Edit
     {
-        SchematicEditor target;
+        Circuit.Schematic target;
         List<Circuit.Element> elements;
 
-        public AddElements(SchematicEditor Target, params Circuit.Element[] Elements) : this(Target, Elements.AsEnumerable()) { }
-        public AddElements(SchematicEditor Target, IEnumerable<Circuit.Element> Elements)
+        public AddElements(Circuit.Schematic Target, params Circuit.Element[] Elements) : this(Target, Elements.AsEnumerable()) { }
+        public AddElements(Circuit.Schematic Target, IEnumerable<Circuit.Element> Elements)
         {
             Debug.Assert(Elements.Any());
             target = Target;
             elements = Elements.ToList();
         }
 
-        public override void Do() { target.DoAdd(elements); }
-        public override void Undo() { target.DoRemove(elements); }
+        public override void Do() { target.Add(elements); }
+        public override void Undo() { target.Remove(elements); }
 
         public override string ToString() 
         { 
@@ -92,18 +92,18 @@ namespace LiveSPICE
 
     class RemoveElements : Edit
     {
-        SchematicEditor target;
+        Circuit.Schematic target;
         List<Circuit.Element> elements;
 
-        public RemoveElements(SchematicEditor Target, IEnumerable<Circuit.Element> Elements)
+        public RemoveElements(Circuit.Schematic Target, IEnumerable<Circuit.Element> Elements)
         {
             Debug.Assert(Elements.Any());
             target = Target;
             elements = Elements.ToList();
         }
 
-        public override void Do() { target.DoRemove(elements); }
-        public override void Undo() { target.DoAdd(elements); }
+        public override void Do() { target.Remove(elements); }
+        public override void Undo() { target.Add(elements); }
         
         public override string ToString()
         {

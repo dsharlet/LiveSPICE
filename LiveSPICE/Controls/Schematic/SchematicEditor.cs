@@ -211,39 +211,19 @@ namespace LiveSPICE
         private void Redo_Executed(object sender, ExecutedRoutedEventArgs e) { Edits.Redo(); }
 
         // Elements.
-        public void DoAdd(IEnumerable<Circuit.Element> Elements)
-        {
-            foreach (Circuit.Element i in Elements)
-            {
-                schematic.Elements.Add(i);
-
-                i.LayoutChanged += OnLayoutChanged;
-            }
-        }
-
-        public void DoRemove(IEnumerable<Circuit.Element> Elements)
-        {
-            foreach (Circuit.Element i in Elements)
-            {
-                i.LayoutChanged -= OnLayoutChanged;
-
-                schematic.Elements.Remove(i);
-            }
-        }
-
         public void Add(IEnumerable<Circuit.Element> Elements)
         {
             if (!Elements.Any())
                 return;
 
-            Edits.Do(new AddElements(this, Elements));
+            Edits.Do(new AddElements(schematic, Elements));
             OnSelectionChanged();
         }
         public void Remove(IEnumerable<Circuit.Element> Elements)
         {
             if (!Elements.Any())
                 return;
-            Edits.Do(new RemoveElements(this, Elements));
+            Edits.Do(new RemoveElements(schematic, Elements));
             OnSelectionChanged();
         }
         public void Add(params Circuit.Element[] Elements) { Add(Elements.AsEnumerable()); }

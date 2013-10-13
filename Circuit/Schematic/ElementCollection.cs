@@ -72,6 +72,11 @@ namespace Circuit
                 OnItemRemoved(new ElementEventArgs(item));
             return ret;
         }
+        public void RemoveRange(IEnumerable<Element> items)
+        {
+            foreach (Element i in items)
+                Remove(i);
+        }
 
         // IEnumerable<Node>
         public IEnumerator<Element> GetEnumerator() { return x.GetEnumerator(); }
