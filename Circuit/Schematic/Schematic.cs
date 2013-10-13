@@ -15,10 +15,6 @@ namespace Circuit
     public class Schematic
     {
         protected Circuit circuit = new Circuit();
-        /// <summary>
-        /// Get the circuit this schematic represents.
-        /// </summary>
-        public Circuit Circuit { get { return circuit; } }
 
         protected ElementCollection elements;
         /// <summary>
@@ -58,7 +54,59 @@ namespace Circuit
         {
         }
 
-        public Circuit Build() { return Circuit; }
+        public Circuit Build() 
+        {
+            int errors = 0;
+            int warnings = 0;
+
+            log.WriteLine(MessageType.Info, "Building circuit...");
+
+            // Check for duplicate names.
+            foreach (string i in circuit.Components.Select(i => i.Name))
+            {
+                IEnumerable<Component> named = circuit.Components.Where(j => j.Name == i);
+                if (named.Count() > 1)
+                {
+                    log.WriteLine(MessageType.Error, "Name '{0}' is not unique", i);
+                    foreach (Component j in named)
+                        log.WriteLine(MessageType.Info, "  " + j.ToString());
+                    errors++;
+                }
+            }
+
+            // Check for conflicting named wires.
+            foreach (Node i in circuit.Nodes)
+            {
+                IEnumerable<NamedWire> named = i.Connected.Select(j => j.Owner).OfType<NamedWire>();
+                if (named.Count() > 1)
+                {
+                    log.WriteLine(MessageType.Error, "Node '{0}' is named more than once.", i.Name);
+                    foreach (NamedWire j in named)
+                        log.WriteLine(MessageType.Info, "  " + j.ToString());
+                    errors++;
+                }
+            }
+
+            // Check for unconnected terminals.
+            foreach (Component i in circuit.Components)
+            {
+                foreach (Terminal j in i.Terminals.Where(j => j.ConnectedTo == null))
+                {
+                    log.WriteLine(MessageType.Info, "Unconnected terminal '{0}'", j.ToString());
+                    warnings++;
+                }
+            }
+
+            if (errors != 0)
+            {
+                throw new InvalidOperationException("Build failed: " + errors.ToString() + " errors");
+            }
+            else
+            {
+                log.WriteLine(MessageType.Info, "Build succeeded: {0} warnings", warnings);
+                return circuit;
+            }
+        }
 
         /// <summary>
         /// Get the terminals located at x.
@@ -79,7 +127,7 @@ namespace Circuit
         protected void OnElementAdded(object sender, ElementEventArgs e)
         {
             if (e.Element is Symbol)
-                Circuit.Components.Add(((Symbol)e.Element).Component);
+                circuit.Components.Add(((Symbol)e.Element).Component);
             OnLayoutChanged(e.Element, null);
 
             e.Element.LayoutChanged += OnLayoutChanged;
@@ -93,7 +141,7 @@ namespace Circuit
 
             // If the removed element is a wire, we might have to split the node it was a part of.
             if (e.Element is Symbol)
-                Circuit.Components.Remove(((Symbol)e.Element).Component);
+                circuit.Components.Remove(((Symbol)e.Element).Component);
             if (e.Element is Wire)
                 RebuildNodes();
 
