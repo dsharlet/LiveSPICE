@@ -58,31 +58,31 @@ namespace Circuit
         // Simulation timestep.
         private Expression h;
 
+        // Block of equations to solve
+        private class NonLinearSystem
+        {
+            private List<Equal> system;
+            private List<Expression> unknowns;
+
+            public IEnumerable<Equal> System { get { return system; } }
+            public IEnumerable<Expression> Unknowns { get { return unknowns; } }
+
+            public NonLinearSystem(IEnumerable<Equal> System, IEnumerable<Expression> Unknowns) { system = System.ToList(); unknowns = Unknowns.ToList(); }
+
+            public bool DependsOn(Expression x) { return system.Any(i => i.DependsOn(x)); }
+        }
+
         // Expressions for trivial solutions to the system.
         private List<Arrow> trivial;
         // Expressions for the solution of the differential equations.
         private List<Arrow> differential;
-        // Expressions for iterative solutions.
-        private List<Arrow> iterative;
-        // Expressions for algebraic solutions.
-        private List<Arrow> algebraic;
+        // Expressions for numerical algebraic solutions.
+        private List<NonLinearSystem> nonlinear;
         // Expressions for the voltage of each two terminal component.
         private List<Arrow> components;
 
         private List<Arrow> f0;
-
-        // Check if x is used anywhere in the simulation, including the outputs.
-        private bool IsExpressionUsed(IEnumerable<Expression> Extra, Expression x)
-        {
-            return
-                Extra.Any(i => i.IsFunctionOf(x)) ||
-                trivial.Any(i => i.Right.IsFunctionOf(x)) ||
-                iterative.Any(i => i.Right.IsFunctionOf(x)) ||
-                algebraic.Any(i => i.Right.IsFunctionOf(x)) ||
-                differential.Any(i => i.Right.IsFunctionOf(x)) ||
-                components.Any(i => i.Right.IsFunctionOf(x));
-        }
-
+        
         // Stores any global state in the simulation (previous state values, mostly).
         private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
 
@@ -98,7 +98,7 @@ namespace Circuit
                 List<Expression> nonlinear = new List<Expression>();
                 foreach (Expression t in Add.TermsOf((i.Left - i.Right).Expand()))
                 {
-                    if (t.IsFunctionOf(x) && !IsLinearFunctionOf(t, x))
+                    if (t.DependsOn(x) && !IsLinearFunctionOf(t, x))
                         nonlinear.Add(t);
                     else
                         linear.Add(t);
@@ -154,7 +154,7 @@ namespace Circuit
 
             // Find trivial solutions for y and substitute them into the system.
             trivial = mna.Solve(y);
-            trivial.RemoveAll(i => i.Right.IsFunctionOf(y));
+            trivial.RemoveAll(i => i.Right.DependsOn(y));
             mna = mna.Evaluate(trivial).OfType<Equal>().ToList();
             y.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
             LogExpressions("Trivial solutions:", trivial);
@@ -184,10 +184,27 @@ namespace Circuit
             // After solving for the differential unknowns, divide them by h so we don't have to do it during simulation.
             // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
             mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
+            f0 = f0.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Arrow>().ToList();
+                        
+            // Solve the remaining algebraic system.
+            List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
-            // Set up the s
-            iterative = mna.NSolve(y.Select(i => Arrow.New(i, i.Evaluate(t, t0))), 1);
-            algebraic = new List<Arrow>();
+            // Solve JF(y0)*(y - y0) = -F(y0) for y.
+            List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
+            SyMath.Matrix J = NSolveExtension.Jacobian(F, y);
+
+            // Compute J*(y - y0)
+            SyMath.Matrix X = new SyMath.Matrix(y0.Count, 1);
+            for (int i = 0; i < y0.Count; ++i)
+                X[i] = y0[i].Left - y0[i].Right;
+            SyMath.Matrix JX = J.Evaluate(y0) * X;
+
+            // Solve for y.
+            Equal[] newton = new Equal[F.Count];
+            for (int i = 0; i < F.Count; ++i)
+                newton[i] = Equal.New(JX[i, 0], -F[i].Evaluate(y0));
+
+            nonlinear = new List<NonLinearSystem>() { new NonLinearSystem(newton, y) };
 
             LogExpressions("System:", mna);
             LogExpressions("Unknowns:", y);
@@ -200,12 +217,11 @@ namespace Circuit
                 globals[i.Left] = new GlobalExpr<double>(0.0);
 
 
-
             LogTime(MessageType.Info, "System solved.");
             
             // Add solutions for the voltage across all the components.
             components = Circuit.Components.OfType<TwoTerminal>()
-                .Select(i => Arrow.New(DependentVariable(i.Name, t), i.V))
+                .Select(i => Arrow.New(DependentVariable(i.Name, t), i.V.Evaluate(trivial)))
                 .ToList();
             LogExpressions("Component voltages:", components);
         }
@@ -315,9 +331,9 @@ namespace Circuit
             LogExpressions("Output:", Output);
             LogExpressions("Parameters:", Parameters);
 
-            LogTime(MessageType.Info, "Defining lambda...");
+            LogTime(MessageType.Info, "Defining sample processing function...");
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
-            LogTime(MessageType.Info, "Compiling lambda...");
+            LogTime(MessageType.Info, "Compiling sample processing function...");
             d = lambda.Compile();
             LogTime(MessageType.Info, "Done.");
 
@@ -352,8 +368,6 @@ namespace Circuit
             foreach (Expression i in Parameters)
                 Declare<double>(parameters, map, i);
 
-            // Remove any inputs that aren't used anywhere in the system.
-            Input = Input.Where(i => IsExpressionUsed(Output, i)).ToList();
             // Create globals to store previous values of input.
             foreach (Expression i in Input)
                 globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(0.0);
@@ -376,9 +390,9 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Key), i.Value));
 
-            // Trivial timestep expressions that are not a function of the input can be set once here (outside the sample loop).
+            // Trivial timestep expressions that are not a function of the input or t can be set once here (outside the sample loop).
             // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
-            foreach (Arrow i in trivial.Where(i => !i.IsFunctionOf(Input)))
+            foreach (Arrow i in trivial.Where(i => !i.Right.DependsOn(Input) && !i.Right.DependsOn(Component.t)))
                 body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
             // for (int n = 0; n < SampleCount; ++n)
@@ -430,46 +444,48 @@ namespace Circuit
                                 body.Add(LinqExpression.AddAssign(map[i], dVi[i]));
 
                             // Compile the trivial timestep expressions that are a function of the input.
-                            foreach (Arrow i in trivial.Where(i => IsExpressionUsed(Output, i.Left) && i.Right.IsFunctionOf(Input)))
+                            foreach (Arrow i in trivial.Where(i => !map.ContainsKey(i.Left)))
                                 body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                             // We have to compute all of the Vt expressions before updating the global, so store them here.
                             Dictionary<Expression, LinqExpression> Vt = new Dictionary<Expression, LinqExpression>();
                             // Compile the differential timestep expressions.
-                            foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
+                            foreach (Arrow i in differential)
                                 Vt[i.Left] = Declare(locals, body, i.Left.ToString(), i.Right.Compile(map));
                             // Update differentials.
-                            foreach (Arrow i in differential.Where(i => IsExpressionUsed(Output, i.Left)))
+                            foreach (Arrow i in differential)
                             {
                                 Expression di_dt = D(i.Left, Simulation.t);
                                 LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
 
                                 // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
-                                if (IsExpressionUsed(Output, di_dt))
-                                    body.Add(LinqExpression.Assign(
-                                        Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
-                                        LinqExpression.Subtract(Vt[i.Left], Vt0)));
+                                body.Add(LinqExpression.Assign(
+                                    Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
+                                    LinqExpression.Subtract(Vt[i.Left], Vt0)));
 
                                 // Vt0 = Vt
                                 body.Add(LinqExpression.Assign(Vt0, Vt[i.Left]));
                                 map[i.Left] = Vt[i.Left];
                             }
-                            
+
+                            // int it
+                            ParameterExpression it = Declare<int>(locals, "it");
+
                             // Compile the iterative timestep expressions.
-                            if (iterative.Any())
+                            foreach (NonLinearSystem i in nonlinear)
                             {
-                                // int it = Oversample
+                                // it = Oversample
                                 // do { ... --it } while(it > 0)
-                                ParameterExpression it = Declare<int>(locals, "it");
                                 body.Add(LinqExpression.Assign(it, Iterations));
                                 DoWhile(body,
                                     () =>
                                     {
-                                        foreach (Arrow i in iterative.Where(i => IsExpressionUsed(Output, i.Left)))
+                                        List<Arrow> iteration = i.System.Solve(i.Unknowns);
+                                        foreach (Arrow j in iteration)
                                         {
-                                            LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
-                                            body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(map)));
-                                            map[i.Left] = Vt0;
+                                            LinqExpression Vt0 = map[j.Left.Evaluate(t_t0)];
+                                            body.Add(LinqExpression.Assign(Vt0, j.Right.Compile(map)));
+                                            map[j.Left] = Vt0;
                                         }
 
                                         // --it;
@@ -477,17 +493,13 @@ namespace Circuit
                                     },
                                     LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
                             }
-                            
-                            // Compile the algebraic timestep expressions.
-                            foreach (Arrow i in algebraic.Where(i => IsExpressionUsed(Output, i.Left)))
-                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                             // Update f0.
-                            foreach (Arrow i in f0.Where(i => IsExpressionUsed(Output, i.Left)))
+                            foreach (Arrow i in f0)
                                 body.Add(LinqExpression.Assign(map[i.Left], i.Right.Compile(map)));
 
                             // Compile the component voltage expressions.
-                            foreach (Arrow i in components.Where(i => !map.ContainsKey(i.Left) && IsExpressionUsed(Output, i.Left)))
+                            foreach (Arrow i in components.Where(i => !map.ContainsKey(i.Left)))
                                 body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                             // t0 = t
@@ -722,7 +734,7 @@ namespace Circuit
             {
                 // TODO: There must be a more efficient way to do this...
                 Expression fi = f / i;
-                if (!fi.IsFunctionOf(i))
+                if (!fi.DependsOn(i))
                     return true;
 
                 //if (Add.TermsOf(f).Count(j => Multiply.TermsOf(j).Sum(k => k.Equals(i) ? 1 : k.IsFunctionOf(i) ? 2 : 0) == 1) == 1)
