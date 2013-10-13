@@ -35,7 +35,7 @@ namespace SyMath
         {
             if (x.Equals(E))
                 return Constant.One;
-            else if (!E.IsFunctionOf(x))
+            else if (!E.DependsOn(x))
                 return Constant.Zero;
             else
                 return base.Visit(E);
@@ -48,7 +48,7 @@ namespace SyMath
             if (R.Empty())
                 return Visit(L);
 
-            if (L.IsFunctionOf(x))
+            if (L.DependsOn(x))
             {
                 // Product rule.
                 return Add.New(
@@ -71,7 +71,7 @@ namespace SyMath
         {
             Expression f = P.Left;
             Expression g = P.Right;
-            if (g.IsFunctionOf(x))
+            if (g.DependsOn(x))
             {
                 // f(x)^g(x)
                 return Multiply.New(P,

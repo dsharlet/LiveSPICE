@@ -73,7 +73,7 @@ namespace SyMath
 
         public static Expression If(Constant x, Expression t, Expression f) { return (Real)x == 0 ? f : t; }
         
-        public static Expression IsFunctionOf(Expression f, Expression x) { return Constant.New(f.IsFunctionOf(x)); }
+        public static Expression IsFunctionOf(Expression f, Expression x) { return Constant.New(f.DependsOn(x)); }
         
         public static Expression Simplify(Expression x) { return x.Simplify(); }
 

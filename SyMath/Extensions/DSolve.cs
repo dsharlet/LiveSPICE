@@ -44,7 +44,7 @@ namespace SyMath
 
             // Take L^-1[Y].
             Y = Y.Select(i => Arrow.New(IL(i.Left, t), IL(i.Right, t))).ToList();
-            if (Y.Any(i => i.IsFunctionOf(s)))
+            if (Y.DependsOn(s))
                 throw new InvalidOperationException("DSolve failed");
 
             return Y;
@@ -68,7 +68,7 @@ namespace SyMath
             List<Arrow> dydt = f.Solve(y.Select(i => D(i, t)));
 
             // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
-            if (dydt.Any(i => i.Right.IsFunctionOf(dydt.Select(j => j.Left))))
+            if (dydt.Any(i => i.Right.DependsOn(dydt.Select(j => j.Left))))
                 throw new AlgebraException("Differential equation is singular or not linear.");
 
             switch (method)

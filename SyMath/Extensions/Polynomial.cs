@@ -73,7 +73,7 @@ namespace SyMath
         public static Polynomial New(Expression f, Expression x)
         {
             // Match each term to A*x^N where A is constant with respect to x, and N is an integer.
-            Variable A = PatternVariable.New("A", i => !i.IsFunctionOf(x));
+            Variable A = PatternVariable.New("A", i => !i.DependsOn(x));
             Variable N = PatternVariable.New("N", i => (i is Constant) && ((Real)i % 1 == 0));
             Expression TermPattern = Multiply.New(A, Power.New(x, N));
 

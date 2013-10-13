@@ -32,7 +32,7 @@ namespace SyMath
                 // Just try to find common sub-expressions.
                 if (!ReferenceEquals(x, null))
                 {
-                    Expression fx = ((Add)f).Terms.FirstOrDefault(i => i.IsFunctionOf(x));
+                    Expression fx = ((Add)f).Terms.FirstOrDefault(i => i.DependsOn(x));
                     if (!ReferenceEquals(fx, null))
                     {
                         Expression A = Multiply.TermsOf(fx).FirstOrDefault(i => i is Constant);

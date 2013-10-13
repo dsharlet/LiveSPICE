@@ -26,12 +26,12 @@ namespace SyMath
 
         private void AddTerm(IEnumerable<Expression> B, Expression t)
         {
-            if (t.IsFunctionOf(B))
+            if (t.DependsOn(B))
             {
                 foreach (Expression b in B)
                 {
                     Expression Tb = t / b;
-                    if (!Tb.IsFunctionOf(B))
+                    if (!Tb.DependsOn(B))
                     {
                         this[b] = this[b] + Tb;
                         return;

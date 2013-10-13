@@ -23,11 +23,11 @@ namespace SyMath
         
         private LaplaceTransform(Expression t, Expression s) { this.t = t; this.s = s; }
 
-        protected override bool IsConstant(Expression x) { return !x.IsFunctionOf(t); }
+        protected override bool IsConstant(Expression x) { return !x.DependsOn(t); }
 
         public override Expression Visit(Expression E) 
         {
-            if (!E.IsFunctionOf(t))
+            if (!E.DependsOn(t))
                 return E / s;
             
             return base.Visit(E);
@@ -72,7 +72,7 @@ namespace SyMath
 
         private InverseLaplaceTransform(Expression s, Expression t) { this.s = s; this.t = t; }
 
-        protected override bool IsConstant(Expression x) { return !x.IsFunctionOf(s); }
+        protected override bool IsConstant(Expression x) { return !x.DependsOn(s); }
         
         protected override Expression VisitUnknown(Expression E)
         {

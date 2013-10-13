@@ -6,13 +6,13 @@ using System.Text;
 namespace SyMath
 {
     /// <summary>
-    /// Visitor for finding variables in expressions. Returns null if the expression is a function of x.
+    /// Visitor for finding subexpressions in expressions. Returns null if any of the expressions is found.
     /// </summary>
-    class IsFunctionOfVisitor : RecursiveExpressionVisitor
+    class SearchVisitor : RecursiveExpressionVisitor
     {
         protected List<Expression> x;
 
-        public IsFunctionOfVisitor(IEnumerable<Expression> x) { this.x = x.ToList(); }
+        public SearchVisitor(IEnumerable<Expression> x) { this.x = x.ToList(); }
 
         public override Expression Visit(Expression E)
         {
@@ -22,7 +22,7 @@ namespace SyMath
         }
     }
 
-    public static class IsFunctionOfExtension
+    public static class DependsOnExtension
     {
         /// <summary>
         /// Check if f is a function of any variable in x.
@@ -30,9 +30,14 @@ namespace SyMath
         /// <param name="f"></param>
         /// <param name="x"></param>
         /// <returns>true if f is a function of any variable in x.</returns>
-        public static bool IsFunctionOf(this Expression f, IEnumerable<Expression> x)
+        public static bool DependsOn(this Expression f, IEnumerable<Expression> x)
         {
-            return ReferenceEquals(new IsFunctionOfVisitor(x).Visit(f), null);
+            return ReferenceEquals(new SearchVisitor(x).Visit(f), null);
+        }
+        public static bool DependsOn(this IEnumerable<Expression> f, IEnumerable<Expression> x)
+        {
+            SearchVisitor V = new SearchVisitor(x);
+            return f.Any(i => ReferenceEquals(V.Visit(i), null));
         }
 
         /// <summary>
@@ -41,10 +46,8 @@ namespace SyMath
         /// <param name="f"></param>
         /// <param name="x"></param>
         /// <returns>true if f is a function of x.</returns>
-        public static bool IsFunctionOf(this Expression f, params Expression[] x) 
-        { 
-            return IsFunctionOf(f, x.AsEnumerable());
-        }
+        public static bool DependsOn(this Expression f, params Expression[] x) { return DependsOn(f, x.AsEnumerable()); }
+        public static bool DependsOn(this IEnumerable<Expression> f, params Expression[] x) { return DependsOn(f, x.AsEnumerable()); }
 
         /// <summary>
         /// Check if f is a function of x.
@@ -52,9 +55,7 @@ namespace SyMath
         /// <param name="f"></param>
         /// <param name="x"></param>
         /// <returns>true if f is a function of x.</returns>
-        public static bool IsFunctionOf(this Expression f, Expression x)
-        {
-            return IsFunctionOf(f, Set.MembersOf(x));
-        }
+        public static bool DependsOn(this Expression f, Expression x) { return DependsOn(f, Set.MembersOf(x)); }
+        public static bool DependsOn(this IEnumerable<Expression> f, Expression x) { return DependsOn(f, Set.MembersOf(x)); }
     }
 }
