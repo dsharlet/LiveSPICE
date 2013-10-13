@@ -24,9 +24,9 @@ namespace SyMath
                     J[i, j] = F[i].Differentiate(x[j]);
             return J;
         }
-        
+
         /// <summary>
-        /// Solve an equation f for x, numerically if necessary.
+        /// Solve an equation f for x numerically.
         /// </summary>
         /// <param name="f"></param>
         /// <param name="x"></param>
@@ -35,19 +35,7 @@ namespace SyMath
         private static List<Arrow> NSolve(List<Equal> f, List<Arrow> x0, int N)
         {
             List<Expression> x = x0.Select(i => i.Left).ToList();
-
-            // Find analytical solutions.
-            List<Arrow> xN = f.Solve(x);
-            xN.RemoveAll(i => i.Right.IsFunctionOf(x));
-            // If every variable has an analytical solution, skip the numerical solution.
-            if (xN.Count == x0.Count)
-                return xN;
-
-            // Substitute analytical solutions into the system.
-            f = f.Select(i => i.Evaluate(xN)).OfType<Equal>().ToList();
-            x = x.Where(i => xN.None(j => j.Left.Equals(i))).ToList();
-            x0 = x0.Where(i => xN.None(j => j.Left.Equals(i.Left))).ToList();
-
+            
             // Numerically approximate the result with Newton's method, 
             // i.e. solve JF(x0)*(x - x0) = -F(x0) for x.
             List<Expression> F = f.Select(i => i.Left - i.Right).ToList();
@@ -55,7 +43,7 @@ namespace SyMath
             Equal[] newton = new Equal[F.Count];
             for (int n = 0; n < N; ++n)
             {
-                // Compute J * dx
+                // Compute J * (x - x0)
                 Matrix X = new Matrix(x0.Count, 1);
                 for (int i = 0; i < x0.Count; ++i)
                     X[i] = x0[i].Left - x0[i].Right;
@@ -67,12 +55,11 @@ namespace SyMath
                 x0 = newton.Solve(x);
             }
 
-            // Replace numerical solutions with analytical solutions.
-            return xN.Concat(x0).AsList();
+            return x0.AsList();
         }
 
         /// <summary>
-        /// Solve a system of equations, numerically if necessary.
+        /// Solve a system of equations numerically.
         /// </summary>
         /// <param name="f">System of equations to solve.</param>
         /// <param name="x">List of variables to solve for, with an initial guess.</param>
