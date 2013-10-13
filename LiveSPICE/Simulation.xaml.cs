@@ -117,7 +117,13 @@ namespace LiveSPICE
                         S = new Oscilloscope.Signal();
                         oscilloscope.Signals[i.V] = S;
                     }
-                    S.Pen = SymbolControl.MapToPen(i.Color);
+                    switch (i.Color)
+                    {
+                        // These two need to be brighter than the normal colors.
+                        case Circuit.EdgeType.Red: S.Pen = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
+                        case Circuit.EdgeType.Blue: S.Pen = new Pen(new SolidColorBrush(Color.FromRgb(60, 60, 255)), 1.0); break;
+                        default: S.Pen = ElementControl.MapToPen(i.Color); break;
+                    }
 
                     ComboBoxItem item = new ComboBoxItem()
                     {
