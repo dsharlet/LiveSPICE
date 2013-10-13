@@ -228,16 +228,16 @@ namespace Circuit
         /// <param name="Output">Mapping of node Expression -> double[] buffers that describe requested output samples.</param>
         /// <param name="Arguments">Constant expressions describing the values of any parameters to the simulation.</param>
         public void Process(
-            int N, 
-            IDictionary<Expression, double[]> Input, 
-            IDictionary<Expression, double[]> Output, 
+            int N,
+            IEnumerable<KeyValuePair<Expression, double[]>> Input, 
+            IEnumerable<KeyValuePair<Expression, double[]>> Output, 
             IEnumerable<Arrow> Arguments, 
             int Iterations)
         {
-            Delegate processor = Compile(Input.Keys, Output.Keys, Arguments.Select(i => i.Left));
+            Delegate processor = Compile(Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Left));
 
             // Build parameter list for the processor.
-            List<object> parameters = new List<object>(3 + Input.Count + Output.Count + Arguments.Count());
+            List<object> parameters = new List<object>(3 + Input.Count() + Output.Count() + Arguments.Count());
             parameters.Add(N);
             parameters.Add((double)n * T);
             parameters.Add(T);
@@ -267,21 +267,21 @@ namespace Circuit
         private static Arrow[] NoArguments = new Arrow[] { };
         public void Process(
             int N,
-            IDictionary<Expression, double[]> Input,
-            IDictionary<Expression, double[]> Output,
+            IEnumerable<KeyValuePair<Expression, double[]>> Input,
+            IEnumerable<KeyValuePair<Expression, double[]>> Output, 
             int Iterations)
         {
             Process(N, Input, Output, NoArguments, Iterations);
         }
 
         public void Process(
-            Expression InputNode, double[] InputSamples, 
-            IDictionary<Expression, double[]> Output,
+            Expression InputNode, double[] InputSamples,
+            IEnumerable<KeyValuePair<Expression, double[]>> Output, 
             int Iterations)
         {
             Process(
                 InputSamples.Length,
-                new Dictionary<Expression, double[]>() { { InputNode, InputSamples } },
+                new KeyValuePair<Expression, double[]>[] { new KeyValuePair<Expression, double[]> (InputNode, InputSamples) },
                 Output,
                 Iterations);
         }
@@ -293,8 +293,8 @@ namespace Circuit
         {
             Process(
                 InputSamples.Length,
-                new Dictionary<Expression, double[]>() { { InputNode, InputSamples } },
-                new Dictionary<Expression, double[]>() { { OutputNode, OutputSamples } },
+                new KeyValuePair<Expression, double[]>[] { new KeyValuePair<Expression, double[]>(InputNode, InputSamples) },
+                new KeyValuePair<Expression, double[]>[] { new KeyValuePair<Expression, double[]>(OutputNode, OutputSamples) },
                 Iterations);
         }
 
