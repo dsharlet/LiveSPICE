@@ -118,14 +118,14 @@ namespace LiveSPICE
         public static double EdgeThickness = 1.0;
         public static GuidelineSet Guidelines = new GuidelineSet(new double[] { EdgeThickness / 2 }, new double[] { EdgeThickness / 2 });
 
-        public static Brush WireBrush = Brushes.Blue;
+        public static Brush WireBrush = Brushes.DarkBlue;
         public static Pen WirePen = new Pen(WireBrush, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen TerminalPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
 
         public static Pen BlackPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen GreenPen = new Pen(Brushes.Green, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen GreenPen = new Pen(Brushes.Lime, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen BluePen = new Pen(Brushes.Blue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen YellowPen = new Pen(Brushes.Yellow, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen CyanPen = new Pen(Brushes.Cyan, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
@@ -134,7 +134,7 @@ namespace LiveSPICE
         public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
         {
             Vector dx = new Vector(TerminalSize / 2, TerminalSize / 2);
-            Context.DrawRectangle(null, MapToPen(Connected ? Circuit.EdgeType.Black : Circuit.EdgeType.Red), new Rect(x - dx, x + dx));
+            Context.DrawRectangle(null, MapToPen(Connected ? Circuit.EdgeType.Wire : Circuit.EdgeType.Red), new Rect(x - dx, x + dx));
         }
 
         public static Pen MapToPen(Circuit.EdgeType Edge)
