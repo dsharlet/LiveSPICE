@@ -256,15 +256,16 @@ namespace Circuit
                 parameters.Add((double)i.Right);
 
             processor.DynamicInvoke(parameters.ToArray());
-            n += N;
 
             // Check the last samples for infinity/NaN.
             foreach (KeyValuePair<Expression, double[]> i in Output)
             {
                 double v = i.Value[i.Value.Length - 1];
                 if (double.IsInfinity(v) || double.IsNaN(v))
-                    throw new OverflowException("Simulation diverged at n=" + n.ToString() + ".");
+                    throw new OverflowException("Simulation diverged after t=" + Quantity.ToString(n * T, Units.s));
             }
+
+            n += N;
         }
 
         /// <summary>
