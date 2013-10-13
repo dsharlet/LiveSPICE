@@ -12,6 +12,11 @@ namespace Circuit
         Black,
         Gray,
         Red,
+        Green,
+        Blue,
+        Yellow,
+        Cyan,
+        Magenta
     };
 
     public enum Alignment
