@@ -24,17 +24,18 @@ namespace Circuit
         // This is used often enough to shorten it a few characters.
         private static readonly Arrow t_t0 = Arrow.New(t, t0);
 
-        protected double _t = 0.0;
+        protected long n = 0;
         /// <summary>
         /// Get the current time of the simulation.
         /// </summary>
-        public double Time { get { return _t; } }
+        public long Sample { get { return n; } }
+        public double Time { get { return (double)n * T; } }
 
-        protected double _T;
+        protected double T;
         /// <summary>
         /// Get the timestep for the simulation.
         /// </summary>
-        public double TimeStep { get { return _T; } }
+        public double TimeStep { get { return T; } }
 
         protected int iterations;
         /// <summary>
@@ -67,14 +68,14 @@ namespace Circuit
         private List<Arrow> trivial;
         // Expressions for the solution of the differential equations.
         private List<Arrow> differential;
-        // Expressions for the solution of the linear equations.
-        private List<Arrow> linear;
-        // Implicit equations describing the non-linear system.
-        private List<Equal> nonlinear;
-        private List<Arrow> f0;
-        private List<Expression> unknowns;
+        // Expressions for iterative solutions.
+        private List<Arrow> iterative;
+        // Expressions for algebraic solutions.
+        private List<Arrow> algebraic;
         // Expressions for the voltage of each two terminal component.
         private List<Arrow> components;
+
+        private List<Arrow> f0;
 
         // Check if x is used anywhere in the simulation, including the outputs.
         private bool IsExpressionUsed(IEnumerable<Expression> Extra, Expression x)
@@ -82,10 +83,10 @@ namespace Circuit
             return
                 Extra.Any(i => i.IsFunctionOf(x)) ||
                 trivial.Any(i => i.Right.IsFunctionOf(x)) ||
-                linear.Any(i => i.Right.IsFunctionOf(x)) ||
+                iterative.Any(i => i.Right.IsFunctionOf(x)) ||
+                algebraic.Any(i => i.Right.IsFunctionOf(x)) ||
                 differential.Any(i => i.Right.IsFunctionOf(x)) ||
-                components.Any(i => i.Right.IsFunctionOf(x)) ||
-                nonlinear.Any(i => i.IsFunctionOf(x));
+                components.Any(i => i.Right.IsFunctionOf(x));
         }
 
         // Stores any global state in the simulation (previous state values, mostly).
@@ -137,7 +138,7 @@ namespace Circuit
             log = Log;
             oversample = Oversample;
             iterations = Iterations;
-            _T = 1.0 / (double)SampleRate;
+            T = 1.0 / (double)SampleRate;
             nodes = Circuit.Nodes.Select(i => (Expression)Call.New(((Call)i.V).Target, t)).ToList();
 
             // Length of one timestep in the oversampled simulation.
@@ -171,7 +172,7 @@ namespace Circuit
 
             // Separate the non-linear equations of the MNA system to a separate system.
             f0 = new List<Arrow>();
-            mna = ExtractNonLinear(mna, y, f0);
+            List<Equal> dmna = ExtractNonLinear(mna, y, f0);
 
 
             // Separate y into differential and algebraic unknowns.
@@ -179,43 +180,36 @@ namespace Circuit
             y.RemoveAll(i => IsD(i, t));
             // Find the solutions to the differential unknowns.
             List<Expression> ya = y.Where(i => dy_dt.None(j => DOf(j).Equals(i))).ToList();
-            differential = mna
+            differential = dmna
                 // Solve for the algebraic unknowns in terms of the rest and substitute them.
-                .Evaluate(mna.Solve(ya)).OfType<Equal>()
+                .Evaluate(dmna.Solve(ya)).OfType<Equal>()
                 // Solve the resulting system of differential equations.
                 .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
             LogExpressions("Differential solutions:", differential);
-            
-            // After solving for the differential unknowns, divide them by h so we don't have to do it during simulation.
-            // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
-            mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
-
             // Create global variables for the previous value of each differential solution.
             foreach (Arrow i in differential)
                 globals[i.Left.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
 
+            // After solving for the differential unknowns, divide them by h so we don't have to do it during simulation.
+            // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
+            mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
 
-            // Find as many closed form solutions in the remaining system as possible.
-            linear = mna.Solve(y.Where(i => f0.None(j => j.Right.IsFunctionOf(i))));
-            y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
-            linear.RemoveAll(i => i.Right.IsFunctionOf(y));
-            LogExpressions("Linear solutions:", linear);
+            // Set up the s
+            iterative = mna.NSolve(y.Select(i => Arrow.New(i, i.Evaluate(t, t0))), 1);
+            algebraic = new List<Arrow>();
 
-            // The remaining non-linear system will be solved via Newton's method.
-            nonlinear = mna
-                .Where(i => i.IsFunctionOf(f0.Select(j => j.Left)))
-                .Evaluate(f0).OfType<Equal>().ToList();
-            unknowns = y;
-            // Create global variables for the non-linear unknowns.
+            LogExpressions("System:", mna);
+            LogExpressions("Unknowns:", y);
+
+            // Create global variables for iterative unknowns
             foreach (Expression i in y)
                 globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
                 globals[i.Left] = new GlobalExpr<double>(0.0);
 
-            LogExpressions("Non-linear system:", nonlinear);
-            LogExpressions("Unknowns:", unknowns);
+
 
             LogTime(MessageType.Info, "System solved.");
             
@@ -231,7 +225,7 @@ namespace Circuit
         /// </summary>
         public void Reset()
         {
-            _t = 0.0;
+            n = 0;
             foreach (GlobalExpr<double> i in globals.Values)
                 i.Value = 0.0;
         }
@@ -250,8 +244,8 @@ namespace Circuit
             // Build parameter list for the processor.
             List<object> parameters = new List<object>(3 + Input.Count + Output.Count + Arguments.Count());
             parameters.Add(N);
-            parameters.Add((double)_t);
-            parameters.Add((double)_T);
+            parameters.Add((double)n * T);
+            parameters.Add(T);
             parameters.Add(Oversample);
             parameters.Add(Iterations);
             foreach (KeyValuePair<Expression, double[]> i in Input)
@@ -261,18 +255,15 @@ namespace Circuit
             foreach (Arrow i in Arguments)
                 parameters.Add((double)i.Right);
 
-            _t = (double)processor.DynamicInvoke(parameters.ToArray());
+            processor.DynamicInvoke(parameters.ToArray());
+            n += N;
 
             // Check the last samples for infinity/NaN.
             foreach (KeyValuePair<Expression, double[]> i in Output)
             {
                 double v = i.Value[i.Value.Length - 1];
                 if (double.IsInfinity(v) || double.IsNaN(v))
-                {
-                    Log.WriteLine(MessageType.Error, "Simulation diverged at " + _t.ToString() + " s.");
-                    Reset();
-                    return;
-                }
+                    throw new OverflowException("Simulation diverged at n=" + n.ToString() + ".");
             }
         }
 
@@ -331,7 +322,7 @@ namespace Circuit
         }
         
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
-        //  double Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
+        //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
         //  { ... }
         private LinqExpressions.LambdaExpression DefineProcessFunction(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
@@ -460,13 +451,9 @@ namespace Circuit
                                 body.Add(LinqExpression.Assign(Vt0, Vt[i.Left]));
                                 map[i.Left] = Vt[i.Left];
                             }
-
-                            // And the linear timestep expressions.
-                            foreach (Arrow i in linear.Where(i => IsExpressionUsed(Output, i.Left)))
-                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
-
-                            // Solve the remaining non-linear system with Newton's method.
-                            if (unknowns.Any())
+                            
+                            // Compile the iterative timestep expressions.
+                            if (iterative.Any())
                             {
                                 // int it = Oversample
                                 // do { ... --it } while(it > 0)
@@ -475,10 +462,7 @@ namespace Circuit
                                 DoWhile(body,
                                     () =>
                                     {
-                                        // Compute one iteration of Newton's method.
-                                        List<Arrow> iter = nonlinear.NSolve(unknowns.Select(i => Arrow.New(i, i.Evaluate(t_t0))), 1);
-
-                                        foreach (Arrow i in iter)
+                                        foreach (Arrow i in iterative.Where(i => IsExpressionUsed(Output, i.Left)))
                                         {
                                             LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
                                             body.Add(LinqExpression.Assign(Vt0, i.Right.Compile(map)));
@@ -489,11 +473,15 @@ namespace Circuit
                                         body.Add(LinqExpression.PreDecrementAssign(it));
                                     },
                                     LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
-
-                                // Update f0.
-                                foreach (Arrow i in f0)
-                                    body.Add(LinqExpression.Assign(map[i.Left], i.Right.Compile(map)));
                             }
+                            
+                            // Compile the algebraic timestep expressions.
+                            foreach (Arrow i in algebraic.Where(i => IsExpressionUsed(Output, i.Left)))
+                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
+
+                            // Update f0.
+                            foreach (Arrow i in f0.Where(i => IsExpressionUsed(Output, i.Left)))
+                                body.Add(LinqExpression.Assign(map[i.Left], i.Right.Compile(map)));
 
                             // Compile the component voltage expressions.
                             foreach (Arrow i in components.Where(i => !map.ContainsKey(i.Left) && IsExpressionUsed(Output, i.Left)))
@@ -525,12 +513,7 @@ namespace Circuit
             // Copy the global state variables back to the globals.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 body.Add(LinqExpression.Assign(i.Value, map[i.Key]));
-
-            // return t
-            LinqExpressions.LabelTarget returnTo = LinqExpression.Label(t.Type);
-            body.Add(LinqExpression.Return(returnTo, t, t.Type));
-            body.Add(LinqExpression.Label(returnTo, t));
-
+            
             // Put it all together.
             return LinqExpression.Lambda(LinqExpression.Block(locals, body), parameters);
         }
