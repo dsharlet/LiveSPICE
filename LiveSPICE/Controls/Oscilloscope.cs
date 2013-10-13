@@ -135,7 +135,6 @@ namespace LiveSPICE
         protected ConcurrentDictionary<SyMath.Expression, Signal> signals = new ConcurrentDictionary<SyMath.Expression, Signal>();
         public ConcurrentDictionary<SyMath.Expression, Signal> Signals { get { return signals; } }
 
-        protected int shift;
         protected double Vmax;
         
         private SyMath.Expression selected;
@@ -215,6 +214,7 @@ namespace LiveSPICE
             double peak = 0.0;
             double rms = 0.0;
             double f0 = 0.0;
+            int shift = 0;
 
             if (stats != null)
             {
@@ -268,7 +268,7 @@ namespace LiveSPICE
             DrawSignalAxis(DC, bounds);
 
             foreach (Signal i in signals.Values)
-                lock(i) DrawSignal(DC, bounds, i);
+                lock(i) DrawSignal(DC, bounds, i, shift);
 
             if (tracePoint.HasValue)
                 DrawTrace(DC, bounds, tracePoint.Value);
@@ -359,7 +359,7 @@ namespace LiveSPICE
             }
         }
 
-        protected void DrawSignal(DrawingContext DC, Rect Bounds, Signal S)
+        protected void DrawSignal(DrawingContext DC, Rect Bounds, Signal S, int shift)
         {
             // Rate of pixels to sample.
             const double rate = 1.0;
@@ -370,8 +370,8 @@ namespace LiveSPICE
             List<Point> points = new List<Point>();
             for (double i = 0; i + rate <= Bounds.Right; i += rate)
             {
-                int s0 = MapToSample(Bounds, i);
-                int s1 = MapToSample(Bounds, i + rate);
+                int s0 = MapToSample(Bounds, i, shift);
+                int s1 = MapToSample(Bounds, i + rate, shift);
 
                 // Anti-aliasing.
                 double v = 0.0;
@@ -438,7 +438,7 @@ namespace LiveSPICE
         private double MapFromTime(Rect Bounds, double t) { return Bounds.Right + (t * Bounds.Width / zoom); }
         private double MapToTime(Rect Bounds, double x) { return (x - Bounds.Right) * zoom / Bounds.Width; }
 
-        private int MapToSample(Rect Bounds, double x) { return (int)Math.Round(((x - Bounds.Right) * zoom * (double)sampleRate) / Bounds.Width) + shift; }
+        private int MapToSample(Rect Bounds, double x, int shift) { return (int)Math.Round(((x - Bounds.Right) * zoom * (double)sampleRate) / Bounds.Width) + shift; }
 
         private double MapToSignal(Rect Bounds, double y) { return Vmax - (y - Bounds.Top) * 2 * Vmax / Bounds.Height; }
         private double MapFromSignal(Rect Bounds, double v) { return Bounds.Top + ((Vmax - v) / (2 * Vmax) * Bounds.Height); }
