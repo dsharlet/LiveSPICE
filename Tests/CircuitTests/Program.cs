@@ -16,6 +16,8 @@ namespace CircuitTests
     {
         static readonly Variable t = Component.t;
 
+        static ConsoleLog Log = new ConsoleLog(MessageType.Info);
+
         // Generate a function with the first N harmonics of f0.
         static Function Harmonics(Variable t, Expression f0, int N)
         {
@@ -30,12 +32,17 @@ namespace CircuitTests
             Func<double, double> Vin = Harmonics(t, 82, 4).Compile<Func<double, double>>();
 
             List<string> errors = new List<string>();
+            List<string> performance = new List<string>();
 
+            //Run(@"..\..\..\..\Circuits\SeriesDiodeClipper.xml", Vin);
+            //return;
+            
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
             {
                 try
                 {
-                    Run(File, Vin);
+                    double p = Run(File, Vin);
+                    performance.Add(File + ": " + p.ToString());
                 }
                 catch (Exception Ex) 
                 {
@@ -44,21 +51,25 @@ namespace CircuitTests
                 }
             }
 
-            System.Console.WriteLine("{0} Tests failed:", errors.Count);
+            System.Console.WriteLine("{0} succeeded:", performance.Count);
+            foreach (string i in performance)
+                System.Console.WriteLine(i);
+
+            System.Console.WriteLine("{0} failed:", errors.Count);
             foreach (string i in errors)
                 System.Console.WriteLine(i);
         }
                 
-        public static void Run(string FileName, Func<double, double> Vin)
+        public static double Run(string FileName, Func<double, double> Vin)
         {
-            Circuit.Circuit C = Schematic.Load(FileName, new ConsoleLog()).Circuit;
-            Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, 4, new ConsoleLog(MessageType.Info));
+            Circuit.Circuit C = Schematic.Load(FileName, Log).Circuit;
+            Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, 4, Log);
             System.Console.WriteLine("");
 
-            RunTest(S, Vin, 48000 * 10, System.IO.Path.GetFileNameWithoutExtension(FileName));
+            return RunTest(S, Vin, 48000 * 10, System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
-        public static void RunTest(Simulation S, Func<double, double> Vin, int N, string Name)
+        public static double RunTest(Simulation S, Func<double, double> Vin, int N, string Name)
         {            
             double t0 = (double)S.Time;
             
@@ -88,8 +99,6 @@ namespace CircuitTests
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
                 plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
 
-            System.Console.WriteLine("Run: {0}x", (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0));
-            
             IEnumerable<double[]> series = input.Concat(output).Select(i => i.Value);
             Plot p = new Plot(
                 Name, 
@@ -97,6 +106,8 @@ namespace CircuitTests
                 t0, series.Min(i => i.Min()) * 1.25 - 0.1, 
                 S.TimeStep * t1, series.Max(i => i.Max()) * 1.25 + 0.1, 
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
+
+            return (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0);
         }
     }
 }
