@@ -27,14 +27,17 @@ namespace LiveSPICE
     public partial class SchematicControl : UserControl, INotifyPropertyChanged
     {
         protected static readonly int Grid = 10;
-        protected const int AutoScrollBorder = 1;
+        protected static readonly Vector AutoScrollBorder = new Vector(1, 1);
 
         private Circuit.Schematic schematic;
         /// <summary>
         /// Get the Schematic this control is displaying.
         /// </summary>
         public Circuit.Schematic Schematic { get { return schematic; } }
-        
+
+        protected Circuit.Coord origin = new Circuit.Coord(0, 0);
+        public Circuit.Coord Origin { get { return origin; } set { origin = value; RefreshLayout(); } }
+
         public SchematicControl(Circuit.Schematic Schematic)
         {
             InitializeComponent();
@@ -50,24 +53,19 @@ namespace LiveSPICE
             
             schematic = Schematic;
 
-            schematic.Elements.ItemAdded += OnElementAdded;
-            schematic.Elements.ItemRemoved += OnElementRemoved;
+            schematic.Elements.ItemAdded += ElementAdded;
+            schematic.Elements.ItemRemoved += ElementRemoved;
 
             // Create controls for all the elements already in the schematic.
             foreach (Circuit.Element i in schematic.Elements)
             {
                 ElementControl control = ElementControl.New(i);
                 components.Children.Add(control);
-
-                Circuit.Coord x = i.LowerBound;
-                Canvas.SetLeft(control, x.x);
-                Canvas.SetTop(control, x.y);
+                control.Element.LayoutChanged += ElementLayoutChanged;
+                ElementLayoutChanged(control.Element, null);
             }
-
-            Width = schematic.Width;
-            Height = schematic.Height;
         }
-
+        
         // Schematic tools.
         private SchematicTool tool;
         public SchematicTool Tool
@@ -83,8 +81,8 @@ namespace LiveSPICE
                     tool.Begin();
                     if (mouse.HasValue)
                     {
-                        tool.MouseEnter(mouse.Value);
-                        tool.MouseMove(mouse.Value);
+                        tool.MouseEnter(SnapToGrid(mouse.Value));
+                        tool.MouseMove(SnapToGrid(mouse.Value));
                     }
                 }
             }
@@ -102,33 +100,66 @@ namespace LiveSPICE
             return Elements.Where(i => i.Intersects(a, b));
         }
         public IEnumerable<Circuit.Element> AtPoint(Circuit.Coord At) { return InRect(At - 1, At + 1); }
-        public IEnumerable<Circuit.Element> InRect(Point x1, Point x2) { return InRect(Round(x1), Round(x2)); }
-        public IEnumerable<Circuit.Element> AtPoint(Point At) { return AtPoint(Round(At)); }
+
+        public static Circuit.Coord LowerBound(IEnumerable<Circuit.Element> Of) { return new Circuit.Coord(Of.Min(i => i.LowerBound.x), Of.Min(i => i.LowerBound.y)); }
+        public static Circuit.Coord UpperBound(IEnumerable<Circuit.Element> Of) { return new Circuit.Coord(Of.Max(i => i.UpperBound.x), Of.Max(i => i.UpperBound.y)); }
+        public Circuit.Coord LowerBound() { return LowerBound(Elements); }
+        public Circuit.Coord UpperBound() { return UpperBound(Elements); }
         
-        public static Point LowerBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.LowerBound.x), Of.Min(i => i.LowerBound.y)); }
-        public static Point UpperBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Max(i => i.UpperBound.x), Of.Max(i => i.UpperBound.y)); }
-        public Point LowerBound() { return LowerBound(Elements); }
-        public Point UpperBound() { return UpperBound(Elements); }
+        protected static int Floor(double x, int p) { return (int)Math.Floor(x / p) * p; }
+        protected static int Ceiling(double x, int p) { return (int)Math.Ceiling(x / p) * p; }
+        protected static int Round(double x, int p) { return (int)Math.Round(x / p) * p; }
+        public Circuit.Coord SnapToGrid(Circuit.Coord x) { return new Circuit.Coord(Round(x.x, Grid), Round(x.y, Grid)); }
+        public Circuit.Coord SnapToGrid(Point x) { return new Circuit.Coord(Round(x.X, Grid), Round(x.Y, Grid)); }
         
-        public Circuit.Point SnapToGrid(Circuit.Point x) { return new Circuit.Point(Math.Round(x.x / Grid) * Grid, Math.Round(x.y / Grid) * Grid); }
-        public Point SnapToGrid(Point x) { return new Point(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }
-        public Vector SnapToGrid(Vector x) { return new Vector(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }
-        
-        private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
+        private void ElementAdded(object sender, Circuit.ElementEventArgs e)
         {
             ElementControl control = ElementControl.New(e.Element);
             components.Children.Add(control);
-
-            Circuit.Coord x = e.Element.LowerBound;
-            Canvas.SetLeft(control, x.x);
-            Canvas.SetTop(control, x.y);
+            control.Element.LayoutChanged += ElementLayoutChanged;
+            ElementLayoutChanged(control.Element, null);
         }
-        private void OnElementRemoved(object sender, Circuit.ElementEventArgs e)
+        private void ElementRemoved(object sender, Circuit.ElementEventArgs e)
         {
-            components.Children.Remove((ElementControl)e.Element.Tag);
+            ElementControl control = (ElementControl)e.Element.Tag;
+            control.Element.LayoutChanged -= ElementLayoutChanged;
+            components.Children.Remove(control);
+        }
+        private void ElementLayoutChanged(object sender, EventArgs e)
+        {
+            Circuit.Element element = (Circuit.Element)sender;
+            Circuit.Coord lb = element.LowerBound;
+            Circuit.Coord ub = element.UpperBound;
+
+            ElementControl control = (ElementControl)element.Tag;
+
+            Canvas.SetLeft(control, lb.x - origin.x);
+            Canvas.SetTop(control, lb.y - origin.y);
+
+            control.Width = ub.x - lb.x;
+            control.Height = ub.y - lb.y;
+
+            control.InvalidateVisual();
         }
 
-        protected static Circuit.Coord Round(Point x) { return new Circuit.Coord((int)Math.Round(x.X), (int)Math.Round(x.Y)); }
+        private void RefreshLayout()
+        {
+            foreach (Circuit.Element i in Elements)
+                ElementLayoutChanged(i, null);
+        }
+
+        // Add/remove overlay element controls.
+        public void AddOverlay(ElementControl Element)
+        {
+            overlays.Children.Add(Element);
+            Element.Element.LayoutChanged += ElementLayoutChanged;
+            ElementLayoutChanged(Element.Element, null);
+        }
+        public void RemoveOverlay(ElementControl Element)
+        {
+            overlays.Children.Remove(Element);
+            Element.Element.LayoutChanged -= ElementLayoutChanged;
+        }
 
         // Selection.
         public IEnumerable<Circuit.Element> Selected { get { return Elements.Where(i => ((ElementControl)i.Tag).Selected); } }
@@ -193,7 +224,7 @@ namespace LiveSPICE
         protected virtual void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
             Focus();
-            Point at = SnapToGrid(e.GetPosition(this));
+            Circuit.Coord at = SnapToGrid(e.GetPosition(this)) + origin;
             if (e.ChangedButton == MouseButton.Left)
             {
                 CaptureMouse();
@@ -210,7 +241,7 @@ namespace LiveSPICE
         }
         protected virtual void OnMouseUp(object sender, MouseButtonEventArgs e)
         {
-            Point at = SnapToGrid(e.GetPosition(this));
+            Circuit.Coord at = SnapToGrid(e.GetPosition(this)) + origin;
             if (e.ChangedButton == MouseButton.Left)
             {
                 ReleaseMouseCapture();
@@ -219,13 +250,13 @@ namespace LiveSPICE
             }
             e.Handled = true;
         }
-        protected Point? mouse = null;
+        private Circuit.Coord? mouse = null;
         protected virtual void OnMouseMove(object sender, MouseEventArgs e)
         {
-            Point at = e.GetPosition(this);
+            Point x = e.GetPosition(this);
             if (IsMouseCaptured)
-                BringIntoView(new Rect(at - new Vector(AutoScrollBorder, AutoScrollBorder), at + new Vector(AutoScrollBorder, AutoScrollBorder)));
-            at = SnapToGrid(at);
+                BringIntoView(new Rect(x - AutoScrollBorder, x + AutoScrollBorder));
+            Circuit.Coord at = SnapToGrid(x) + origin;
             if (!mouse.HasValue || mouse.Value != at)
             {
                 mouse = at;
@@ -237,7 +268,7 @@ namespace LiveSPICE
 
         protected virtual void OnMouseEnter(object sender, MouseEventArgs e)
         {
-            Point at = SnapToGrid(e.GetPosition(this));
+            Circuit.Coord at = SnapToGrid(e.GetPosition(this)) + origin;
             mouse = at;
             if (Tool != null) 
                 Tool.MouseEnter(at);
@@ -245,7 +276,7 @@ namespace LiveSPICE
         }
         protected virtual void OnMouseLeave(object sender, MouseEventArgs e)
         {
-            Point at = SnapToGrid(e.GetPosition(this));
+            Circuit.Coord at = SnapToGrid(e.GetPosition(this)) + origin;
             mouse = null;
             if (Tool != null) 
                 Tool.MouseLeave(at);

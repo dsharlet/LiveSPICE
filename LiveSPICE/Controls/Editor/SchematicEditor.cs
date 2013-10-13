@@ -52,11 +52,15 @@ namespace LiveSPICE
 
             Focusable = true;
             Cursor = Cursors.Cross;
+            Margin = new Thickness(20);
 
             edits = new EditStack();
             edits.Dirtied += OnDirtied;
 
             Tool = new SelectionTool(this);
+
+            Width = 1600;
+            Height = 1600;
         }
         
         private EditStack edits;
@@ -192,10 +196,10 @@ namespace LiveSPICE
         public void Add(params Circuit.Element[] Elements) { Add(Elements.AsEnumerable()); }
         public void Remove(params Circuit.Element[] Elements) { Remove(Elements.AsEnumerable()); }
 
-        public List<Circuit.Coord> FindWirePath(List<Point> Mouse)
+        public List<Circuit.Coord> FindWirePath(List<Circuit.Coord> Mouse)
         {
-            Circuit.Coord A = Round(Mouse.First());
-            Circuit.Coord B = Round(Mouse.Last());
+            Circuit.Coord A = Mouse.First();
+            Circuit.Coord B = Mouse.Last();
 
             // Candidate wire paths.
             List<List<Circuit.Coord>> Candidates = new List<List<Circuit.Coord>>()
@@ -210,7 +214,7 @@ namespace LiveSPICE
             return Candidates.ArgMin(i =>
             {
                 double d = 0.0;
-                foreach (Circuit.Coord j in Mouse.Select(x => Round(x)))
+                foreach (Circuit.Coord j in Mouse)
                 {
                     double dj = double.PositiveInfinity;
                     for (int k = 0; k < i.Count - 1; ++k)

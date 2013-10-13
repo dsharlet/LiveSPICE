@@ -68,6 +68,7 @@ namespace LiveSPICE
         }
 
         protected Circuit.Element element;
+        public Circuit.Element Element { get { return element; } }
 
         protected ElementControl(Circuit.Element E)
         {
@@ -75,9 +76,6 @@ namespace LiveSPICE
 
             element = E;
             element.Tag = this;
-            element.LayoutChanged += OnLayoutChanged;
-
-            OnLayoutChanged(null, null);
 
             UseLayoutRounding = true;
             Background = Brushes.Transparent;
@@ -88,20 +86,6 @@ namespace LiveSPICE
 
         protected virtual void UpdateToolTip() { }
         
-        protected void OnLayoutChanged(object sender, EventArgs e)
-        {
-            Circuit.Coord lb = element.LowerBound;
-            Circuit.Coord ub = element.UpperBound;
-
-            Canvas.SetLeft(this, lb.x);
-            Canvas.SetTop(this, lb.y);
-
-            Width = ub.x - lb.x;
-            Height = ub.y - lb.y;
-
-            InvalidateVisual();
-        }
-
         public static ElementControl New(Circuit.Element E)
         {
             if (E is Circuit.Wire)
@@ -134,7 +118,8 @@ namespace LiveSPICE
         public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
         {
             Vector dx = new Vector(TerminalSize / 2, TerminalSize / 2);
-            Context.DrawRectangle(null, MapToPen(Connected ? Circuit.EdgeType.Wire : Circuit.EdgeType.Red), new Rect(x - dx, x + dx));
+            Pen pen = MapToPen(Connected ? Circuit.EdgeType.Wire : Circuit.EdgeType.Red);
+            Context.DrawRectangle(pen.Brush, pen, new Rect(x - dx, x + dx));
         }
 
         public static Pen MapToPen(Circuit.EdgeType Edge)

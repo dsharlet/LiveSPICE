@@ -17,7 +17,7 @@ namespace LiveSPICE
 {
     public class SelectionTool : EditorTool
     {
-        protected Point a, b;
+        protected Circuit.Coord a, b;
         protected Path path;
 
         public SelectionTool(SchematicEditor Target) : base(Target) 
@@ -48,14 +48,14 @@ namespace LiveSPICE
         //        Target.Select();
         //}
 
-        private bool Movable(Point At)
+        private bool Movable(Circuit.Coord At)
         {
             return 
                 Target.AtPoint(At).Any(i => ((ElementControl)i.Tag).Selected) &&
                 (Keyboard.Modifiers & ModifierKeys.Control) == 0;
         }
 
-        public override void MouseDown(Point At)
+        public override void MouseDown(Circuit.Coord At)
         {
             if (Movable(At))
             {
@@ -64,12 +64,12 @@ namespace LiveSPICE
             else
             {
                 a = b = At;
-                ((RectangleGeometry)path.Data).Rect = new Rect(a, b);
+                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a), ToPoint(b));
                 path.Visibility = Visibility.Visible;
             }
         }
 
-        public override void MouseMove(Point At)
+        public override void MouseMove(Circuit.Coord At)
         {
             b = At;
             if (path.Visibility != Visibility.Visible)
@@ -80,12 +80,12 @@ namespace LiveSPICE
             else
             {
                 Vector dx = new Vector(-0.5, -0.5);
-                ((RectangleGeometry)path.Data).Rect = new Rect(a + dx, b + dx);
+                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a) + dx, ToPoint(b) + dx);
             }
             Target.Highlight(a == b ? Target.AtPoint(a) : Target.InRect(a, b));
         }
 
-        public override void MouseUp(Point At)
+        public override void MouseUp(Circuit.Coord At)
         {
             b = At;
             if (path.Visibility == Visibility.Visible)
@@ -101,10 +101,9 @@ namespace LiveSPICE
 
         private Circuit.Point GetSelectionCenter()
         {
-            Point x1 = SchematicEditor.LowerBound(Target.Selected);
-            Point x2 = SchematicEditor.UpperBound(Target.Selected);
-            Point x = Target.SnapToGrid((Point)(((Vector)x1 + (Vector)x2) / 2));
-            return new Circuit.Point(x.X, x.Y);
+            Circuit.Coord x1 = SchematicEditor.LowerBound(Target.Selected);
+            Circuit.Coord x2 = SchematicEditor.UpperBound(Target.Selected);
+            return Target.SnapToGrid((x1 + x2) / 2);
         }
 
         protected void Rotate(int Delta) { if (Target.Selected.Any()) Editor.Edits.Do(new RotateElements(Target.Selected, Delta, GetSelectionCenter())); }
@@ -127,5 +126,7 @@ namespace LiveSPICE
             Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross; 
             return base.KeyUp(Key);
         }
+
+        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
     }
 }

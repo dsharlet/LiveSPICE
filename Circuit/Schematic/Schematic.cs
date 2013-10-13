@@ -30,13 +30,9 @@ namespace Circuit
         public IEnumerable<Symbol> Symbols { get { return elements.OfType<Symbol>(); } }
         public IEnumerable<Wire> Wires { get { return elements.OfType<Wire>(); } }
 
-        protected int width;
-        protected int height;
-        /// <summary>
-        /// Get the dimensions of the schematic.
-        /// </summary>
-        public int Width { get { return width; } }
-        public int Height { get { return height; } }
+        public Coord LowerBound { get { return new Coord(elements.Min(i => i.LowerBound.x), elements.Min(i => i.LowerBound.y)); } }
+        public Coord UpperBound { get { return new Coord(elements.Max(i => i.UpperBound.x), elements.Max(i => i.UpperBound.y)); } }
+        public Coord Size { get { return UpperBound - LowerBound; } }
 
         protected ILog log = new ConsoleLog();
         /// <summary>
@@ -44,23 +40,10 @@ namespace Circuit
         /// </summary>
         public ILog Log { get { return log; } set { log = value; } }
 
-        public Schematic(int Width, int Height, ILog Log) : this()
-        {
-            log = Log;
-            width = Width;
-            height = Height;
-        }
-        public Schematic(int Width, int Height) : this()
-        {
-            width = Width;
-            height = Height;
-        }
         public Schematic(ILog Log) : this() { log = Log; }
         public Schematic()
         {
             log = new NullLog();
-            width = 1600;
-            height = 1600;
 
             elements = new ElementCollection();
             elements.ItemAdded += OnElementAdded;
@@ -336,27 +319,15 @@ namespace Circuit
         public XElement Serialize()
         {
             XElement x = new XElement("Schematic");
-
             foreach (Element i in Elements)
                 x.Add(i.Serialize());
-
-            x.SetAttributeValue("Width", Width);
-            x.SetAttributeValue("Height", Height);
-
             return x;
         }
 
         public static Schematic Deserialize(XElement X, ILog Log)
         {
-            int width, height;
-            try { width = int.Parse(X.Attribute("Width").Value); }
-            catch (Exception) { width = 1600; }
-            try { height = int.Parse(X.Attribute("Height").Value); }
-            catch (Exception) { height = 1600; }
-
-            Schematic s = new Schematic(width, height, Log);
+            Schematic s = new Schematic(Log);
             s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
-
             return s;
         }
         public static Schematic Deserialize(XElement X) { return Deserialize(X, new NullLog()); }

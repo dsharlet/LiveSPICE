@@ -20,9 +20,9 @@ namespace LiveSPICE
     /// </summary>
     public class MoveProbeTool : SimulationTool
     {
-        Point x;
+        Circuit.Coord x;
 
-        public MoveProbeTool(SimulationSchematic Target, Point At) : base(Target)
+        public MoveProbeTool(SimulationSchematic Target, Circuit.Coord At) : base(Target)
         {
             x = At;
         }
@@ -33,15 +33,15 @@ namespace LiveSPICE
             base.End(); 
         }
         public override void Cancel() { }
-        
-        public override void MouseUp(Point At)
+
+        public override void MouseUp(Circuit.Coord At)
         {
             Target.Tool = new ProbeSelectionTool(Simulation);
         }
 
-        public override void MouseMove(Point At)
+        public override void MouseMove(Circuit.Coord At)
         {
-            Circuit.Coord dx = new Circuit.Coord((int)Math.Round(At.X - x.X), (int)Math.Round(At.Y - x.Y));
+            Circuit.Coord dx = At - x;
             if (dx.x != 0 || dx.y != 0)
             {
                 foreach (Circuit.Symbol i in Target.Selected)

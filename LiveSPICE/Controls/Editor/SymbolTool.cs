@@ -33,10 +33,10 @@ namespace LiveSPICE
             };
         }
 
-        public override void Begin() { base.Begin(); Target.overlays.Children.Add(overlay); overlay.UpdateLayout(); Target.Cursor = Cursors.None; }
-        public override void End() { Target.overlays.Children.Remove(overlay); base.End(); }
+        public override void Begin() { base.Begin(); Target.AddOverlay(overlay); Target.Cursor = Cursors.None; }
+        public override void End() { Target.RemoveOverlay(overlay); base.End(); }
 
-        public override void MouseDown(Point At)
+        public override void MouseDown(Circuit.Coord At)
         {
             if (overlay.Visibility != Visibility.Visible)
                 return;
@@ -53,23 +53,23 @@ namespace LiveSPICE
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
                 Target.Tool = new SelectionTool(Editor);
         }
-        public override void MouseUp(Point At)
+        public override void MouseUp(Circuit.Coord At)
         {
             overlay.Pen.Brush = Brushes.Gray;
         }
 
-        public override void MouseMove(Point At)
+        public override void MouseMove(Circuit.Coord At)
         {
             Circuit.Symbol symbol = overlay.Symbol;
 
-            symbol.Position = new Circuit.Coord((int)At.X, (int)At.Y);
+            symbol.Position = At;
 
             // Don't allow symbols to be placed on an existing symbol.
             Target.Cursor = Target.InRect(symbol.LowerBound, symbol.UpperBound).Any() ? Cursors.No : Cursors.None;
             overlay.Visibility = Visibility.Visible;
         }
 
-        public override void MouseLeave(Point At)
+        public override void MouseLeave(Circuit.Coord At)
         {
             overlay.Visibility = Visibility.Hidden;
         }

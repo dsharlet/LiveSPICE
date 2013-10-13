@@ -17,7 +17,7 @@ namespace LiveSPICE
 {
     public class ProbeSelectionTool : SimulationTool
     {
-        protected Point a, b;
+        protected Circuit.Coord a, b;
         protected Path path;
 
         public ProbeSelectionTool(SimulationSchematic Target) : base(Target) 
@@ -39,15 +39,15 @@ namespace LiveSPICE
         public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Cross; }
         public override void End() { Target.overlays.Children.Remove(path); base.End(); }
         public override void Cancel() { path.Visibility = Visibility.Hidden; }
-        
-        private bool Movable(Point At)
+
+        private bool Movable(Circuit.Coord At)
         {
             return 
                 ProbesOf(Target.AtPoint(At)).Any(i => ((ElementControl)i.Tag).Selected) &&
                 (Keyboard.Modifiers & ModifierKeys.Control) == 0;
         }
 
-        public override void MouseDown(Point At)
+        public override void MouseDown(Circuit.Coord At)
         {
             if (Movable(At))
             {
@@ -56,12 +56,12 @@ namespace LiveSPICE
             else
             {
                 a = b = At;
-                ((RectangleGeometry)path.Data).Rect = new Rect(a, b);
+                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a), ToPoint(b));
                 path.Visibility = Visibility.Visible;
             }
         }
 
-        public override void MouseMove(Point At)
+        public override void MouseMove(Circuit.Coord At)
         {
             b = At;
             if (path.Visibility != Visibility.Visible)
@@ -72,12 +72,12 @@ namespace LiveSPICE
             else
             {
                 Vector dx = new Vector(-0.5, -0.5);
-                ((RectangleGeometry)path.Data).Rect = new Rect(a + dx, b + dx);
+                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a) + dx, ToPoint(b) + dx);
             }
             Target.Highlight(ProbesOf(a == b ? Target.AtPoint(a) : Target.InRect(a, b)));
         }
 
-        public override void MouseUp(Point At)
+        public override void MouseUp(Circuit.Coord At)
         {
             b = At;
             if (path.Visibility == Visibility.Visible)
@@ -95,5 +95,7 @@ namespace LiveSPICE
         {
             return Of.OfType<Circuit.Symbol>().Where(i => i.Component is Probe);
         }
+
+        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
     }
 }

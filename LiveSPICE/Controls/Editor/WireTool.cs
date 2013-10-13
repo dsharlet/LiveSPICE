@@ -19,7 +19,7 @@ namespace LiveSPICE
     {
         protected bool wiring = false;
         protected Path path;
-        protected List<Point> mouse;
+        protected List<Circuit.Coord> mouse;
 
         public WireTool(SchematicEditor Target) : base(Target)
         {
@@ -39,15 +39,15 @@ namespace LiveSPICE
         public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Pen; }
         public override void End() { Target.overlays.Children.Remove(path); base.End(); }
 
-        public override void MouseDown(Point At)
+        public override void MouseDown(Circuit.Coord At)
         {
-            mouse = new List<Point>() { At };
+            mouse = new List<Circuit.Coord>() { At };
             path.Visibility = Visibility.Visible;
         }
 
 
         private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
-        public override void MouseMove(Point At)
+        public override void MouseMove(Circuit.Coord At)
         {
             if (mouse == null)
                 return;
@@ -65,7 +65,7 @@ namespace LiveSPICE
             }
         }
 
-        public override void MouseUp(Point At)
+        public override void MouseUp(Circuit.Coord At)
         {
             ((PathGeometry)path.Data).Clear();
             path.Visibility = Visibility.Hidden;

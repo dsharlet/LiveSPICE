@@ -61,7 +61,7 @@ namespace LiveSPICE
         public SchematicViewer()
         {
             InitializeComponent();
-
+            
             CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 2));
             CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 0.5));
 
@@ -114,8 +114,10 @@ namespace LiveSPICE
             Point a, b;
             if (Schematic.Elements.Any())
             {
-                a = Schematic.LowerBound();
-                b = Schematic.UpperBound();
+                Circuit.Coord lb = Schematic.LowerBound();
+                Circuit.Coord ub = Schematic.UpperBound();
+                a = new Point(lb.x, lb.y);
+                b = new Point(ub.x, ub.y);
             }
             else
             {

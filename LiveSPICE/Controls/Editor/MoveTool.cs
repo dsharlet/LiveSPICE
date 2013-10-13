@@ -20,9 +20,9 @@ namespace LiveSPICE
     /// </summary>
     public class MoveTool : EditorTool
     {
-        Point x;
+        Circuit.Coord x;
 
-        public MoveTool(SchematicEditor Target, Point At)
+        public MoveTool(SchematicEditor Target, Circuit.Coord At)
             : base(Target)
         {
             x = At;
@@ -31,15 +31,15 @@ namespace LiveSPICE
         public override void Begin() { base.Begin(); Editor.Edits.BeginEditGroup(); Target.Cursor = Cursors.SizeAll; }
         public override void End() { Editor.Edits.EndEditGroup(); base.End(); }
         public override void Cancel() { Editor.Edits.CancelEditGroup(); Editor.Edits.BeginEditGroup(); }
-        
-        public override void MouseUp(Point At)
+
+        public override void MouseUp(Circuit.Coord At)
         {
             Target.Tool = new SelectionTool(Editor);
         }
 
-        public override void MouseMove(Point At)
+        public override void MouseMove(Circuit.Coord At)
         {
-            Circuit.Coord dx = new Circuit.Coord((int)Math.Round(At.X - x.X), (int)Math.Round(At.Y - x.Y));
+            Circuit.Coord dx = At - x;
             if (dx.x != 0 || dx.y != 0)
                 Editor.Edits.Do(new MoveElements(Target.Selected, dx));
             x = At;

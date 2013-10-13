@@ -28,11 +28,11 @@ namespace LiveSPICE
         public virtual void End() { Target.Cursor = cursor; }
         public virtual void Cancel() { }
                 
-        public virtual void MouseDown(Point At) { }
-        public virtual void MouseMove(Point At) { }
-        public virtual void MouseUp(Point At) { }
-        public virtual void MouseEnter(Point At) { }
-        public virtual void MouseLeave(Point At) { }
+        public virtual void MouseDown(Circuit.Coord At) { }
+        public virtual void MouseMove(Circuit.Coord At) { }
+        public virtual void MouseUp(Circuit.Coord At) { }
+        public virtual void MouseEnter(Circuit.Coord At) { }
+        public virtual void MouseLeave(Circuit.Coord At) { }
 
         public virtual bool KeyDown(Key Key) 
         {
