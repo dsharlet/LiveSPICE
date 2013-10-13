@@ -162,7 +162,7 @@ namespace LiveSPICE
                 16, 
                 new Circuit.Quantity(30e-3m, Circuit.Units.s));
             simulation.Owner = this;
-            simulation.ShowDialog();
+            simulation.Show();
         }
         
         // INotifyPropertyChanged.
