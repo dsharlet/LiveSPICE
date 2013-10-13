@@ -62,11 +62,11 @@
                 <xcad:LayoutPanel Orientation="Horizontal">
                     <xcad:LayoutPanel Orientation="Vertical">
                         <!-- Schematics -->
-                        <xcad:LayoutDocumentPane>
-                            <xcad:LayoutDocument>
+                        <xcad:LayoutAnchorablePane DockHeight="600">
+                            <xcad:LayoutAnchorable Title="Schematic" CanHide="False" CanFloat="False" CanClose="False" CanAutoHide="False">
                                 <ls:SchematicViewer x:Name="schematic" />
-                            </xcad:LayoutDocument>
-                        </xcad:LayoutDocumentPane>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorablePane>
 
                         <!-- Log -->
                         <xcad:LayoutAnchorablePane DockHeight="200">
@@ -79,7 +79,7 @@
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
                         <!-- Properties -->
                         <xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorable Title="Parameters" CanHide="False" CanClose="False" AutoHideWidth="240">
+                            <xcad:LayoutAnchorable Title="Parameters" AutoHideWidth="240">
                                 <ls:Parameters x:Name="parameters" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
@@ -92,11 +92,9 @@
                                         <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
                                         <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
                                         <Separator />
-                                        <ComboBox Width="70"
-                                                    ItemsSource="{Binding ElementName=oscilloscope, Path=SignalNames}">
-                                        </ComboBox>
+                                        <ComboBox Width="70" x:Name="signalNames" SelectedValue="{Binding ElementName=oscilloscope, Path=SelectedSignal}" SelectedValuePath="Content" />
                                         <Separator />
-                                        <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding Path=ShowNotes, ElementName=oscilloscope}" />
+                                        <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=oscilloscope, Path=ShowNotes}" />
                                         <Label Content="A4:" />
                                         <TextBox Width="60" Text="{Binding ElementName=oscilloscope, Path=A4, UpdateSourceTrigger=PropertyChanged}" />
                                     </ToolBar>

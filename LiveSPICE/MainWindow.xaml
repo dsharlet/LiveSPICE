@@ -105,13 +105,13 @@
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
                         <xcad:LayoutAnchorablePane>
                             <!-- Components -->
-                            <xcad:LayoutAnchorable ContentId="components" Title="Components" CanHide="False" CanClose="False" AutoHideWidth="240">
+                            <xcad:LayoutAnchorable Title="Components" AutoHideWidth="240">
                                 <ls:ComponentLibrary x:Name="components" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                         <xcad:LayoutAnchorablePane>
                             <!-- Properties -->
-                            <xcad:LayoutAnchorable Title="Properties" CanHide="False" CanClose="False" AutoHideWidth="240">
+                            <xcad:LayoutAnchorable Title="Properties" AutoHideWidth="240">
                                 <xctk:PropertyGrid x:Name="properties" NameColumnWidth="110" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
