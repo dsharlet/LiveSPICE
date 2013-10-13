@@ -77,9 +77,12 @@ namespace LiveSPICE
             schematic.Schematic = new SimulationSchematic(clone);
             sampleRate = SampleRate;
 
-            waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
+            ContentRendered += (o, e) =>
+            {
+                waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
 
-            Build();
+                Build();
+            };
         }
 
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
@@ -103,7 +106,9 @@ namespace LiveSPICE
 
                 signals = probes.ToDictionary(i => i.V, i => new double[0]);
 
-                //oscilloscope.Signals.RemoveAll(i => !signals.ContainsKey(i.Key));
+                oscilloscope.Signals.RemoveAll(i => !signals.ContainsKey(i.Key));
+                SyMath.Expression selected = oscilloscope.SelectedSignal;
+                signalNames.Items.Clear();
                 foreach (Probe i in probes)
                 {
                     Oscilloscope.Signal S;
@@ -113,7 +118,16 @@ namespace LiveSPICE
                         oscilloscope.Signals[i.V] = S;
                     }
                     S.Pen = SymbolControl.MapToPen(i.Color);
-                }                        
+
+                    ComboBoxItem item = new ComboBoxItem()
+                    {
+                        Background = oscilloscope.Background,
+                        Foreground = S.Pen.Brush,
+                        Content = i.V
+                    };
+                    signalNames.Items.Add(item);
+                }
+                oscilloscope.SelectedSignal = selected;
             }
         }
         

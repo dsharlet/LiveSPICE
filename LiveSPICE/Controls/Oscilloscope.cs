@@ -138,9 +138,18 @@ namespace LiveSPICE
         protected int shift;
         protected double Vmax;
         
-        private Signal selected = null;
-        public Signal SelectedSignal { get { return selected; } set { selected = value; } }
-                
+        private SyMath.Expression selected;
+        public SyMath.Expression SelectedSignal 
+        {
+            get 
+            {
+                if (signals.Count > 0 && (selected == null || !signals.ContainsKey(selected)))
+                    selected = signals.First().Key;
+                return selected; 
+            }
+            set { selected = value; NotifyChanged("SelectedSignal"); } 
+        }
+
         protected Point? tracePoint;
         
         public Oscilloscope()
@@ -199,8 +208,8 @@ namespace LiveSPICE
 
             DrawTimeAxis(DC, bounds);
 
-            Signal stats = selected;
-            if (stats == null)
+            Signal stats = null;
+            if (SelectedSignal == null || !signals.TryGetValue(SelectedSignal, out stats))
                 stats = signals.Values.FirstOrDefault(i => { lock (i) return i.Count > 0; });
 
             double peak = 0.0;
@@ -264,8 +273,8 @@ namespace LiveSPICE
             if (tracePoint.HasValue)
                 DrawTrace(DC, bounds, tracePoint.Value);
 
-            if (selected != null)
-                DrawStatistics(DC, bounds, selected.Pen.Brush, peak, rms, f0);
+            if (stats != null)
+                DrawStatistics(DC, bounds, stats.Pen.Brush, peak, rms, f0);
 
             DC.Pop();
         }
