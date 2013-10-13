@@ -24,7 +24,7 @@ namespace LiveSPICE
 
         protected Circuit.Coord offset;
 
-        public SymbolTool(Schematic Target, Type Type) : base(Target)
+        public SymbolTool(SchematicEditor Target, Type Type) : base(Target)
         {
             overlay = new Symbol(Type) 
             { 

@@ -22,7 +22,7 @@ namespace LiveSPICE
     {
         Point x;
 
-        public MoveTool(Schematic Target, Point At)
+        public MoveTool(SchematicEditor Target, Point At)
             : base(Target)
         {
             x = At;

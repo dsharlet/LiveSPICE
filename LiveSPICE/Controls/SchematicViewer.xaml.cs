@@ -25,7 +25,7 @@ namespace LiveSPICE
 
         protected ScaleTransform scale = new ScaleTransform();
 
-        public Schematic Schematic { get { return ((Schematic)scroll.Content); } set { scroll.Content = value; } }
+        public SchematicEditor Schematic { get { return ((SchematicEditor)scroll.Content); } set { scroll.Content = value; } }
 
         private double LogFloor(double x, double b) { return Math.Pow(b, Math.Floor(Math.Log(x, b))); }
 
@@ -50,14 +50,14 @@ namespace LiveSPICE
             }
         }
         
-        public SchematicViewer(Schematic Schematic)
+        public SchematicViewer(SchematicEditor Schematic)
         {
             InitializeComponent();
 
             CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 2));
             CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 0.5));
 
-            this.Schematic = Schematic != null ? Schematic : new Schematic();
+            this.Schematic = Schematic != null ? Schematic : new SchematicEditor();
 
             scroll.PreviewMouseWheel += (o, e) => 
             {

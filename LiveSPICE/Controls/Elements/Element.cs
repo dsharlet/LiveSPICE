@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -70,6 +71,8 @@ namespace LiveSPICE
 
         protected Element(Circuit.Element E)
         {
+            Debug.Assert(element.Tag == null);
+
             element = E;
             element.Tag = this;
             element.LayoutChanged += OnLayoutChanged;

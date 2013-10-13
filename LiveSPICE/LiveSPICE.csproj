@@ -94,6 +94,14 @@
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
     <Compile Include="Controls\Elements\Wire.cs" />
+    <Compile Include="Controls\SchematicViewer.xaml.cs">
+      <DependentUpon>SchematicViewer.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Controls\Schematic\Schematic.xaml.cs">
+      <DependentUpon>Schematic.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Schematic\SchematicEditor.cs" />
     <Compile Include="Controls\Simulation.xaml.cs">
       <DependentUpon>Simulation.xaml</DependentUpon>
     </Compile>
@@ -113,15 +121,9 @@
     <Compile Include="Controls\Schematic\SelectionTool.cs" />
     <Compile Include="Controls\Schematic\SymbolTool.cs" />
     <Compile Include="Controls\Elements\Element.cs" />
-    <Compile Include="Controls\SchematicViewer.xaml.cs">
-      <DependentUpon>SchematicViewer.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\Schematic\SchematicTool.cs" />
     <Compile Include="Controls\ComponentLibrary.xaml.cs">
       <DependentUpon>ComponentLibrary.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\Schematic\Schematic.xaml.cs">
-      <DependentUpon>Schematic.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Speaker.xaml.cs">
       <DependentUpon>Speaker.xaml</DependentUpon>
@@ -133,6 +135,14 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Oscilloscope.cs" />
+    <Page Include="Controls\SchematicViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Schematic\Schematic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\Simulation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -142,10 +152,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\Audio.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\SchematicViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -165,10 +171,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Controls\Schematic\Schematic.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Controls\Speaker.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

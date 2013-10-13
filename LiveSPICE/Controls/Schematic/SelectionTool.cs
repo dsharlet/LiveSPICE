@@ -20,7 +20,7 @@ namespace LiveSPICE
         protected Point a, b;
         protected Path path;
 
-        public SelectionTool(Schematic Target) : base(Target) 
+        public SelectionTool(SchematicEditor Target) : base(Target) 
         {
             path = new Path()
             {
@@ -101,8 +101,8 @@ namespace LiveSPICE
 
         private Circuit.Point GetSelectionCenter()
         {
-            Point x1 = Schematic.LowerBound(Target.Selected);
-            Point x2 = Schematic.UpperBound(Target.Selected);
+            Point x1 = SchematicEditor.LowerBound(Target.Selected);
+            Point x2 = SchematicEditor.UpperBound(Target.Selected);
             Point x = Target.SnapToGrid((Point)(((Vector)x1 + (Vector)x2) / 2));
             return new Circuit.Point(x.X, x.Y);
         }

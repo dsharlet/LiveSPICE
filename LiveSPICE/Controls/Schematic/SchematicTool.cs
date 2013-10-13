@@ -17,10 +17,10 @@ namespace LiveSPICE
 {
     public class SchematicTool
     {
-        private Schematic target;
-        public Schematic Target { get { return target; } }
+        private SchematicEditor target;
+        public SchematicEditor Target { get { return target; } }
 
-        public SchematicTool(Schematic Target) { target = Target; }
+        public SchematicTool(SchematicEditor Target) { target = Target; }
 
         public virtual void Begin() { Target.Cursor = Cursors.Cross; }
         public virtual void End() { }

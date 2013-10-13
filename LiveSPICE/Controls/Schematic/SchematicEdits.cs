@@ -67,11 +67,11 @@ namespace LiveSPICE
 
     class AddElements : Edit
     {
-        Schematic target;
+        SchematicEditor target;
         List<Circuit.Element> elements;
 
-        public AddElements(Schematic Target, params Circuit.Element[] Elements) : this(Target, Elements.AsEnumerable()) { }
-        public AddElements(Schematic Target, IEnumerable<Circuit.Element> Elements)
+        public AddElements(SchematicEditor Target, params Circuit.Element[] Elements) : this(Target, Elements.AsEnumerable()) { }
+        public AddElements(SchematicEditor Target, IEnumerable<Circuit.Element> Elements)
         {
             Debug.Assert(Elements.Any());
             target = Target;
@@ -92,10 +92,10 @@ namespace LiveSPICE
 
     class RemoveElements : Edit
     {
-        Schematic target;
+        SchematicEditor target;
         List<Circuit.Element> elements;
 
-        public RemoveElements(Schematic Target, IEnumerable<Circuit.Element> Elements)
+        public RemoveElements(SchematicEditor Target, IEnumerable<Circuit.Element> Elements)
         {
             Debug.Assert(Elements.Any());
             target = Target;

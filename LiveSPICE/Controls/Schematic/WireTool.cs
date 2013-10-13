@@ -21,7 +21,7 @@ namespace LiveSPICE
         protected Path path;
         protected List<Point> mouse;
 
-        public WireTool(Schematic Target) : base(Target)
+        public WireTool(SchematicEditor Target) : base(Target)
         {
             path = new Path()
             {

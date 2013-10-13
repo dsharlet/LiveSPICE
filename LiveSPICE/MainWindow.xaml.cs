@@ -30,7 +30,7 @@ namespace LiveSPICE
             InitializeComponent();
             
             components.Init(this, toolbox_Click);
-            New(new Schematic());
+            New(new SchematicEditor());
         }
 
         public LayoutContent ActiveContent { get { return schematics.SelectedContent; } }
@@ -42,7 +42,7 @@ namespace LiveSPICE
                 return selected != null ? (SchematicViewer)selected.Content : null;
             } 
         }
-        public Schematic ActiveSchematic 
+        public SchematicEditor ActiveSchematic 
         { 
             get 
             {
@@ -51,7 +51,7 @@ namespace LiveSPICE
             } 
         }
 
-        private SchematicViewer New(Schematic Schematic)
+        private SchematicViewer New(SchematicEditor Schematic)
         {
             SchematicViewer sv = new SchematicViewer(Schematic);
             sv.Schematic.SelectionChanged += schematic_SelectionChanged;
@@ -77,16 +77,16 @@ namespace LiveSPICE
             return sv;
         }
 
-        private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(new Schematic()); }
+        private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(new SchematicEditor()); }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             try
             {
                 OpenFileDialog d = new OpenFileDialog();
-                d.Filter = "Circuit Schematics|*" + Schematic.FileExtension;
-                d.DefaultExt = Schematic.FileExtension;
+                d.Filter = "Circuit Schematics|*" + SchematicEditor.FileExtension;
+                d.DefaultExt = SchematicEditor.FileExtension;
                 if (d.ShowDialog(this) ?? false)
-                    New(Schematic.Open(d.FileName));
+                    New(SchematicEditor.Open(d.FileName));
             }
             catch (Exception ex)
             {
@@ -144,7 +144,7 @@ namespace LiveSPICE
             {
                 foreach (TextBlock i in dlg.files.SelectedItems)
                 {
-                    if (!((Schematic)i.Tag).Save())
+                    if (!((SchematicEditor)i.Tag).Save())
                     {
                         e.Cancel = true;
                         return;
@@ -155,12 +155,12 @@ namespace LiveSPICE
 
         private void schematic_SelectionChanged(object Sender, EventArgs Args)
         {
-            properties.SelectedObject = ((Schematic)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).FirstOrDefault();
+            properties.SelectedObject = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).FirstOrDefault();
         }
 
         private void toolbox_Click(object s, RoutedEventArgs e) 
         {
-            Schematic active = ActiveSchematic;
+            SchematicEditor active = ActiveSchematic;
             if (active == null)
                 return;
 
