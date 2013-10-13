@@ -37,13 +37,13 @@ namespace LiveSPICE
         }
         public SymbolControl(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
 
-        public Circuit.Symbol GetSymbol() { return (Circuit.Symbol)element; }
-        public Circuit.Component Component { get { return GetSymbol().Component; } }
-        public Vector Size { get { return new Vector(GetSymbol().Size.x, GetSymbol().Size.y); } }
+        public Circuit.Symbol Symbol { get { return (Circuit.Symbol)element; } }
+        public Circuit.Component Component { get { return Symbol.Component; } }
+        public Vector Size { get { return new Vector(Symbol.Size.x, Symbol.Size.y); } }
 
         protected override void UpdateToolTip()
         {
-            Circuit.Component component = GetSymbol().Component;
+            Circuit.Component component = Symbol.Component;
             ToolTip = component.ToString();
 
             //StringBuilder sb = new StringBuilder();
@@ -67,7 +67,7 @@ namespace LiveSPICE
 
         protected override Size MeasureOverride(Size constraint)
         {
-            Circuit.Symbol sym = GetSymbol();
+            Circuit.Symbol sym = Symbol;
             Point b1 = ToPoint(sym.LowerBound - sym.Position);
             Point b2 = ToPoint(sym.UpperBound - sym.Position);
             return new Size(
@@ -78,7 +78,7 @@ namespace LiveSPICE
         protected DrawingContext dc;
         protected override void OnRender(DrawingContext drawingContext)
         {
-            Circuit.Symbol sym = GetSymbol();
+            Circuit.Symbol sym = Symbol;
             layout = new Circuit.SymbolLayout();
             sym.Component.LayoutSymbol(layout);
 
