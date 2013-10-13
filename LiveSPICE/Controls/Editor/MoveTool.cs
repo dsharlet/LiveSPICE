@@ -28,8 +28,8 @@ namespace LiveSPICE
             x = At;
         }
 
-        public override void Begin() { Editor.Edits.BeginEditGroup(); Target.Cursor = Cursors.SizeAll; }
-        public override void End() { Editor.Edits.EndEditGroup(); }
+        public override void Begin() { base.Begin(); Editor.Edits.BeginEditGroup(); Target.Cursor = Cursors.SizeAll; }
+        public override void End() { Editor.Edits.EndEditGroup(); base.End(); }
         public override void Cancel() { Editor.Edits.CancelEditGroup(); Editor.Edits.BeginEditGroup(); }
         
         public override void MouseUp(Point At)

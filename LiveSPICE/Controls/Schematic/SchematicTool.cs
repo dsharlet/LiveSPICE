@@ -20,10 +20,12 @@ namespace LiveSPICE
         private SchematicControl target;
         public SchematicControl Target { get { return target; } }
 
+        private Cursor cursor;
+
         public SchematicTool(SchematicControl Target) { target = Target; }
 
-        public virtual void Begin() { Target.Cursor = Cursors.Cross; }
-        public virtual void End() { }
+        public virtual void Begin() { cursor = Target.Cursor; Target.Cursor = Cursors.Cross; }
+        public virtual void End() { Target.Cursor = cursor; }
         public virtual void Cancel() { }
                 
         public virtual void MouseDown(Point At) { }

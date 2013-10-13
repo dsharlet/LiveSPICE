@@ -21,9 +21,7 @@ namespace LiveSPICE
     public class SymbolTool : EditorTool
     {
         protected SymbolControl overlay;
-
-        protected Circuit.Coord offset;
-
+        
         public SymbolTool(SchematicEditor Target, Type Type) : base(Target)
         {
             overlay = new SymbolControl(Type) 
@@ -33,13 +31,10 @@ namespace LiveSPICE
                 Highlighted = true,
                 Pen = new Pen(Brushes.Gray, 1.0) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }
             };
-
-            Vector x = Target.SnapToGrid(overlay.Size / 2);
-            offset = new Circuit.Coord(0, 0);//(int)x.X, (int)x.Y);
         }
 
-        public override void Begin() { Target.overlays.Children.Add(overlay); overlay.UpdateLayout(); Target.Cursor = Cursors.None; }
-        public override void End() { Target.overlays.Children.Remove(overlay); }
+        public override void Begin() { base.Begin(); Target.overlays.Children.Add(overlay); overlay.UpdateLayout(); Target.Cursor = Cursors.None; }
+        public override void End() { Target.overlays.Children.Remove(overlay); base.End(); }
 
         public override void MouseDown(Point At)
         {
@@ -48,9 +43,9 @@ namespace LiveSPICE
 
             Circuit.Symbol S = new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(overlay.Component.GetType()))
             {
-                Rotation = overlay.GetSymbol().Rotation,
-                Flip = overlay.GetSymbol().Flip,
-                Position = overlay.GetSymbol().Position
+                Position = overlay.Symbol.Position,
+                Rotation = overlay.Symbol.Rotation,
+                Flip = overlay.Symbol.Flip,
             };
             Editor.Add(S);
             
@@ -65,9 +60,9 @@ namespace LiveSPICE
 
         public override void MouseMove(Point At)
         {
-            Circuit.Symbol symbol = overlay.GetSymbol();
+            Circuit.Symbol symbol = overlay.Symbol;
 
-            symbol.Position = new Circuit.Coord((int)At.X, (int)At.Y) - offset;
+            symbol.Position = new Circuit.Coord((int)At.X, (int)At.Y);
 
             // Don't allow symbols to be placed on an existing symbol.
             Target.Cursor = Target.InRect(symbol.LowerBound, symbol.UpperBound).Any() ? Cursors.No : Cursors.None;
@@ -81,9 +76,9 @@ namespace LiveSPICE
         
         public override bool KeyDown(Key Key)
         {
-            Circuit.Symbol symbol = overlay.GetSymbol();
+            Circuit.Symbol symbol = overlay.Symbol;
 
-            Circuit.Coord x = symbol.Position + offset;
+            Circuit.Coord x = symbol.Position;
             switch (Key)
             {
                 case System.Windows.Input.Key.Left: symbol.Rotation += 1; break;
@@ -93,7 +88,7 @@ namespace LiveSPICE
                 default: return base.KeyDown(Key);
             }
 
-            symbol.Position = x - offset;
+            symbol.Position = x;
             return true;
         }
     }

@@ -36,8 +36,8 @@ namespace LiveSPICE
             };
         }
 
-        public override void Begin() { Target.overlays.Children.Add(path); Target.Cursor = Cursors.Pen; }
-        public override void End() { Target.overlays.Children.Remove(path); }
+        public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Pen; }
+        public override void End() { Target.overlays.Children.Remove(path); base.End(); }
 
         public override void MouseDown(Point At)
         {
