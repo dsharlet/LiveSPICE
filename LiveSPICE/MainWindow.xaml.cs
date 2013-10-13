@@ -16,7 +16,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xceed.Wpf.AvalonDock.Layout;
 using Microsoft.Win32;
-using Circuit;
 
 namespace LiveSPICE
 {
@@ -47,28 +46,28 @@ namespace LiveSPICE
             get 
             {
                 SchematicViewer active = ActiveViewer;
-                return active != null ? active.Schematic : null;
+                return active != null ? (SchematicEditor)active.Schematic : null;
             } 
         }
 
         private SchematicViewer New(SchematicEditor Schematic)
         {
-            SchematicViewer sv = new SchematicViewer(Schematic);
-            sv.Schematic.SelectionChanged += schematic_SelectionChanged;
+            Schematic.SelectionChanged += schematic_SelectionChanged;
 
+            SchematicViewer sv = new SchematicViewer(Schematic);
             LayoutDocument doc = new LayoutDocument();
             doc.Content = sv;
            
-            doc.Closing += (o, e) => e.Cancel = !sv.Schematic.CanClose();
-            sv.Schematic.PropertyChanged += (o, e) => 
+            doc.Closing += (o, e) => e.Cancel = !Schematic.CanClose();
+            Schematic.PropertyChanged += (o, e) => 
             {
                 if (e.PropertyName != "FileName") return;
                 
-                doc.Title = System.IO.Path.GetFileNameWithoutExtension(sv.Schematic.FileName);
-                doc.ToolTip = sv.Schematic.FileName;
+                doc.Title = System.IO.Path.GetFileNameWithoutExtension(Schematic.FileName);
+                doc.ToolTip = Schematic.FileName;
             };
-            doc.Title = System.IO.Path.GetFileNameWithoutExtension(sv.Schematic.FileName);
-            doc.ToolTip = sv.Schematic.FileName;
+            doc.Title = System.IO.Path.GetFileNameWithoutExtension(Schematic.FileName);
+            doc.ToolTip = Schematic.FileName;
 
             schematics.Children.Add(doc);
             doc.IsActive = true;
@@ -94,30 +93,8 @@ namespace LiveSPICE
             }
         }
         private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveViewer != null; }
-        private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { SaveLayout(); ActiveContent.Close(); }
+        private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { dock.SaveLayout("EditConfig.xml"); ActiveContent.Close(); }
         
-        private void Run_Executed(object sender, ExecutedRoutedEventArgs e) 
-        {
-            audio.Stop();
-
-            Schematic active = ActiveSchematic;
-            if (active == null)
-                return;
-
-            try
-            {
-                Circuit.Circuit circuit = active.Build();
-
-                simulation.Run(circuit, audio.SampleRate);
-            }
-            catch (Exception ex)
-            {
-                log.WriteLine(Circuit.MessageType.Error, ex.Message);
-            }
-            audio.Run(ProcessSamples);
-        }
-        private void Stop_Executed(object sender, ExecutedRoutedEventArgs e) { audio.Stop(); }
-
         private void Exit_Executed(object sender, ExecutedRoutedEventArgs e) { Close(); }
 
         private void OnClosing(object sender, CancelEventArgs e)
@@ -126,8 +103,8 @@ namespace LiveSPICE
             dlg.Owner = this;
 
             foreach (SchematicViewer i in schematics.Children.Select(i => i.Content).OfType<SchematicViewer>())
-                if (i.Schematic.Edits.Dirty)
-                    dlg.files.Items.Add(new TextBlock() { Text = i.Schematic.FileName, Tag = i.Schematic });
+                if (((SchematicEditor)i.Schematic).Edits.Dirty)
+                    dlg.files.Items.Add(new TextBlock() { Text = ((SchematicEditor)i.Schematic).FileName, Tag = i.Schematic });
 
             if (dlg.files.Items.Count == 0)
                 return;
@@ -158,6 +135,11 @@ namespace LiveSPICE
             properties.SelectedObject = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).FirstOrDefault();
         }
 
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            dock.LoadLayout("EditConfig.xml");
+        }
+
         private void toolbox_Click(object s, RoutedEventArgs e) 
         {
             SchematicEditor active = ActiveSchematic;
@@ -171,56 +153,18 @@ namespace LiveSPICE
                 active.Tool = new SymbolTool(active, type);
             active.Focus();
         }
-
-        // Callback for audio.
-        private void ProcessSamples(double[] Samples, int Rate)
+        
+        private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            double inputGain = (double)audio.InputGain;
-            double outputGain = (double)audio.OutputGain;
-            for (int i = 0; i < Samples.Length; ++i)
-                Samples[i] *= inputGain;
-            simulation.Process(Samples, Rate, oscilloscope);
-            for (int i = 0; i < Samples.Length; ++i)
-                Samples[i] *= outputGain;
+            Simulation simulation = new Simulation(
+                ActiveSchematic.Schematic, 
+                new Circuit.Quantity(48000, Circuit.Units.Hz), 
+                16, 
+                new Circuit.Quantity(30e-3m, Circuit.Units.s));
+            simulation.Owner = this;
+            simulation.ShowDialog();
         }
-
-        private void SaveLayout(string Config)
-        {
-            Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(dock);
-            serializer.Serialize(Config);
-
-            // http://avalondock.codeplex.com/discussions/400644
-            XmlDocument configDoc = new XmlDocument();
-            configDoc.Load(Config);
-            XmlNodeList projectNodes = configDoc.GetElementsByTagName("LayoutDocument");
-            for (int i = projectNodes.Count - 1; i > -1; i--)
-            {
-                projectNodes[i].ParentNode.RemoveChild(projectNodes[i]);
-            }
-            configDoc.Save(Config);
-        }
-
-        private void SaveLayout()
-        {
-            SaveLayout("EditConfig.xml");
-        }
-
-        private void LoadLayout(string Config)
-        {
-            try
-            {
-                Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(dock);
-                serializer.Deserialize(Config);
-            }
-            catch (Exception) { }
-        }
-
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            LoadLayout("EditConfig.xml");
-        }
-
-
+        
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {

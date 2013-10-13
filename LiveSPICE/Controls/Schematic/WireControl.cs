@@ -18,15 +18,15 @@ using SyMath;
 
 namespace LiveSPICE
 {
-    public class Wire : Element
+    public class WireControl : ElementControl
     {
-        static Wire()
+        static WireControl()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(Wire), new FrameworkPropertyMetadata(typeof(Wire)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(WireControl), new FrameworkPropertyMetadata(typeof(WireControl)));
         }
 
         protected Circuit.Wire wire;
-        public Wire(Circuit.Wire W) : base(W) { wire = W; }
+        public WireControl(Circuit.Wire W) : base(W) { wire = W; }
 
         protected override void UpdateToolTip()
         {

@@ -76,7 +76,7 @@ namespace LiveSPICE
                 StackPanel content = new StackPanel() { Orientation = Orientation.Vertical };
 
                 // Add image to the button.
-                Component symbol = new Component((Circuit.Component)Activator.CreateInstance(T))
+                ComponentControl symbol = new ComponentControl((Circuit.Component)Activator.CreateInstance(T))
                 {
                     Width = 48,
                     Height = 32,

@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
-    public class WireTool : SchematicTool
+    public class WireTool : EditorTool
     {
         protected bool wiring = false;
         protected Path path;
@@ -52,7 +52,7 @@ namespace LiveSPICE
             if (mouse == null)
                 return;
             mouse.Add(At);
-            List<Circuit.Coord> points = Target.FindWirePath(mouse);
+            List<Circuit.Coord> points = Editor.FindWirePath(mouse);
             ((PathGeometry)path.Data).Clear();
             for (int i = 0; i < points.Count - 1; ++i)
             {
@@ -69,11 +69,11 @@ namespace LiveSPICE
         {
             ((PathGeometry)path.Data).Clear();
             path.Visibility = Visibility.Hidden;
- 	        Target.AddWire(Target.FindWirePath(mouse));
+            Editor.AddWire(Editor.FindWirePath(mouse));
             mouse = null;
 
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
-                Target.Tool = null;
+                Target.Tool = new SelectionTool(Editor);
         }
     }
 }

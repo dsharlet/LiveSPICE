@@ -22,20 +22,20 @@ namespace LiveSPICE
     /// <summary>
     /// Element for a symbol.
     /// </summary>
-    public class Symbol : Element
+    public class SymbolControl : ElementControl
     {       
-        static Symbol() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Symbol), new FrameworkPropertyMetadata(typeof(Symbol))); }
+        static SymbolControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SymbolControl), new FrameworkPropertyMetadata(typeof(SymbolControl))); }
 
         private bool showText = true;
         public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual();  } }
     
         protected Circuit.SymbolLayout layout = new Circuit.SymbolLayout();
 
-        public Symbol(Circuit.Symbol S) : base(S)
+        public SymbolControl(Circuit.Symbol S) : base(S)
         {
             Component.LayoutSymbol(layout);
         }
-        public Symbol(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
+        public SymbolControl(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
 
         public Circuit.Symbol GetSymbol() { return (Circuit.Symbol)element; }
         public Circuit.Component Component { get { return GetSymbol().Component; } }
@@ -83,7 +83,7 @@ namespace LiveSPICE
             sym.Component.LayoutSymbol(layout);
 
             dc = drawingContext;
-            dc.PushGuidelineSet(Symbol.Guidelines);
+            dc.PushGuidelineSet(SymbolControl.Guidelines);
 
             Circuit.Coord center = (layout.LowerBound + layout.UpperBound) / 2;
             double scale = Math.Min(Math.Min(ActualWidth / sym.Width, ActualHeight / sym.Height), 1.0);

@@ -16,8 +16,8 @@
         <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed" />
         <CommandBinding Command="ApplicationCommands.Close" CanExecute="Close_CanExecute" Executed="Close_Executed" />
 
-        <CommandBinding Command="MediaCommands.Play" Executed="Run_Executed" />
-        <CommandBinding Command="MediaCommands.Stop" Executed="Stop_Executed" />
+        <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" />
+
         <CommandBinding Command="{x:Static ls:CustomCommands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>
     <Grid>
@@ -87,8 +87,7 @@
             </ToolBar>
             <!-- Simulation -->
             <ToolBar Band="1" BandIndex="3" >
-                <Button Command="MediaCommands.Play" Content="&#x25b6;" />
-                <Button Command="MediaCommands.Stop" Content="&#x25a0;" />
+                <Button Command="MediaCommands.Play" Content="&#x25b6; Simulate" />
             </ToolBar>
         </ToolBarTray>
 
@@ -103,66 +102,25 @@
             </xcad:DockingManager.DocumentHeaderTemplate>
             <xcad:LayoutRoot>
                 <xcad:LayoutPanel Orientation="Horizontal">
-                    <!-- Components -->
-                    <xcad:LayoutAnchorablePane DockWidth="205">
-                        <xcad:LayoutAnchorable ContentId="components" Title="Components" CanHide="False" CanClose="False" AutoHideWidth="240">
-                            <ls:ComponentLibrary x:Name="components" />
-                        </xcad:LayoutAnchorable>
-                    </xcad:LayoutAnchorablePane>
-
-                    <xcad:LayoutPanel Orientation="Vertical">
-                        <!-- Schematics -->
-                        <xcad:LayoutDocumentPaneGroup>
-                            <xcad:LayoutDocumentPane x:Name="schematics" />
-                        </xcad:LayoutDocumentPaneGroup >
-
-                        <!-- Log -->
-                        <xcad:LayoutAnchorablePane DockHeight="200">
-                            <xcad:LayoutAnchorable Title="Log">
-                                <ls:Log x:Name="log" />
+                    <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
+                        <xcad:LayoutAnchorablePane>
+                            <!-- Components -->
+                            <xcad:LayoutAnchorable ContentId="components" Title="Components" CanHide="False" CanClose="False" AutoHideWidth="240">
+                                <ls:ComponentLibrary x:Name="components" />
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorablePane>
+                        <xcad:LayoutAnchorablePane>
+                            <!-- Properties -->
+                            <xcad:LayoutAnchorable Title="Properties" CanHide="False" CanClose="False" AutoHideWidth="240">
+                                <xctk:PropertyGrid x:Name="properties" NameColumnWidth="110" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
                     
-                    <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
-                        <!-- Properties -->
-                        <xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorable Title="Properties" CanHide="False" CanClose="False" AutoHideWidth="240">
-                                <xctk:PropertyGrid x:Name="properties" NameColumnWidth="110" />
-                            </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable Title="Simulation">
-                                <ls:Simulation x:Name="simulation" BorderBrush="DarkGray" BorderThickness="1" />
-                            </xcad:LayoutAnchorable>
-                        </xcad:LayoutAnchorablePane>
-                        
-                        <!-- Oscilloscope -->
-                        <xcad:LayoutAnchorablePane DockHeight="300">
-                            <xcad:LayoutAnchorable x:Name="oscilloscopeWnd" Title="Oscilloscope">
-                                <DockPanel>
-                                    <ToolBar Height="28" DockPanel.Dock="Top">
-                                        <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
-                                        <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
-                                        <Separator />
-                                        <ComboBox Width="70"
-                                                    ItemsSource="{Binding ElementName=oscilloscope, Path=SignalNames}" 
-                                                    SelectedValue="{Binding ElementName=oscilloscope, Path=FocusSignalName}">
-                                        </ComboBox>
-                                        <Separator />
-                                        <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding Path=ShowNotes, ElementName=oscilloscope}" />
-                                        <Label Content="A4:" />
-                                        <TextBox Width="60" Text="{Binding ElementName=oscilloscope, Path=A4, UpdateSourceTrigger=PropertyChanged}" />
-                                    </ToolBar>
-                                    <ls:Oscilloscope x:Name="oscilloscope" BorderBrush="DarkGray" BorderThickness="1" />
-                                </DockPanel>
-                            </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable Title="Audio">
-                                <ls:Audio x:Name="audio" BorderBrush="DarkGray" BorderThickness="1" />
-                            </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable Title="Speaker">
-                                <ls:Speaker x:Name="speaker" BorderBrush="DarkGray" BorderThickness="1" />
-                            </xcad:LayoutAnchorable>
-                        </xcad:LayoutAnchorablePane>
-                    </xcad:LayoutPanel>
+                    <!-- Schematics -->
+                    <xcad:LayoutDocumentPaneGroup>
+                        <xcad:LayoutDocumentPane x:Name="schematics" />
+                    </xcad:LayoutDocumentPaneGroup >
                 </xcad:LayoutPanel>
             </xcad:LayoutRoot>
         </xcad:DockingManager>
@@ -173,24 +131,12 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="4*"/>
-                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <StatusBarItem>
+            <StatusBarItem Grid.Column="0">
                 <TextBlock>Ready</TextBlock>
-            </StatusBarItem>
-            <StatusBarItem Grid.Column="1">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding ElementName=audio, Path=SampleRate}" />
-                    <TextBlock Text=" x " />
-                    <TextBlock Text="{Binding ElementName=audio, Path=BitsPerSample}" />
-                    <TextBlock Text="b, " />
-                    <TextBlock Text="{Binding ElementName=simulation, Path=Oversample}" />
-                    <TextBlock Text="x " />
-                    <TextBlock Text="{Binding ElementName=simulation, Path=Iterations}" />
-                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>

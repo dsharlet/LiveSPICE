@@ -93,21 +93,29 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
-    <Compile Include="Controls\Elements\Wire.cs" />
+    <Compile Include="Controls\ProbeTool.cs" />
+    <Compile Include="Controls\SimulationSchematic.cs" />
+    <Compile Include="Controls\Parameters.xaml.cs">
+      <DependentUpon>Parameters.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Editor\EditorTool.cs" />
+    <Compile Include="Controls\Schematic\WireControl.cs" />
     <Compile Include="Controls\SchematicViewer.xaml.cs">
       <DependentUpon>SchematicViewer.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Controls\Schematic\Schematic.xaml.cs">
-      <DependentUpon>Schematic.xaml</DependentUpon>
+    <Compile Include="Controls\Schematic\SchematicControl.xaml.cs">
+      <DependentUpon>SchematicControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Schematic\SchematicEditor.cs" />
-    <Compile Include="Controls\Simulation.xaml.cs">
-      <DependentUpon>Simulation.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\Elements\Symbol.cs">
+    <Compile Include="Controls\Editor\SchematicEditor.cs" />
+    <Compile Include="Controls\Schematic\SymbolControl.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Simulation.xaml.cs">
+      <DependentUpon>Simulation.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Utils\DockingManagerExtensions.cs" />
+    <Compile Include="Utils\Probe.cs" />
     <Compile Include="Utils\RootExtension.cs" />
     <Compile Include="Windows\ClosingDialog.xaml.cs">
       <DependentUpon>ClosingDialog.xaml</DependentUpon>
@@ -115,18 +123,15 @@
     <Compile Include="Controls\Audio.xaml.cs">
       <DependentUpon>Audio.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Schematic\WireTool.cs" />
-    <Compile Include="Controls\Schematic\MoveTool.cs" />
-    <Compile Include="Controls\Schematic\SchematicEdits.cs" />
-    <Compile Include="Controls\Schematic\SelectionTool.cs" />
-    <Compile Include="Controls\Schematic\SymbolTool.cs" />
-    <Compile Include="Controls\Elements\Element.cs" />
+    <Compile Include="Controls\Editor\WireTool.cs" />
+    <Compile Include="Controls\Editor\MoveTool.cs" />
+    <Compile Include="Controls\Editor\SchematicEdits.cs" />
+    <Compile Include="Controls\Editor\SelectionTool.cs" />
+    <Compile Include="Controls\Editor\SymbolTool.cs" />
+    <Compile Include="Controls\Schematic\ElementControl.cs" />
     <Compile Include="Controls\Schematic\SchematicTool.cs" />
     <Compile Include="Controls\ComponentLibrary.xaml.cs">
       <DependentUpon>ComponentLibrary.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\Speaker.xaml.cs">
-      <DependentUpon>Speaker.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Log.xaml.cs">
       <DependentUpon>Log.xaml</DependentUpon>
@@ -135,15 +140,19 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Oscilloscope.cs" />
+    <Page Include="Controls\Parameters.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\SchematicViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\Schematic\Schematic.xaml">
+    <Page Include="Controls\Schematic\SchematicControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Simulation.xaml">
+    <Page Include="Simulation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -171,10 +180,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Controls\Speaker.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Controls\Log.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

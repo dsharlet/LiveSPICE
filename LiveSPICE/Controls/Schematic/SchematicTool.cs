@@ -17,10 +17,10 @@ namespace LiveSPICE
 {
     public class SchematicTool
     {
-        private SchematicEditor target;
-        public SchematicEditor Target { get { return target; } }
+        private SchematicControl target;
+        public SchematicControl Target { get { return target; } }
 
-        public SchematicTool(SchematicEditor Target) { target = Target; }
+        public SchematicTool(SchematicControl Target) { target = Target; }
 
         public virtual void Begin() { Target.Cursor = Cursors.Cross; }
         public virtual void End() { }
@@ -36,8 +36,8 @@ namespace LiveSPICE
         {
             switch (Key)
             {
-                case System.Windows.Input.Key.Escape: 
-                    Target.Tool = null; 
+                case System.Windows.Input.Key.Escape:
+                    Target.Tool = new SchematicTool(Target); 
                     return true;
                 default: return false;
             }

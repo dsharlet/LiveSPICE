@@ -25,7 +25,15 @@ namespace LiveSPICE
 
         protected ScaleTransform scale = new ScaleTransform();
 
-        public SchematicEditor Schematic { get { return ((SchematicEditor)scroll.Content); } set { scroll.Content = value; } }
+        public SchematicControl Schematic 
+        { 
+            get { return ((SchematicControl)scroll.Content); }
+            set 
+            { 
+                scroll.Content = value;
+                value.LayoutTransform = scale;
+            }
+        }
 
         private double LogFloor(double x, double b) { return Math.Pow(b, Math.Floor(Math.Log(x, b))); }
 
@@ -49,31 +57,37 @@ namespace LiveSPICE
                 scroll.ScrollToVerticalOffset(scroll.VerticalOffset + at.Y - focus.Y);
             }
         }
-        
-        public SchematicViewer(SchematicEditor Schematic)
+
+        public SchematicViewer()
         {
             InitializeComponent();
 
             CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 2));
             CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 0.5));
 
-            this.Schematic = Schematic != null ? Schematic : new SchematicEditor();
-
-            scroll.PreviewMouseWheel += (o, e) => 
+            scroll.PreviewMouseWheel += (o, e) =>
             {
                 Zoom = LogFloor(Zoom * (e.Delta > 0 ? 2 : 0.5), 2);
-                e.Handled = true; 
+                e.Handled = true;
             };
             scroll.PreviewMouseMove += (o, e) => mouse = e.GetPosition(this);
             scroll.MouseLeave += (o, e) => mouse = null;
 
-            Schematic.LayoutTransform = scale;
-
             SizeChanged += SchematicViewer_SizeChanged;
+
+            Schematic = new SchematicControl(new Circuit.Schematic());
+        }
+        
+        public SchematicViewer(SchematicEditor Schematic) : this()
+        {
+            this.Schematic = Schematic;
         }
 
         void SchematicViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            if (Schematic == null)
+                return;
+
             Zoom = Zoom;
             if (e.PreviousSize.Width * e.PreviousSize.Height < 1)
             {

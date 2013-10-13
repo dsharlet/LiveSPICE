@@ -20,16 +20,9 @@ namespace LiveSPICE
     /// </summary>
     public partial class Log : UserControl, Circuit.ILog
     {
-        private static Log single;
-        public static Log Instance { get { return single; } }
-
         public Log()
         {
             InitializeComponent();
-
-            if (single != null)
-                throw new InvalidOperationException("Multiple instances of Output");
-            single = this;
         }
 
         public void Clear()
@@ -44,7 +37,7 @@ namespace LiveSPICE
             Dispatcher.Invoke(() =>
                 {
                     if (Type != Circuit.MessageType.Info)
-                        text.AppendText("[" + Type.ToString() + "]");
+                        text.AppendText("[" + Type.ToString() + "] ");
                     text.AppendText(Message + "\r\n");
                     text.ScrollToEnd();
                 });

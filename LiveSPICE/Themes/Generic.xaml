@@ -16,10 +16,10 @@
         </Setter>
     </Style-->
 
-    <Style TargetType="{x:Type local:Symbol}">
+    <Style TargetType="{x:Type local:SymbolControl}">
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type local:Symbol}">
+                <ControlTemplate TargetType="{x:Type local:SymbolControl}">
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -29,10 +29,10 @@
         </Setter>
     </Style>
 
-    <Style TargetType="{x:Type local:Element}">
+    <Style TargetType="{x:Type local:ElementControl}">
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type local:Element}">
+                <ControlTemplate TargetType="{x:Type local:ElementControl}">
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -42,10 +42,10 @@
         </Setter>
     </Style>
 
-    <!--Style TargetType="{x:Type local:Wire}">
+    <Style TargetType="{x:Type local:WireControl}">
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type local:Wire}">
+                <ControlTemplate TargetType="{x:Type local:WireControl}">
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -53,5 +53,5 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style-->
+    </Style>
 </ResourceDictionary>

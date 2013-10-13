@@ -20,11 +20,11 @@ namespace LiveSPICE
     /// <summary>
     /// Base class for schematic elements.
     /// </summary>
-    public class Element : Control
+    public class ElementControl : Control
     {
-        static Element()
+        static ElementControl()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(Element), new FrameworkPropertyMetadata(typeof(Element)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ElementControl), new FrameworkPropertyMetadata(typeof(ElementControl)));
         }
 
         protected static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash };
@@ -69,7 +69,7 @@ namespace LiveSPICE
 
         protected Circuit.Element element;
 
-        protected Element(Circuit.Element E)
+        protected ElementControl(Circuit.Element E)
         {
             Debug.Assert(element.Tag == null);
 
@@ -102,12 +102,12 @@ namespace LiveSPICE
             InvalidateVisual();
         }
 
-        public static Element New(Circuit.Element E)
+        public static ElementControl New(Circuit.Element E)
         {
             if (E is Circuit.Wire)
-                return new Wire((Circuit.Wire)E);
+                return new WireControl((Circuit.Wire)E);
             else if (E is Circuit.Symbol)
-                return new Symbol((Circuit.Symbol)E);
+                return new SymbolControl((Circuit.Symbol)E);
             else
                 throw new NotImplementedException();
         }
@@ -118,13 +118,18 @@ namespace LiveSPICE
         public static double EdgeThickness = 1.0;
         public static GuidelineSet Guidelines = new GuidelineSet(new double[] { EdgeThickness / 2 }, new double[] { EdgeThickness / 2 });
 
-        public static Brush WireBrush = Brushes.Black;
+        public static Brush WireBrush = Brushes.Blue;
         public static Pen WirePen = new Pen(WireBrush, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen TerminalPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
 
         public static Pen BlackPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen GreenPen = new Pen(Brushes.Green, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen BluePen = new Pen(Brushes.Blue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen YellowPen = new Pen(Brushes.Yellow, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen CyanPen = new Pen(Brushes.Cyan, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen MagentaPen = new Pen(Brushes.Magenta, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
 
         public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
         {
@@ -140,6 +145,11 @@ namespace LiveSPICE
                 case Circuit.EdgeType.Black: return BlackPen;
                 case Circuit.EdgeType.Gray: return GrayPen;
                 case Circuit.EdgeType.Red: return RedPen;
+                case Circuit.EdgeType.Green: return GreenPen;
+                case Circuit.EdgeType.Blue: return BluePen;
+                case Circuit.EdgeType.Yellow: return YellowPen;
+                case Circuit.EdgeType.Cyan: return CyanPen;
+                case Circuit.EdgeType.Magenta: return MagentaPen;
                 default: throw new ArgumentException();
             }
         }

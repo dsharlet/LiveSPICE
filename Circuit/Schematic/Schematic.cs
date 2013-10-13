@@ -44,22 +44,35 @@ namespace Circuit
         /// </summary>
         public ILog Log { get { return log; } set { log = value; } }
 
-        public Schematic(int Width, int Height, ILog Log)
+        public Schematic(int Width, int Height, ILog Log) : this()
         {
             log = Log;
             width = Width;
             height = Height;
+        }
+        public Schematic(int Width, int Height) : this()
+        {
+            width = Width;
+            height = Height;
+        }
+        public Schematic(ILog Log) : this() { log = Log; }
+        public Schematic()
+        {
+            log = new NullLog();
+            width = 1600;
+            height = 1600;
 
             elements = new ElementCollection();
             elements.ItemAdded += OnElementAdded;
             elements.ItemRemoved += OnElementRemoved;
         }
 
-        public Schematic(ILog Log) : this(1600, 1600, Log) 
-        {
-        }
-
-        public Circuit Build() 
+        /// <summary>
+        /// Build the Schematic into a Circuit object.
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        public Circuit Build(ILog log) 
         {
             int errors = 0;
             int warnings = 0;
@@ -102,16 +115,15 @@ namespace Circuit
                 }
             }
 
+            log.WriteLine(MessageType.Info, "Build: {0} errors, {1} warnings", errors, warnings);
+
             if (errors != 0)
-            {
-                throw new InvalidOperationException("Build failed: " + errors.ToString() + " errors");
-            }
+                throw new InvalidOperationException("Build failed");
             else
-            {
-                log.WriteLine(MessageType.Info, "Build succeeded: {0} warnings", warnings);
                 return circuit;
-            }
         }
+
+        public Circuit Build() { return Build(log); }
 
         /// <summary>
         /// Get the terminals located at x.
@@ -218,7 +230,7 @@ namespace Circuit
                     if (Wires.Any(j => j.IsConnectedTo(((Symbol)i.Tag).MapTerminal(i.Terminal))))
                     {
                         if (n != null)
-                            Log.WriteLine(MessageType.Warning, "Multiple Named Wires connected to node.");
+                            Log.WriteLine(MessageType.Verbose, "Multiple Named Wires connected to node.");
                         n = circuit.Nodes[i.WireName];
                     }
                 }
@@ -319,6 +331,8 @@ namespace Circuit
             return S;
         }
 
+        public static Schematic Load(string FileName) { return Load(FileName, new NullLog()); }
+
         public XElement Serialize()
         {
             XElement x = new XElement("Schematic");
@@ -336,14 +350,15 @@ namespace Circuit
         {
             int width, height;
             try { width = int.Parse(X.Attribute("Width").Value); }
-            catch (Exception) { width = 1600;  }
+            catch (Exception) { width = 1600; }
             try { height = int.Parse(X.Attribute("Height").Value); }
-            catch (Exception) { height = 1600;  }
+            catch (Exception) { height = 1600; }
 
             Schematic s = new Schematic(width, height, Log);
             s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
 
             return s;
         }
+        public static Schematic Deserialize(XElement X) { return Deserialize(X, new NullLog()); }
     }
 }

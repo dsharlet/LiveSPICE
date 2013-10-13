@@ -1,0 +1,263 @@
+﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Microsoft.Win32;
+using System.Xml.Linq;
+using SyMath;
+
+namespace LiveSPICE
+{
+    /// <summary>
+    /// Control for interacting with a Circuit.Schematic.
+    /// </summary>
+    public partial class SchematicControl : UserControl, INotifyPropertyChanged
+    {
+        protected static readonly int Grid = 10;
+        protected const int AutoScrollBorder = 1;
+
+        private Circuit.Schematic schematic;
+        /// <summary>
+        /// Get the Schematic this control is displaying.
+        /// </summary>
+        public Circuit.Schematic Schematic { get { return schematic; } }
+        
+        public SchematicControl(Circuit.Schematic Schematic)
+        {
+            InitializeComponent();
+
+            PreviewMouseDown += OnMouseDown;
+            PreviewMouseUp += OnMouseUp;
+            PreviewMouseMove += OnMouseMove;
+            MouseLeave += OnMouseLeave;
+            MouseEnter += OnMouseEnter;
+
+            PreviewKeyDown += OnKeyDown;
+            PreviewKeyUp += OnKeyUp;
+            
+            schematic = Schematic;
+
+            schematic.Elements.ItemAdded += OnElementAdded;
+            schematic.Elements.ItemRemoved += OnElementRemoved;
+
+            // Create controls for all the elements already in the schematic.
+            foreach (Circuit.Element i in schematic.Elements)
+            {
+                ElementControl control = ElementControl.New(i);
+                components.Children.Add(control);
+
+                Circuit.Coord x = i.LowerBound;
+                Canvas.SetLeft(control, x.x);
+                Canvas.SetTop(control, x.y);
+            }
+
+            Width = schematic.Width;
+            Height = schematic.Height;
+        }
+
+        // Schematic tools.
+        private SchematicTool tool;
+        public SchematicTool Tool
+        {
+            get { return tool; }
+            set
+            {
+                if (tool != null)
+                    tool.End();
+                tool = value;
+                if (tool != null)
+                {
+                    tool.Begin();
+                    if (mouse.HasValue)
+                    {
+                        tool.MouseEnter(mouse.Value);
+                        tool.MouseMove(mouse.Value);
+                    }
+                }
+            }
+        }
+
+        // Elements.
+        public IEnumerable<Circuit.Element> Elements { get { return schematic.Elements; } }
+        public IEnumerable<Circuit.Symbol> Symbols { get { return schematic.Elements.OfType<Circuit.Symbol>(); } }
+        public IEnumerable<Circuit.Wire> Wires { get { return schematic.Elements.OfType<Circuit.Wire>(); } }
+
+        public IEnumerable<Circuit.Element> InRect(Circuit.Coord x1, Circuit.Coord x2)
+        {
+            Circuit.Coord a = new Circuit.Coord(Math.Min(x1.x, x2.x), Math.Min(x1.y, x2.y));
+            Circuit.Coord b = new Circuit.Coord(Math.Max(x1.x, x2.x), Math.Max(x1.y, x2.y));
+            return Elements.Where(i => i.Intersects(a, b));
+        }
+        public IEnumerable<Circuit.Element> AtPoint(Circuit.Coord At) { return InRect(At - 1, At + 1); }
+        public IEnumerable<Circuit.Element> InRect(Point x1, Point x2) { return InRect(Round(x1), Round(x2)); }
+        public IEnumerable<Circuit.Element> AtPoint(Point At) { return AtPoint(Round(At)); }
+        
+        public static Point LowerBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Min(i => i.LowerBound.x), Of.Min(i => i.LowerBound.y)); }
+        public static Point UpperBound(IEnumerable<Circuit.Element> Of) { return new Point(Of.Max(i => i.UpperBound.x), Of.Max(i => i.UpperBound.y)); }
+        public Point LowerBound() { return LowerBound(Elements); }
+        public Point UpperBound() { return UpperBound(Elements); }
+        
+        public Circuit.Point SnapToGrid(Circuit.Point x) { return new Circuit.Point(Math.Round(x.x / Grid) * Grid, Math.Round(x.y / Grid) * Grid); }
+        public Point SnapToGrid(Point x) { return new Point(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }
+        public Vector SnapToGrid(Vector x) { return new Vector(Math.Round(x.X / Grid) * Grid, Math.Round(x.Y / Grid) * Grid); }
+        
+        private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
+        {
+            ElementControl control = ElementControl.New(e.Element);
+            components.Children.Add(control);
+
+            Circuit.Coord x = e.Element.LowerBound;
+            Canvas.SetLeft(control, x.x);
+            Canvas.SetTop(control, x.y);
+        }
+        private void OnElementRemoved(object sender, Circuit.ElementEventArgs e)
+        {
+            components.Children.Remove((ElementControl)e.Element.Tag);
+        }
+
+        protected static Circuit.Coord Round(Point x) { return new Circuit.Coord((int)Math.Round(x.X), (int)Math.Round(x.Y)); }
+
+        // Selection.
+        public IEnumerable<Circuit.Element> Selected { get { return Elements.Where(i => ((ElementControl)i.Tag).Selected); } }
+
+        private List<EventHandler> selectionChanged = new List<EventHandler>();
+        public event EventHandler SelectionChanged
+        {
+            add { selectionChanged.Add(value); }
+            remove { selectionChanged.Remove(value); }
+        }
+        public void OnSelectionChanged()
+        {
+            foreach (EventHandler i in selectionChanged)
+                i(this, new EventArgs());
+        }
+
+        public void Select(IEnumerable<Circuit.Element> ToSelect, bool Only, bool Toggle)
+        {
+            bool changed = false;
+            foreach (Circuit.Element i in Elements)
+            {
+                if (ToSelect.Contains(i))
+                {
+                    if (Toggle || !((ElementControl)i.Tag).Selected)
+                    {
+                        changed = true;
+                        ((ElementControl)i.Tag).Selected = !((ElementControl)i.Tag).Selected;
+                    }
+                }
+                else if (Only)
+                {
+                    if (((ElementControl)i.Tag).Selected)
+                    {
+                        changed = true;
+                        ((ElementControl)i.Tag).Selected = false;
+                    }
+                }
+            }
+
+            if (changed)
+                OnSelectionChanged();
+        }
+
+        public void Select(IEnumerable<Circuit.Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
+        public void Select(params Circuit.Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
+
+        public void ToggleSelect(IEnumerable<Circuit.Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
+        public void ToggleSelect(params Circuit.Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
+
+        public void Highlight(IEnumerable<Circuit.Element> ToHighlight)
+        {
+            foreach (Circuit.Element i in Elements)
+                ((ElementControl)i.Tag).Highlighted = ToHighlight.Contains(i);
+        }
+        public void Highlight(params Circuit.Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
+
+        // Keyboard events.
+        protected virtual void OnKeyDown(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyDown(e.Key); }
+        protected virtual void OnKeyUp(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyUp(e.Key); }
+
+        // Mouse events.
+        protected virtual void OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Focus();
+            Point at = SnapToGrid(e.GetPosition(this));
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                CaptureMouse();
+                if (Tool != null) 
+                    Tool.MouseDown(at);
+            }
+            else
+            {
+                ReleaseMouseCapture();
+                if (Tool != null) 
+                    Tool.Cancel();
+            }
+            e.Handled = true;
+        }
+        protected virtual void OnMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Point at = SnapToGrid(e.GetPosition(this));
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                ReleaseMouseCapture();
+                if (Tool != null) 
+                    Tool.MouseUp(at);
+            }
+            e.Handled = true;
+        }
+        protected Point? mouse = null;
+        protected virtual void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            Point at = e.GetPosition(this);
+            if (IsMouseCaptured)
+                BringIntoView(new Rect(at - new Vector(AutoScrollBorder, AutoScrollBorder), at + new Vector(AutoScrollBorder, AutoScrollBorder)));
+            at = SnapToGrid(at);
+            if (!mouse.HasValue || mouse.Value != at)
+            {
+                mouse = at;
+                if (Tool != null) 
+                    Tool.MouseMove(at);
+                e.Handled = true;
+            }
+        }
+
+        protected virtual void OnMouseEnter(object sender, MouseEventArgs e)
+        {
+            Point at = SnapToGrid(e.GetPosition(this));
+            mouse = at;
+            if (Tool != null) 
+                Tool.MouseEnter(at);
+            e.Handled = true;
+        }
+        protected virtual void OnMouseLeave(object sender, MouseEventArgs e)
+        {
+            Point at = SnapToGrid(e.GetPosition(this));
+            mouse = null;
+            if (Tool != null) 
+                Tool.MouseLeave(at);
+            e.Handled = true;
+        }
+
+        // INotifyPropertyChanged interface.
+        protected void NotifyChanged(string p)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+    }
+}

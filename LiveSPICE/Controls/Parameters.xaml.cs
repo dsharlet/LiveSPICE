@@ -1,9 +1,9 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -17,9 +17,9 @@ using System.Windows.Shapes;
 namespace LiveSPICE
 {
     /// <summary>
-    /// Interaction logic for Simulation.xaml
+    /// Interaction logic for Parameters.xaml
     /// </summary>
-    public partial class Simulation : UserControl, INotifyPropertyChanged
+    public partial class Parameters : UserControl, INotifyPropertyChanged
     {
         protected int oversample = 4;
         public int Oversample
@@ -48,41 +48,10 @@ namespace LiveSPICE
             get { return output; }
             set { output = value; NotifyChanged("Output"); }
         }
-        
-        public Simulation()
+
+        public Parameters()
         {
             InitializeComponent();
-        }
-
-        protected Circuit.Simulation simulation;
-
-        public void Run(Circuit.Circuit Circuit, Circuit.Quantity Rate) 
-        {
-            simulation = new Circuit.Simulation(Circuit, Rate, Oversample, Iterations, Log.Instance);
-        }
-        
-        public void Process(double[] Samples, int Rate, Oscilloscope Scope)
-        {
-            Scope.AddSignal(Input.ToString(), Samples, Rate);
-
-            if (simulation != null)
-            {
-                try
-                {
-                    simulation.Process(input, Samples, output, Samples);
-                    Scope.AddSignal(Output.ToString(), Samples);
-                }
-                catch (OverflowException ex)
-                {
-                    Log.Instance.WriteLine(Circuit.MessageType.Error, ex.Message);
-                    simulation.Reset();
-                }
-                catch (Exception ex)
-                {
-                    Log.Instance.WriteLine(Circuit.MessageType.Error, ex.Message);
-                    simulation = null;
-                }
-            }
         }
 
         // INotifyPropertyChanged.

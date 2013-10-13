@@ -18,15 +18,15 @@ namespace LiveSPICE
     /// <summary>
     /// SchematicTool for adding symbols to the schematic.
     /// </summary>
-    public class SymbolTool : SchematicTool
+    public class SymbolTool : EditorTool
     {
-        protected Symbol overlay;
+        protected SymbolControl overlay;
 
         protected Circuit.Coord offset;
 
         public SymbolTool(SchematicEditor Target, Type Type) : base(Target)
         {
-            overlay = new Symbol(Type) 
+            overlay = new SymbolControl(Type) 
             { 
                 Visibility = Visibility.Hidden, 
                 ShowText = false,
@@ -52,11 +52,11 @@ namespace LiveSPICE
                 Flip = overlay.GetSymbol().Flip,
                 Position = overlay.GetSymbol().Position
             };
-            Target.Add(S);
+            Editor.Add(S);
             
             overlay.Pen.Brush = Brushes.Black;
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
-                Target.Tool = null;
+                Target.Tool = new SelectionTool(Editor);
         }
         public override void MouseUp(Point At)
         {

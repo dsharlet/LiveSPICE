@@ -16,6 +16,8 @@ namespace CircuitTests
     {
         static readonly Variable t = Component.t;
 
+        static readonly int Iterations = 4;
+
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
         // Generate a function with the first N harmonics of f0.
@@ -46,7 +48,7 @@ namespace CircuitTests
                 }
                 catch (Exception ex) 
                 {
-                    errors.Add(File);
+                    errors.Add(File + ": " + ex.Message);
                     System.Console.WriteLine(ex.Message);
                 }
             }
@@ -63,10 +65,10 @@ namespace CircuitTests
         public static double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
-            Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, 4, Log);
+            Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, Log);
             System.Console.WriteLine("");
 
-            return RunTest(S, Vin, 48000 * 10, System.IO.Path.GetFileNameWithoutExtension(FileName));
+            return RunTest(S, Vin, 4800, System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
         public static double RunTest(Simulation S, Func<double, double> Vin, int N, string Name)
@@ -83,12 +85,12 @@ namespace CircuitTests
             //Dictionary<Expression, double[]> output = new Expression[] { "Vo[t]" }.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is compiled before benchmarking.
-            S.Process(1, input, output);
+            S.Process(1, input, output, Iterations);
             S.Reset();
 
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             timer.Start();
-            S.Process(vs.Length, input, output);
+            S.Process(vs.Length, input, output, Iterations);
             timer.Stop();
 
             int t1 = 5000;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -63,7 +64,8 @@ namespace LiveSPICE
         }
         
         protected double zoom = 10.0f / 440.0f;
-        public double Zoom { 
+        public double Zoom 
+        { 
             get { return zoom; } 
             set 
             { 
@@ -96,50 +98,44 @@ namespace LiveSPICE
         /// <summary>
         /// Properties and methods associated with a particular signal.
         /// </summary>
-        public class Signal : List<double>
+        public class Signal : IEnumerable<double>
         {
-            // The global index of the first sample in the array.
-            private long first;
-            
+            private List<double> samples = new List<double>();
+
             // Display parameters.
             private Pen pen;
             public Pen Pen { get { return pen; } set { pen = value; } }
-
-            public Signal(long Start)
-            {
-                first = Start;
-            }
-
+            
             // Process new samples for this signal.
             public void AddSamples(double[] Samples, int Truncate)
             {
-                AddRange(Samples);
-                if (Count > Truncate)
+                samples.AddRange(Samples);
+                if (samples.Count > Truncate)
                 {
-                    int remove = Count - Truncate;
-                    RemoveRange(0, remove);
-                    first += remove;
+                    int remove = samples.Count - Truncate;
+                    samples.RemoveRange(0, remove);
                 }
             }
-            
-            public long First { get { return first; } }
-            public long Last { get { return first + Count; } }
 
-            public double this[long i] 
+            public int Count { get { return samples.Count; } }
+            public double this[int i] 
             { 
                 get 
                 {
-                    i -= first;
-                    if (0 <= i && i < Count)
-                        return base[(int)i];
+                    if (0 <= i && i < samples.Count)
+                        return samples[(int)i];
                     else
                         return double.NaN;
                 } 
             }
+
+            // IEnumerable<double> interface
+            IEnumerator<double> IEnumerable<double>.GetEnumerator() { return samples.GetEnumerator(); }
+            IEnumerator IEnumerable.GetEnumerator() { return samples.GetEnumerator(); }
         }
 
         protected Dictionary<string, Signal> signals = new Dictionary<string,Signal>();
-        protected long shift, delay;
+        protected int shift;
         protected double Vmax;
 
         private Signal focus = null;
@@ -173,37 +169,35 @@ namespace LiveSPICE
             InvalidateVisual();
         }
         
-        protected long t = 0;
-        public void AddSignal(string Name, double[] Samples, int Rate)
+        public void ProcessSignals(IDictionary<SyMath.Expression, double[]> Signals, Circuit.Quantity Rate)
         {
-            Signal S;
             lock (signals)
             {
-                // If the signal isn't already there, add a new one.
-                if (!signals.TryGetValue(Name, out S))
+                if (SampleRate != Rate)
                 {
-                    S = new Signal(t);
-                    signals.Add(Name, S);
+                    SampleRate = Rate;
+                    signals.Clear();
                 }
 
-                // If this is the clock signal, remove any signals that didn't get samples.
-                if (Rate != 0)
-                {
-                    if (sampleRate != Rate)
-                        SampleRate = new Circuit.Quantity(Rate, Circuit.Units.Hz);
+                int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
+                
+                signals.RemoveAll(i => !Signals.ContainsKey(i.Key));
 
-                    t = S.Last;
-                    signals.RemoveAll(i => i.Value.Last < t);
-                    delay = Samples.Length;
+                foreach (KeyValuePair<SyMath.Expression, double[]> i in Signals)
+                {
+                    Signal S;
+                    // If the signal isn't already there, add a new one.
+                    if (!signals.TryGetValue(i.Key.ToString(), out S))
+                    {
+                        S = new Signal();
+                        signals.Add(i.Key.ToString(), S);
+                    }
+
+                    lock(S) S.AddSamples(i.Value, truncate);
                 }
             }
-            
-            // Add new samples to the signal.
-            lock (S) S.AddSamples(Samples, (int)(4 * (double)sampleRate * MaxPeriod));
         }
 
-        public void AddSignal(string Name, double[] Samples) { AddSignal(Name, Samples, 0); }
-        
         protected override void OnRender(DrawingContext DC)
         {
             DC.DrawRectangle(BorderBrush, null, new Rect(0, 0, ActualWidth, ActualHeight));
@@ -233,16 +227,16 @@ namespace LiveSPICE
                     // Compute statistics of the clock signal.
                     lock (focus)
                     {
-                        shift = focus.Last - delay;
+                        shift = focus.Count;
 
                         peak = focus.Max(i => Math.Abs(i));
                         rms = Math.Sqrt(focus.Sum(i => i * i) / focus.Count);
 
                         int Decimate = 1 << (int)Math.Floor(Math.Log((double)sampleRate / 24000, 2));
                         int BlockSize = 8192;
-                        if (focus.Last - focus.First >= BlockSize)
+                        if (focus.Count >= BlockSize)
                         {
-                            double[] data = focus.Skip((int)(focus.Last - focus.First - BlockSize)).ToArray();
+                            double[] data = focus.Skip(focus.Count - BlockSize).ToArray();
 
                             // Estimate the fundamental frequency of the signal.
                             double phase;
@@ -261,7 +255,7 @@ namespace LiveSPICE
                 }
                 else if (signals.Count > 0)
                 {
-                    shift = signals.Max(i => i.Value.Last);
+                    shift = signals.Max(i => i.Value.Count);
 
                     foreach (Signal i in signals.Values)
                         lock (i) peak = Math.Max(peak, i.Max(j => Math.Abs(j)));
@@ -386,12 +380,12 @@ namespace LiveSPICE
             List<Point> points = new List<Point>();
             for (double i = 0; i + rate <= Bounds.Right; i += rate)
             {
-                long s0 = MapToSample(Bounds, i);
-                long s1 = MapToSample(Bounds, i + rate);
+                int s0 = MapToSample(Bounds, i);
+                int s1 = MapToSample(Bounds, i + rate);
 
                 // Anti-aliasing.
                 double v = 0.0;
-                for (long j = s0; j <= s1; ++j)
+                for (int j = s0; j <= s1; ++j)
                     v += S[j];
 
                 if (!double.IsNaN(v))
@@ -454,7 +448,7 @@ namespace LiveSPICE
         private double MapFromTime(Rect Bounds, double t) { return Bounds.Right + (t * Bounds.Width / zoom); }
         private double MapToTime(Rect Bounds, double x) { return (x - Bounds.Right) * zoom / Bounds.Width; }
 
-        private long MapToSample(Rect Bounds, double x) { return (long)Math.Round(((x - Bounds.Right) * zoom * (double)sampleRate) / Bounds.Width) + shift; }
+        private int MapToSample(Rect Bounds, double x) { return (int)Math.Round(((x - Bounds.Right) * zoom * (double)sampleRate) / Bounds.Width) + shift; }
 
         private double MapToSignal(Rect Bounds, double y) { return Vmax - (y - Bounds.Top) * 2 * Vmax / Bounds.Height; }
         private double MapFromSignal(Rect Bounds, double v) { return Bounds.Top + ((Vmax - v) / (2 * Vmax) * Bounds.Height); }

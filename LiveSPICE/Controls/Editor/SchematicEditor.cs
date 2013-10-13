@@ -24,18 +24,17 @@ namespace LiveSPICE
     /// <summary>
     /// Control for interacting with a Circuit.Schematic.
     /// </summary>
-    public class SchematicEditor : Schematic
+    public class SchematicEditor : SchematicControl
     {
         public const string FileExtension = ".xml";
-        public const int AutoScrollBorder = 1;
 
-        public SchematicEditor() : this(new Circuit.Schematic(Log.Instance)) { }
-        public SchematicEditor(string FileName) : this(Circuit.Schematic.Load(FileName, Log.Instance))
+        public SchematicEditor() : this(new Circuit.Schematic()) { }
+        public SchematicEditor(string FileName) : this(Circuit.Schematic.Load(FileName))
         {
             SetFileName(FileName);
         }
 
-        public SchematicEditor(Circuit.Schematic S) : base(S)
+        public SchematicEditor(Circuit.Schematic Schematic) : base(Schematic)
         {
             InitializeComponent();
 
@@ -52,47 +51,14 @@ namespace LiveSPICE
             CommandBindings.Add(new CommandBinding(ApplicationCommands.Redo, Redo_Executed, Redo_CanExecute));
 
             Focusable = true;
-
-            PreviewMouseDown += Schematic_MouseDown;
-            PreviewMouseUp += Schematic_MouseUp;
-            PreviewMouseMove += Schematic_MouseMove;
-            MouseLeave += Schematic_MouseLeave;
-            MouseEnter += Schematic_MouseEnter;
-
-            PreviewKeyDown += Schematic_KeyDown;
-            PreviewKeyUp += Schematic_KeyUp;
+            Cursor = Cursors.Cross;
 
             edits = new EditStack();
             edits.Dirtied += OnDirtied;
-        }
 
-        // Schematic tools.
-        private SchematicTool tool;
-        public SchematicTool Tool
-        {
-            get
-            {
-                if (tool == null)
-                {
-                    tool = new SelectionTool(this);
-                    tool.Begin();
-                }
-                return tool;
-            }
-            set
-            {
-                if (tool != null)
-                    tool.End();
-                tool = value != null ? value : new SelectionTool(this);
-                tool.Begin();
-                if (mouse.HasValue)
-                {
-                    tool.MouseEnter(mouse.Value);
-                    tool.MouseMove(mouse.Value);
-                }
-            }
+            Tool = new SelectionTool(this);
         }
-
+        
         private EditStack edits;
         public EditStack Edits { get { return edits; } }
         private void OnDirtied(object sender, EventArgs e) { }
@@ -137,7 +103,7 @@ namespace LiveSPICE
 
         private bool Save(string FileName)
         {
-            schematic.Save(FileName);
+            Schematic.Save(FileName);
             SetFileName(FileName);
             Edits.Dirty = false;
             return true;
@@ -215,16 +181,13 @@ namespace LiveSPICE
         {
             if (!Elements.Any())
                 return;
-
-            Edits.Do(new AddElements(schematic, Elements));
-            OnSelectionChanged();
+            Edits.Do(new AddElements(Schematic, Elements));
         }
         public void Remove(IEnumerable<Circuit.Element> Elements)
         {
             if (!Elements.Any())
                 return;
-            Edits.Do(new RemoveElements(schematic, Elements));
-            OnSelectionChanged();
+            Edits.Do(new RemoveElements(Schematic, Elements));
         }
         public void Add(params Circuit.Element[] Elements) { Add(Elements.AsEnumerable()); }
         public void Remove(params Circuit.Element[] Elements) { Remove(Elements.AsEnumerable()); }
@@ -295,7 +258,7 @@ namespace LiveSPICE
 
             // Find all of the wires that are parallel and overlapping this wire.
             List<Circuit.Wire> overlapping = CoincidentWires(A, B).ToList();
-            bool selected = overlapping.Any(i => ((Wire)i.Tag).Selected);
+            bool selected = overlapping.Any(i => ((WireControl)i.Tag).Selected);
 
             Circuit.Coord a = new Circuit.Coord(
                 overlapping.Min(i => Math.Min(i.A.x, i.B.x), Math.Min(A.x, B.x)),
@@ -342,122 +305,7 @@ namespace LiveSPICE
 
 
         }
-
-        // Selection.
-        public IEnumerable<Circuit.Element> Selected { get { return Elements.Where(i => ((Element)i.Tag).Selected); } }
-
-        private List<EventHandler> selectionChanged = new List<EventHandler>();
-        public event EventHandler SelectionChanged
-        {
-            add { selectionChanged.Add(value); }
-            remove { selectionChanged.Remove(value); }
-        }
-        public void OnSelectionChanged()
-        {
-            foreach (EventHandler i in selectionChanged)
-                i(this, new EventArgs());
-        }
-
-        public void Select(IEnumerable<Circuit.Element> ToSelect, bool Only, bool Toggle)
-        {
-            bool changed = false;
-            foreach (Circuit.Element i in Elements)
-            {
-                if (ToSelect.Contains(i))
-                {
-                    if (Toggle || !((Element)i.Tag).Selected)
-                    {
-                        changed = true;
-                        ((Element)i.Tag).Selected = !((Element)i.Tag).Selected;
-                    }
-                }
-                else if (Only)
-                {
-                    if (((Element)i.Tag).Selected)
-                    {
-                        changed = true;
-                        ((Element)i.Tag).Selected = false;
-                    }
-                }
-            }
-
-            if (changed)
-                OnSelectionChanged();
-        }
-
-        public void Select(IEnumerable<Circuit.Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
-        public void Select(params Circuit.Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
-
-        public void ToggleSelect(IEnumerable<Circuit.Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
-        public void ToggleSelect(params Circuit.Element[] ToSelect) { Select(ToSelect.AsEnumerable(), (Keyboard.Modifiers & ModifierKeys.Control) == 0, true); }
-
-        public void Highlight(IEnumerable<Circuit.Element> ToHighlight)
-        {
-            foreach (Circuit.Element i in Elements)
-                ((Element)i.Tag).Highlighted = ToHighlight.Contains(i);
-        }
-        public void Highlight(params Circuit.Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
-
-        // Keyboard events.
-        void Schematic_KeyDown(object sender, KeyEventArgs e) { e.Handled = Tool.KeyDown(e.Key); }
-        void Schematic_KeyUp(object sender, KeyEventArgs e) { e.Handled = Tool.KeyUp(e.Key); }
-
-        void Schematic_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            Focus();
-            Point at = SnapToGrid(e.GetPosition(this));
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                CaptureMouse();
-                Tool.MouseDown(at);
-            }
-            else
-            {
-                ReleaseMouseCapture();
-                Tool.Cancel();
-            }
-            e.Handled = true;
-        }
-        void Schematic_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            Point at = SnapToGrid(e.GetPosition(this));
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                ReleaseMouseCapture();
-                Tool.MouseUp(at);
-            }
-            e.Handled = true;
-        }
-        Point? mouse = null;
-        void Schematic_MouseMove(object sender, MouseEventArgs e)
-        {
-            Point at = e.GetPosition(this);
-            if (IsMouseCaptured)
-                BringIntoView(new Rect(at - new Vector(AutoScrollBorder, AutoScrollBorder), at + new Vector(AutoScrollBorder, AutoScrollBorder)));
-            at = SnapToGrid(at);
-            if (!mouse.HasValue || mouse.Value != at)
-            {
-                mouse = at;
-                Tool.MouseMove(at);
-                e.Handled = true;
-            }
-        }
-
-        void Schematic_MouseEnter(object sender, MouseEventArgs e)
-        {
-            Point at = SnapToGrid(e.GetPosition(this));
-            mouse = at;
-            Tool.MouseEnter(at);
-            e.Handled = true;
-        }
-        void Schematic_MouseLeave(object sender, MouseEventArgs e)
-        {
-            Point at = SnapToGrid(e.GetPosition(this));
-            mouse = null;
-            Tool.MouseLeave(at);
-            e.Handled = true;
-        }
-
+        
         private static double Distance(Circuit.Coord x1, Circuit.Coord x2)
         {
             Circuit.Coord dx = x2 - x1;

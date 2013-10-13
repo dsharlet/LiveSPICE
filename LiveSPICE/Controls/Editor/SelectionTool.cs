@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
-    public class SelectionTool : SchematicTool
+    public class SelectionTool : EditorTool
     {
         protected Point a, b;
         protected Path path;
@@ -51,7 +51,7 @@ namespace LiveSPICE
         private bool Movable(Point At)
         {
             return 
-                Target.AtPoint(At).Any(i => ((Element)i.Tag).Selected) &&
+                Target.AtPoint(At).Any(i => ((ElementControl)i.Tag).Selected) &&
                 (Keyboard.Modifiers & ModifierKeys.Control) == 0;
         }
 
@@ -59,7 +59,7 @@ namespace LiveSPICE
         {
             if (Movable(At))
             {
-                Target.Tool = new MoveTool(Target, At);
+                Target.Tool = new MoveTool(Editor, At);
             }
             else
             {
@@ -107,8 +107,8 @@ namespace LiveSPICE
             return new Circuit.Point(x.X, x.Y);
         }
 
-        protected void Rotate(int Delta) { if (Target.Selected.Any()) Target.Edits.Do(new RotateElements(Target.Selected, Delta, GetSelectionCenter())); }
-        protected void Flip() { if (Target.Selected.Any()) Target.Edits.Do(new FlipElements(Target.Selected, GetSelectionCenter().y)); }
+        protected void Rotate(int Delta) { if (Target.Selected.Any()) Editor.Edits.Do(new RotateElements(Target.Selected, Delta, GetSelectionCenter())); }
+        protected void Flip() { if (Target.Selected.Any()) Editor.Edits.Do(new FlipElements(Target.Selected, GetSelectionCenter().y)); }
 
         public override bool KeyDown(Key Key)
         {

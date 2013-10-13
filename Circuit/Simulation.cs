@@ -36,16 +36,10 @@ namespace Circuit
         /// Get the timestep for the simulation.
         /// </summary>
         public double TimeStep { get { return T; } }
-
-        protected int iterations;
-        /// <summary>
-        /// Get or set the maximum number of iterations to use when numerically solving equations.
-        /// </summary>
-        public int Iterations { get { return iterations; } }
-
+        
         protected int oversample;
         /// <summary>
-        /// Get or set the oversampling factor for the simulation.
+        /// Get the oversampling factor for the simulation.
         /// </summary>
         public int Oversample { get { return oversample; } }
         
@@ -133,11 +127,10 @@ namespace Circuit
         /// </summary>
         /// <param name="C">Circuit to simulate.</param>
         /// <param name="T">Sampling period.</param>
-        public Simulation(Circuit Circuit, Quantity SampleRate, int Oversample, int Iterations, ILog Log)
+        public Simulation(Circuit Circuit, Quantity SampleRate, int Oversample, ILog Log)
         {
             log = Log;
             oversample = Oversample;
-            iterations = Iterations;
             T = 1.0 / (double)SampleRate;
             nodes = Circuit.Nodes.Select(i => (Expression)Call.New(((Call)i.V).Target, t)).ToList();
 
@@ -145,10 +138,7 @@ namespace Circuit
             h = 1 / ((Expression)SampleRate * Oversample);
 
             log.WriteLine(MessageType.Info, "--------");
-            LogTime(MessageType.Info, "Building simulation for circuit '" + Circuit.Name + "'", true);
-            log.WriteLine(MessageType.Info, "  Sample Rate: " + SampleRate.ToString());
-            log.WriteLine(MessageType.Info, "  Oversample: " + Oversample);
-            log.WriteLine(MessageType.Info, "  Iterations: " + Iterations);
+            LogTime(MessageType.Info, "Building simulation for circuit '" + Circuit.Name + "', f=" + SampleRate.ToString() + " x " + Oversample, true);
 
             LogTime(MessageType.Info, "Performing MNA on circuit...");
 
@@ -237,7 +227,12 @@ namespace Circuit
         /// <param name="Input">Mapping of node Expression -> double[] buffers that describe the input samples.</param>
         /// <param name="Output">Mapping of node Expression -> double[] buffers that describe requested output samples.</param>
         /// <param name="Arguments">Constant expressions describing the values of any parameters to the simulation.</param>
-        public void Process(int N, IDictionary<Expression, double[]> Input, IDictionary<Expression, double[]> Output, IEnumerable<Arrow> Arguments)
+        public void Process(
+            int N, 
+            IDictionary<Expression, double[]> Input, 
+            IDictionary<Expression, double[]> Output, 
+            IEnumerable<Arrow> Arguments, 
+            int Iterations)
         {
             Delegate processor = Compile(Input.Keys, Output.Keys, Arguments.Select(i => i.Left));
 
@@ -252,8 +247,9 @@ namespace Circuit
                 parameters.Add(i.Value);
             foreach (KeyValuePair<Expression, double[]> i in Output)
                 parameters.Add(i.Value);
-            foreach (Arrow i in Arguments)
-                parameters.Add((double)i.Right);
+            if (Arguments != null)
+                foreach (Arrow i in Arguments)
+                    parameters.Add((double)i.Right);
 
             processor.DynamicInvoke(parameters.ToArray());
 
@@ -268,32 +264,38 @@ namespace Circuit
             n += N;
         }
 
-        /// <summary>
-        /// Process some samples with this simulation.
-        /// </summary>
-        /// <param name="N">Number of samples to process.</param>
-        /// <param name="Input">Mapping of node Expression -> double[] buffers that describe the input samples.</param>
-        /// <param name="Output">Mapping of node Expression -> double[] buffers that describe requested output samples.</param>
-        /// <param name="Arguments">Constant expressions describing the values of any parameters to the simulation.</param>
-        public void Process(int N, IDictionary<Expression, double[]> Input, IDictionary<Expression, double[]> Output, params Arrow[] Arguments)
+        private static Arrow[] NoArguments = new Arrow[] { };
+        public void Process(
+            int N,
+            IDictionary<Expression, double[]> Input,
+            IDictionary<Expression, double[]> Output,
+            int Iterations)
         {
-            Process(N, Input, Output, Arguments.AsEnumerable());
+            Process(N, Input, Output, NoArguments, Iterations);
         }
 
-        public void Process(Expression InputNode, double[] InputSamples, IDictionary<Expression, double[]> Output)
+        public void Process(
+            Expression InputNode, double[] InputSamples, 
+            IDictionary<Expression, double[]> Output,
+            int Iterations)
         {
             Process(
                 InputSamples.Length,
                 new Dictionary<Expression, double[]>() { { InputNode, InputSamples } },
-                Output);
+                Output,
+                Iterations);
         }
 
-        public void Process(Expression InputNode, double[] InputSamples, Expression OutputNode, double[] OutputSamples)
+        public void Process(
+            Expression InputNode, double[] InputSamples, 
+            Expression OutputNode, double[] OutputSamples,
+            int Iterations)
         {
             Process(
                 InputSamples.Length,
                 new Dictionary<Expression, double[]>() { { InputNode, InputSamples } },
-                new Dictionary<Expression, double[]>() { { OutputNode, OutputSamples } });
+                new Dictionary<Expression, double[]>() { { OutputNode, OutputSamples } },
+                Iterations);
         }
 
         Dictionary<long, Delegate> compiled = new Dictionary<long, Delegate>();

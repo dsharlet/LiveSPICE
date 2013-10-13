@@ -21,16 +21,16 @@ namespace LiveSPICE
     /// <summary>
     /// Control that displays a circuit component.
     /// </summary>
-    public class Component : Control
+    public class ComponentControl : Control
     {
-        static Component() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Component), new FrameworkPropertyMetadata(typeof(Component))); }
+        static ComponentControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(ComponentControl), new FrameworkPropertyMetadata(typeof(ComponentControl))); }
 
         private bool showText = true;
         public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); } }
         
         protected Circuit.SymbolLayout layout;
 
-        public Component(Circuit.Component C)
+        public ComponentControl(Circuit.Component C)
         {
             layout = new Circuit.SymbolLayout();
             C.LayoutSymbol(layout);
@@ -53,7 +53,7 @@ namespace LiveSPICE
             transform.Scale(scale, -scale);
             transform.Translate(ActualWidth / 2, ActualHeight / 2);
 
-            Symbol.DrawLayout(layout, drawingContext, transform, ShowText ? FontFamily : null, FontWeight, FontSize);
+            SymbolControl.DrawLayout(layout, drawingContext, transform, ShowText ? FontFamily : null, FontWeight, FontSize);
         }
     }
 }

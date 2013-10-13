@@ -18,7 +18,7 @@ namespace LiveSPICE
     /// <summary>
     /// Tool for moving elements.
     /// </summary>
-    public class MoveTool : SchematicTool
+    public class MoveTool : EditorTool
     {
         Point x;
 
@@ -28,20 +28,20 @@ namespace LiveSPICE
             x = At;
         }
 
-        public override void Begin() { Target.Edits.BeginEditGroup(); Target.Cursor = Cursors.SizeAll; }
-        public override void End() { Target.Edits.EndEditGroup(); }
-        public override void Cancel() { Target.Edits.CancelEditGroup(); Target.Edits.BeginEditGroup(); }
+        public override void Begin() { Editor.Edits.BeginEditGroup(); Target.Cursor = Cursors.SizeAll; }
+        public override void End() { Editor.Edits.EndEditGroup(); }
+        public override void Cancel() { Editor.Edits.CancelEditGroup(); Editor.Edits.BeginEditGroup(); }
         
         public override void MouseUp(Point At)
         {
-            Target.Tool = null;
+            Target.Tool = new SelectionTool(Editor);
         }
 
         public override void MouseMove(Point At)
         {
             Circuit.Coord dx = new Circuit.Coord((int)Math.Round(At.X - x.X), (int)Math.Round(At.Y - x.Y));
             if (dx.x != 0 || dx.y != 0)
-                Target.Edits.Do(new MoveElements(Target.Selected, dx));
+                Editor.Edits.Do(new MoveElements(Target.Selected, dx));
             x = At;
         }
     }
