@@ -112,8 +112,7 @@ namespace LiveSPICE
             }
             catch (Exception ex)
             {
-                log.WriteLine(Circuit.MessageType.Error, "Error building circuit for simulation: " + ex.GetType().ToString());
-                log.WriteLine(Circuit.MessageType.Error, ex.ToString());
+                log.WriteLine(Circuit.MessageType.Error, ex.Message);
             }
             audio.Run(ProcessSamples);
         }

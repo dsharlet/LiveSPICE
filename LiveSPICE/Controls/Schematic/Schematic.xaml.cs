@@ -159,7 +159,7 @@ namespace LiveSPICE
             }
             catch (Exception ex)
             {
-                MessageBox.Show(Application.Current.MainWindow, ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Application.Current.MainWindow, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e) 
@@ -170,7 +170,7 @@ namespace LiveSPICE
             }
             catch (Exception ex)
             {
-                MessageBox.Show(Application.Current.MainWindow, ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Application.Current.MainWindow, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -72,9 +72,14 @@ namespace LiveSPICE
                     simulation.Process(input, Samples, output, Samples);
                     Scope.AddSignal(Output.ToString(), Samples);
                 }
-                catch (Exception e)
+                catch (OverflowException ex)
                 {
-                    Log.Instance.WriteLine(Circuit.MessageType.Error, e.ToString());
+                    Log.Instance.WriteLine(Circuit.MessageType.Error, ex.Message);
+                    simulation.Reset();
+                }
+                catch (Exception ex)
+                {
+                    Log.Instance.WriteLine(Circuit.MessageType.Error, ex.Message);
                     simulation = null;
                 }
             }

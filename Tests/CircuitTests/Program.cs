@@ -44,10 +44,10 @@ namespace CircuitTests
                     double p = Run(File, Vin);
                     performance.Add(File + ": " + p.ToString());
                 }
-                catch (Exception Ex) 
+                catch (Exception ex) 
                 {
                     errors.Add(File);
-                    System.Console.WriteLine(Ex.ToString());
+                    System.Console.WriteLine(ex.Message);
                 }
             }
 
@@ -62,7 +62,7 @@ namespace CircuitTests
                 
         public static double Run(string FileName, Func<double, double> Vin)
         {
-            Circuit.Circuit C = Schematic.Load(FileName, Log).Circuit;
+            Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
             Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, 4, Log);
             System.Console.WriteLine("");
 
