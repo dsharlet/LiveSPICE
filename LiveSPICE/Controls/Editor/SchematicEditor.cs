@@ -70,7 +70,7 @@ namespace LiveSPICE
         // File.
         private string filename = null;
         private void SetFileName(string FileName) { filename = FileName; NotifyChanged(FileName); }
-        public string FileName { get { return filename == null ? "Untitled" : filename; } }
+        public string FileName { get { return filename == null ? "Untitled" : System.IO.Path.GetFileNameWithoutExtension(filename); } }
         public bool Save()
         {
             if (filename == null)
