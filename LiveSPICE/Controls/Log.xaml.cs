@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,21 +19,26 @@ namespace LiveSPICE
     /// <summary>
     /// Interaction logic for Output.xaml
     /// </summary>
-    public partial class Log : UserControl, Circuit.ILog
+    public partial class Log : UserControl, Circuit.ILog, INotifyPropertyChanged
     {
         public Log()
         {
             InitializeComponent();
         }
 
-        public void Clear()
+        public void Clear() { text.Text = ""; }
+        public void Clear(object sender, EventArgs e) { Clear(); }
+
+        private Circuit.MessageType verbosity = Circuit.MessageType.Info;
+        public string Verbosity 
         {
-            text.Text = "";
+            get { return verbosity.ToString(); } 
+            set { verbosity = (Circuit.MessageType)Enum.Parse(typeof(Circuit.MessageType), value); NotifyChanged("Verbosity"); } 
         }
 
         public void WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
         {
-            if (Type == Circuit.MessageType.Verbose)
+            if (Type > verbosity)
                 return;
             Dispatcher.Invoke(() =>
                 {
@@ -47,5 +53,13 @@ namespace LiveSPICE
         {
             WriteLine(Type, String.Format(Message, Format));
         }
+
+        // INotifyPropertyChanged.
+        private void NotifyChanged(string p)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }
