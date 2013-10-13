@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -101,6 +102,18 @@ namespace LiveSPICE
                 Probe[] probes = ((SimulationSchematic)schematic.Schematic).Probes.Where(i => i.ConnectedTo != null).ToArray();
 
                 signals = probes.ToDictionary(i => i.V, i => new double[0]);
+
+                //oscilloscope.Signals.RemoveAll(i => !signals.ContainsKey(i.Key));
+                foreach (Probe i in probes)
+                {
+                    Oscilloscope.Signal S;
+                    if (!oscilloscope.Signals.TryGetValue(i.V, out S))
+                    {
+                        S = new Oscilloscope.Signal();
+                        oscilloscope.Signals[i.V] = S;
+                    }
+                    S.Pen = SymbolControl.MapToPen(i.Color);
+                }                        
             }
         }
         

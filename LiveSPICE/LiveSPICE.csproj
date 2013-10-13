@@ -118,7 +118,7 @@
       <DependentUpon>Simulation.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utils\DockingManagerExtensions.cs" />
-    <Compile Include="Utils\Probe.cs" />
+    <Compile Include="Controls\Simulation\Probe.cs" />
     <Compile Include="Utils\RootExtension.cs" />
     <Compile Include="Windows\ClosingDialog.xaml.cs">
       <DependentUpon>ClosingDialog.xaml</DependentUpon>

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -79,22 +81,16 @@ namespace LiveSPICE
         public Pen AxisPen = new Pen(Brushes.Gray, 0.5);
         public Pen TracePen = new Pen(Brushes.White, 0.5);
 
-        public Brush[] SignalBrushes = 
+        private Brush[] SignalBrushes = 
         {
+            Brushes.Red,
             Brushes.Lime,
             Brushes.Blue,
-            Brushes.Red,
             Brushes.Yellow,
             Brushes.Cyan,
             Brushes.Magenta,
         };
-
-        public DashStyle[] SignalStyles =
-        {
-            DashStyles.Solid,
-            DashStyles.Dash,
-        };
-
+        
         /// <summary>
         /// Properties and methods associated with a particular signal.
         /// </summary>
@@ -117,6 +113,8 @@ namespace LiveSPICE
                 }
             }
 
+            public void Clear() { samples.Clear(); }
+
             public int Count { get { return samples.Count; } }
             public double this[int i] 
             { 
@@ -134,15 +132,15 @@ namespace LiveSPICE
             IEnumerator IEnumerable.GetEnumerator() { return samples.GetEnumerator(); }
         }
 
-        protected Dictionary<string, Signal> signals = new Dictionary<string,Signal>();
+        protected ConcurrentDictionary<SyMath.Expression, Signal> signals = new ConcurrentDictionary<SyMath.Expression, Signal>();
+        public ConcurrentDictionary<SyMath.Expression, Signal> Signals { get { return signals; } }
+
         protected int shift;
         protected double Vmax;
-
-        private Signal focus = null;
-
-        //List<EventHandler> signalsChanged = new List<EventHandler>();
-        //public event EventHandler SignalsChanged { add { signalsChanged.Add(value); } remove { signalsChanged.Remove(value); } }
         
+        private Signal selected = null;
+        public Signal SelectedSignal { get { return selected; } set { selected = value; } }
+                
         protected Point? tracePoint;
         
         public Oscilloscope()
@@ -171,31 +169,21 @@ namespace LiveSPICE
         
         public void ProcessSignals(IDictionary<SyMath.Expression, double[]> Signals, Circuit.Quantity Rate)
         {
-            lock (signals)
+            if (SampleRate != Rate)
+                SampleRate = Rate;
+            int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
+
+            // Add signal data.
+            foreach (KeyValuePair<SyMath.Expression, double[]> i in Signals)
             {
-                if (SampleRate != Rate)
-                {
-                    SampleRate = Rate;
-                    signals.Clear();
-                }
-
-                int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
-                
-                signals.RemoveAll(i => !Signals.ContainsKey(i.Key));
-
-                foreach (KeyValuePair<SyMath.Expression, double[]> i in Signals)
-                {
-                    Signal S;
-                    // If the signal isn't already there, add a new one.
-                    if (!signals.TryGetValue(i.Key.ToString(), out S))
-                    {
-                        S = new Signal();
-                        signals.Add(i.Key.ToString(), S);
-                    }
-
+                Signal S;
+                if (signals.TryGetValue(i.Key.ToString(), out S))
                     lock(S) S.AddSamples(i.Value, truncate);
-                }
             }
+
+            // Remove the signals that we didn't get data for.
+            foreach (KeyValuePair<SyMath.Expression, Signal> i in signals.Where(j => !Signals.ContainsKey(j.Key)))
+                lock(i.Value) i.Value.Clear();
         }
 
         protected override void OnRender(DrawingContext DC)
@@ -210,78 +198,75 @@ namespace LiveSPICE
             DC.DrawRectangle(Background, null, bounds);
 
             DrawTimeAxis(DC, bounds);
-            
-            lock (signals)
+
+            Signal stats = selected;
+            if (stats == null)
+                stats = signals.Values.FirstOrDefault(i => { lock (i) return i.Count > 0; });
+
+            double peak = 0.0;
+            double rms = 0.0;
+            double f0 = 0.0;
+
+            if (stats != null)
             {
-                if (!signals.ContainsValue(focus))
-                    focus = null;
-                if (focus == null)
-                    focus = signals.Values.FirstOrDefault();
-
-                double peak = 0.0;
-                double rms = 0.0;
-                double f0 = 0.0;
-
-                if (focus != null)
+                lock (stats)
                 {
                     // Compute statistics of the clock signal.
-                    lock (focus)
+                    shift = stats.Count;
+
+                    peak = stats.Max(i => Math.Abs(i), 0.0);
+                    rms = Math.Sqrt(stats.Sum(i => i * i) / stats.Count);
+
+                    int Decimate = 1 << (int)Math.Floor(Math.Log((double)sampleRate / 24000, 2));
+                    int BlockSize = 8192;
+                    if (stats.Count >= BlockSize)
                     {
-                        shift = focus.Count;
+                        double[] data = stats.Skip(stats.Count - BlockSize).ToArray();
 
-                        peak = focus.Max(i => Math.Abs(i));
-                        rms = Math.Sqrt(focus.Sum(i => i * i) / focus.Count);
+                        // Estimate the fundamental frequency of the signal.
+                        double phase;
+                        double f = EstimateFrequency(data, Decimate, out phase);
 
-                        int Decimate = 1 << (int)Math.Floor(Math.Log((double)sampleRate / 24000, 2));
-                        int BlockSize = 8192;
-                        if (focus.Count >= BlockSize)
-                        {
-                            double[] data = focus.Skip(focus.Count - BlockSize).ToArray();
+                        // Convert phase from (-pi, pi] to (0, 1]
+                        phase = ((phase + Math.PI) / (2 * Math.PI));
 
-                            // Estimate the fundamental frequency of the signal.
-                            double phase;
-                            double f = EstimateFrequency(data, Decimate, out phase);
+                        // Shift all the signals by the phase in samples to align the signal between frames.
+                        shift -= (int)Math.Round(phase * BlockSize / f);
 
-                            // Convert phase from (-pi, pi] to (0, 1]
-                            phase = ((phase + Math.PI) / (2 * Math.PI));
-
-                            // Shift all the signals by the phase in samples to align the signal between frames.
-                            shift -= (int)Math.Round(phase * BlockSize / f);
-
-                            // Compute fundamental frequency in Hz.
-                            f0 = (double)sampleRate * f / data.Length;
-                        }
+                        // Compute fundamental frequency in Hz.
+                        f0 = (double)sampleRate * f / data.Length;
                     }
                 }
-                else if (signals.Count > 0)
-                {
-                    shift = signals.Max(i => i.Value.Count);
-
-                    foreach (Signal i in signals.Values)
-                        lock (i) peak = Math.Max(peak, i.Max(j => Math.Abs(j)));
-                }
-                                
-                // Compute the target min/max
-                double window = Math.Pow(2.0, Math.Ceiling(Math.Log(peak + 1e-9, 2.0)));
-                // Animate transition from current min/max to target min/max.
-                if (double.IsNaN(Vmax))
-                    Vmax = window;
-                else
-                    Vmax = Vmax + (window - Vmax) * 0.25;
-
-                Vmax = Math.Max(Vmax, 1e-2);
-
-                DrawSignalAxis(DC, bounds);
+            }
+            else if (signals.Count > 0)
+            {
+                shift = signals.Max(i => { lock (i.Value) return i.Value.Count; });
 
                 foreach (Signal i in signals.Values)
-                    lock (i) DrawSignal(DC, bounds, i);
-
-                if (tracePoint.HasValue)
-                    DrawTrace(DC, bounds, tracePoint.Value);
-
-                if (focus != null)
-                    DrawStatistics(DC, bounds, focus.Pen.Brush, peak, rms, f0);
+                    lock(i) peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
             }
+                                
+            // Compute the target min/max
+            double window = Math.Pow(2.0, Math.Ceiling(Math.Log(peak + 1e-9, 2.0)));
+            // Animate transition from current min/max to target min/max.
+            if (double.IsNaN(Vmax))
+                Vmax = window;
+            else
+                Vmax = Vmax + (window - Vmax) * 0.25;
+
+            Vmax = Math.Max(Vmax, 1e-2);
+
+            DrawSignalAxis(DC, bounds);
+
+            foreach (Signal i in signals.Values)
+                lock(i) DrawSignal(DC, bounds, i);
+
+            if (tracePoint.HasValue)
+                DrawTrace(DC, bounds, tracePoint.Value);
+
+            if (selected != null)
+                DrawStatistics(DC, bounds, selected.Pen.Brush, peak, rms, f0);
+
             DC.Pop();
         }
 
@@ -359,14 +344,10 @@ namespace LiveSPICE
         {
             lock (signals)
             {
-                List<Pen> pens = signals.Values.Where(i => i.Pen != null).Select(i => i.Pen).ToList();
+                Pen[] pens = signals.Values.Where(i => i.Pen != null).Select(i => i.Pen).ToArray();
 
-                foreach (DashStyle k in SignalStyles)
-                    foreach (Brush j in SignalBrushes)
-                        if (pens.Count(i => j == i.Brush && k == i.DashStyle) == 0)
-                            return new Pen(j, 1.0) { DashStyle = k };
+                return new Pen(SignalBrushes.ArgMin(i => pens.Count(j => j.Brush == i)), 1.0);
             }
-            return new Pen(Brushes.White, 1.0);
         }
 
         protected void DrawSignal(DrawingContext DC, Rect Bounds, Signal S)
