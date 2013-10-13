@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace SyMath
     /// <summary>
     /// Represents an MxN matrix.
     /// </summary>
-    public class Matrix
+    public class Matrix : IEnumerable<Expression>
     {
         protected Expression[,] m;
 
@@ -80,6 +81,32 @@ namespace SyMath
         }
 
         /// <summary>
+        /// Extract a row from the matrix.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public Matrix Row(int i)
+        {
+            Matrix R = new Matrix(1, N);
+            for (int j = 0; j < N; ++j)
+                R[0, j] = m[i, j];
+            return R;
+        }
+
+        /// <summary>
+        /// Extract a column from the matrix.
+        /// </summary>
+        /// <param name="j"></param>
+        /// <returns></returns>
+        public Matrix Column(int j)
+        {
+            Matrix C = new Matrix(M, 1);
+            for (int i = 0; i < M; ++i)
+                C[i, 0] = m[i, j];
+            return C;
+        }
+
+        /// <summary>
         /// Access an element of a vector.
         /// </summary>
         /// <param name="i"></param>
@@ -105,6 +132,25 @@ namespace SyMath
                     throw new InvalidOperationException("Matrix is not a vector");
             }
         }
+
+        // IEnumerator<Expression> interface.
+        private class Enumerator : IEnumerator<Expression>, IEnumerator
+        {
+            private Matrix a;
+            private int i = 0;
+            private int N;
+
+            object IEnumerator.Current { get { return a[i]; } }
+            Expression IEnumerator<Expression>.Current { get { return a[i]; } }
+
+            public Enumerator(Matrix A) { a = A; N = Math.Max(A.M, A.N); }
+
+            public void Dispose() { }
+            public bool MoveNext() { return ++i >= N; }
+            public void Reset() { i = 0; }
+        }
+        IEnumerator<Expression> IEnumerable<Expression>.GetEnumerator() { return new Enumerator(this); }
+        IEnumerator IEnumerable.GetEnumerator() { return new Enumerator(this); }
 
         public override string ToString()
         {
