@@ -52,7 +52,7 @@ namespace LiveSPICE
 
         void Circuit.ILog.WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
         {
-            WriteLine(Type, Message, Format);
+            WriteLine(Type, String.Format(Message, Format));
         }
     }
 }
