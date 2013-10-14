@@ -63,10 +63,10 @@ namespace LiveSPICE
             {
                 if (e.PropertyName != "FileName") return;
                 
-                doc.Title = System.IO.Path.GetFileNameWithoutExtension(Schematic.FileName);
+                doc.Title = Schematic.FileName;
                 doc.ToolTip = Schematic.FileName;
             };
-            doc.Title = System.IO.Path.GetFileNameWithoutExtension(Schematic.FileName);
+            doc.Title = Schematic.FileName;
             doc.ToolTip = Schematic.FileName;
 
             schematics.Children.Add(doc);
@@ -137,7 +137,7 @@ namespace LiveSPICE
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            dock.LoadLayout("EditConfig.xml");
+            //dock.LoadLayout("EditConfig.xml");
         }
 
         private void toolbox_Click(object s, RoutedEventArgs e) 
@@ -156,11 +156,7 @@ namespace LiveSPICE
         
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Simulation simulation = new Simulation(
-                ActiveSchematic.Schematic, 
-                new Circuit.Quantity(48000, Circuit.Units.Hz), 
-                16, 
-                new Circuit.Quantity(30e-3m, Circuit.Units.s));
+            Simulation simulation = new Simulation(ActiveSchematic.Schematic);
             simulation.Owner = this;
             simulation.Show();
         }

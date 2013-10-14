@@ -62,7 +62,7 @@ namespace LiveSPICE
 
         protected Dictionary<SyMath.Expression, double[]> signals = new Dictionary<SyMath.Expression, double[]>();
 
-        public Simulation(Circuit.Schematic Simulate, Circuit.Quantity SampleRate, int BitsPerSample, Circuit.Quantity Latency)
+        public Simulation(Circuit.Schematic Simulate)
         {
             InitializeComponent();
 
@@ -75,7 +75,6 @@ namespace LiveSPICE
             clone.Elements.ItemRemoved += (o, e) => RefreshProbes();
 
             schematic.Schematic = new SimulationSchematic(clone);
-            sampleRate = SampleRate;
 
             ContentRendered += (o, e) =>
             {
