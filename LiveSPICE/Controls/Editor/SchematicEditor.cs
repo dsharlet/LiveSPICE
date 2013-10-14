@@ -52,7 +52,6 @@ namespace LiveSPICE
 
             Focusable = true;
             Cursor = Cursors.Cross;
-            Margin = new Thickness(20);
 
             edits = new EditStack();
             edits.Dirtied += OnDirtied;

@@ -35,7 +35,6 @@ namespace LiveSPICE
 
             Focusable = true;
             Cursor = Cursors.Cross;
-            Margin = new Thickness(20);
 
             Tool = new ProbeSelectionTool(this);
 
@@ -44,12 +43,12 @@ namespace LiveSPICE
 
             Circuit.Coord lb = Schematic.LowerBound;
             Circuit.Coord ub = Schematic.UpperBound;
-            lb = new Circuit.Coord(Floor(lb.x - pad, align), Floor(lb.y - pad, align));
-            ub = new Circuit.Coord(Ceiling(ub.x + pad, align), Ceiling(ub.y + pad, align));
+            Origin = Floor(lb, align);
+            lb = Floor(lb - pad, align);
+            ub = Ceiling(ub + pad, align);
 
             Width = ub.x - lb.x;
             Height = ub.y - lb.y;
-            Origin = lb;
         }
 
         private void Delete_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = !ProbesOf(Selected).Empty(); }

@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Background="LightGray">
     <Border BorderThickness="1" BorderBrush="DarkGray">
-        <Grid>
+        <Grid x:Name="root">
             <!-- Background grid -->
             <Grid.Background>
                 <DrawingBrush Viewport="0,0,100,100" ViewportUnits="Absolute" TileMode="Tile">

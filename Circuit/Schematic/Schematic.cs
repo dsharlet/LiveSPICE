@@ -30,8 +30,8 @@ namespace Circuit
         public IEnumerable<Symbol> Symbols { get { return elements.OfType<Symbol>(); } }
         public IEnumerable<Wire> Wires { get { return elements.OfType<Wire>(); } }
 
-        public Coord LowerBound { get { return new Coord(elements.Min(i => i.LowerBound.x), elements.Min(i => i.LowerBound.y)); } }
-        public Coord UpperBound { get { return new Coord(elements.Max(i => i.UpperBound.x), elements.Max(i => i.UpperBound.y)); } }
+        public Coord LowerBound { get { return elements.Any() ? new Coord(elements.Min(i => i.LowerBound.x), elements.Min(i => i.LowerBound.y)) : new Coord(0, 0); } }
+        public Coord UpperBound { get { return elements.Any() ? new Coord(elements.Max(i => i.UpperBound.x), elements.Max(i => i.UpperBound.y)) : new Coord(0, 0); } }
         public Coord Size { get { return UpperBound - LowerBound; } }
 
         protected ILog log = new ConsoleLog();
