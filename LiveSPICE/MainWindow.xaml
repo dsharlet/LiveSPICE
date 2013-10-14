@@ -20,6 +20,9 @@
 
         <CommandBinding Command="{x:Static ls:CustomCommands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Command="MediaCommands.Play" Key="F5" />
+    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="0" />
