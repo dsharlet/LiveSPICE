@@ -180,7 +180,7 @@ namespace LiveSPICE
                     simulation.Process(parameters.Input, Samples, signals, parameters.Iterations);
 
                     // Show the samples on the oscilloscope.
-                    oscilloscope.ProcessSignals(signals, new Circuit.Quantity(Rate, Circuit.Units.Hz));
+                    oscilloscope.ProcessSignals(simulation.Sample, signals, new Circuit.Quantity(Rate, Circuit.Units.Hz));
                 }
 
                 // Apply output gain.

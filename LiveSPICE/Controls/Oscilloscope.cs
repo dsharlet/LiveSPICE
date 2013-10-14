@@ -103,7 +103,7 @@ namespace LiveSPICE
             public Pen Pen { get { return pen; } set { pen = value; } }
             
             // Process new samples for this signal.
-            public void AddSamples(double[] Samples, int Truncate)
+            public void AddSamples(long LastIndex, double[] Samples, int Truncate)
             {
                 samples.AddRange(Samples);
                 if (samples.Count > Truncate)
@@ -111,9 +111,14 @@ namespace LiveSPICE
                     int remove = samples.Count - Truncate;
                     samples.RemoveRange(0, remove);
                 }
+
+                last = LastIndex;
             }
 
-            public void Clear() { samples.Clear(); }
+            private long last = 0;
+            public long LastIndex { get { return last; } }
+
+            public void Clear() { samples.Clear(); last = 0; }
 
             public int Count { get { return samples.Count; } }
             public double this[int i] 
@@ -175,7 +180,7 @@ namespace LiveSPICE
             InvalidateVisual();
         }
         
-        public void ProcessSignals(IDictionary<SyMath.Expression, double[]> Signals, Circuit.Quantity Rate)
+        public void ProcessSignals(long LastIndex, IDictionary<SyMath.Expression, double[]> Signals, Circuit.Quantity Rate)
         {
             if (SampleRate != Rate)
                 SampleRate = Rate;
@@ -186,7 +191,7 @@ namespace LiveSPICE
             {
                 Signal S;
                 if (signals.TryGetValue(i.Key.ToString(), out S))
-                    lock(S) S.AddSamples(i.Value, truncate);
+                    lock (S) S.AddSamples(LastIndex, i.Value, truncate);
             }
 
             // Remove the signals that we didn't get data for.
@@ -214,15 +219,18 @@ namespace LiveSPICE
             double peak = 0.0;
             double rms = 0.0;
             double f0 = 0.0;
-            int shift = 0;
+            int align = 0;
+            long lastIndex = 0;
 
             if (stats != null)
             {
                 lock (stats)
                 {
-                    // Compute statistics of the clock signal.
-                    shift = stats.Count;
+                    // Remembe the last sample index to avoid misaligned signals when new data gets added on the other thread.
+                    lastIndex = stats.LastIndex;
 
+                    // Compute statistics of the clock signal.
+                    align = stats.Count;
                     peak = stats.Max(i => Math.Abs(i), 0.0);
                     rms = Math.Sqrt(stats.Sum(i => i * i) / stats.Count);
 
@@ -240,35 +248,43 @@ namespace LiveSPICE
                         phase = ((phase + Math.PI) / (2 * Math.PI));
 
                         // Shift all the signals by the phase in samples to align the signal between frames.
-                        shift -= (int)Math.Round(phase * BlockSize / f);
+                        if (f > 1.0)
+                            align -= (int)Math.Round(phase * BlockSize / f);
 
                         // Compute fundamental frequency in Hz.
-                        f0 = (double)sampleRate * f / data.Length;
+                        f0 = (double)sampleRate * f / BlockSize;
                     }
                 }
             }
             else if (signals.Count > 0)
             {
-                shift = signals.Max(i => { lock (i.Value) return i.Value.Count; });
+                align = signals.Max(i => { lock (i.Value) return i.Value.Count; });
 
                 foreach (Signal i in signals.Values)
                     lock(i) peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
             }
                                 
             // Compute the target min/max
-            double window = Math.Pow(2.0, Math.Ceiling(Math.Log(peak + 1e-9, 2.0)));
+            double window = Math.Pow(2.0, Math.Ceiling(Math.Log(peak * 1.1 + 1e-9, 2.0)));
             // Animate transition from current min/max to target min/max.
             if (double.IsNaN(Vmax))
+            {
                 Vmax = window;
+            }
             else
-                Vmax = Vmax + (window - Vmax) * 0.25;
+            {
+                // Lerp in log domain to cover huge distances quickly.
+                Vmax = System.Math.Log(Math.Max(Vmax, window));
+                window = System.Math.Log(window);
+                Vmax = System.Math.Exp(Vmax + (window - Vmax) * 0.1);
+            }
 
             Vmax = Math.Max(Vmax, 1e-2);
 
             DrawSignalAxis(DC, bounds);
 
             foreach (Signal i in signals.Values)
-                lock(i) DrawSignal(DC, bounds, i, shift);
+                lock (i) DrawSignal(DC, bounds, i, align - (int)(i.LastIndex - lastIndex));
 
             if (tracePoint.HasValue)
                 DrawTrace(DC, bounds, tracePoint.Value);
@@ -382,7 +398,7 @@ namespace LiveSPICE
                     points.Add(new Point(i, MapFromSignal(Bounds, v / (s1 - s0 + 1))));
             }
 
-            points = DouglasPeuckerReduction(points, 1);
+            points = DouglasPeuckerReduction(points, 0.5);
             for (int i = 0; i + 1 < points.Count; ++i)
                 DC.DrawLine(S.Pen, points[i], points[i + 1]);
         }
@@ -511,8 +527,12 @@ namespace LiveSPICE
         private static double Hann(int i, int N) { return 0.5 * (1.0 - Math.Cos((2.0 * 3.14159265 * i) / (N - 1))); }
 
         // Fit parabola to 3 bins and find the maximum.
-        private static double LogParabolaMax(double a, double b, double c, out double x)
+        private static Complex LogParabolaMax(Complex A, Complex B, Complex C, out double x)
         {
+            double a = A.Magnitude;
+            double b = B.Magnitude;
+            double c = C.Magnitude;
+
             if (b > a && b > c)
             {
                 // Parabola fitting is more accurate in log magnitude.
@@ -524,12 +544,12 @@ namespace LiveSPICE
                 x = (a - c) / (2.0 * (a - 2.0 * b + c));
 
                 // Maximum value.
-                return Math.Exp(b - x * (a - c) / 4.0);
+                return B - x * (A - C) / 4.0;
             }
             else
             {
                 x = 0.0;
-                return b;
+                return B;
             }
         }
 
@@ -563,30 +583,30 @@ namespace LiveSPICE
             for (int i = 1; i < N / 2 - 1; ++i)
             {
                 double x;
-                double m = LogParabolaMax(data[i - 1].Magnitude, data[i].Magnitude, data[i + 1].Magnitude, out x);
+                Complex m = LogParabolaMax(data[i - 1], data[i], data[i + 1], out x);
 
-                if (m > max)
+                if (m.Magnitude > max)
                 {
-                    max = m;
+                    max = m.Magnitude;
                     f = i + x;
-                    Phase = data[i].Phase;
+                    Phase = m.Phase;
                 }
             }
 
             // Check if this is a harmonic of another frequency (the fundamental frequency).
             double f0 = f;
-            for (int i = 2; i < 5; ++i)
+            for (int h = 2; h < 5; ++h)
             {
-                int hi = (int)Math.Round(f / i);
-                if (hi >= 1)
+                int i = (int)Math.Round(f / h);
+                if (i >= 1)
                 {
                     double x;
-                    double m = LogParabolaMax(data[hi - 1].Magnitude, data[hi].Magnitude, data[hi + 1].Magnitude, out x);
+                    Complex m = LogParabolaMax(data[i - 1], data[i], data[i + 1], out x);
 
-                    if (m * 5.0 > max)
+                    if (m.Magnitude * 5.0 > max)
                     {
-                        f0 = f / i;
-                        Phase = data[hi].Phase;
+                        f0 = f / h;
+                        Phase = m.Phase;
                     }
                 }
             }
