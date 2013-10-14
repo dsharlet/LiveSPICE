@@ -43,12 +43,12 @@ namespace LiveSPICE
 
             Circuit.Coord lb = Schematic.LowerBound;
             Circuit.Coord ub = Schematic.UpperBound;
-            Origin = Floor(lb, align);
             lb = Floor(lb - pad, align);
             ub = Ceiling(ub + pad, align);
 
             Width = ub.x - lb.x;
             Height = ub.y - lb.y;
+            Origin = lb;
         }
 
         private void Delete_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = !ProbesOf(Selected).Empty(); }
