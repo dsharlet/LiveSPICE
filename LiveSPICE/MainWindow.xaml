@@ -105,7 +105,7 @@
             </xcad:DockingManager.DocumentHeaderTemplate>
             <xcad:LayoutRoot>
                 <xcad:LayoutPanel Orientation="Horizontal">
-                    <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
+                    <xcad:LayoutPanel Orientation="Vertical" DockWidth="265">
                         <xcad:LayoutAnchorablePane>
                             <!-- Components -->
                             <xcad:LayoutAnchorable Title="Components" AutoHideWidth="240">
