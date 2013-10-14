@@ -383,19 +383,24 @@ namespace LiveSPICE
             if (S.Pen == null)
                 S.Pen = CreateSignalPen();
 
+            // How many pixels map to one sample.
+            double margin = Bounds.Width / (double)(zoom * (double)sampleRate);
             List<Point> points = new List<Point>();
-            for (double i = 0; i + rate <= Bounds.Right; i += rate)
+            for (double i = -margin; i <= Bounds.Right + margin; i += rate)
             {
                 int s0 = MapToSample(Bounds, i, shift);
                 int s1 = MapToSample(Bounds, i + rate, shift);
 
-                // Anti-aliasing.
-                double v = 0.0;
-                for (int j = s0; j <= s1; ++j)
-                    v += S[j];
+                if (s1 > s0)
+                {
+                    // Anti-aliasing.
+                    double v = 0.0;
+                    for (int j = s0; j < s1; ++j)
+                        v += S[j];
 
-                if (!double.IsNaN(v))
-                    points.Add(new Point(i, MapFromSignal(Bounds, v / (s1 - s0 + 1))));
+                    if (!double.IsNaN(v))
+                        points.Add(new Point(i, MapFromSignal(Bounds, v / (s1 - s0))));
+                }
             }
 
             points = DouglasPeuckerReduction(points, 0.5);
