@@ -83,10 +83,8 @@ namespace LiveSPICE
 
             symbol.Position = At;
 
-            Circuit.Coord x = symbol.MapTerminal(probe.Terminal);
-
-            // Don't allow symbols to be placed on an existing symbol.
-            Target.Cursor = Target.Schematic.NodeAt(x) != null ? Cursors.None : Cursors.No;
+            //Circuit.Coord x = symbol.MapTerminal(probe.Terminal);
+            //Target.Cursor = Target.Schematic.NodeAt(x) != null ? Cursors.None : Cursors.No;
             overlay.Visibility = Visibility.Visible;
         }
 
