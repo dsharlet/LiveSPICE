@@ -51,7 +51,7 @@ namespace AudioIo
 
         public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
 
-        private void Dispose(bool Disposing)
+        public void Dispose(bool Disposing)
         {
             if (disposed) return;
 

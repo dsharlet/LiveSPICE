@@ -82,13 +82,8 @@ namespace AudioIo
 
             WaveApi.waveOutReset(hWaveOut);
             WaveApi.waveInStop(hWaveIn);
-
-            if (Disposing)
-            {
-                foreach (WaveBuffer i in buffers)
-                    i.Dispose();
-            }
-            
+            foreach (WaveBuffer i in buffers)
+                i.Dispose(Disposing);
             buffers.Clear();
             WaveApi.waveInClose(hWaveIn);
             WaveApi.waveOutClose(hWaveOut);
