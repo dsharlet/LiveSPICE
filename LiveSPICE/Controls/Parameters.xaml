@@ -17,21 +17,9 @@
             <RowDefinition Height="30" />
             <RowDefinition Height="30" />
             <RowDefinition Height="30" />
-            <RowDefinition Height="80" />
             <RowDefinition Height="30" />
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Oversampling Rate: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <xctk:IntegerUpDown Grid.Row="0" Grid.Column="1" Margin="4" IsReadOnly="True" Value="{Binding ElementName=_this, Path=Oversample, UpdateSourceTrigger=PropertyChanged}" />
-
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Iterations per Sample: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <xctk:IntegerUpDown Grid.Row="1" Grid.Column="1" Margin="4" Value="{Binding ElementName=_this, Path=Iterations, UpdateSourceTrigger=PropertyChanged}" />
-
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Input Expression: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="2" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=Input, UpdateSourceTrigger=PropertyChanged}" />
-
-        <TextBlock Grid.Row="3" Grid.Column="0" Text="Output Expression: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="3" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=Output, UpdateSourceTrigger=PropertyChanged}" />
     </Grid>
 </UserControl>

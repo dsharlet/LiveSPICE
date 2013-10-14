@@ -22,6 +22,34 @@ namespace LiveSPICE
     /// </summary>
     public partial class Simulation : Window, INotifyPropertyChanged
     {
+        protected int oversample = 4;
+        public int Oversample
+        {
+            get { return oversample; }
+            set { oversample = value; Build(); NotifyChanged("Oversample"); }
+        }
+
+        protected int iterations = 1;
+        public int Iterations
+        {
+            get { return iterations; }
+            set { iterations = value; NotifyChanged("Iterations"); }
+        }
+
+        protected Circuit.Quantity input = new Circuit.Quantity("V1[t]", Circuit.Units.V);
+        public Circuit.Quantity Input
+        {
+            get { return input; }
+            set { input = value; NotifyChanged("Input"); }
+        }
+
+        protected Circuit.Quantity output = new Circuit.Quantity("O1[t]", Circuit.Units.V);
+        public Circuit.Quantity Output
+        {
+            get { return output; }
+            set { output = value; NotifyChanged("Output"); }
+        }
+
         protected Circuit.Quantity sampleRate = new Circuit.Quantity(48e3m, Circuit.Units.Hz);
         public Circuit.Quantity SampleRate
         {
@@ -141,7 +169,7 @@ namespace LiveSPICE
             try
             {
                 Circuit.Circuit circuit = schematic.Schematic.Schematic.Build(log);
-                simulation = new Circuit.Simulation(circuit, sampleRate, parameters.Oversample, log);
+                simulation = new Circuit.Simulation(circuit, sampleRate, Oversample, log);
             }
             catch (System.Exception ex)
             {
@@ -174,10 +202,10 @@ namespace LiveSPICE
                         if (signals[i].Length < Samples.Length)
                             signals[i] = new double[Samples.Length];
                     // Send the output samples to the Samples array.
-                    signals[parameters.Output.Value] = Samples;
+                    signals[Output.Value] = Samples;
 
                     // Process the samples!
-                    simulation.Process(parameters.Input, Samples, signals, parameters.Iterations);
+                    simulation.Process(Input, Samples, signals, Iterations);
 
                     // Show the samples on the oscilloscope.
                     oscilloscope.ProcessSignals(simulation.Sample, signals, new Circuit.Quantity(Rate, Circuit.Units.Hz));

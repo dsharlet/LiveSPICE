@@ -21,34 +21,6 @@ namespace LiveSPICE
     /// </summary>
     public partial class Parameters : UserControl, INotifyPropertyChanged
     {
-        protected int oversample = 4;
-        public int Oversample
-        {
-            get { return oversample; }
-            set { oversample = value; NotifyChanged("Oversample"); }
-        }
-
-        protected int iterations = 1;
-        public int Iterations
-        {
-            get { return iterations; }
-            set { iterations = value; NotifyChanged("Iterations"); }
-        }
-
-        protected Circuit.Quantity input = new Circuit.Quantity("V1[t]", Circuit.Units.V);
-        public Circuit.Quantity Input
-        {
-            get { return input; }
-            set { input = value; NotifyChanged("Input"); }
-        }
-
-        protected Circuit.Quantity output = new Circuit.Quantity("O1[t]", Circuit.Units.V);
-        public Circuit.Quantity Output
-        {
-            get { return output; }
-            set { output = value; NotifyChanged("Output"); }
-        }
-
         public Parameters()
         {
             InitializeComponent();

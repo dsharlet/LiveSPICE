@@ -41,6 +41,18 @@
         <!-- Toolbars -->
         <ToolBarTray Grid.Row="2" Background="{StaticResource ResourceKey=Background}">
             <ToolBar Band="1" BandIndex="1">
+                <TextBlock Text="Oversample: " HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Oversample, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="Iterations: " HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="Input: " HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBox Text="{Binding ElementName=_this, Path=Input, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="Output: " HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBox Text="{Binding ElementName=_this, Path=Output, UpdateSourceTrigger=PropertyChanged}" />
+
                 <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
                 <Button Click="Probe_Click"  Content="Probe" />
             </ToolBar>
