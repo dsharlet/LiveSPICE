@@ -18,6 +18,7 @@ namespace AudioIo
         private GCHandle pinHdrIn, pinHdrOut;
         private IntPtr buffer;
         private int size;
+        private bool disposed = false;
 
         public WaveBuffer(IntPtr hWaveIn, IntPtr hWaveOut, int Size)
         {
@@ -46,13 +47,14 @@ namespace AudioIo
             MmException.CheckThrow(WaveApi.waveOutPrepareHeader(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader)));
         }
 
-        ~WaveBuffer()
-        {
-            Dispose();
-        }
+        ~WaveBuffer() { Dispose(false); }
 
-        public void Dispose()
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+
+        private void Dispose(bool Disposing)
         {
+            if (disposed) return;
+
             // Not checked intentionally.
             WaveApi.waveInUnprepareHeader(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader));
             WaveApi.waveOutUnprepareHeader(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader));
@@ -70,6 +72,8 @@ namespace AudioIo
                 pinHdrIn.Free();
             if (pinHdrOut.IsAllocated)
                 pinHdrOut.Free();
+
+            disposed = true;
         }
         
         public void Record()

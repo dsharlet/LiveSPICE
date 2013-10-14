@@ -31,7 +31,7 @@ namespace AudioIo
         private List<WaveBuffer> buffers;
         private SampleHandler callback;
         private WaveApi.Callback waveProc = new WaveApi.Callback(WaveProc);
-        private volatile bool disposing = false;
+        private volatile bool disposed = false;
 
         private double[] samples;
 
@@ -71,20 +71,24 @@ namespace AudioIo
             MmException.CheckThrow(WaveApi.waveInStart(hWaveIn));
         }
 
-        ~WaveIo()
-        {
-            Dispose();
-        }
+        ~WaveIo() { Dispose(false); }
 
-        public void Dispose()
-        {
-            disposing = true;
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
 
-            // Not checked intentionally.
-            WaveApi.waveOutPause(hWaveOut);
+        private void Dispose(bool Disposing)
+        {
+            if (disposed) return;
+            disposed = true;
+
+            WaveApi.waveOutReset(hWaveOut);
             WaveApi.waveInStop(hWaveIn);
-            foreach (WaveBuffer i in buffers)
-                i.Dispose();
+
+            if (Disposing)
+            {
+                foreach (WaveBuffer i in buffers)
+                    i.Dispose();
+            }
+            
             buffers.Clear();
             WaveApi.waveInClose(hWaveIn);
             WaveApi.waveOutClose(hWaveOut);
@@ -95,7 +99,7 @@ namespace AudioIo
         
         private void OnWimData(WaveHdr hdr)
         {
-            if (disposing)
+            if (disposed)
                 return;
 
             WaveBuffer buffer = (WaveBuffer)((GCHandle)hdr.User).Target;
@@ -108,7 +112,7 @@ namespace AudioIo
 
         private void OnWomDone(WaveHdr hdr)
         {
-            if ((hdr.Flags & Whdr.Done) == 0 || disposing)
+            if ((hdr.Flags & Whdr.Done) == 0 || disposed)
                 return;
 
             WaveBuffer buffer = (WaveBuffer)((GCHandle)hdr.User).Target;
