@@ -154,9 +154,9 @@ namespace Circuit
             List<Equal> mna = new List<Equal>();
             Circuit.Analyze(mna, y);
             LogTime(MessageType.Info, "Done.");
-            LogExpressions("MNA system for:" + y.UnSplit(", "), mna);
+            LogExpressions("MNA system of " + mna.Count + " equations and " + y.Count + " unknowns {{" + y.UnSplit(", ") + "}}:", mna);
 
-            LogTime(MessageType.Info, "Solving system...");
+            LogTime(MessageType.Info, "Solving MNA system...");
 
             // Find trivial solutions for y and substitute them into the system.
             trivial = mna.Solve(y);
@@ -168,15 +168,16 @@ namespace Circuit
             // Linearize the system for solving the differential equations by replacing 
             // non-linear terms with constants (from the previous timestep).
             f0 = new List<Arrow>();
-            List<Equal> dmna = ExtractNonLinear(mna, y, f0);
-            LogExpressions("Linearized system:", dmna);
+            List<Equal> linearized = ExtractNonLinear(mna, y, f0);
+            LogExpressions("Linearized system:", linearized);
+            LogExpressions("Non-linear terms:", f0);
             
             // Separate y into differential and algebraic unknowns.
             List<Expression> dy_dt = y.Where(i => IsD(i, t)).ToList();
             y.RemoveAll(i => IsD(i, t));
-            differential = dmna
+            differential = linearized
                 // Solve for the algebraic unknowns in terms of the rest and substitute them.
-                .Evaluate(dmna.Solve(y.Where(i => dy_dt.None(j => DOf(j).Equals(i))))).OfType<Equal>()
+                .Evaluate(linearized.Solve(y.Where(i => dy_dt.None(j => DOf(j).Equals(i))))).OfType<Equal>()
                 // Solve the resulting system of differential equations.
                 .NDPartialSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
@@ -237,14 +238,14 @@ namespace Circuit
                 List<Arrow> linear = block.Select(i => Equal.New(i, 0)).Solve(by).ToList();
                 linear.RemoveAll(i => i.Right.DependsOn(by));
                 by.RemoveAll(i => linear.Any(j => j.Left == i));
-                block = block.Evaluate(linear).ToList();
+                block = block.Evaluate(linear).Where(i => i.DependsOn(by)).ToList();
                 
                 // Now that we know solutions to by, we might be able to find other solutions too.
                 linear.AddRange(IndependentSolutions(mna.PartialSolve(y), y));
                 y.RemoveAll(i => linear.Any(j => j.Left == i));
 
-                LogExpressions("Algebraic system for: " + y.Concat(linear.Select(i => i.Left)).UnSplit(", "), block.Select(i => Equal.New(i, 0)));
-                LogExpressions("Linear solutions:", linear);
+                LogExpressions("Nonlinear system of " + block.Count + " equations and " + by.Count + " unknowns {{" + by.UnSplit(", ") + "}}:", block.Select(i => Equal.New(i, 0)));
+                LogExpressions("Linear solutions (including MNA system):", linear);
                 
                 algebraic.Add(new AlgebraicSystem(
                     block.NewtonRhapson(by.Select(i => Arrow.New(i, i.Evaluate(t, t0)))),
@@ -736,6 +737,7 @@ namespace Circuit
                 log.WriteLine(MessageType.Info, Title);
                 foreach (Expression i in Expressions)
                     log.WriteLine(MessageType.Info, "  " + i.ToString());
+                log.WriteLine(MessageType.Info, "");
             }
         }
 
