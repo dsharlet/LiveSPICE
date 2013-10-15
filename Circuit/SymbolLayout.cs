@@ -110,7 +110,7 @@ namespace Circuit
             InBounds(Points);
         }
         public void AddWire(params Coord[] Points) { AddWire(Points.AsEnumerable()); }
-        public void AddWire(Terminal T, IEnumerable<Coord> x) { AddWire(x.Append(terminals[T])); }
+        public void AddWire(Terminal T, IEnumerable<Coord> x) { AddWire(new Coord[] { terminals[T] }.Concat(x)); }
         public void AddWire(Terminal T, params Coord[] x) { AddWire(T, x.AsEnumerable()); }
 
         public void AddWire(IEnumerable<Terminal> Terminals) { AddWire(Terminals.Select(i => terminals[i])); }
