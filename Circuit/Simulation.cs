@@ -165,11 +165,10 @@ namespace Circuit
             y.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
             LogExpressions("Trivial solutions:", trivial);
 
-
-            // Separate the non-linear equations of the MNA system to a separate system.
+            // Linearize the system for solving the differential equations by replacing 
+            // non-linear terms with constants (from the previous timestep).
             f0 = new List<Arrow>();
             List<Equal> dmna = ExtractNonLinear(mna, y, f0);
-
             LogExpressions("Linearized system:", dmna);
             
             // Separate y into differential and algebraic unknowns.
@@ -179,17 +178,19 @@ namespace Circuit
                 // Solve for the algebraic unknowns in terms of the rest and substitute them.
                 .Evaluate(dmna.Solve(y.Where(i => dy_dt.None(j => DOf(j).Equals(i))))).OfType<Equal>()
                 // Solve the resulting system of differential equations.
-                .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
+                .NDPartialSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
             LogExpressions("Differential solutions:", differential);
             // Create global variables for the previous value of each differential solution.
             foreach (Arrow i in differential)
                 globals[i.Left.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
 
-            // After solving for the differential unknowns, divide them by h so we don't have to do it during simulation.
-            // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
+            // After solving for the differential unknowns, divide them by h so we don't have 
+            // to do it during simulation. It's faster to simulate, and we get the benefits of 
+            // arbitrary precision calculations here.
             mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
             f0 = f0.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Arrow>().ToList();
+
 
             // Solve the algebraic system.
             algebraic = new List<AlgebraicSystem>();
@@ -199,29 +200,30 @@ namespace Circuit
             List<Expression> nonlinear = mna.Evaluate(mna.Solve(y.Except(unknowns))).OfType<Equal>().Select(i => i.Left - i.Right).ToList();
             while (y.Any())
             {
+                // Find the smallest independent system we can to numerically solve.
                 Tuple<List<Expression>, List<Expression>> next = nonlinear.Select(f =>
+                {
+                    // Starting with f, find the minimal set of equations necessary to solve the system.
+                    // Find the unknowns in this equation.
+                    List<Expression> fy = y.Where(i => f.DependsOn(i)).ToList();
+                    List<Expression> system = new List<Expression>() { f };
+
+                    // While we have fewer equations than variables...
+                    while (system.Count < fy.Count)
                     {
-                        // Starting with f, find the minimal set of equations necessary to solve the system.
-                        // Find the unknowns in this equation.
-                        List<Expression> fy = y.Where(i => f.DependsOn(i)).ToList();
-                        List<Expression> system = new List<Expression>() { f };
-
-                        // While we have fewer equations than variables...
-                        while (system.Count < fy.Count)
+                        // Find the equation that will introduce the fewest variables to the system.
+                        IEnumerable<Expression> ry = y.Except(fy, ExprRefEquality);
+                        List<Expression> candidates = nonlinear.Except(system, ExprRefEquality).ToList();
+                        if (candidates.Any())
                         {
-                            // Find the equation that will introduce the fewest variables to the system.
-                            IEnumerable<Expression> ry = y.Except(fy, ExprRefEquality);
-                            List<Expression> candidates = nonlinear.Except(system, ExprRefEquality).ToList();
-                            if (candidates.Any())
-                            {
-                                Expression add = candidates.ArgMin(i => ry.Count(j => j.DependsOn(i)));
-                                system.Add(add);
-                                fy.AddRange(ry.Where(i => add.DependsOn(i)));
-                            }
+                            Expression add = candidates.ArgMin(i => ry.Count(j => j.DependsOn(i)));
+                            system.Add(add);
+                            fy.AddRange(ry.Where(i => add.DependsOn(i)));
                         }
+                    }
 
-                        return new Tuple<List<Expression>, List<Expression>>(system, fy);
-                    }).ArgMin(i => i.Item1.Count());
+                    return new Tuple<List<Expression>, List<Expression>>(system, fy);
+                }).ArgMin(i => i.Item1.Count());
 
                 // block is a subset of the system that we can solve for by with.
                 List<Expression> block = next.Item1;
@@ -232,13 +234,13 @@ namespace Circuit
                 y.RemoveAll(i => by.Contains(i));
 
                 // Try solving+substituting linear solutions first.
-                List<Arrow> linear = block.Select(i => Equal.New(i, 0)).Solve(by);
-                linear.RemoveAll(i => i.DependsOn(by));
+                List<Arrow> linear = block.Select(i => Equal.New(i, 0)).Solve(by).ToList();
+                linear.RemoveAll(i => i.Right.DependsOn(by));
                 by.RemoveAll(i => linear.Any(j => j.Left == i));
                 block = block.Evaluate(linear).ToList();
                 
                 // Now that we know solutions to by, we might be able to find other solutions too.
-                linear.AddRange(mna.Solve(y).Where(i => !i.Right.DependsOn(y)));
+                linear.AddRange(IndependentSolutions(mna.PartialSolve(y), y));
                 y.RemoveAll(i => linear.Any(j => j.Left == i));
 
                 LogExpressions("Algebraic system for: " + y.Concat(linear.Select(i => i.Left)).UnSplit(", "), block.Select(i => Equal.New(i, 0)));
@@ -488,26 +490,24 @@ namespace Circuit
                             foreach (Arrow i in trivial.Where(i => !map.ContainsKey(i.Left)))
                                 body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
-                            // We have to compute all of the Vt expressions before updating the global, so store them here.
-                            Dictionary<Expression, LinqExpression> Vt = new Dictionary<Expression, LinqExpression>();
                             // Compile the differential timestep expressions.
                             foreach (Arrow i in differential)
-                                Vt[i.Left] = Declare(locals, body, i.Left.ToString(), i.Right.Compile(map));
-                            // Update differentials.
-                            foreach (Arrow i in differential)
                             {
+                                body.Add(LinqExpression.Assign(
+                                    Declare<double>(locals, map, i.Left),
+                                    i.Right.Compile(map)));
+
                                 Expression di_dt = D(i.Left, Simulation.t);
                                 LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
 
                                 // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
                                 body.Add(LinqExpression.Assign(
                                     Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
-                                    LinqExpression.Subtract(Vt[i.Left], Vt0)));
-
-                                // Vt0 = Vt
-                                body.Add(LinqExpression.Assign(Vt0, Vt[i.Left]));
-                                map[i.Left] = Vt[i.Left];
+                                    LinqExpression.Subtract(map[i.Left], Vt0)));
                             }
+                            // Vt0 = Vt
+                            foreach (Arrow i in differential)
+                                body.Add(LinqExpression.Assign(map[i.Left.Evaluate(t_t0)], map[i.Left]));
 
                             // int it
                             ParameterExpression it = Declare<int>(locals, "it");
@@ -805,6 +805,19 @@ namespace Circuit
                 //    return true;
             }
             return false;
+        }
+
+        // Filters the solutions in S that are dependent on x if evaluated in order.
+        private static IEnumerable<Arrow> IndependentSolutions(IEnumerable<Arrow> S, IEnumerable<Expression> x)
+        {
+            foreach (Arrow i in S)
+            {
+                if (!i.Right.DependsOn(x))
+                {
+                    yield return i;
+                    x = x.Except(i.Left);
+                }
+            }
         }
 
         private static IEnumerable<T> Concat<T>(IEnumerable<T> x0, params IEnumerable<T>[] x)
