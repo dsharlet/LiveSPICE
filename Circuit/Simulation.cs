@@ -144,7 +144,6 @@ namespace Circuit
             // Length of one timestep in the oversampled simulation.
             h = 1 / ((Expression)SampleRate * Oversample);
 
-            log.WriteLine(MessageType.Info, "--------");
             LogTime(MessageType.Info, "Building simulation for circuit '" + Circuit.Name + "', f=" + SampleRate.ToString() + " x " + Oversample, true);
 
             LogTime(MessageType.Info, "Performing MNA on circuit...");
@@ -260,14 +259,13 @@ namespace Circuit
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
                 globals[i.Left] = new GlobalExpr<double>(0.0);
-            
-            LogTime(MessageType.Info, "System solved.");
-            
+
             // Add solutions for the voltage across all the components.
             components = Circuit.Components.OfType<TwoTerminal>()
                 .Select(i => Arrow.New(DependentVariable(i.Name, t), i.V.Evaluate(trivial)))
                 .ToList();
-            LogExpressions("Component voltages:", components);
+            
+            LogTime(MessageType.Info, "System solved.");
         }
 
         /// <summary>
@@ -370,12 +368,10 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            LogTime(MessageType.Info, "Compiling simulation...", true);
+            LogTime(MessageType.Info, "Defining sample processing function...");
             LogExpressions("Input:", Input);
             LogExpressions("Output:", Output);
             LogExpressions("Parameters:", Parameters);
-
-            LogTime(MessageType.Info, "Defining sample processing function...");
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
             LogTime(MessageType.Info, "Compiling sample processing function...");
             d = lambda.Compile();
