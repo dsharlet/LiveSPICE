@@ -124,5 +124,32 @@ namespace SyMath
         /// <param name="x">Variable of set of variables to solve for.</param>
         /// <returns>The solved values of x, including non-independent solutions.</returns>
         public static List<Arrow> Solve(this IEnumerable<Equal> f, params Expression[] x) { return f.Solve(x.AsEnumerable()); }
+        
+
+        /// <summary>
+        /// Partially solve a linear equation or system of linear equations. Back substitution is not performed.
+        /// </summary>
+        /// <param name="f">Equation or set of equations to solve.</param>
+        /// <param name="x">Variable of set of variables to solve for.</param>
+        /// <returns>The solved values of x, including non-independent solutions.</returns>
+        public static List<Arrow> PartialSolve(this IEnumerable<Equal> f, IEnumerable<Expression> x)
+        {
+            // Convert f to a system of linear equations.
+            List<LinearCombination> S = f.TermsOf(x);
+
+            // Get row-echelon form of S.
+            S.ToRowEchelon(x);
+            
+            // Solve for the variables.
+            return S.Solve(x);
+        }
+
+        /// <summary>
+        /// Partially solve a linear equation or system of linear equations. Back substitution is not performed.
+        /// </summary>
+        /// <param name="f">Equation or set of equations to solve.</param>
+        /// <param name="x">Variable of set of variables to solve for.</param>
+        /// <returns>The solved values of x, including non-independent solutions.</returns>
+        public static List<Arrow> PartialSolve(this IEnumerable<Equal> f, params Expression[] x) { return f.PartialSolve(x.AsEnumerable()); }
     }
 }

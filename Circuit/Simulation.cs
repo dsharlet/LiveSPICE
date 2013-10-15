@@ -170,7 +170,7 @@ namespace Circuit
             f0 = new List<Arrow>();
             List<Equal> dmna = ExtractNonLinear(mna, y, f0);
 
-            LogExpressions("Linearized differential system:", dmna);
+            LogExpressions("Linearized system:", dmna);
             
             // Separate y into differential and algebraic unknowns.
             List<Expression> dy_dt = y.Where(i => IsD(i, t)).ToList();
@@ -191,29 +191,27 @@ namespace Circuit
             mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
             f0 = f0.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Arrow>().ToList();
 
-            // Find the minimum set of unknowns requiring non-linear methods.
-            List<Expression> unknowns = y.Where(i => f0.Any(j => j.DependsOn(i))).ToList();
-
+            // Solve the algebraic system.
             algebraic = new List<AlgebraicSystem>();
 
+            // Find the minimum set of unknowns requiring non-linear methods.
+            List<Expression> unknowns = y.Where(i => f0.Any(j => j.DependsOn(i))).ToList();
             List<Expression> nonlinear = mna.Evaluate(mna.Solve(y.Except(unknowns))).OfType<Equal>().Select(i => i.Left - i.Right).ToList();
-
-            while (nonlinear.Any())
+            while (y.Any())
             {
                 Tuple<List<Expression>, List<Expression>> next = nonlinear.Select(f =>
                     {
-                        // Starting with i, find the minimal set of equations necessary to solve the system.
+                        // Starting with f, find the minimal set of equations necessary to solve the system.
                         // Find the unknowns in this equation.
                         List<Expression> fy = y.Where(i => f.DependsOn(i)).ToList();
                         List<Expression> system = new List<Expression>() { f };
 
-                        IEqualityComparer<Expression> refeq = new ReferenceEqualityComparer<Expression>();
-
                         // While we have fewer equations than variables...
                         while (system.Count < fy.Count)
                         {
-                            IEnumerable<Expression> ry = y.Except(fy, refeq);
-                            List<Expression> candidates = nonlinear.Except(system, refeq).ToList();
+                            // Find the equation that will introduce the fewest variables to the system.
+                            IEnumerable<Expression> ry = y.Except(fy, ExprRefEquality);
+                            List<Expression> candidates = nonlinear.Except(system, ExprRefEquality).ToList();
                             if (candidates.Any())
                             {
                                 Expression add = candidates.ArgMin(i => ry.Count(j => j.DependsOn(i)));
@@ -225,42 +223,34 @@ namespace Circuit
                         return new Tuple<List<Expression>, List<Expression>>(system, fy);
                     }).ArgMin(i => i.Item1.Count());
 
-                List<Expression> F = next.Item1;
-                List<Expression> Fy = next.Item2;
+                // block is a subset of the system that we can solve for by with.
+                List<Expression> block = next.Item1;
+                List<Expression> by = next.Item2;
 
-                nonlinear.RemoveAll(i => F.Contains(i));
-                y.RemoveAll(i => Fy.Contains(i));
+                // Remove these from the system.
+                nonlinear.RemoveAll(i => block.Contains(i));
+                y.RemoveAll(i => by.Contains(i));
 
-                List<Arrow> linear = mna
-                    .Solve(y)
-                    .Where(i => !i.Right.DependsOn(y)).ToList();
+                // Try solving+substituting linear solutions first.
+                List<Arrow> linear = block.Select(i => Equal.New(i, 0)).Solve(by);
+                linear.RemoveAll(i => i.DependsOn(by));
+                by.RemoveAll(i => linear.Any(j => j.Left == i));
+                block = block.Evaluate(linear).ToList();
+                
+                // Now that we know solutions to by, we might be able to find other solutions too.
+                linear.AddRange(mna.Solve(y).Where(i => !i.Right.DependsOn(y)));
                 y.RemoveAll(i => linear.Any(j => j.Left == i));
 
-                LogExpressions("Algebraic system for: " + y.Concat(linear.Select(i => i.Left)).UnSplit(", "), F.Select(i => Equal.New(i, 0)));
+                LogExpressions("Algebraic system for: " + y.Concat(linear.Select(i => i.Left)).UnSplit(", "), block.Select(i => Equal.New(i, 0)));
                 LogExpressions("Linear solutions:", linear);
-
-                // Solve JF(y0)*(y - y0) = -F(y0) for y.
-                SyMath.Matrix J = NSolveExtension.Jacobian(F, Fy);
-                List<Arrow> y0 = Fy.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
-
-                // Compute J*(y - y0)
-                SyMath.Matrix X = new SyMath.Matrix(y0.Count, 1);
-                for (int i = 0; i < y0.Count; ++i)
-                    X[i] = y0[i].Left - y0[i].Right;
-                SyMath.Matrix JX = J.Evaluate(y0) * X;
-
-                // Solve for y.
-                List<Equal> newton = new List<Equal>();
-                for (int i = 0; i < F.Count; ++i)
-                    newton.Add(Equal.New(JX[i, 0], -F[i].Evaluate(y0)));
-
+                
                 algebraic.Add(new AlgebraicSystem(
-                    newton,
-                    Fy,
+                    block.NewtonRhapson(by.Select(i => Arrow.New(i, i.Evaluate(t, t0)))),
+                    by,
                     linear));
 
                 // Create global variables for iterative unknowns
-                foreach (Expression i in Fy)
+                foreach (Expression i in by)
                     globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             }
             
@@ -276,11 +266,6 @@ namespace Circuit
                 .ToList();
             LogExpressions("Component voltages:", components);
         }
-
-
-
-
-
 
         /// <summary>
         /// Clear all state from the simulation.
@@ -527,7 +512,7 @@ namespace Circuit
                             // int it
                             ParameterExpression it = Declare<int>(locals, "it");
 
-                            // Compile the iterative timestep expressions.
+                            // Compile the algebraic systems' solutions.
                             foreach (AlgebraicSystem i in algebraic)
                             {
                                 // it = Oversample
@@ -536,6 +521,7 @@ namespace Circuit
                                 DoWhile(body,
                                     () =>
                                     {
+                                        // Compile the numerical scheme to solve this system.
                                         List<Arrow> iteration = i.Nonlinear.Solve(i.Unknowns);
                                         foreach (Arrow j in iteration)
                                         {
@@ -544,13 +530,14 @@ namespace Circuit
                                             map[j.Left] = Vt0;
                                         }
 
-                                        foreach (Arrow j in i.Linear)
-                                            body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
-
                                         // --it;
                                         body.Add(LinqExpression.PreDecrementAssign(it));
                                     },
                                     LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
+
+                                // Compile the linear solutions.
+                                foreach (Arrow j in i.Linear)
+                                    body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
                             }
 
                             // Update f0.
@@ -564,9 +551,9 @@ namespace Circuit
                             // t0 = t
                             body.Add(LinqExpression.Assign(t0, t));
 
-                            // Vo += i.Evaluate()
+                            // Vo += i
                             foreach (Expression i in Output)
-                                body.Add(LinqExpression.AddAssign(Vo[i], i.Compile(map)));
+                                body.Add(LinqExpression.AddAssign(Vo[i], CompileOrWarn(i, map)));
 
                             // Vi_t0 = Vi
                             foreach (Expression i in Input)
@@ -579,9 +566,11 @@ namespace Circuit
 
                     // Output[i][n] = Vo / Oversample
                     foreach (Expression i in Output)
+                    {
                         body.Add(LinqExpression.Assign(
                             LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n }),
                             LinqExpression.Multiply(Vo[i], invOversample)));
+                    }
                 });
 
             // Copy the global state variables back to the globals.
@@ -590,6 +579,20 @@ namespace Circuit
             
             // Put it all together.
             return LinqExpression.Lambda(LinqExpression.Block(locals, body), parameters);
+        }
+        
+        // If x fails to compile, return 0. 
+        private LinqExpression CompileOrWarn(Expression x, IDictionary<Expression, LinqExpression> map)
+        {
+            try
+            {
+                return x.Compile(map);
+            }
+            catch (System.Exception ex)
+            {
+                Log.WriteLine(MessageType.Warning, "Error compiling output expression '{0}': {1}", x.ToString(), ex.Message);
+                return LinqExpression.Constant(0.0);
+            }
         }
 
         // Generate a for loop given the header and body expressions.
@@ -724,7 +727,7 @@ namespace Circuit
             Target.Add(LinqExpression.Assign(p, Init));
             return p;
         }
-
+        
         // Logging helpers.
         private void LogExpressions(string Title, IEnumerable<Expression> Expressions)
         {
@@ -818,5 +821,7 @@ namespace Circuit
             From.RemoveAt(From.Count - 1);
             return p;
         }
+
+        private static IEqualityComparer<Expression> ExprRefEquality = new ReferenceEqualityComparer<Expression>();
     }
 }
