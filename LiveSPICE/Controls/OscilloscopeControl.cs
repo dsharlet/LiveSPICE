@@ -21,25 +21,15 @@ using SyMath;
 
 namespace LiveSPICE
 {
-    public class Oscilloscope : Control, INotifyPropertyChanged
+    public class OscilloscopeControl : Control, INotifyPropertyChanged
     {
         protected const double MinFrequency = 20.0;
         protected const double MaxPeriod = 1.0 / MinFrequency;
 
-        static Oscilloscope() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Oscilloscope), new FrameworkPropertyMetadata(typeof(Oscilloscope))); }
+        static OscilloscopeControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(OscilloscopeControl), new FrameworkPropertyMetadata(typeof(OscilloscopeControl))); }
 
-        private int sampleRate;
-        public Circuit.Quantity SampleRate 
-        {
-            get { return new Circuit.Quantity(sampleRate, Circuit.Units.Hz); } 
-            protected set
-            {
-                if (value.Units != Circuit.Units.Hz)
-                    throw new ArgumentException("SampleRate units must be Hz");
-                sampleRate = (int)value;
-                NotifyChanged("SampleRate"); 
-            } 
-        }
+        private Circuit.Quantity sampleRate;
+        public Circuit.Quantity SampleRate { get { return sampleRate; } }
 
         private Circuit.Quantity a4 = new Circuit.Quantity(440, Circuit.Units.Hz);
         public Circuit.Quantity A4
@@ -81,16 +71,6 @@ namespace LiveSPICE
         public Pen AxisPen = new Pen(Brushes.Gray, 0.5);
         public Pen TracePen = new Pen(Brushes.White, 0.5);
 
-        private Brush[] SignalBrushes = 
-        {
-            Brushes.Red,
-            Brushes.Lime,
-            Brushes.Blue,
-            Brushes.Yellow,
-            Brushes.Cyan,
-            Brushes.Magenta,
-        };
-        
         /// <summary>
         /// Properties and methods associated with a particular signal.
         /// </summary>
@@ -99,9 +79,12 @@ namespace LiveSPICE
             private List<double> samples = new List<double>();
 
             // Display parameters.
-            private Pen pen;
+            private Pen pen = new Pen(Brushes.White, 1.0);
             public Pen Pen { get { return pen; } set { pen = value; } }
-            
+
+            private object tag;
+            public object Tag { get { return tag; } set { tag = value; } }
+
             // Process new samples for this signal.
             public void AddSamples(long LastIndex, double[] Samples, int Truncate)
             {
@@ -139,9 +122,7 @@ namespace LiveSPICE
 
         protected ConcurrentDictionary<SyMath.Expression, Signal> signals = new ConcurrentDictionary<SyMath.Expression, Signal>();
         public ConcurrentDictionary<SyMath.Expression, Signal> Signals { get { return signals; } }
-
-        protected double Vmax;
-        
+                
         private SyMath.Expression selected;
         public SyMath.Expression SelectedSignal 
         {
@@ -154,9 +135,10 @@ namespace LiveSPICE
             set { selected = value; NotifyChanged("SelectedSignal"); } 
         }
 
+        protected double Vmax;
         protected Point? tracePoint;
         
-        public Oscilloscope()
+        public OscilloscopeControl()
         {
             Background = Brushes.DimGray;
             Cursor = Cursors.Cross;
@@ -169,9 +151,6 @@ namespace LiveSPICE
             MouseMove += (o, e) => { tracePoint = e.GetPosition(this); InvalidateVisual(); };
             MouseLeave += (o, e) => { tracePoint = null; InvalidateVisual(); };
             MouseDown += (o, e) => { Focus(); InvalidateVisual(); };
-
-            // TODO: Is this a good idea?
-            System.Windows.Interop.ComponentDispatcher.ThreadIdle += (o, e) => { InvalidateVisual(); };
         }
         
         public void Clear()
@@ -182,8 +161,8 @@ namespace LiveSPICE
         
         public void ProcessSignals(long LastIndex, IDictionary<SyMath.Expression, double[]> Signals, Circuit.Quantity Rate)
         {
-            if (SampleRate != Rate)
-                SampleRate = Rate;
+            sampleRate = Rate;
+
             int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
 
             // Add signal data.
@@ -197,6 +176,8 @@ namespace LiveSPICE
             // Remove the signals that we didn't get data for.
             foreach (KeyValuePair<SyMath.Expression, Signal> i in signals.Where(j => !Signals.ContainsKey(j.Key)))
                 lock(i.Value) i.Value.Clear();
+
+            Dispatcher.InvokeAsync(() => InvalidateVisual());
         }
 
         protected override void OnRender(DrawingContext DC)
@@ -365,24 +346,11 @@ namespace LiveSPICE
             }
         }
 
-        protected Pen CreateSignalPen()
-        {
-            lock (signals)
-            {
-                Pen[] pens = signals.Values.Where(i => i.Pen != null).Select(i => i.Pen).ToArray();
-
-                return new Pen(SignalBrushes.ArgMin(i => pens.Count(j => j.Brush == i)), 1.0);
-            }
-        }
-
         protected void DrawSignal(DrawingContext DC, Rect Bounds, Signal S, int shift)
         {
             // Rate of pixels to sample.
             const double rate = 1.0;
-
-            if (S.Pen == null)
-                S.Pen = CreateSignalPen();
-
+            
             // How many pixels map to one sample.
             double margin = Bounds.Width / (double)(zoom * (double)sampleRate);
             List<Point> points = new List<Point>();

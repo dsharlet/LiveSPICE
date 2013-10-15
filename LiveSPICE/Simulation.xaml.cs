@@ -130,37 +130,29 @@ namespace LiveSPICE
             lock (signals)
             {
                 Probe[] probes = ((SimulationSchematic)schematic.Schematic).Probes.Where(i => i.ConnectedTo != null).ToArray();
-
                 signals = probes.ToDictionary(i => i.V, i => new double[0]);
 
-                oscilloscope.Signals.RemoveAll(i => !signals.ContainsKey(i.Key));
-                SyMath.Expression selected = oscilloscope.SelectedSignal;
-                signalNames.Items.Clear();
+                // Remove signals that aren't being processed from the oscilloscope.
+                foreach (SyMath.Expression i in oscilloscope.Signals.ToArray())
+                    if (!signals.ContainsKey(i))
+                        oscilloscope.RemoveSignal(i);
+
+                // Add signals that aren't already in the oscilloscope.
                 foreach (Probe i in probes)
                 {
-                    Oscilloscope.Signal S;
-                    if (!oscilloscope.Signals.TryGetValue(i.V, out S))
-                    {
-                        S = new Oscilloscope.Signal();
-                        oscilloscope.Signals[i.V] = S;
-                    }
+                    if (oscilloscope.Signals.Contains(i.V))
+                        continue;
+
+                    Pen p;
                     switch (i.Color)
                     {
                         // These two need to be brighter than the normal colors.
-                        case Circuit.EdgeType.Red: S.Pen = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
-                        case Circuit.EdgeType.Blue: S.Pen = new Pen(new SolidColorBrush(Color.FromRgb(60, 60, 255)), 1.0); break;
-                        default: S.Pen = ElementControl.MapToPen(i.Color); break;
+                        case Circuit.EdgeType.Red: p = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
+                        case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(60, 60, 255)), 1.0); break;
+                        default: p = ElementControl.MapToPen(i.Color); break;
                     }
-
-                    ComboBoxItem item = new ComboBoxItem()
-                    {
-                        Background = oscilloscope.Background,
-                        Foreground = S.Pen.Brush,
-                        Content = i.V
-                    };
-                    signalNames.Items.Add(item);
+                    oscilloscope.AddSignal(i.V, p);
                 }
-                oscilloscope.SelectedSignal = selected;
             }
         }
         

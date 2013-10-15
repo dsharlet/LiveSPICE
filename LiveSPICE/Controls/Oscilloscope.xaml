@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="LiveSPICE.Oscilloscope" x:Name="_this"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ls="clr-namespace:LiveSPICE"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" Background="{StaticResource ResourceKey=Background}">
+    <DockPanel>
+        <ToolBar Height="28" DockPanel.Dock="Top">
+            <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
+            <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
+            <Separator />
+            <ComboBox Width="70" x:Name="signals" SelectedValue="{Binding ElementName=scope, Path=SelectedSignal}" SelectedValuePath="Content" />
+            <Separator />
+            <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=scope, Path=ShowNotes}" />
+            <Label Content="A4:" />
+            <TextBox Width="60" Text="{Binding ElementName=scope, Path=A4, UpdateSourceTrigger=PropertyChanged}" />
+        </ToolBar>
+        <ls:OscilloscopeControl x:Name="scope" BorderBrush="DarkGray" BorderThickness="1" />
+    </DockPanel>
+</UserControl>

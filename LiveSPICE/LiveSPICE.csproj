@@ -114,6 +114,9 @@
     <Compile Include="Controls\Schematic\SymbolControl.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Controls\Oscilloscope.xaml.cs">
+      <DependentUpon>Oscilloscope.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Simulation.xaml.cs">
       <DependentUpon>Simulation.xaml</DependentUpon>
     </Compile>
@@ -142,7 +145,7 @@
     <Compile Include="Utils\Command.cs" />
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
-    <Compile Include="Controls\Oscilloscope.cs" />
+    <Compile Include="Controls\OscilloscopeControl.cs" />
     <Page Include="Controls\Parameters.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -152,6 +155,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\Schematic\SchematicControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Oscilloscope.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

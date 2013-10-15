@@ -99,19 +99,7 @@
                         <!-- Oscilloscope -->
                         <xcad:LayoutAnchorablePane DockHeight="300">
                             <xcad:LayoutAnchorable x:Name="oscilloscopeWnd" Title="Oscilloscope">
-                                <DockPanel>
-                                    <ToolBar Height="28" DockPanel.Dock="Top">
-                                        <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
-                                        <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
-                                        <Separator />
-                                        <ComboBox Width="70" x:Name="signalNames" SelectedValue="{Binding ElementName=oscilloscope, Path=SelectedSignal}" SelectedValuePath="Content" />
-                                        <Separator />
-                                        <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=oscilloscope, Path=ShowNotes}" />
-                                        <Label Content="A4:" />
-                                        <TextBox Width="60" Text="{Binding ElementName=oscilloscope, Path=A4, UpdateSourceTrigger=PropertyChanged}" />
-                                    </ToolBar>
-                                    <ls:Oscilloscope x:Name="oscilloscope" BorderBrush="DarkGray" BorderThickness="1" />
-                                </DockPanel>
+                                <ls:Oscilloscope x:Name="oscilloscope" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
