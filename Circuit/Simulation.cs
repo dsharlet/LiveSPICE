@@ -58,26 +58,33 @@ namespace Circuit
         // Simulation timestep.
         private Expression h;
 
-        // Block of equations to solve
-        private class NonLinearSystem
+        // Block of equations to solve, with some solutions that are linear combinations of the non-linear solutions.
+        private class AlgebraicSystem
         {
-            private List<Equal> system;
+            private List<Equal> nonlinear;
             private List<Expression> unknowns;
+            private List<Arrow> linear;
 
-            public IEnumerable<Equal> System { get { return system; } }
+            public IEnumerable<Equal> Nonlinear { get { return nonlinear; } }
             public IEnumerable<Expression> Unknowns { get { return unknowns; } }
+            public IEnumerable<Arrow> Linear { get { return linear; } }
 
-            public NonLinearSystem(IEnumerable<Equal> System, IEnumerable<Expression> Unknowns) { system = System.ToList(); unknowns = Unknowns.ToList(); }
+            public AlgebraicSystem(List<Equal> System, List<Expression> Unknowns, List<Arrow> Linear) 
+            {
+                nonlinear = System; 
+                unknowns = Unknowns;
+                linear = Linear;
+            }
 
-            public bool DependsOn(Expression x) { return system.Any(i => i.DependsOn(x)); }
+            public bool DependsOn(Expression x) { return nonlinear.Any(i => i.DependsOn(x)); }
         }
 
         // Expressions for trivial solutions to the system.
         private List<Arrow> trivial;
         // Expressions for the solution of the differential equations.
         private List<Arrow> differential;
-        // Expressions for numerical algebraic solutions.
-        private List<NonLinearSystem> nonlinear;
+        // Expressions for algebraic solutions.
+        private List<AlgebraicSystem> algebraic;
         // Expressions for the voltage of each two terminal component.
         private List<Arrow> components;
 
@@ -88,17 +95,17 @@ namespace Circuit
 
         // Given a system of potentially non-linear equations f, extract the non-linear expressions and replace them with a variable f0.
         // f0 is constructed such that ExtractNonLinear(f, x, f0).Evaluate(f0) == f.
-        private static List<Equal> ExtractNonLinear(List<Equal> f, List<Expression> x, List<Arrow> f0)
+        private static List<Equal> ExtractNonLinear(List<Equal> S, List<Expression> y, List<Arrow> f)
         {
-            List<Equal> ex = new List<Equal>();
-            foreach (Equal i in f)
+            List<Equal> ret = new List<Equal>();
+            foreach (Equal i in S)
             {
                 // Gather list of linear and non-linear terms.
                 List<Expression> linear = new List<Expression>();
                 List<Expression> nonlinear = new List<Expression>();
                 foreach (Expression t in Add.TermsOf((i.Left - i.Right).Expand()))
                 {
-                    if (t.DependsOn(x) && !IsLinearFunctionOf(t, x))
+                    if (t.DependsOn(y) && !IsLinearFunctionOf(t, y))
                         nonlinear.Add(t);
                     else
                         linear.Add(t);
@@ -107,19 +114,19 @@ namespace Circuit
                 // If there are any non-linear terms, create a token variable for them and add them to the linear system.
                 if (nonlinear.Any())
                 {
-                    Variable f0i = Variable.New("f0_" + f0.Count.ToString());
-                    linear.Add(f0i);
-                    f0.Add(Arrow.New(f0i, Add.New(nonlinear)));
+                    Expression fi = "f" + f.Count;
+                    linear.Add(fi);
+                    f.Add(Arrow.New(fi, Add.New(nonlinear)));
 
-                    ex.Add(Equal.New(Add.New(linear), Constant.Zero));
+                    ret.Add(Equal.New(Add.New(linear), Constant.Zero));
                 }
                 else
                 {
-                    ex.Add(i);
+                    ret.Add(i);
                 }
             }
 
-            return ex;
+            return ret;
         }
         
         /// <summary>
@@ -147,8 +154,7 @@ namespace Circuit
             List<Equal> mna = new List<Equal>();
             Circuit.Analyze(mna, y);
             LogTime(MessageType.Info, "Done.");
-            LogExpressions("System:", mna);
-            LogExpressions("Unknowns:", y);
+            LogExpressions("MNA system for:" + y.UnSplit(", "), mna);
 
             LogTime(MessageType.Info, "Solving system...");
 
@@ -164,15 +170,14 @@ namespace Circuit
             f0 = new List<Arrow>();
             List<Equal> dmna = ExtractNonLinear(mna, y, f0);
 
-
+            LogExpressions("Linearized differential system:", dmna);
+            
             // Separate y into differential and algebraic unknowns.
             List<Expression> dy_dt = y.Where(i => IsD(i, t)).ToList();
             y.RemoveAll(i => IsD(i, t));
-            // Find the solutions to the differential unknowns.
-            List<Expression> ya = y.Where(i => dy_dt.None(j => DOf(j).Equals(i))).ToList();
             differential = dmna
                 // Solve for the algebraic unknowns in terms of the rest and substitute them.
-                .Evaluate(dmna.Solve(ya)).OfType<Equal>()
+                .Evaluate(dmna.Solve(y.Where(i => dy_dt.None(j => DOf(j).Equals(i))))).OfType<Equal>()
                 // Solve the resulting system of differential equations.
                 .NDSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
@@ -185,38 +190,84 @@ namespace Circuit
             // It's faster to simulate, and we get the benefits of arbitrary precision calculations here.
             mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
             f0 = f0.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Arrow>().ToList();
-                        
-            // Solve the remaining algebraic system.
-            List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
-            // Solve JF(y0)*(y - y0) = -F(y0) for y.
-            List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
-            SyMath.Matrix J = NSolveExtension.Jacobian(F, y);
+            // Find the minimum set of unknowns requiring non-linear methods.
+            List<Expression> unknowns = y.Where(i => f0.Any(j => j.DependsOn(i))).ToList();
 
-            // Compute J*(y - y0)
-            SyMath.Matrix X = new SyMath.Matrix(y0.Count, 1);
-            for (int i = 0; i < y0.Count; ++i)
-                X[i] = y0[i].Left - y0[i].Right;
-            SyMath.Matrix JX = J.Evaluate(y0) * X;
+            algebraic = new List<AlgebraicSystem>();
 
-            // Solve for y.
-            Equal[] newton = new Equal[F.Count];
-            for (int i = 0; i < F.Count; ++i)
-                newton[i] = Equal.New(JX[i, 0], -F[i].Evaluate(y0));
+            List<Expression> nonlinear = mna.Evaluate(mna.Solve(y.Except(unknowns))).OfType<Equal>().Select(i => i.Left - i.Right).ToList();
 
-            nonlinear = new List<NonLinearSystem>() { new NonLinearSystem(newton, y) };
+            while (nonlinear.Any())
+            {
+                Tuple<List<Expression>, List<Expression>> next = nonlinear.Select(f =>
+                    {
+                        // Starting with i, find the minimal set of equations necessary to solve the system.
+                        // Find the unknowns in this equation.
+                        List<Expression> fy = y.Where(i => f.DependsOn(i)).ToList();
+                        List<Expression> system = new List<Expression>() { f };
 
-            LogExpressions("System:", mna);
-            LogExpressions("Unknowns:", y);
+                        IEqualityComparer<Expression> refeq = new ReferenceEqualityComparer<Expression>();
 
-            // Create global variables for iterative unknowns
-            foreach (Expression i in y)
-                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
+                        // While we have fewer equations than variables...
+                        while (system.Count < fy.Count)
+                        {
+                            IEnumerable<Expression> ry = y.Except(fy, refeq);
+                            List<Expression> candidates = nonlinear.Except(system, refeq).ToList();
+                            if (candidates.Any())
+                            {
+                                Expression add = candidates.ArgMin(i => ry.Count(j => j.DependsOn(i)));
+                                system.Add(add);
+                                fy.AddRange(ry.Where(i => add.DependsOn(i)));
+                            }
+                        }
+
+                        return new Tuple<List<Expression>, List<Expression>>(system, fy);
+                    }).ArgMin(i => i.Item1.Count());
+
+                List<Expression> F = next.Item1;
+                List<Expression> Fy = next.Item2;
+
+                nonlinear.RemoveAll(i => F.Contains(i));
+                y.RemoveAll(i => Fy.Contains(i));
+
+                List<Arrow> linear = mna
+                    .Solve(y)
+                    .Where(i => !i.Right.DependsOn(y)).ToList();
+                y.RemoveAll(i => linear.Any(j => j.Left == i));
+
+                LogExpressions("Algebraic system for: " + y.Concat(linear.Select(i => i.Left)).UnSplit(", "), F.Select(i => Equal.New(i, 0)));
+                LogExpressions("Linear solutions:", linear);
+
+                // Solve JF(y0)*(y - y0) = -F(y0) for y.
+                SyMath.Matrix J = NSolveExtension.Jacobian(F, Fy);
+                List<Arrow> y0 = Fy.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+
+                // Compute J*(y - y0)
+                SyMath.Matrix X = new SyMath.Matrix(y0.Count, 1);
+                for (int i = 0; i < y0.Count; ++i)
+                    X[i] = y0[i].Left - y0[i].Right;
+                SyMath.Matrix JX = J.Evaluate(y0) * X;
+
+                // Solve for y.
+                List<Equal> newton = new List<Equal>();
+                for (int i = 0; i < F.Count; ++i)
+                    newton.Add(Equal.New(JX[i, 0], -F[i].Evaluate(y0)));
+
+                algebraic.Add(new AlgebraicSystem(
+                    newton,
+                    Fy,
+                    linear));
+
+                // Create global variables for iterative unknowns
+                foreach (Expression i in Fy)
+                    globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
+            }
+            
             // Create a global variable for the value of each f0.
             foreach (Arrow i in f0)
                 globals[i.Left] = new GlobalExpr<double>(0.0);
-
-
+            
             LogTime(MessageType.Info, "System solved.");
             
             // Add solutions for the voltage across all the components.
@@ -225,7 +276,12 @@ namespace Circuit
                 .ToList();
             LogExpressions("Component voltages:", components);
         }
-        
+
+
+
+
+
+
         /// <summary>
         /// Clear all state from the simulation.
         /// </summary>
@@ -472,7 +528,7 @@ namespace Circuit
                             ParameterExpression it = Declare<int>(locals, "it");
 
                             // Compile the iterative timestep expressions.
-                            foreach (NonLinearSystem i in nonlinear)
+                            foreach (AlgebraicSystem i in algebraic)
                             {
                                 // it = Oversample
                                 // do { ... --it } while(it > 0)
@@ -480,13 +536,16 @@ namespace Circuit
                                 DoWhile(body,
                                     () =>
                                     {
-                                        List<Arrow> iteration = i.System.Solve(i.Unknowns);
+                                        List<Arrow> iteration = i.Nonlinear.Solve(i.Unknowns);
                                         foreach (Arrow j in iteration)
                                         {
                                             LinqExpression Vt0 = map[j.Left.Evaluate(t_t0)];
                                             body.Add(LinqExpression.Assign(Vt0, j.Right.Compile(map)));
                                             map[j.Left] = Vt0;
                                         }
+
+                                        foreach (Arrow j in i.Linear)
+                                            body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
 
                                         // --it;
                                         body.Add(LinqExpression.PreDecrementAssign(it));
@@ -689,6 +748,8 @@ namespace Circuit
         }
         private void LogTime(MessageType Type, string Message) { LogTime(Type, Message, false); }
 
+        //private void Log(string Text, params object[] Format) { log.WriteLine(MessageType.Info, Text, Format); }
+
         // Shorthand for df/dx.
         private static Expression D(Expression f, Expression x) { return Call.D(f, x); }
 
@@ -749,6 +810,13 @@ namespace Circuit
             foreach (IEnumerable<T> i in x)
                 concat = concat.Concat(i);
             return concat;
+        }
+
+        private static T Pop<T>(List<T> From)
+        {
+            T p = From.Last();
+            From.RemoveAt(From.Count - 1);
+            return p;
         }
     }
 }
