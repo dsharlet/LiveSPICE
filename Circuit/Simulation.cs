@@ -214,12 +214,11 @@ namespace Circuit
                         // Find the equation that will introduce the fewest variables to the system.
                         IEnumerable<Expression> ry = y.Except(fy, ExprRefEquality);
                         List<Expression> candidates = nonlinear.Except(system, ExprRefEquality).ToList();
-                        if (candidates.Any())
-                        {
-                            Expression add = candidates.ArgMin(i => ry.Count(j => j.DependsOn(i)));
-                            system.Add(add);
-                            fy.AddRange(ry.Where(i => add.DependsOn(i)));
-                        }
+                        if (!candidates.Any())
+                            throw new AlgebraException("Underdeterined MNA system");
+                        Expression add = candidates.ArgMin(i => ry.Count(j => j.DependsOn(i)));
+                        system.Add(add);
+                        fy.AddRange(ry.Where(i => add.DependsOn(i)));
                     }
 
                     return new Tuple<List<Expression>, List<Expression>>(system, fy);
