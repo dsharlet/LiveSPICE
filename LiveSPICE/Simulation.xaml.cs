@@ -88,7 +88,7 @@ namespace LiveSPICE
         protected Circuit.Simulation simulation = null;
         protected AudioIo.WaveIo waveIo = null;
 
-        protected Dictionary<SyMath.Expression, double[]> signals = new Dictionary<SyMath.Expression, double[]>();
+        protected Dictionary<SyMath.Expression, double[]> probes = new Dictionary<SyMath.Expression, double[]>();
 
         public Simulation(Circuit.Schematic Simulate)
         {
@@ -127,32 +127,32 @@ namespace LiveSPICE
 
         public void RefreshProbes()
         {
-            lock (signals)
+            lock (probes)
             {
-                Probe[] probes = ((SimulationSchematic)schematic.Schematic).Probes.Where(i => i.ConnectedTo != null).ToArray();
-                signals = probes.ToDictionary(i => i.V, i => new double[0]);
+                probes.Clear();
+                foreach (Probe i in ((SimulationSchematic)schematic.Schematic).Probes.Where(i => i.ConnectedTo != null))
+                {
+                    probes[i.V] = new double[0];
+
+                    // If this signal isn't already in the oscilloscope, add it.
+                    if (!oscilloscope.Signals.Contains(i.V))
+                    {
+                        Pen p;
+                        switch (i.Color)
+                        {
+                            // These two need to be brighter than the normal colors.
+                            case Circuit.EdgeType.Red: p = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
+                            case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(60, 60, 255)), 1.0); break;
+                            default: p = ElementControl.MapToPen(i.Color); break;
+                        }
+                        oscilloscope.AddSignal(i.V, p);
+                    }
+                }
 
                 // Remove signals that aren't being processed from the oscilloscope.
                 foreach (SyMath.Expression i in oscilloscope.Signals.ToArray())
-                    if (!signals.ContainsKey(i))
+                    if (!probes.ContainsKey(i))
                         oscilloscope.RemoveSignal(i);
-
-                // Add signals that aren't already in the oscilloscope.
-                foreach (Probe i in probes)
-                {
-                    if (oscilloscope.Signals.Contains(i.V))
-                        continue;
-
-                    Pen p;
-                    switch (i.Color)
-                    {
-                        // These two need to be brighter than the normal colors.
-                        case Circuit.EdgeType.Red: p = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
-                        case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(60, 60, 255)), 1.0); break;
-                        default: p = ElementControl.MapToPen(i.Color); break;
-                    }
-                    oscilloscope.AddSignal(i.V, p);
-                }
             }
         }
         
@@ -187,20 +187,20 @@ namespace LiveSPICE
                     for (int i = 0; i < Samples.Length; ++i)
                         Samples[i] *= inputGain;
 
-                lock (signals)
+                lock (probes)
                 {
                     // Build the signal list.
-                    foreach (SyMath.Expression i in signals.Keys.ToArray())
-                        if (signals[i].Length < Samples.Length)
-                            signals[i] = new double[Samples.Length];
-                    // Send the output samples to the Samples array.
-                    signals[Output.Value] = Samples;
+                    foreach (SyMath.Expression i in probes.Keys.ToArray())
+                        if (probes[i].Length < Samples.Length)
+                            probes[i] = new double[Samples.Length];
+
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Concat(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
 
                     // Process the samples!
-                    simulation.Process(Input, Samples, signals, Iterations);
+                    simulation.Process(Input, Samples, output, Iterations);
 
                     // Show the samples on the oscilloscope.
-                    oscilloscope.ProcessSignals(simulation.Sample, signals, new Circuit.Quantity(Rate, Circuit.Units.Hz));
+                    oscilloscope.ProcessSignals(Samples.Length, output, new Circuit.Quantity(Rate, Circuit.Units.Hz));
                 }
 
                 // Apply output gain.

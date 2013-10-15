@@ -59,9 +59,9 @@ namespace LiveSPICE
                 signals.SelectedValue = Signal;
         }
 
-        public void ProcessSignals(long LastIndex, IDictionary<SyMath.Expression, double[]> Signals, Circuit.Quantity Rate)
+        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<SyMath.Expression, double[]>> Signals, Circuit.Quantity Rate)
         {
-            scope.ProcessSignals(LastIndex, Signals, Rate);
+            scope.ProcessSignals(SampleCount, Signals, Rate);
         }
 
         // INotifyPropertyChanged.

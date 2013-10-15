@@ -86,7 +86,7 @@ namespace LiveSPICE
             public object Tag { get { return tag; } set { tag = value; } }
 
             // Process new samples for this signal.
-            public void AddSamples(long LastIndex, double[] Samples, int Truncate)
+            public void AddSamples(long Clock, double[] Samples, int Truncate)
             {
                 samples.AddRange(Samples);
                 if (samples.Count > Truncate)
@@ -95,13 +95,13 @@ namespace LiveSPICE
                     samples.RemoveRange(0, remove);
                 }
 
-                last = LastIndex;
+                clock = Clock;
             }
 
-            private long last = 0;
-            public long LastIndex { get { return last; } }
+            private long clock = 0;
+            public long Clock { get { return clock; } }
 
-            public void Clear() { samples.Clear(); last = 0; }
+            public void Clear() { samples.Clear(); clock = 0; }
 
             public int Count { get { return samples.Count; } }
             public double this[int i] 
@@ -135,6 +135,7 @@ namespace LiveSPICE
             set { selected = value; NotifyChanged("SelectedSignal"); } 
         }
 
+        protected long clock = 0;
         protected double Vmax;
         protected Point? tracePoint;
         
@@ -158,9 +159,10 @@ namespace LiveSPICE
             signals.Clear();
             InvalidateVisual();
         }
-        
-        public void ProcessSignals(long LastIndex, IDictionary<SyMath.Expression, double[]> Signals, Circuit.Quantity Rate)
+
+        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<SyMath.Expression, double[]>> Signals, Circuit.Quantity Rate)
         {
+            clock += SampleCount;
             sampleRate = Rate;
 
             int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
@@ -170,14 +172,14 @@ namespace LiveSPICE
             {
                 Signal S;
                 if (signals.TryGetValue(i.Key.ToString(), out S))
-                    lock (S) S.AddSamples(LastIndex, i.Value, truncate);
+                    lock (S) S.AddSamples(clock, i.Value, truncate);
             }
 
             // Remove the signals that we didn't get data for.
-            foreach (KeyValuePair<SyMath.Expression, Signal> i in signals.Where(j => !Signals.ContainsKey(j.Key)))
+            foreach (KeyValuePair<SyMath.Expression, Signal> i in signals.Where(j => j.Value.Clock < clock))
                 lock(i.Value) i.Value.Clear();
 
-            Dispatcher.InvokeAsync(() => InvalidateVisual());
+            Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
         protected override void OnRender(DrawingContext DC)
@@ -201,14 +203,14 @@ namespace LiveSPICE
             double rms = 0.0;
             double f0 = 0.0;
             int align = 0;
-            long lastIndex = 0;
+            long sync = 0;
 
             if (stats != null)
             {
                 lock (stats)
                 {
-                    // Remembe the last sample index to avoid misaligned signals when new data gets added on the other thread.
-                    lastIndex = stats.LastIndex;
+                    // Remembe the clock for when we analyzed the signal to keep the signals in sync even if new data gets added in the background.
+                    sync = stats.Clock;
 
                     // Compute statistics of the clock signal.
                     align = stats.Count;
@@ -264,14 +266,18 @@ namespace LiveSPICE
 
             DrawSignalAxis(DC, bounds);
 
-            foreach (Signal i in signals.Values)
-                lock (i) DrawSignal(DC, bounds, i, align - (int)(i.LastIndex - lastIndex));
+            foreach (Signal i in signals.Values.Except(stats))
+                lock (i) DrawSignal(DC, bounds, i, align - (int)(i.Clock - sync));
+            
+            // Draw the focus signal last.
+            if (stats != null)
+            {
+                lock (stats) DrawSignal(DC, bounds, stats, align - (int)(stats.Clock - sync));
+                DrawStatistics(DC, bounds, stats.Pen.Brush, peak, rms, f0);
+            }
 
             if (tracePoint.HasValue)
                 DrawTrace(DC, bounds, tracePoint.Value);
-
-            if (stats != null)
-                DrawStatistics(DC, bounds, stats.Pen.Brush, peak, rms, f0);
 
             DC.Pop();
         }
