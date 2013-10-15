@@ -44,7 +44,7 @@ namespace LiveSPICE
                 w - pw * 2);
 
             if (ConnectedTo != null)
-                Sym.DrawText(V.ToString(), new Point(5, 10), Alignment.Far, Alignment.Near);
+                Sym.DrawText(V.ToString(), new Point(10, 25), Alignment.Center, Alignment.Near);
         }
     }
 }
