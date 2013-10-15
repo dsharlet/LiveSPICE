@@ -194,7 +194,7 @@ namespace LiveSPICE
                         if (probes[i].Length < Samples.Length)
                             probes[i] = new double[Samples.Length];
 
-                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Concat(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
 
                     // Process the samples!
                     simulation.Process(Input, Samples, output, Iterations);
