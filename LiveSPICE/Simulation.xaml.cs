@@ -104,12 +104,9 @@ namespace LiveSPICE
 
             schematic.Schematic = new SimulationSchematic(clone);
 
-            ContentRendered += (o, e) =>
-            {
-                waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
+            waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
 
-                Build();
-            };
+            Build();
         }
 
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
@@ -155,13 +152,17 @@ namespace LiveSPICE
                         oscilloscope.RemoveSignal(i);
             }
         }
-        
+
+        private BackgroundWorker builder;
         protected void Build()
         {
+            simulation = null;
             try
             {
                 Circuit.Circuit circuit = schematic.Schematic.Schematic.Build(log);
-                simulation = new Circuit.Simulation(circuit, sampleRate, Oversample, log);
+                builder = new BackgroundWorker();
+                builder.DoWork += (o, e) => simulation = new Circuit.Simulation(circuit, sampleRate, Oversample, log);
+                builder.RunWorkerAsync();
             }
             catch (System.Exception ex)
             {
