@@ -43,15 +43,24 @@ namespace Circuit
 
     [CategoryAttribute("Standard")]
     [DisplayName("Diode")]
-    public class Diode : PassiveTwoTerminal
+    public class Diode : TwoTerminal
     {
         protected DiodeModel model = new ShockleyDiodeModel();
 
         public Diode() { Name = "D1"; }
 
-        public override Expression i(Expression V) 
-        { 
-            return model.Evaluate(V); 
+        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        {
+            // Make a new unknown for Va - Vc to reduce the number of non-linear variables.
+
+            // Vac = Va - Vc
+            Expression Vac = DependentVariable("V" + Name, t);
+            Mna.Add(Equal.New(Vac, V));
+            Unknowns.Add(Vac);
+
+            Expression i = model.Evaluate(Vac);
+            Anode.i = i;
+            Cathode.i = -i;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
