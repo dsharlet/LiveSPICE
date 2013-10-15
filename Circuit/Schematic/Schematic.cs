@@ -143,7 +143,7 @@ namespace Circuit
             if (e.Element is Symbol)
                 circuit.Components.Remove(((Symbol)e.Element).Component);
             if (e.Element is Wire)
-                RebuildNodes();
+                RebuildNodes(true);
 
             foreach (Terminal i in e.Element.Terminals)
             {
@@ -167,7 +167,7 @@ namespace Circuit
             Element of = (Element)sender;
 
             if (of is Wire)
-                RebuildNodes();
+                RebuildNodes(true);
             else if (of is Symbol)
                 UpdateTerminals((Symbol)of);
         }
@@ -245,7 +245,7 @@ namespace Circuit
             return n;
         }
 
-        private void RebuildNodes()
+        private void RebuildNodes(bool MovedWire)
         {
             IEnumerable<Wire> wires = Wires;
 
@@ -265,8 +265,9 @@ namespace Circuit
                     i.Node = null;
             }
 
-            foreach (Symbol i in Symbols)
-                UpdateTerminals(i);
+            if (MovedWire)
+                foreach (Symbol i in Symbols)
+                    UpdateTerminals(i);
         }
 
         private void UpdateTerminals(Symbol Of)
@@ -286,7 +287,7 @@ namespace Circuit
 
             // If Of is a named wire, the nodes might have changed.
             if (Of.Component is NamedWire)
-                RebuildNodes();
+                RebuildNodes(false);
         }
 
         private void LogComponents()
