@@ -161,7 +161,17 @@ namespace LiveSPICE
             {
                 Circuit.Circuit circuit = schematic.Schematic.Schematic.Build(log);
                 builder = new BackgroundWorker();
-                builder.DoWork += (o, e) => simulation = new Circuit.Simulation(circuit, sampleRate, Oversample, log);
+                builder.DoWork += (o, e) =>
+                {
+                    try
+                    {
+                        simulation = new Circuit.Simulation(circuit, sampleRate, Oversample, log);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        log.WriteLine(Circuit.MessageType.Error, ex.Message);
+                    }
+                };
                 builder.RunWorkerAsync();
             }
             catch (System.Exception ex)
