@@ -80,7 +80,7 @@ namespace SyMath
         {
             // Solve for the variables in x.
             List<Arrow> result = new List<Arrow>();
-            foreach (Expression i in x)
+            foreach (Expression i in x.Reverse())
             {
                 // Find the row with the pivot variable in this position.
                 LinearCombination row = S.Find(s => i.Equals(s.PivotVariable));
