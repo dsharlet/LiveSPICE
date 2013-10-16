@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Schematic Width="1600" Height="1600">
+<Schematic>
   <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="850,800" Rin="1 MΩ" Rout="100 Ω" Gain="1000000" Name="X1" />
   <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="600,900" Name="GND1" />
   <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="800,900" Name="GND2" />
@@ -9,8 +9,8 @@
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="770,790" B="820,790" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="800,810" B="820,810" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="800,810" B="800,900" />
-  <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Input, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="600,850" Voltage="Vin[t] V" Name="V1" />
-  <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Output, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="1000,850" Signal="Vout[t] V" Name="O1" />
+  <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Input, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="600,850" Name="V1" />
+  <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Output, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="1000,850" Name="O1" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="880,800" B="1000,800" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1000,800" B="1000,830" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1000,870" B="1000,900" />
