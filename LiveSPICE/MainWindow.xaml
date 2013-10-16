@@ -112,10 +112,11 @@
                                 <ls:ComponentLibrary x:Name="components" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
-                        <xcad:LayoutAnchorablePane>
+                        <xcad:LayoutAnchorablePane DockHeight="300">
                             <!-- Properties -->
                             <xcad:LayoutAnchorable Title="Properties" AutoHideWidth="240">
-                                <xctk:PropertyGrid x:Name="properties" NameColumnWidth="110" />
+                                <xctk:PropertyGrid x:Name="properties" NameColumnWidth="110" 
+                                                   ShowAdvancedOptions="False" ShowSearchBox="False" ShowSortOptions="False" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>

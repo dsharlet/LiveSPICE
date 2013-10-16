@@ -74,7 +74,7 @@
                 <xcad:LayoutPanel Orientation="Horizontal">
                     <xcad:LayoutPanel Orientation="Vertical">
                         <!-- Schematics -->
-                        <xcad:LayoutAnchorablePane DockHeight="600">
+                        <xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorable Title="Schematic" CanHide="False" CanFloat="False" CanClose="False" CanAutoHide="False">
                                 <ls:SchematicViewer x:Name="schematic" />
                             </xcad:LayoutAnchorable>
@@ -97,8 +97,8 @@
                         </xcad:LayoutAnchorablePane>
 
                         <!-- Oscilloscope -->
-                        <xcad:LayoutAnchorablePane DockHeight="300">
-                            <xcad:LayoutAnchorable x:Name="oscilloscopeWnd" Title="Oscilloscope">
+                        <xcad:LayoutAnchorablePane>
+                            <xcad:LayoutAnchorable Title="Oscilloscope">
                                 <ls:Oscilloscope x:Name="oscilloscope" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
