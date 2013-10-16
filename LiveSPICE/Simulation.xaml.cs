@@ -165,7 +165,8 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        simulation = new Circuit.LinqCompiledSimulation(circuit, sampleRate, Oversample, log);
+                        Circuit.TransientSolution TS = Circuit.TransientSolution.SolveCircuit(circuit, sampleRate * Oversample, log);
+                        simulation = new Circuit.LinqCompiledSimulation(TS, Oversample, log);
                     }
                     catch (System.Exception ex)
                     {
@@ -208,7 +209,7 @@ namespace LiveSPICE
                     IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
 
                     // Process the samples!
-                    simulation.Process(Input, Samples, output, Iterations);
+                    simulation.Run(Input, Samples, output, Iterations);
 
                     // Show the samples on the oscilloscope.
                     oscilloscope.ProcessSignals(Samples.Length, output, new Circuit.Quantity(Rate, Circuit.Units.Hz));

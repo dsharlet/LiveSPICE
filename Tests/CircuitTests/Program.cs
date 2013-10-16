@@ -16,7 +16,9 @@ namespace CircuitTests
     {
         static readonly Variable t = Component.t;
 
-        static readonly int Iterations = 4;
+        static Quantity SampleRate = new Quantity(48000, Units.Hz);
+        static int Oversample = 8;
+        static int Iterations = 4;
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
@@ -36,7 +38,7 @@ namespace CircuitTests
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
 
-            //Run(@"..\..\..\..\Circuits\SeriesDiodeClipper.xml", Vin);
+            //Run(@"..\..\..\..\Circuits\FilterDiode.xml", Vin);
             //return;
             
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
@@ -65,7 +67,8 @@ namespace CircuitTests
         public static double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
-            Simulation S = new LinqCompiledSimulation(C, new Quantity(48000, Units.Hz), 4, Log);
+            TransientSolution TS = TransientSolution.SolveCircuit(C, SampleRate * Oversample, Log);
+            Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
 
             return RunTest(S, Vin, 4800, System.IO.Path.GetFileNameWithoutExtension(FileName));
@@ -81,21 +84,19 @@ namespace CircuitTests
                 vs[n] = Vin(n * S.TimeStep);
             input.Add("V1[t]", vs);
 
-            Dictionary<Expression, double[]> output = S.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
+            Dictionary<Expression, double[]> output = S.Transient.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
             //Dictionary<Expression, double[]> output = new Expression[] { "Vo[t]" }.ToDictionary(i => i, i => new double[vs.Length]);
             
-            // Ensure that the simulation is compiled before benchmarking.
-            S.Process(1, input, output, Iterations);
+            // Ensure that the simulation is cached before benchmarking.
+            S.Run(1, input, output, Iterations);
             S.Reset();
 
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             timer.Start();
-            S.Process(vs.Length, input, output, Iterations);
+            S.Run(vs.Length, input, output, Iterations);
             timer.Stop();
 
             int t1 = 5000;
-
-            //output.RemoveAll(i => i.Value.Contains(double.NaN) || i.Value.Contains(double.NegativeInfinity) || i.Value.Contains(double.PositiveInfinity));
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))

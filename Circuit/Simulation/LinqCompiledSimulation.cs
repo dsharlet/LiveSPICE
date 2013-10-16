@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,31 +14,31 @@ using ParameterExpression = System.Linq.Expressions.ParameterExpression;
 namespace Circuit
 {
     /// <summary>
-    /// Simulate a circuit.
+    /// Simulate a circuit by compiling the solution via LINQ expressions.
     /// </summary>
     public class LinqCompiledSimulation : Simulation
     {
         // Stores any global state in the simulation (previous state values, mostly).
         private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
-                
+
         /// <summary>
-        /// Create a simulation for the given circuit.
+        /// Create a simulation for the given system solution.
         /// </summary>
-        /// <param name="C">Circuit to simulate.</param>
-        /// <param name="T">Sampling period.</param>
-        public LinqCompiledSimulation(Circuit Circuit, Quantity SampleRate, int Oversample, ILog Log) : base(Circuit, SampleRate, Oversample, Log)
+        /// <param name="Transient">Transient solution to run.</param>
+        /// <param name="Log">Log for simulation output.</param>
+        public LinqCompiledSimulation(TransientSolution Transient, int Oversample, ILog Log) : base(Transient, Oversample, Log)
         {
-            // Create globals for the state variables (differentials).
-            foreach (Arrow i in differential)
+            // Globals for the state variables (differentials).
+            foreach (Arrow i in Transient.Differential)
                 globals[i.Left.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
 
-            // Create globals for iterative unknowns
-            foreach (AlgebraicSystem i in algebraic)
+            // Globals for iterative unknowns
+            foreach (AlgebraicSystem i in Transient.Algebraic)
                 foreach (Expression j in i.Unknowns)
                     globals[j.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             
-            // Create a globals for the value of each f0.
-            foreach (Arrow i in f0)
+            // Globals for the linearization.
+            foreach (Arrow i in Transient.Linearization)
                 globals[i.Left] = new GlobalExpr<double>(0.0);
         }
 
@@ -54,7 +55,7 @@ namespace Circuit
             IEnumerable<KeyValuePair<Expression,double[]>> Input, 
             IEnumerable<KeyValuePair<Expression,double[]>> Output, 
             IEnumerable<Arrow> Arguments, 
-            int Iterations)
+            int Oversample, int Iterations)
         {
             Delegate processor = Compile(Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Left));
 
@@ -76,8 +77,8 @@ namespace Circuit
             processor.DynamicInvoke(parameters.ToArray());
         }
         
-        Dictionary<long, Delegate> compiled = new Dictionary<long, Delegate>();
         // Compile and cache delegates for processing various IO configurations for this simulation.
+        private Dictionary<long, Delegate> compiled = new Dictionary<long, Delegate>();
         private Delegate Compile(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             long hash = Input.OrderedHashCode();
@@ -88,14 +89,17 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            LogTime(MessageType.Info, "Defining sample processing function...", true);
-            LogExpressions("Input:", Input);
-            LogExpressions("Output:", Output);
-            LogExpressions("Parameters:", Parameters);
+            Stopwatch time = new Stopwatch();
+            time.Start();
+
+            Log.WriteLine(MessageType.Info, "[{0} ms] Defining sample processing function...", time.ElapsedMilliseconds);
+            Log.WriteLine(MessageType.Info, "Inputs = {{" + Input.UnSplit(", ") + "}}");
+            Log.WriteLine(MessageType.Info, "Outputs = {{" + Input.UnSplit(", ") + "}}");
+            Log.WriteLine(MessageType.Info, "Parameters = {{" + Parameters.UnSplit(", ") + "}}");
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
-            LogTime(MessageType.Info, "Compiling sample processing function...");
+            Log.WriteLine(MessageType.Info, "[{0} ms] Compiling sample processing function...", time.ElapsedMilliseconds);
             d = lambda.Compile();
-            LogTime(MessageType.Info, "Done.");
+            Log.WriteLine(MessageType.Info, "[{0} ms] Done.", time.ElapsedMilliseconds);
 
             return compiled[hash] = d;
         }
@@ -151,7 +155,7 @@ namespace Circuit
 
             // Trivial timestep expressions that are not a function of the input or t can be set once here (outside the sample loop).
             // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
-            foreach (Arrow i in trivial.Where(i => !i.Right.DependsOn(Input) && !i.Right.DependsOn(Component.t)))
+            foreach (Arrow i in Transient.Trivial.Where(i => !i.Right.DependsOn(Input) && !i.Right.DependsOn(Component.t)))
                 body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
             // for (int n = 0; n < SampleCount; ++n)
@@ -202,17 +206,17 @@ namespace Circuit
                         body.Add(LinqExpression.AddAssign(map[i], dVi[i]));
 
                     // Compile the trivial timestep expressions that are a function of the input.
-                    foreach (Arrow i in trivial.Where(i => !map.ContainsKey(i.Left)))
+                    foreach (Arrow i in Transient.Trivial.Where(i => !map.ContainsKey(i.Left)))
                         body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                     // Compile the differential timestep expressions.
-                    foreach (Arrow i in differential)
+                    foreach (Arrow i in Transient.Differential)
                     {
                         body.Add(LinqExpression.Assign(
                             Declare<double>(locals, map, i.Left),
                             i.Right.Compile(map)));
 
-                        Expression di_dt = D(i.Left, Simulation.t);
+                        Expression di_dt = Call.D(i.Left, Simulation.t);
                         LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
 
                         // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
@@ -221,15 +225,19 @@ namespace Circuit
                             LinqExpression.Subtract(map[i.Left], Vt0)));
                     }
                     // Vt0 = Vt
-                    foreach (Arrow i in differential)
+                    foreach (Arrow i in Transient.Differential)
                         body.Add(LinqExpression.Assign(map[i.Left.Evaluate(t_t0)], map[i.Left]));
 
                     // int it
                     ParameterExpression it = Declare<int>(locals, "it");
 
                     // Compile the algebraic systems' solutions.
-                    foreach (AlgebraicSystem i in algebraic)
+                    foreach (AlgebraicSystem i in Transient.Algebraic)
                     {
+                        // Compile the linear solutions.
+                        foreach (Arrow j in i.Linear)
+                            body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
+                        
                         // it = Oversample
                         // do { ... --it } while(it > 0)
                         body.Add(LinqExpression.Assign(it, Iterations));
@@ -248,17 +256,17 @@ namespace Circuit
                             body.Add(LinqExpression.PreDecrementAssign(it));
                         }, LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
 
-                        // Compile the linear solutions.
-                        foreach (Arrow j in i.Linear)
+                        // Compile the dependent solutions.
+                        foreach (Arrow j in i.Dependent)
                             body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
                     }
 
                     // Update f0.
-                    foreach (Arrow i in f0)
+                    foreach (Arrow i in Transient.Linearization)
                         body.Add(LinqExpression.Assign(map[i.Left], i.Right.Compile(map)));
 
                     // Compile the component voltage expressions.
-                    foreach (Arrow i in components.Where(i => !map.ContainsKey(i.Left)))
+                    foreach (Arrow i in Transient.Components.Where(i => !map.ContainsKey(i.Left)))
                         body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                     // t0 = t
