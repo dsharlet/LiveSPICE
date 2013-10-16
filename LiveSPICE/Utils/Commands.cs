@@ -9,13 +9,18 @@ namespace LiveSPICE
 {
     public static class CustomCommands
     {
-        public static RoutedCommand Exit { get { return exitCommand; } }
+        public static RoutedCommand Exit { get { return exit; } }
+        public static RoutedCommand SaveAll { get { return saveAll; } }
 
         static CustomCommands()
         {
-            exitCommand = new RoutedUICommand("Exit", "Exit", typeof(CustomCommands));
-            exitCommand.InputGestures.Add(new KeyGesture(Key.F4, ModifierKeys.Alt));
+            exit = new RoutedUICommand("Exit", "Exit", typeof(CustomCommands));
+            exit.InputGestures.Add(new KeyGesture(Key.F4, ModifierKeys.Alt));
+
+            saveAll = new RoutedUICommand("Save All", "Save All", typeof(CustomCommands));
+            saveAll.InputGestures.Add(new KeyGesture(Key.S, ModifierKeys.Control | ModifierKeys.Shift));
         }
-        static RoutedCommand exitCommand;
+        static RoutedCommand exit;
+        static RoutedCommand saveAll;
     }
 }

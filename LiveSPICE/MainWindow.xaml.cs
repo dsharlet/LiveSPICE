@@ -84,14 +84,26 @@ namespace LiveSPICE
                 OpenFileDialog d = new OpenFileDialog();
                 d.Filter = "Circuit Schematics|*" + SchematicEditor.FileExtension;
                 d.DefaultExt = SchematicEditor.FileExtension;
+                d.Multiselect = true;
                 if (d.ShowDialog(this) ?? false)
-                    New(SchematicEditor.Open(d.FileName));
+                {
+                    foreach (string i in d.FileNames)
+                        New(SchematicEditor.Open(i));
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(this, ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        private void SaveAll_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach (SchematicViewer i in schematics.Children.Select(i => i.Content).OfType<SchematicViewer>())
+                if (!((SchematicEditor)i.Schematic).Save())
+                    break;
+
+        }
+
         private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveViewer != null; }
         private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { dock.SaveLayout("EditConfig.xml"); ActiveContent.Close(); }
         

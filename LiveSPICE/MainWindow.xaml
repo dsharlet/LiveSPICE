@@ -14,6 +14,7 @@
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="New_Executed" />
         <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed" />
+        <CommandBinding Command="{x:Static ls:CustomCommands.SaveAll}" Executed="SaveAll_Executed" />
         <CommandBinding Command="ApplicationCommands.Close" CanExecute="Close_CanExecute" Executed="Close_Executed" />
 
         <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" />
@@ -39,6 +40,7 @@
                 <MenuItem Command="ApplicationCommands.Open" />
                 <MenuItem Command="ApplicationCommands.Save" />
                 <MenuItem Command="ApplicationCommands.SaveAs" />
+                <MenuItem Command="{x:Static ls:CustomCommands.SaveAll}" />
                 <MenuItem Command="ApplicationCommands.Close" />
                 <Separator />
                 <MenuItem Command="{x:Static ls:CustomCommands.Exit}" />
@@ -70,6 +72,7 @@
                 <Button Command="ApplicationCommands.New" Content="New" />
                 <Button Command="ApplicationCommands.Open" Content="Open" />
                 <Button Command="ApplicationCommands.Save" Content="Save" />
+                <Button Command="{x:Static ls:CustomCommands.SaveAll}" Content="Save All" />
                 <Separator />
                 <Button Command="ApplicationCommands.Undo" Content="Undo" />
                 <Button Command="ApplicationCommands.Redo" Content="Redo" />
