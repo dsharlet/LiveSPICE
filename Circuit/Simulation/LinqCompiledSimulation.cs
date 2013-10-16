@@ -93,9 +93,9 @@ namespace Circuit
             time.Start();
 
             Log.WriteLine(MessageType.Info, "[{0} ms] Defining sample processing function...", time.ElapsedMilliseconds);
-            Log.WriteLine(MessageType.Info, "Inputs = {{" + Input.UnSplit(", ") + "}}");
-            Log.WriteLine(MessageType.Info, "Outputs = {{" + Input.UnSplit(", ") + "}}");
-            Log.WriteLine(MessageType.Info, "Parameters = {{" + Parameters.UnSplit(", ") + "}}");
+            Log.WriteLine(MessageType.Info, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
+            Log.WriteLine(MessageType.Info, "Outputs = {{ " + Input.UnSplit(", ") + " }}");
+            Log.WriteLine(MessageType.Info, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
             LinqExpressions.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
             Log.WriteLine(MessageType.Info, "[{0} ms] Compiling sample processing function...", time.ElapsedMilliseconds);
             d = lambda.Compile();

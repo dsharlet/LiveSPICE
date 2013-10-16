@@ -125,7 +125,7 @@ namespace Circuit
             List<Expression> y = new List<Expression>();
             List<Equal> mna = new List<Equal>();
             Circuit.Analyze(mna, y);
-            LogExpressions(Log, "MNA system of " + mna.Count + " equations and " + y.Count + " unknowns = {{" + y.UnSplit(", ") + "}}", mna);
+            LogExpressions(Log, "MNA system of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
 
             Log.WriteLine(MessageType.Info, "[{0} ms] Solving MNA system...", time.ElapsedMilliseconds);
 
@@ -229,7 +229,7 @@ namespace Circuit
                 //    }
                 //}
 
-                LogExpressions(Log, "Nonlinear system of " + block.Count + " equations and " + by.Count + " unknowns {{" + by.UnSplit(", ") + "}}:", block.Select(i => Equal.New(i, 0)));
+                LogExpressions(Log, "Nonlinear system of " + block.Count + " equations and " + by.Count + " unknowns {{ " + by.UnSplit(", ") + " }}:", block.Select(i => Equal.New(i, 0)));
                 LogExpressions(Log, "Dependent solutions:", dependent);
                 
                 algebraic.Add(new AlgebraicSystem(
