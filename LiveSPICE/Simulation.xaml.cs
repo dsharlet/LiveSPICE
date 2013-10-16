@@ -139,7 +139,7 @@ namespace LiveSPICE
                         {
                             // These two need to be brighter than the normal colors.
                             case Circuit.EdgeType.Red: p = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
-                            case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(60, 60, 255)), 1.0); break;
+                            case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(20, 180, 255)), 1.0); break;
                             default: p = ElementControl.MapToPen(i.Color); break;
                         }
                         oscilloscope.AddSignal(i.V, p);
