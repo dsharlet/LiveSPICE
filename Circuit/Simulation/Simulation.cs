@@ -55,7 +55,7 @@ namespace Circuit
         public int Oversample { get { return oversample; } }
 
         /// <summary>
-        /// The sampling rate of this simulation.
+        /// The sampling rate of this simulation, the sampling rate of the transient solution divided by the oversampling factor.
         /// </summary>
         public Quantity SampleRate { get { return Transient.SampleRate / oversample; } }
 
@@ -66,8 +66,8 @@ namespace Circuit
         /// <param name="Log">Log for simulation output.</param>
         public Simulation(TransientSolution Transient, int Oversample, ILog Log)
         {
-            oversample = Oversample;
             transient = Transient;
+            oversample = Oversample;
             log = Log;
         }
 
@@ -104,12 +104,22 @@ namespace Circuit
             // Call the implementation of process.
             Process(n, TimeStep, N, Input, Output, Arguments, Oversample, Iterations);
 
-            // Check the last samples for infinity/NaN.
+            // Check the last output samples for infinity/NaN.
             foreach (KeyValuePair<Expression, double[]> i in Output)
             {
                 double v = i.Value[i.Value.Length - 1];
-                if (double.IsInfinity(v) || double.IsNaN(v))
-                    throw new OverflowException("Simulation diverged after t=" + Quantity.ToString(Time, Units.s));
+                if (!IsReal(v))
+                {
+                    // If any last sample isn't real, find exactly where this simulation diverged.
+                    int diverged = Output.Min(j =>
+                    {
+                        for (int k = 0; k < j.Value.Length; ++k)
+                            if (!IsReal(j.Value[k]))
+                                return k;
+                        return j.Value.Length;
+                    });
+                    throw new OverflowException("Simulation diverged at t = " + Quantity.ToString(Time, Units.s) + " + " + diverged);
+                }
             }
 
             n += N;
@@ -148,5 +158,7 @@ namespace Circuit
                 new KeyValuePair<Expression, double[]>[] { new KeyValuePair<Expression, double[]>(OutputNode, OutputSamples) },
                 Iterations);
         }
+
+        private static bool IsReal(double x) { return !double.IsNaN(x) && !double.IsInfinity(x); }
     }
 }
