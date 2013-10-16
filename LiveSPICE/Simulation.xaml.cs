@@ -165,7 +165,7 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        simulation = new Circuit.Simulation(circuit, sampleRate, Oversample, log);
+                        simulation = new Circuit.LinqCompiledSimulation(circuit, sampleRate, Oversample, log);
                     }
                     catch (System.Exception ex)
                     {

@@ -65,7 +65,7 @@ namespace CircuitTests
         public static double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
-            Simulation S = new Simulation(C, new Quantity(48000, Units.Hz), 4, Log);
+            Simulation S = new LinqCompiledSimulation(C, new Quantity(48000, Units.Hz), 4, Log);
             System.Console.WriteLine("");
 
             return RunTest(S, Vin, 4800, System.IO.Path.GetFileNameWithoutExtension(FileName));
