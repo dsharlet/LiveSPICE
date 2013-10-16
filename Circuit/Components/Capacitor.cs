@@ -29,11 +29,9 @@ namespace Circuit
             Unknowns.Add(Vac);
             
             // i = C*dV/dt.
-            Expression dVac_dt = D(Vac, t);
-            Expression i = capacitance.Value * dVac_dt;
+            Expression i = capacitance.Value * D(Vac, t);
             Anode.i = i;
             Cathode.i = -i;
-            Unknowns.Add(dVac_dt);
         }
                 
         protected override void DrawSymbol(SymbolLayout Sym)

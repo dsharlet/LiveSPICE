@@ -157,6 +157,10 @@ namespace Circuit
 
             LogTime(MessageType.Info, "Solving MNA system...");
 
+            // Separate y into differential and algebraic unknowns.
+            List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
+            y.AddRange(dy_dt);
+
             // Find trivial solutions for y and substitute them into the system.
             trivial = mna.Solve(y);
             trivial.RemoveAll(i => i.Right.DependsOn(y));
@@ -170,9 +174,8 @@ namespace Circuit
             List<Equal> linearized = ExtractNonLinear(mna, y, f0);
             LogExpressions("Linearized system:", linearized);
             LogExpressions("Non-linear terms:", f0);
-            
-            // Separate y into differential and algebraic unknowns.
-            List<Expression> dy_dt = y.Where(i => IsD(i, t)).ToList();
+
+            // Solve for differential solutions to the linearized system.
             y.RemoveAll(i => IsD(i, t));
             differential = linearized
                 // Solve for the algebraic unknowns in terms of the rest and substitute them.
@@ -237,16 +240,31 @@ namespace Circuit
                 linear.RemoveAll(i => i.Right.DependsOn(by));
                 by.RemoveAll(i => linear.Any(j => j.Left == i));
                 block = block.Evaluate(linear).Where(i => i.DependsOn(by)).ToList();
-                
+
                 // Now that we know solutions to by, we might be able to find other solutions too.
                 linear.AddRange(IndependentSolutions(mna.PartialSolve(y), y));
                 y.RemoveAll(i => linear.Any(j => j.Left == i));
+
+                //for (int r = 1; r <= y.Count; ++r)
+                //{
+                //    foreach (IEnumerable<Expression> yi in y.Combinations(r))
+                //    {
+                //        List<Arrow> s = IndependentSolutions(mna.PartialSolve(yi), y).ToList();
+                //        if (!s.Empty())
+                //        {
+                //            linear.AddRange(s);
+                //            y.RemoveAll(i => s.Any(j => j.Left == i));
+                //            r = 0;
+                //            break;
+                //        }
+                //    }
+                //}
 
                 LogExpressions("Nonlinear system of " + block.Count + " equations and " + by.Count + " unknowns {{" + by.UnSplit(", ") + "}}:", block.Select(i => Equal.New(i, 0)));
                 LogExpressions("Linear solutions (including MNA system):", linear);
                 
                 algebraic.Add(new AlgebraicSystem(
-                    block.NewtonRhapson(by.Select(i => Arrow.New(i, i.Evaluate(t, t0)))),
+                    NewtonIteration(block, by.Select(i => Arrow.New(i, i.Evaluate(t, t0)))),
                     by,
                     linear));
 
@@ -265,6 +283,13 @@ namespace Circuit
                 .ToList();
             
             LogTime(MessageType.Info, "System solved.");
+        }
+
+        private static List<Equal> NewtonIteration(IEnumerable<Expression> f, IEnumerable<Arrow> y)
+        {
+            return f.NewtonRhapson(y);
+            List<Expression> F = f.ToList();
+
         }
 
         /// <summary>
@@ -441,133 +466,129 @@ namespace Circuit
                 LinqExpression.LessThan(n, SampleCount),
                 () => body.Add(LinqExpression.PreIncrementAssign(n)),
                 () =>
+            {
+                // Prepare input samples for oversampling interpolation.
+                Dictionary<Expression, LinqExpression> dVi = new Dictionary<Expression, LinqExpression>();
+                foreach (Expression i in Input)
                 {
-                    // Prepare input samples for oversampling interpolation.
-                    Dictionary<Expression, LinqExpression> dVi = new Dictionary<Expression, LinqExpression>();
+                    LinqExpression Va = map[i.Evaluate(t_t0)];
+                    LinqExpression Vb = LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n });
+
+                    // double Vi = Va
+                    body.Add(LinqExpression.Assign(Declare<double>(locals, map, i, i.ToString()), Va));
+
+                    // dVi = (Vb - Vi) / Oversample
+                    body.Add(LinqExpression.Assign(
+                        Declare<double>(locals, dVi, i, "d" + i.ToString().Replace("[t]", "")),
+                        LinqExpression.Multiply(LinqExpression.Subtract(Vb, Va), invOversample)));
+
+                    // Va = Vb
+                    body.Add(LinqExpression.Assign(Va, Vb));
+                }
+
+                // Prepare output sample accumulators for low pass filtering.
+                Dictionary<Expression, LinqExpression> Vo = new Dictionary<Expression, LinqExpression>();
+                foreach (Expression i in Output)
+                    body.Add(LinqExpression.Assign(
+                        Declare<double>(locals, Vo, i, i.ToString().Replace("[t]", "")),
+                        LinqExpression.Constant(0.0)));
+
+                // int ov = Oversample; 
+                // do { -- ov; } while(ov > 0)
+                ParameterExpression ov = Declare<int>(locals, "ov");
+                body.Add(LinqExpression.Assign(ov, Oversample));
+                DoWhile(body,() =>
+                {
+                    // t += h
+                    body.Add(LinqExpression.AddAssign(t, h));
+
+                    // Interpolate the input samples.
                     foreach (Expression i in Input)
+                        body.Add(LinqExpression.AddAssign(map[i], dVi[i]));
+
+                    // Compile the trivial timestep expressions that are a function of the input.
+                    foreach (Arrow i in trivial.Where(i => !map.ContainsKey(i.Left)))
+                        body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
+
+                    // Compile the differential timestep expressions.
+                    foreach (Arrow i in differential)
                     {
-                        LinqExpression Va = map[i.Evaluate(t_t0)];
-                        LinqExpression Vb = LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n });
-
-                        // double Vi = Va
-                        body.Add(LinqExpression.Assign(Declare<double>(locals, map, i, i.ToString()), Va));
-
-                        // dVi = (Vb - Vi) / Oversample.
                         body.Add(LinqExpression.Assign(
-                            Declare<double>(locals, dVi, i, "d" + i.ToString().Replace("[t]", "")),
-                            LinqExpression.Multiply(LinqExpression.Subtract(Vb, Va), invOversample)));
+                            Declare<double>(locals, map, i.Left),
+                            i.Right.Compile(map)));
 
-                        // Va = Vb
-                        body.Add(LinqExpression.Assign(Va, Vb));
+                        Expression di_dt = D(i.Left, Simulation.t);
+                        LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
+
+                        // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
+                        body.Add(LinqExpression.Assign(
+                            Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
+                            LinqExpression.Subtract(map[i.Left], Vt0)));
                     }
+                    // Vt0 = Vt
+                    foreach (Arrow i in differential)
+                        body.Add(LinqExpression.Assign(map[i.Left.Evaluate(t_t0)], map[i.Left]));
 
-                    // Prepare output sample accumulators for low pass filtering.
-                    Dictionary<Expression, LinqExpression> Vo = new Dictionary<Expression, LinqExpression>();
-                    foreach (Expression i in Output)
-                        body.Add(LinqExpression.Assign(
-                            Declare<double>(locals, Vo, i, i.ToString().Replace("[t]", "")),
-                            LinqExpression.Constant(0.0)));
+                    // int it
+                    ParameterExpression it = Declare<int>(locals, "it");
 
-                    // int ov = Oversample; 
-                    // do { -- ov; } while(ov > 0)
-                    ParameterExpression ov = Declare<int>(locals, "ov");
-                    body.Add(LinqExpression.Assign(ov, Oversample));
-                    DoWhile(body,
-                        () =>
+                    // Compile the algebraic systems' solutions.
+                    foreach (AlgebraicSystem i in algebraic)
+                    {
+                        // it = Oversample
+                        // do { ... --it } while(it > 0)
+                        body.Add(LinqExpression.Assign(it, Iterations));
+                        DoWhile(body, () =>
                         {
-                            // t += h
-                            body.Add(LinqExpression.AddAssign(t, h));
-
-                            // Interpolate the input samples.
-                            foreach (Expression i in Input)
-                                body.Add(LinqExpression.AddAssign(map[i], dVi[i]));
-
-                            // Compile the trivial timestep expressions that are a function of the input.
-                            foreach (Arrow i in trivial.Where(i => !map.ContainsKey(i.Left)))
-                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
-
-                            // Compile the differential timestep expressions.
-                            foreach (Arrow i in differential)
+                            // Compile the numerical scheme to solve this system.
+                            List<Arrow> iteration = i.Nonlinear.Solve(i.Unknowns);
+                            foreach (Arrow j in iteration)
                             {
-                                body.Add(LinqExpression.Assign(
-                                    Declare<double>(locals, map, i.Left),
-                                    i.Right.Compile(map)));
-
-                                Expression di_dt = D(i.Left, Simulation.t);
-                                LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
-
-                                // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
-                                body.Add(LinqExpression.Assign(
-                                    Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
-                                    LinqExpression.Subtract(map[i.Left], Vt0)));
-                            }
-                            // Vt0 = Vt
-                            foreach (Arrow i in differential)
-                                body.Add(LinqExpression.Assign(map[i.Left.Evaluate(t_t0)], map[i.Left]));
-
-                            // int it
-                            ParameterExpression it = Declare<int>(locals, "it");
-
-                            // Compile the algebraic systems' solutions.
-                            foreach (AlgebraicSystem i in algebraic)
-                            {
-                                // it = Oversample
-                                // do { ... --it } while(it > 0)
-                                body.Add(LinqExpression.Assign(it, Iterations));
-                                DoWhile(body,
-                                    () =>
-                                    {
-                                        // Compile the numerical scheme to solve this system.
-                                        List<Arrow> iteration = i.Nonlinear.Solve(i.Unknowns);
-                                        foreach (Arrow j in iteration)
-                                        {
-                                            LinqExpression Vt0 = map[j.Left.Evaluate(t_t0)];
-                                            body.Add(LinqExpression.Assign(Vt0, j.Right.Compile(map)));
-                                            map[j.Left] = Vt0;
-                                        }
-
-                                        // --it;
-                                        body.Add(LinqExpression.PreDecrementAssign(it));
-                                    },
-                                    LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
-
-                                // Compile the linear solutions.
-                                foreach (Arrow j in i.Linear)
-                                    body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
+                                LinqExpression Vt0 = map[j.Left.Evaluate(t_t0)];
+                                body.Add(LinqExpression.Assign(Vt0, j.Right.Compile(map)));
+                                map[j.Left] = Vt0;
                             }
 
-                            // Update f0.
-                            foreach (Arrow i in f0)
-                                body.Add(LinqExpression.Assign(map[i.Left], i.Right.Compile(map)));
+                            // --it;
+                            body.Add(LinqExpression.PreDecrementAssign(it));
+                        }, LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
 
-                            // Compile the component voltage expressions.
-                            foreach (Arrow i in components.Where(i => !map.ContainsKey(i.Left)))
-                                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
-
-                            // t0 = t
-                            body.Add(LinqExpression.Assign(t0, t));
-
-                            // Vo += i
-                            foreach (Expression i in Output)
-                                body.Add(LinqExpression.AddAssign(Vo[i], CompileOrWarn(i, map)));
-
-                            // Vi_t0 = Vi
-                            foreach (Expression i in Input)
-                                body.Add(LinqExpression.Assign(map[i.Evaluate(t_t0)], map[i]));
-
-                            // --ov;
-                            body.Add(LinqExpression.PreDecrementAssign(ov));
-                        },
-                        LinqExpression.GreaterThan(ov, LinqExpression.Constant(0)));
-
-                    // Output[i][n] = Vo / Oversample
-                    foreach (Expression i in Output)
-                    {
-                        body.Add(LinqExpression.Assign(
-                            LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n }),
-                            LinqExpression.Multiply(Vo[i], invOversample)));
+                        // Compile the linear solutions.
+                        foreach (Arrow j in i.Linear)
+                            body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
                     }
-                });
+
+                    // Update f0.
+                    foreach (Arrow i in f0)
+                        body.Add(LinqExpression.Assign(map[i.Left], i.Right.Compile(map)));
+
+                    // Compile the component voltage expressions.
+                    foreach (Arrow i in components.Where(i => !map.ContainsKey(i.Left)))
+                        body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
+
+                    // t0 = t
+                    body.Add(LinqExpression.Assign(t0, t));
+
+                    // Vo += i
+                    foreach (Expression i in Output)
+                        body.Add(LinqExpression.AddAssign(Vo[i], CompileOrWarn(i, map)));
+
+                    // Vi_t0 = Vi
+                    foreach (Expression i in Input)
+                        body.Add(LinqExpression.Assign(map[i.Evaluate(t_t0)], map[i]));
+
+                    // --ov;
+                    body.Add(LinqExpression.PreDecrementAssign(ov));
+                }, LinqExpression.GreaterThan(ov, LinqExpression.Constant(0)));
+
+                // Output[i][n] = Vo / Oversample
+                foreach (Expression i in Output)
+                {
+                    body.Add(LinqExpression.Assign(
+                        LinqExpression.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpression[] { n }),
+                        LinqExpression.Multiply(Vo[i], invOversample)));
+                }
+            });
 
             // Copy the global state variables back to the globals.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)

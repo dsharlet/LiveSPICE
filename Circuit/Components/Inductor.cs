@@ -31,9 +31,7 @@ namespace Circuit
             Unknowns.Add(i);
 
             // V = i*di/dt
-            Expression di_dt = D(i, t);
-            Mna.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * di_dt));
-            Unknowns.Add(di_dt);
+            Mna.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * D(i, t)));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
