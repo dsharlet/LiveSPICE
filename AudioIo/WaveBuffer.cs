@@ -20,6 +20,9 @@ namespace AudioIo
         private int size;
         private bool disposed = false;
 
+        public IntPtr Buffer { get { return buffer; } }
+        public int Size { get { return size; } }
+
         public WaveBuffer(IntPtr hWaveIn, IntPtr hWaveOut, int Size)
         {
             handle = GCHandle.Alloc(this);
