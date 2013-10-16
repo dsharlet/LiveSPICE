@@ -88,7 +88,7 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            LogTime(MessageType.Info, "Defining sample processing function...");
+            LogTime(MessageType.Info, "Defining sample processing function...", true);
             LogExpressions("Input:", Input);
             LogExpressions("Output:", Output);
             LogExpressions("Parameters:", Parameters);
