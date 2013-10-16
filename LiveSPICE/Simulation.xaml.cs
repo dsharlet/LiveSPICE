@@ -57,7 +57,7 @@ namespace LiveSPICE
             set { sampleRate.Set(value); NotifyChanged("SampleRate"); }
         }
 
-        protected Circuit.Quantity latency = new Circuit.Quantity(30e-3m, Circuit.Units.s);
+        protected Circuit.Quantity latency = new Circuit.Quantity(50e-3m, Circuit.Units.s);
         public Circuit.Quantity Latency
         {
             get { return latency; }
@@ -220,12 +220,12 @@ namespace LiveSPICE
                     for (int i = 0; i < Samples.Length; ++i)
                         Samples[i] *= outputGain;
             }
-            catch (OverflowException ex)
-            {
-                // If the simulation diverged, reset it and hope it doesn't happen again.
-                log.WriteLine(Circuit.MessageType.Error, ex.Message);
-                simulation.Reset();
-            }
+            //catch (OverflowException ex)
+            //{
+            //    // If the simulation diverged, reset it and hope it doesn't happen again.
+            //    log.WriteLine(Circuit.MessageType.Error, ex.Message);
+            //    simulation.Reset();
+            //}
             catch (Exception ex)
             {
                 // If there was a more serious error, kill the simulation so the user can fix it.
