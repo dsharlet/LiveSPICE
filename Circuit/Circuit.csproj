@@ -100,7 +100,7 @@
     <Compile Include="Utils\Units.cs" />
     <Compile Include="Utils\QuantityConverter.cs" />
     <Compile Include="Utils\Coord.cs" />
-    <Compile Include="Simulation.cs" />
+    <Compile Include="Simulation\Simulation.cs" />
     <Compile Include="SymbolLayout.cs" />
     <Compile Include="Component.cs" />
     <Compile Include="Components\Capacitor.cs" />
