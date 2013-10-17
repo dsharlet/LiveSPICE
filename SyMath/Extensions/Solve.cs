@@ -27,7 +27,7 @@ namespace SyMath
         /// </summary>
         /// <param name="S"></param>
         /// <param name="x"></param>
-        public static void ToRowEchelon(this List<LinearCombination> S, IEnumerable<Expression> x)
+        public static void ToRowEchelon(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
         {
             foreach (Expression PivotVariable in x)
             {
@@ -47,7 +47,7 @@ namespace SyMath
         /// </summary>
         /// <param name="S"></param>
         /// <returns></returns>
-        public static void BackSubstitute(this List<LinearCombination> S)
+        public static void BackSubstitute(this IEnumerable<LinearCombination> S)
         {
             foreach (LinearCombination PivotRow in S.Where(i => !ReferenceEquals(i.PivotVariable, null)))
             {
