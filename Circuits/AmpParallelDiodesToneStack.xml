@@ -47,7 +47,7 @@
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1170,900" B="1200,900" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1200,1020" B="1200,1050" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1170,1000" B="1180,1000" />
-  <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Output, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="1300,900" Name="O2" />
+  <Element ElementType="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="Circuit.Output, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="1300,900" Name="O1" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1220,850" B="1300,850" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1300,850" B="1300,880" />
   <Element ElementType="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="1300,920" B="1300,950" />
