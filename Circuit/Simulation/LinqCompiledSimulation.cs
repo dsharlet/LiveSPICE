@@ -102,18 +102,7 @@ namespace Circuit
 
             return compiled[hash] = d;
         }
-
-        public static void PrintMatrix(double[,] m)
-        {
-            //for (int i = 0; i < m.GetLength(0); ++i)
-            //{
-            //    for (int j = 0; j < m.GetLength(1); ++j)
-            //        System.Console.Write(m[i, j] + ",\t");
-            //    System.Console.WriteLine("");
-            //}
-            //System.Console.WriteLine("");
-        }
-
+        
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
         //  { ... }
@@ -245,8 +234,6 @@ namespace Circuit
                                 // Build the system.
                                 LinqExpr JxF = JxFs[S];
 
-                                LinqExpr Dump = LinqExpr.Call(typeof(LinqCompiledSimulation).GetMethod("PrintMatrix"), JxF);
-
                                 LinearCombination[] eqs = S.Equations.ToArray();
                                 Expression[] vars = S.Updates.ToArray();
 
@@ -261,9 +248,7 @@ namespace Circuit
                                         LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i), LinqExpr.Constant(vars.Length)),
                                         eqs[i][Constant.One].Compile(map)));
                                 }
-
-                                body.Add(Dump);
-
+                                
                                 // Gaussian elimination on this turd.
 
                                 // For each variable in the system...
@@ -299,9 +284,7 @@ namespace Circuit
                                             LinqExpr.Assign(temp, LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x))),
                                             LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x)), LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x))),
                                             LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x)), temp))))));
-
-                                    body.Add(Dump);
-
+                                    
                                     LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxF, j, j));
 
                                     // Eliminate the rows after the pivot.
@@ -320,8 +303,6 @@ namespace Circuit
                                             () => body.Add(LinqExpr.PreIncrementAssign(jj)),
                                             () => body.Add(LinqExpr.SubtractAssign(LinqExpr.ArrayAccess(JxF, i, jj), LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, j, jj), s))));
                                     });
-
-                                    body.Add(Dump);
                                 });
 
                                 // JxF is now upper triangular, solve.
@@ -343,9 +324,7 @@ namespace Circuit
 
                                 // TODO: Break early if all the updates are small.
                                 //body.Add(LinqExpression.Goto(exit));
-
-                                //body.Add(LinqExpr.Throw(LinqExpr.New(typeof(System.Exception))));
-
+                                
                                 // --it;
                                 body.Add(LinqExpr.PreDecrementAssign(it));
                             }, LinqExpr.GreaterThan(it, LinqExpr.Constant(0)));
