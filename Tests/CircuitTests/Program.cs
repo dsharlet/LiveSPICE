@@ -17,12 +17,13 @@ namespace CircuitTests
         static readonly Variable t = Component.t;
 
         static Quantity SampleRate = new Quantity(48000, Units.Hz);
+        static int Samples = 5000;
         static int Oversample = 8;
         static int Iterations = 4;
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
-        static Function V1 = Harmonics(t, 82, 4);
+        static Function V1 = Harmonics(t, 1.0, 82, 4);
         
         static void Main(string[] args)
         {
@@ -31,7 +32,7 @@ namespace CircuitTests
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
 
-            Run(@"..\..\..\..\Circuits\AmpDiodeResistorDiodeLoad.xml", Vin);
+            Run(@"..\..\..\..\Circuits\VoltageDivider.xml", Vin);
             //return;
             
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
@@ -64,7 +65,7 @@ namespace CircuitTests
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
 
-            return RunTest(S, Vin, 4800, System.IO.Path.GetFileNameWithoutExtension(FileName));
+            return RunTest(S, Vin, Samples, System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
         public static double RunTest(Simulation S, Func<double, double> Vin, int N, string Name)
@@ -89,7 +90,7 @@ namespace CircuitTests
             S.Run(vs.Length, input, output, Iterations);
             timer.Stop();
 
-            int t1 = 5000;
+            int t1 = Math.Min(N, 5000);
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
@@ -107,12 +108,12 @@ namespace CircuitTests
         }
 
         // Generate a function with the first N harmonics of f0.
-        static Function Harmonics(Variable t, Expression f0, int N)
+        static Function Harmonics(Variable t, Expression A, Expression f0, int N)
         {
             Expression s = 0;
             for (int i = 1; i <= N; ++i)
                 s += Call.Sin(t * f0 * 2 * 3.1415m * i) / N;
-            return ExprFunction.New(s, t);
+            return ExprFunction.New(A * s, t);
         }
     }
 }
