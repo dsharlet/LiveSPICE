@@ -39,8 +39,7 @@ namespace Circuit
         [Browsable(false)]
         public object Tag { get { return tag; } set { tag = value; } }
 
-        public Node() : this("v1") { }
-        public Node(string Name) { v = Call.New(ExprFunction.New(Name, Component.t), Component.t); }
+        public Node() { Name = "v1"; }
 
         protected List<Terminal> connected = new List<Terminal>();
         public void Disconnect(Terminal T) { connected.Remove(T); }
@@ -53,7 +52,7 @@ namespace Circuit
         /// <summary>
         /// Voltage at this node.
         /// </summary>
-        public Call V { get { return v; } }
+        public Expression V { get { return v; } }
 
         /// <summary>
         /// Sum of currents at this node.

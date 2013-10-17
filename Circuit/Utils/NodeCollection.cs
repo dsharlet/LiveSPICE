@@ -28,7 +28,7 @@ namespace Circuit
                 if (n != null)
                     return n;
 
-                n = new Node(Name);
+                n = new Node() { Name = Name };
                 x.Add(n);
                 return n;
             }

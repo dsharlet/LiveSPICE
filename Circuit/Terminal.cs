@@ -23,7 +23,7 @@ namespace Circuit
 
         public Terminal(Component Owner) 
         {
-            unconnected = Call.New(ExprFunction.New("_v" + Interlocked.Increment(ref count), Component.t), Component.t);
+            unconnected = Component.DependentVariable("_v" + Interlocked.Increment(ref count), Component.t);
             owner = Owner; 
         }
         public Terminal(Component Owner, string Name) : this(Owner) { name = Name; }

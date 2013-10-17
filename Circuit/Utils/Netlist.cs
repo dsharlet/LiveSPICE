@@ -35,7 +35,7 @@ namespace Circuit
                 nodes[i] = C.Nodes.SingleOrDefault(j => j.Name == name);
                 if (nodes[i] == null)
                 {
-                    nodes[i] = new Node(name);
+                    nodes[i] = new Node() { Name = name };
                     C.Nodes.Add(nodes[i]);
                 }
             }
