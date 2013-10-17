@@ -168,7 +168,7 @@ namespace LiveSPICE
         
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Simulation simulation = new Simulation(ActiveSchematic.Schematic);
+            TransientSimulation simulation = new TransientSimulation(ActiveSchematic.Schematic);
             simulation.Owner = this;
             simulation.Show();
         }

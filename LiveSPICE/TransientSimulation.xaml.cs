@@ -20,7 +20,7 @@ namespace LiveSPICE
     /// <summary>
     /// Interaction logic for Simulation.xaml
     /// </summary>
-    public partial class Simulation : Window, INotifyPropertyChanged
+    public partial class TransientSimulation : Window, INotifyPropertyChanged
     {
         protected int oversample = 4;
         public int Oversample
@@ -90,7 +90,7 @@ namespace LiveSPICE
 
         protected Dictionary<SyMath.Expression, double[]> probes = new Dictionary<SyMath.Expression, double[]>();
 
-        public Simulation(Circuit.Schematic Simulate)
+        public TransientSimulation(Circuit.Schematic Simulate)
         {
             InitializeComponent();
 
@@ -98,12 +98,11 @@ namespace LiveSPICE
 
             // Make a clone of the schematic so we can mess with it.
             Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), log);
-
             clone.Elements.ItemAdded += OnElementAdded;
             clone.Elements.ItemRemoved += (o, e) => RefreshProbes();
 
             schematic.Schematic = new SimulationSchematic(clone);
-
+            
             waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
 
             Build();
@@ -165,7 +164,7 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        Circuit.TransientSolution TS = Circuit.TransientSolution.SolveCircuit(circuit, sampleRate * Oversample, log);
+                        Circuit.TransientSolution TS = Circuit.TransientSolution.SolveCircuit(circuit, 1 / (sampleRate * Oversample), log);
                         simulation = new Circuit.LinqCompiledSimulation(TS, Oversample, log);
                     }
                     catch (System.Exception ex)

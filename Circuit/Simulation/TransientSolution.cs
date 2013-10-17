@@ -10,28 +10,63 @@ using SyMath;
 
 namespace Circuit
 {
-    // Block of equations to solve, with some solutions that are linear combinations of the non-linear solutions.
-    public class AlgebraicSystem
+    /// <summary>
+    /// Represents a set of solutions for a system of equations.
+    /// </summary>
+    public abstract class AlgebraicSystem
     {
-        private List<Arrow> linear;
-        private List<Equal> nonlinear;
+        /// <summary>
+        /// Enumerate the unknowns described by this system.
+        /// </summary>
+        public abstract IEnumerable<Expression> Unknowns { get; }
+
+        /// <summary>
+        /// Check if any of the solutions of this system depend on x.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public abstract bool DependsOn(Expression x);
+    }
+
+    /// <summary>
+    /// A simple linear system solution set. The system directly gives solutions.
+    /// </summary>
+    public class LinearSystem : AlgebraicSystem
+    {
+        private List<Arrow> solutions;
+        /// <summary>
+        /// Enumerate the solutions to this system.
+        /// </summary>
+        public IEnumerable<Arrow> Solutions { get { return solutions; } }
+
+        public override IEnumerable<Expression> Unknowns { get { return solutions.Select(i => i.Left); } }
+
+        public LinearSystem(IEnumerable<Arrow> Solutions) { solutions = Solutions.ToList(); }
+
+        public override bool DependsOn(Expression x) { return solutions.Any(i => i.Right.DependsOn(x)); }
+    }
+
+    /// <summary>
+    /// A system of non-linear equations.
+    /// </summary>
+    public class NonLinearSystem : AlgebraicSystem
+    {
+        private List<Equal> equations;
+        /// <summary>
+        /// Enumerate the equations describing this system.
+        /// </summary>
+        public IEnumerable<Equal> Equations { get { return equations; } }
+
         private List<Expression> unknowns;
-        private List<Arrow> dependent;
+        public override IEnumerable<Expression> Unknowns { get { return unknowns; } }
 
-        public IEnumerable<Arrow> Linear { get { return linear; } }
-        public IEnumerable<Equal> Nonlinear { get { return nonlinear; } }
-        public IEnumerable<Expression> Unknowns { get { return unknowns; } }
-        public IEnumerable<Arrow> Dependent { get { return dependent; } }
-
-        public AlgebraicSystem(List<Arrow> Linear, List<Equal> System, List<Expression> Unknowns, List<Arrow> DependentSolutions)
+        public NonLinearSystem(List<Equal> Equations, List<Expression> Unknowns)
         {
-            linear = Linear;
-            nonlinear = System;
+            equations = Equations;
             unknowns = Unknowns;
-            dependent = DependentSolutions;
         }
 
-        public bool DependsOn(Expression x) { return nonlinear.Any(i => i.DependsOn(x)); }
+        public override bool DependsOn(Expression x) { return equations.Any(i => i.DependsOn(x)); }
     }
 
     /// <summary>
@@ -44,80 +79,184 @@ namespace Circuit
         // And the current timestep.
         public static readonly Variable t = Component.t;
 
-        private Quantity sampleRate;
+        private Quantity h;
         /// <summary>
-        /// The sample rate of this solution.
+        /// The length of a timestep given by this solution.
         /// </summary>
-        public Quantity SampleRate { get { return sampleRate; } }
+        public Quantity TimeStep { get { return h; } }
         
         private List<Expression> nodes;
         /// <summary>
         /// The nodes this contains a solution for.
         /// </summary>
         public IEnumerable<Expression> Nodes { get { return nodes; } }
-                                
-        protected List<Arrow> trivial;
-        /// <summary>
-        /// Trivial solutions.
-        /// </summary>
-        public IEnumerable<Arrow> Trivial { get { return trivial; } }
 
-        protected List<Arrow> differential;
+        private List<AlgebraicSystem> systems;
         /// <summary>
-        /// Solutions to the differential varibales in the system.
+        /// Ordered list of systems that comprise this solution.
         /// </summary>
-        public IEnumerable<Arrow> Differential { get { return differential; } }
+        public IEnumerable<AlgebraicSystem> Systems { get { return systems; } }
 
-        protected List<AlgebraicSystem> algebraic;
+        private List<Arrow> components;
         /// <summary>
-        /// Chunks of equations and solutions.
-        /// </summary>
-        public IEnumerable<AlgebraicSystem> Algebraic { get { return algebraic; } }
-
-        protected List<Arrow> components;
-        /// <summary>
-        /// Voltage across the two terminal components in the system.
+        /// Get a list of the component voltages in the solution.
         /// </summary>
         public IEnumerable<Arrow> Components { get { return components; } }
 
-        protected List<Arrow> linearization;
-        /// <summary>
-        /// Terms used to linearize the differential system.
-        /// </summary>
+        private List<Arrow> linearization;
         public IEnumerable<Arrow> Linearization { get { return linearization; } }
 
         private TransientSolution(
-            Quantity SampleRate,
+            Quantity TimeStep,
             List<Expression> Nodes,
-            List<Arrow> Trivial,
-            List<Arrow> Differential,
-            List<AlgebraicSystem> Algebraic,
+            List<AlgebraicSystem> Systems,
             List<Arrow> Components,
             List<Arrow> Linearization)
         {
-            sampleRate = SampleRate;
+            h = TimeStep;
             nodes = Nodes;
-            trivial = Trivial;
-            differential = Differential;
-            algebraic = Algebraic;
+            systems = Systems;
             components = Components;
             linearization = Linearization;
         }
+
+        ///// <summary>
+        ///// Solve the given circuit for transient simulation.
+        ///// </summary>
+        ///// <param name="Circuit">Circuit to simulate.</param>
+        ///// <param name="SampleRate">Sampling period.</param>
+        //public static TransientSolution SolveCircuit(Circuit Circuit, Quantity TimeStep, ILog Log)
+        //{
+        //    Stopwatch time = new Stopwatch();
+        //    time.Start();
+
+        //    Expression h = TimeStep;
+
+        //    Log.WriteLine(MessageType.Info, "Building TransientSolution for circuit '{0}', h={1}", Circuit.Name, TimeStep.ToString());
+
+        //    Log.WriteLine(MessageType.Info, "[{0} ms] Performing MNA on circuit...", time.ElapsedMilliseconds);
+
+        //    // Analyze the circuit to get the MNA system and unknowns.
+        //    List<Expression> y = new List<Expression>();
+        //    List<Equal> mna = new List<Equal>();
+        //    Circuit.Analyze(mna, y);
+        //    LogExpressions(Log, "MNA system of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
+
+        //    Log.WriteLine(MessageType.Info, "[{0} ms] Solving MNA system...", time.ElapsedMilliseconds);
+
+        //    // Separate y into differential and algebraic unknowns.
+        //    List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
+
+        //    // Separate mna into differential and algebraic equations.
+        //    List<Equal> diffeq = mna.Where(i => i.DependsOn(dy_dt)).ToList();
+        //    mna = mna.Where(i => !diffeq.Contains(i)).ToList();
+
+        //    // Add the (potentially implicit) numerical integration of the differential equation to the system.
+        //    mna.AddRange(diffeq
+        //        .NDIntegrate(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid)
+        //        .Select(i => Equal.New(i.Left, i.Right)));
+            
+        //    // Add the differential equations back to the system, with solutions now.
+        //    mna.InsertRange(0, diffeq.Evaluate(dy_dt.Select(i => Arrow.New(i, (DOf(i) - DOf(i).Evaluate(t, t0)) / h))).OfType<Equal>());
+
+        //    // Solve the system!
+        //    List<AlgebraicSystem> systems = new List<AlgebraicSystem>();
+
+        //    SyMath.Matrix J = NSolveExtension.Jacobian(mna.Select(i => i.Left - i.Right).ToList(), y);
+
+        //    System.Console.WriteLine(J.ToString());
+
+        //    // While we still have unknowns to solve for...
+        //    while (y.Any())
+        //    {
+        //        // First try to solve for linear solutions.
+        //        List<Arrow> linear = mna.Solve(y);
+        //        linear.RemoveAll(i => i.Right.DependsOn(y));
+        //        if (linear.Any())
+        //        {
+        //            systems.Add(new LinearSystem(linear));
+        //            mna = mna.Evaluate(linear).OfType<Equal>().ToList();
+        //            y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
+        //            LogExpressions(Log, "Found linear solutions:", linear);
+        //        }
+
+        //        if (mna.Any())
+        //        {
+        //            // Try to find the minimal set of equations to solve numerically.
+
+        //            // Find the smallest independent system we can to numerically solve.
+        //            Tuple<List<Equal>, List<Expression>> next = mna.Select(f =>
+        //            {
+        //                // Starting with f, find the minimal set of equations necessary to solve the system.
+        //                // Find the unknowns in this equation.
+        //                List<Expression> fy = y.Where(i => f.DependsOn(i)).ToList();
+        //                List<Equal> system = new List<Equal>() { f };
+
+        //                // While we have fewer equations than variables...
+        //                while (system.Count < fy.Count)
+        //                {
+        //                    // Find the equation that will introduce the fewest variables to the system.
+        //                    IEnumerable<Expression> ry = y.Except(fy, ExprRefEquality);
+        //                    List<Equal> candidates = mna.Except(system, EqRefEquality).ToList();
+        //                    if (!candidates.Any())
+        //                        throw new AlgebraException("Underdeterined MNA system");
+        //                    Equal add = candidates.ArgMin(i => ry.Count(j => j.DependsOn(i)));
+        //                    system.Add(add);
+        //                    fy.AddRange(ry.Where(i => add.DependsOn(i)));
+        //                }
+
+        //                return new Tuple<List<Equal>, List<Expression>>(system, fy);
+        //            }).ArgMin(i => i.Item1.Count());
+
+        //            // block is a subset of the system that we can solve for by with.
+        //            List<Equal> block = next.Item1;
+        //            List<Expression> by = next.Item2;
+
+        //            // Remove these from the system.
+        //            mna.RemoveAll(i => block.Contains(i));
+        //            y.RemoveAll(i => by.Contains(i));
+
+        //            // Try solving+substituting linear solutions first.
+        //            List<Arrow> pre = block.Solve(by).ToList();
+        //            pre.RemoveAll(i => i.Right.DependsOn(by));
+        //            by.RemoveAll(i => linear.Any(j => j.Left == i));
+        //            block = block.Evaluate(pre).OfType<Equal>().ToList();
+        //            systems.Add(new LinearSystem(pre));
+
+        //            LogExpressions(Log, "Nonlinear system of " + block.Count + " equations and " + by.Count + " unknowns {{ " + by.UnSplit(", ") + " }}:", block);
+
+        //            systems.Add(new NonLinearSystem(
+        //                NewtonIteration(block.Select(i => i.Left - i.Right), by.Select(i => Arrow.New(i, i.Evaluate(t, t0)))),
+        //                by));
+        //        }
+        //    }
+
+        //    // Add solutions for the voltage across all the components.
+        //    List<Arrow> components = Circuit.Components.OfType<TwoTerminal>().Select(
+        //        i => Arrow.New((Expression)DependentVariable(i.Name, t), i.V)).ToList();
+
+        //    return new TransientSolution(
+        //        h,
+        //        Circuit.Nodes.Select(i => (Expression)i.V).ToList(),
+        //        systems,
+        //        components);
+        //}
+
 
         /// <summary>
         /// Solve the given circuit for transient simulation.
         /// </summary>
         /// <param name="Circuit">Circuit to simulate.</param>
         /// <param name="SampleRate">Sampling period.</param>
-        public static TransientSolution SolveCircuit(Circuit Circuit, Quantity SampleRate, ILog Log)
+        public static TransientSolution SolveCircuit(Circuit Circuit, Quantity TimeStep, ILog Log)
         {
             Stopwatch time = new Stopwatch();
             time.Start();
 
             // Length of one timestep in the oversampled simulation.
-            Expression h = 1 / ((Expression)SampleRate);
+            Expression h = TimeStep;
 
-            Log.WriteLine(MessageType.Info, "Building simulation for circuit '{0}', f={1}", Circuit.Name, SampleRate.ToString());
+            Log.WriteLine(MessageType.Info, "Building simulation for circuit '{0}', h={1}", Circuit.Name, TimeStep.ToString());
 
             Log.WriteLine(MessageType.Info, "[{0} ms] Performing MNA on circuit...", time.ElapsedMilliseconds);
 
@@ -133,13 +272,17 @@ namespace Circuit
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
             y.AddRange(dy_dt);
 
+            List<AlgebraicSystem> systems = new List<AlgebraicSystem>();
+
             // Find trivial solutions for y and substitute them into the system.
             List<Arrow> trivial = mna.Solve(y);
             trivial.RemoveAll(i => i.Right.DependsOn(y));
             mna = mna.Evaluate(trivial).OfType<Equal>().ToList();
             y.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
             LogExpressions(Log, "Trivial solutions:", trivial);
-
+            if (trivial.Any())
+                systems.Add(new LinearSystem(trivial));
+            
             // Linearize the system for solving the differential equations by replacing 
             // non-linear terms with constants (from the previous timestep).
             List<Arrow> linearization = new List<Arrow>();
@@ -156,12 +299,15 @@ namespace Circuit
                 .NDPartialSolve(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid);
             y.RemoveAll(i => differential.Any(j => j.Left.Equals(i)));
             LogExpressions(Log, "Differential solutions:", differential);
+            if (differential.Any())
+                systems.Add(new LinearSystem(differential));
 
             // After solving for the differential unknowns, divide them by h so we don't have 
             // to do it during simulation. It's faster to simulate, and we get the benefits of 
             // arbitrary precision calculations here.
-            mna = mna.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Equal>().ToList();
-            linearization = linearization.Evaluate(dy_dt.Select(i => Arrow.New(i, i / h))).Cast<Arrow>().ToList();
+            List<Arrow> dydt = dy_dt.Select(i => Arrow.New(i, (DOf(i) - DOf(i).Evaluate(t, t0)) / h)).ToList();
+            mna = mna.Evaluate(dydt).Cast<Equal>().ToList();
+            linearization = linearization.Evaluate(dydt).Cast<Arrow>().ToList();
 
 
             // Solve the algebraic system.
@@ -209,10 +355,17 @@ namespace Circuit
                 linear.RemoveAll(i => i.Right.DependsOn(by));
                 by.RemoveAll(i => linear.Any(j => j.Left == i));
                 block = block.Evaluate(linear).Where(i => i.DependsOn(by)).ToList();
+                if (linear.Any())
+                    systems.Add(new LinearSystem(linear));
+                
+                systems.Add(new NonLinearSystem(NewtonIteration(block, by.Select(i => Arrow.New(i, i.Evaluate(t, t0)))), by));
 
                 // Now that we know solutions to by, we might be able to find other solutions too.
                 List<Arrow> dependent = linear.Concat(IndependentSolutions(mna.PartialSolve(y), y)).ToList();
                 y.RemoveAll(i => dependent.Any(j => j.Left == i));
+
+                if (dependent.Any())
+                    systems.Add(new LinearSystem(dependent));
 
                 //for (int r = 1; r <= y.Count; ++r)
                 //{
@@ -231,30 +384,21 @@ namespace Circuit
 
                 LogExpressions(Log, "Nonlinear system of " + block.Count + " equations and " + by.Count + " unknowns {{ " + by.UnSplit(", ") + " }}:", block.Select(i => Equal.New(i, 0)));
                 LogExpressions(Log, "Dependent solutions:", dependent);
-                
-                algebraic.Add(new AlgebraicSystem(
-                    new List<Arrow>(),
-                    NewtonIteration(block, by.Select(i => Arrow.New(i, i.Evaluate(t, t0)))),
-                    by,
-                    dependent));
             }
-            
+
             // Add solutions for the voltage across all the components.
             List<Arrow> components = Circuit.Components.OfType<TwoTerminal>().Select(
                 i => Arrow.New((Expression)DependentVariable(i.Name, t), i.V.Evaluate(trivial))).ToList();
 
             Log.WriteLine(MessageType.Info, "[{0} ms] System solved!", time.ElapsedMilliseconds);
-            
+
             return new TransientSolution(
-                SampleRate,
+                TimeStep,
                 Circuit.Nodes.Select(i => (Expression)i.V).ToList(),
-                trivial, 
-                differential,
-                algebraic, 
-                components, 
+                systems,
+                components,
                 linearization);
         }
-
 
         private static List<Equal> NewtonIteration(IEnumerable<Expression> f, IEnumerable<Arrow> y)
         {
@@ -372,6 +516,7 @@ namespace Circuit
             return p;
         }
 
+        private static IEqualityComparer<Equal> EqRefEquality = new ReferenceEqualityComparer<Equal>();
         private static IEqualityComparer<Expression> ExprRefEquality = new ReferenceEqualityComparer<Expression>();
     }
 }

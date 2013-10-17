@@ -117,8 +117,8 @@
     <Compile Include="Controls\Oscilloscope.xaml.cs">
       <DependentUpon>Oscilloscope.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Simulation.xaml.cs">
-      <DependentUpon>Simulation.xaml</DependentUpon>
+    <Compile Include="TransientSimulation.xaml.cs">
+      <DependentUpon>TransientSimulation.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utils\DockingManagerExtensions.cs" />
     <Compile Include="Controls\Simulation\Probe.cs" />
@@ -162,7 +162,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Simulation.xaml">
+    <Page Include="TransientSimulation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

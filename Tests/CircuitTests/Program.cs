@@ -22,23 +22,16 @@ namespace CircuitTests
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
-        // Generate a function with the first N harmonics of f0.
-        static Function Harmonics(Variable t, Expression f0, int N)
-        {
-            Expression s = 0;
-            for (int i = 1; i <= N; ++i)
-                s += Call.Sin(t * f0 * 2 * 3.1415m * i) / N;
-            return ExprFunction.New(s, t);
-        }
-
+        static Function V1 = Harmonics(t, 82, 4);
+        
         static void Main(string[] args)
         {
-            Func<double, double> Vin = Harmonics(t, 82, 4).Compile<Func<double, double>>();
+            Func<double, double> Vin = V1.Compile<Func<double, double>>();
 
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
 
-            //Run(@"..\..\..\..\Circuits\FilterDiode.xml", Vin);
+            Run(@"..\..\..\..\Circuits\AmpDiodeResistorDiodeLoad.xml", Vin);
             //return;
             
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
@@ -67,7 +60,7 @@ namespace CircuitTests
         public static double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
-            TransientSolution TS = TransientSolution.SolveCircuit(C, SampleRate * Oversample, Log);
+            TransientSolution TS = TransientSolution.SolveCircuit(C, 1 / (SampleRate * Oversample), Log);
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
 
@@ -111,6 +104,15 @@ namespace CircuitTests
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
 
             return (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0);
+        }
+
+        // Generate a function with the first N harmonics of f0.
+        static Function Harmonics(Variable t, Expression f0, int N)
+        {
+            Expression s = 0;
+            for (int i = 1; i <= N; ++i)
+                s += Call.Sin(t * f0 * 2 * 3.1415m * i) / N;
+            return ExprFunction.New(s, t);
         }
     }
 }

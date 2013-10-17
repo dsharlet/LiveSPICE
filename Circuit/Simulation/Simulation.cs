@@ -34,7 +34,7 @@ namespace Circuit
         /// <summary>
         /// Get the timestep for the simulation.
         /// </summary>
-        public double TimeStep { get { return 1.0 / (double)SampleRate; } }
+        public double TimeStep { get { return (double)(Transient.TimeStep * oversample); } }
 
         private ILog log = new ConsoleLog();
         /// <summary>
@@ -57,7 +57,7 @@ namespace Circuit
         /// <summary>
         /// The sampling rate of this simulation, the sampling rate of the transient solution divided by the oversampling factor.
         /// </summary>
-        public Quantity SampleRate { get { return Transient.SampleRate / oversample; } }
+        public Quantity SampleRate { get { return 1 / (Transient.TimeStep * oversample); } }
 
         /// <summary>
         /// Create a simulation for the given system solution.

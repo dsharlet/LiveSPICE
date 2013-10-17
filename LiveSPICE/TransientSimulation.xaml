@@ -1,11 +1,11 @@
-﻿<Window x:Class="LiveSPICE.Simulation" x:Name="_this"
+﻿<Window x:Class="LiveSPICE.TransientSimulation" x:Name="_this"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="Simulation" Width="1000" Height="700" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
+        Title="Transient Simulation" Width="1000" Height="700" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
     <Window.Resources>
         <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />

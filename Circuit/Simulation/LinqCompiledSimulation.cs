@@ -28,16 +28,13 @@ namespace Circuit
         /// <param name="Log">Log for simulation output.</param>
         public LinqCompiledSimulation(TransientSolution Transient, int Oversample, ILog Log) : base(Transient, Oversample, Log)
         {
-            // Globals for the state variables (differentials).
-            foreach (Arrow i in Transient.Differential)
-                globals[i.Left.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
+            foreach (Expression i in Transient.Systems.SelectMany(i => i.Unknowns))
+            {
+                // If any system depends on the previous value of i, we need a global variable for it.
+                if (Transient.Systems.Any(j => j.DependsOn(i.Evaluate(t, t0))))
+                    globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
+            }
 
-            // Globals for iterative unknowns
-            foreach (AlgebraicSystem i in Transient.Algebraic)
-                foreach (Expression j in i.Unknowns)
-                    globals[j.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
-            
-            // Globals for the linearization.
             foreach (Arrow i in Transient.Linearization)
                 globals[i.Left] = new GlobalExpr<double>(0.0);
         }
@@ -155,8 +152,8 @@ namespace Circuit
 
             // Trivial timestep expressions that are not a function of the input or t can be set once here (outside the sample loop).
             // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
-            foreach (Arrow i in Transient.Trivial.Where(i => !i.Right.DependsOn(Input) && !i.Right.DependsOn(Component.t)))
-                body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
+            //foreach (Arrow i in Transient.Trivial.Where(i => !i.Right.DependsOn(Input) && !i.Right.DependsOn(Component.t)))
+            //    body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
             // for (int n = 0; n < SampleCount; ++n)
             ParameterExpression n = Declare<int>(locals, "n");
@@ -196,7 +193,7 @@ namespace Circuit
                 // do { -- ov; } while(ov > 0)
                 ParameterExpression ov = Declare<int>(locals, "ov");
                 body.Add(LinqExpression.Assign(ov, Oversample));
-                DoWhile(body,() =>
+                DoWhile(body, () =>
                 {
                     // t += h
                     body.Add(LinqExpression.AddAssign(t, h));
@@ -205,61 +202,102 @@ namespace Circuit
                     foreach (Expression i in Input)
                         body.Add(LinqExpression.AddAssign(map[i], dVi[i]));
 
-                    // Compile the trivial timestep expressions that are a function of the input.
-                    foreach (Arrow i in Transient.Trivial.Where(i => !map.ContainsKey(i.Left)))
-                        body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
-
-                    // Compile the differential timestep expressions.
-                    foreach (Arrow i in Transient.Differential)
-                    {
-                        body.Add(LinqExpression.Assign(
-                            Declare<double>(locals, map, i.Left),
-                            i.Right.Compile(map)));
-
-                        Expression di_dt = Call.D(i.Left, Simulation.t);
-                        LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
-
-                        // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
-                        body.Add(LinqExpression.Assign(
-                            Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
-                            LinqExpression.Subtract(map[i.Left], Vt0)));
-                    }
-                    // Vt0 = Vt
-                    foreach (Arrow i in Transient.Differential)
-                        body.Add(LinqExpression.Assign(map[i.Left.Evaluate(t_t0)], map[i.Left]));
-
                     // int it
                     ParameterExpression it = Declare<int>(locals, "it");
 
-                    // Compile the algebraic systems' solutions.
-                    foreach (AlgebraicSystem i in Transient.Algebraic)
+                    // Compile the solutions for all of the systems in our solution.
+                    foreach (AlgebraicSystem i in Transient.Systems)
                     {
-                        // Compile the linear solutions.
-                        foreach (Arrow j in i.Linear)
-                            body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
-                        
-                        // it = Oversample
-                        // do { ... --it } while(it > 0)
-                        body.Add(LinqExpression.Assign(it, Iterations));
-                        DoWhile(body, () =>
+                        if (i is LinearSystem)
                         {
-                            // Compile the numerical scheme to solve this system.
-                            List<Arrow> iteration = i.Nonlinear.Solve(i.Unknowns);
-                            foreach (Arrow j in iteration)
+                            // Linear solutions are easy.
+                            foreach (Arrow j in ((LinearSystem)i).Solutions)
+                                body.Add(LinqExpression.Assign(Redeclare<double>(locals, map, j.Left), j.Right.Compile(map)));
+                        }
+                        else if (i is NonLinearSystem)
+                        {
+                            NonLinearSystem S = (NonLinearSystem)i;
+
+                            // it = Oversample
+                            // do { ... --it } while(it > 0)
+                            body.Add(LinqExpression.Assign(it, Iterations));
+                            DoWhile(body, () =>
                             {
-                                LinqExpression Vt0 = map[j.Left.Evaluate(t_t0)];
-                                body.Add(LinqExpression.Assign(Vt0, j.Right.Compile(map)));
-                                map[j.Left] = Vt0;
-                            }
+                                // Compile the numerical scheme to solve this system.
+                                List<Arrow> iteration = S.Equations.Solve(i.Unknowns);
+                                foreach (Arrow j in iteration)
+                                {
+                                    LinqExpression Vt0 = map[j.Left.Evaluate(t_t0)];
+                                    body.Add(LinqExpression.Assign(Vt0, j.Right.Compile(map)));
+                                    map[j.Left] = Vt0;
+                                }
 
-                            // --it;
-                            body.Add(LinqExpression.PreDecrementAssign(it));
-                        }, LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
-
-                        // Compile the dependent solutions.
-                        foreach (Arrow j in i.Dependent)
-                            body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
+                                // --it;
+                                body.Add(LinqExpression.PreDecrementAssign(it));
+                            }, LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
+                        }
                     }
+
+                    // Update the old variables.
+                    foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+                        body.Add(LinqExpression.Assign(map[i.Key], map[i.Key.Evaluate(Simulation.t0, Simulation.t)]));
+
+
+                    //// Compile the trivial timestep expressions that are a function of the input.
+                    //foreach (Arrow i in Transient.Trivial.Where(i => !map.ContainsKey(i.Left)))
+                    //    body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
+
+                    //// Compile the differential timestep expressions.
+                    //foreach (Arrow i in Transient.Differential)
+                    //{
+                    //    body.Add(LinqExpression.Assign(
+                    //        Declare<double>(locals, map, i.Left),
+                    //        i.Right.Compile(map)));
+
+                    //    Expression di_dt = Call.D(i.Left, Simulation.t);
+                    //    LinqExpression Vt0 = map[i.Left.Evaluate(t_t0)];
+
+                    //    // double dV = (Vt - Vt0) / h, but we already divided by h when solving the system.
+                    //    body.Add(LinqExpression.Assign(
+                    //        Declare<double>(locals, map, di_dt, "d" + i.Left.ToString().Replace("[t]", "")), 
+                    //        LinqExpression.Subtract(map[i.Left], Vt0)));
+                    //}
+                    //// Vt0 = Vt
+                    //foreach (Arrow i in Transient.Differential)
+                    //    body.Add(LinqExpression.Assign(map[i.Left.Evaluate(t_t0)], map[i.Left]));
+
+                    //// int it
+                    //ParameterExpression it = Declare<int>(locals, "it");
+
+                    //// Compile the algebraic systems' solutions.
+                    //foreach (AlgebraicSystem i in Transient.Algebraic)
+                    //{
+                    //    // Compile the linear solutions.
+                    //    foreach (Arrow j in i.Linear)
+                    //        body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
+                        
+                    //    // it = Oversample
+                    //    // do { ... --it } while(it > 0)
+                    //    body.Add(LinqExpression.Assign(it, Iterations));
+                    //    DoWhile(body, () =>
+                    //    {
+                    //        // Compile the numerical scheme to solve this system.
+                    //        List<Arrow> iteration = i.Nonlinear.Solve(i.Unknowns);
+                    //        foreach (Arrow j in iteration)
+                    //        {
+                    //            LinqExpression Vt0 = map[j.Left.Evaluate(t_t0)];
+                    //            body.Add(LinqExpression.Assign(Vt0, j.Right.Compile(map)));
+                    //            map[j.Left] = Vt0;
+                    //        }
+
+                    //        // --it;
+                    //        body.Add(LinqExpression.PreDecrementAssign(it));
+                    //    }, LinqExpression.GreaterThan(it, LinqExpression.Constant(0)));
+
+                    //    // Compile the dependent solutions.
+                    //    foreach (Arrow j in i.Dependent)
+                    //        body.Add(LinqExpression.Assign(Declare<double>(locals, map, j.Left), j.Right.Compile(map)));
+                    //}
 
                     // Update f0.
                     foreach (Arrow i in Transient.Linearization)
@@ -433,6 +471,15 @@ namespace Circuit
         private static ParameterExpression Declare<T>(IList<ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr)
         {
             return Declare<T>(Scope, Map, Expr, Expr.ToString());
+        }
+
+        private static ParameterExpression Redeclare<T>(IList<ParameterExpression> Scope, IDictionary<Expression, LinqExpression> Map, Expression Expr)
+        {
+            LinqExpression decl;
+            if (Map.TryGetValue(Expr, out decl))
+                return (ParameterExpression)decl;
+            else
+                return Declare<T>(Scope, Map, Expr, Expr.ToString());
         }
 
         private static ParameterExpression Declare<T>(IList<ParameterExpression> Scope, string Name)
