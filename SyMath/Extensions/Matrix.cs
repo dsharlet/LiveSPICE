@@ -107,6 +107,15 @@ namespace SyMath
         }
 
         /// <summary>
+        /// Enumerate the rows of the matrix.
+        /// </summary>
+        public IEnumerable<Matrix> Rows { get { for (int i = 0; i < M; ++i) yield return Row(i); } }
+        /// <summary>
+        /// Enumerate the columns of the matrix.
+        /// </summary>
+        public IEnumerable<Matrix> Columns { get { for (int j = 0; j < N; ++j) yield return Column(j); } }
+
+        /// <summary>
         /// Access an element of a vector.
         /// </summary>
         /// <param name="i"></param>
