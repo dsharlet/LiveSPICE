@@ -27,20 +27,20 @@ namespace SyMath
         /// </summary>
         /// <param name="S"></param>
         /// <param name="x"></param>
-        public static void ToRowEchelon(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
+        public static void RowReduce(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
         {
-            foreach (Expression PivotVariable in x)
+            foreach (Expression j in x)
             {
-                // Find the first row with i as a pivot variable.
-                LinearCombination PivotRow = S
-                    .Where(j => PivotVariable.Equals(j.PivotVariable))
-                    .ArgMax(j => j.PivotCoefficient is Constant ? (double)Real.Abs(((Constant)j.PivotCoefficient).Value) : -1.0);
-                if (PivotRow == null) continue;
-                Expression PivotCoefficient = PivotRow.PivotCoefficient;
+                IEnumerable<LinearCombination> rows = S.Where(i => j.Equals(i.PivotVariable));
+                if (rows.Empty())
+                    continue;
+                // Find the row with the largest pivot coefficient if possible.
+                LinearCombination i1 = rows.ArgMax(i => i.PivotCoefficient is Constant ? (double)Real.Abs(((Constant)i.PivotCoefficient).Value) : -1.0);
+                Expression scale = i1.PivotCoefficient;
 
                 // Cancel the pivot variable from other rows.
-                foreach (LinearCombination j in S.Except(PivotRow).Where(i => PivotVariable.Equals(i.PivotVariable)))
-                    j.AddScaled(-j.PivotCoefficient / PivotCoefficient, PivotRow);
+                foreach (LinearCombination i2 in S.Except(i1).Where(i => j.Equals(i.PivotVariable)))
+                    i2.AddScaled(-i2.PivotCoefficient / scale, i1);
             }
         }
 
@@ -51,14 +51,14 @@ namespace SyMath
         /// <returns></returns>
         public static void BackSubstitute(this IEnumerable<LinearCombination> S)
         {
-            foreach (LinearCombination PivotRow in S.Where(i => !ReferenceEquals(i.PivotVariable, null)))
+            foreach (LinearCombination i in S.Where(i => !ReferenceEquals(i.PivotVariable, null)))
             {
-                Expression PivotVariable = PivotRow.PivotVariable;
-                Expression PivotCoefficient = PivotRow.PivotCoefficient;
+                Expression pivot = i.PivotVariable;
+                Expression scale = i.PivotCoefficient;
 
                 // Eliminate non-pivot variables from other rows.
-                foreach (LinearCombination r in S.Except(PivotRow).Where(i => !i[PivotVariable].IsZero()))
-                    r.AddScaled(-r[PivotVariable] / PivotCoefficient, PivotRow);
+                foreach (LinearCombination r in S.Except(i).Where(r => !r[pivot].IsZero()))
+                    r.AddScaled(-r[pivot] / scale, i);
             }
         }
 
@@ -82,18 +82,18 @@ namespace SyMath
         {
             // Solve for the variables in x.
             List<Arrow> result = new List<Arrow>();
-            foreach (Expression i in x.Reverse())
+            foreach (Expression j in x.Reverse())
             {
                 // Find the row with the pivot variable in this position.
-                LinearCombination row = S.Find(s => i.Equals(s.PivotVariable));
+                LinearCombination i = S.Find(s => j.Equals(s.PivotVariable));
 
-                // If there is no pivot in this position, find any row with a non-zero coefficient of i.
-                if (row == null)
-                    row = S.Find(s => !s[i].IsZero());
+                // If there is no pivot in this position, find any row with a non-zero coefficient of j.
+                if (i == null)
+                    i = S.Find(s => !s[j].IsZero());
 
                 // Solve the row for i.
-                if (row != null)
-                    result.Add(Arrow.New(i, row.Solve(i)));
+                if (i != null)
+                    result.Add(Arrow.New(j, i.Solve(j)));
             }
             return result;
         }
@@ -110,7 +110,7 @@ namespace SyMath
             List<LinearCombination> S = f.TermsOf(x);
 
             // Get row-echelon form of S.
-            S.ToRowEchelon(x);
+            S.RowReduce(x);
 
             // Back substitution.
             S.BackSubstitute();
@@ -140,7 +140,7 @@ namespace SyMath
             List<LinearCombination> S = f.TermsOf(x);
 
             // Get row-echelon form of S.
-            S.ToRowEchelon(x);
+            S.RowReduce(x);
             
             // Solve for the variables.
             return S.Solve(x);
