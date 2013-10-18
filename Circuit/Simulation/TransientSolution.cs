@@ -11,12 +11,12 @@ using SyMath;
 namespace Circuit
 {
     /// <summary>
-    /// The numerical solution for a transient simulation of a circuit.
+    /// Represents the solutions of a system of equations derived from a Circuit for transient analysis.
     /// </summary>
     public class TransientSolution
     {
         // Expression for t at the previous timestep.
-        public static readonly Variable t0 = Variable.New("t0");
+        public static readonly Variable t0 = Component.t0;
         // And the current timestep.
         public static readonly Variable t = Component.t;
 
@@ -34,26 +34,27 @@ namespace Circuit
 
         private List<SolutionSet> solutions;
         /// <summary>
-        /// Ordered list of systems that comprise this solution.
+        /// Ordered list of SolutionSet objects that describe the overall solution. If SolutionSet
+        /// a follows SolutionSet b in this enumeration, b's solution may depend on a's solutions.
         /// </summary>
         public IEnumerable<SolutionSet> Solutions { get { return solutions; } }
         
-        private List<Arrow> linearization;
+        private List<Arrow> linearizations;
         /// <summary>
         /// Defines any linearization expressions used in the solution.
         /// </summary>
-        public IEnumerable<Arrow> Linearization { get { return linearization; } }
+        public IEnumerable<Arrow> Linearizations { get { return linearizations; } }
 
         public TransientSolution(
             Quantity TimeStep,
             List<Expression> Nodes,
             List<SolutionSet> Solutions,
-            List<Arrow> Linearization)
+            List<Arrow> Linearizations)
         {
             h = TimeStep;
             nodes = Nodes;
             solutions = Solutions;
-            linearization = Linearization;
+            linearizations = Linearizations;
         }
 
         public TransientSolution(
@@ -109,31 +110,26 @@ namespace Circuit
             mna.InsertRange(0, diffeq.Evaluate(dy_dt.Select(i => Arrow.New(i, (DOf(i) - DOf(i).Evaluate(t, t0)) / h))).OfType<Equal>());
             LogExpressions(Log, "Discretized system:", mna);
 
-            // Solve the system...
+            // Solving the system...
             List<SolutionSet> systems = new List<SolutionSet>();
 
-            // Find trivial solutions for y and substitute them into the system.
-            List<Arrow> trivial = mna.Solve(y);
-            trivial.RemoveAll(i => i.Right.DependsOn(y));
-            mna = mna.Evaluate(trivial).OfType<Equal>().ToList();
-            y.RemoveAll(i => trivial.Any(j => j.Left.Equals(i)));
-            LogExpressions(Log, "Trivial solutions:", trivial);
-            if (trivial.Any())
-                systems.Add(new LinearSolutions(trivial));
+            // Find linear solutions for y and substitute them into the system. Linear circuits should be completely solved here.
+            List<Arrow> linear = mna.Solve(y);
+            linear.RemoveAll(i => i.Right.DependsOn(y));
+            mna = mna.Evaluate(linear).OfType<Equal>().ToList();
+            y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
+            if (linear.Any())
+                systems.Add(new LinearSolutions(linear));
+            LogExpressions(Log, "Linear solutions:", linear);
             
-            // Set up J_F*(y - y0) = -F(y0) as a linear system.
             List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
             List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
 
             List<Equal> newton = NewtonIteration(F, y0);
-            //y.Reverse();
             List<LinearCombination> S = newton.Select(i => new LinearCombination(y, i.Left - i.Right)).ToList();
             LogExpressions(Log, "Newton iteration:", S.Select(i => i.ToExpression()));
             systems.Add(new NewtonRhapsonIteration(null, S, y));
-
-            //systems.Add(new LinearSolutions(newton.Solve(y)));
-
-            
+                        
             return new TransientSolution(
                 h,
                 Circuit.Nodes.Select(i => (Expression)i.V).ToList(),

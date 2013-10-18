@@ -36,8 +36,8 @@ namespace Circuit
                     globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             }
 
-            if (Transient.Linearization != null)
-                foreach (Arrow i in Transient.Linearization)
+            if (Transient.Linearizations != null)
+                foreach (Arrow i in Transient.Linearizations)
                     globals[i.Left] = new GlobalExpr<double>(0.0);
         }
 
@@ -170,7 +170,7 @@ namespace Circuit
                 foreach (Expression i in Input)
                 {
                     LinqExpr Va = map[i.Evaluate(t_t0)];
-                    LinqExpr Vb = LinqExpr.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpr[] { n });
+                    LinqExpr Vb = LinqExpr.ArrayAccess(buffers[i], n);
 
                     // double Vi = Va
                     body.Add(LinqExpr.Assign(Declare<double>(locals, map, i, i.ToString()), Va));
@@ -231,7 +231,6 @@ namespace Circuit
                             LinearCombination[] eqs = S.Equations.ToArray();
                             Expression[] vars = S.Updates.ToArray();
 
-                            // Set initial guesses to the previous values.
                             // int it
                             ParamExpr it = Redeclare<int>(locals, "it");
 
@@ -240,8 +239,6 @@ namespace Circuit
                             body.Add(LinqExpr.Assign(it, Iterations));
                             DoWhile(body, (exit) =>
                             {
-                                // Build the system.                    
-
                                 // Initialize the matrix.
                                 for (int i = 0; i < eqs.Length; ++i)
                                 {
@@ -301,23 +298,21 @@ namespace Circuit
                                     {
                                         LinqExpr s = Redeclare(locals, body, "scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxF, i, j), p));
 
-                                        LinqExpr jj = Redeclare(locals, body, "jj", j);
+                                        LinqExpr jj = Redeclare<int>(locals, "jj");
                                         For(body,
-                                            () => { },
+                                            () => body.Add(LinqExpr.Assign(jj, LinqExpr.Increment(j))),
                                             LinqExpr.LessThan(jj, LinqExpr.Constant(vars.Length + 1)),
                                             () => body.Add(LinqExpr.PreIncrementAssign(jj)),
                                             () => body.Add(LinqExpr.SubtractAssign(LinqExpr.ArrayAccess(JxF, i, jj), LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, j, jj), s))));
                                     });
                                 });
 
-                                // JxF is now upper triangular, solve.
+                                // JxF is now upper triangular, solve it.
                                 for (int v = vars.Length - 1; v >= 0; --v)
                                 {
                                     LinqExpr r = LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vars.Length));
                                     for (int vj = v + 1; vj < vars.Length; ++vj)
-                                        r = LinqExpr.Add(r, LinqExpr.Multiply(
-                                            LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)),
-                                            map[vars[vj]]));
+                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)), map[vars[vj]]));
                                     r = LinqExpr.Negate(r);
                                     body.Add(LinqExpr.Assign(
                                         Redeclare<double>(locals, map, vars[v]),
@@ -343,8 +338,8 @@ namespace Circuit
                     }
                                         
                     // Update the linearization.
-                    if (Transient.Linearization != null)
-                        foreach (Arrow i in Transient.Linearization)
+                    if (Transient.Linearizations != null)
+                        foreach (Arrow i in Transient.Linearizations)
                             body.Add(LinqExpr.Assign(map[i.Left], i.Right.Compile(map)));
                     
                     // t0 = t
@@ -364,11 +359,7 @@ namespace Circuit
 
                 // Output[i][n] = Vo / Oversample
                 foreach (Expression i in Output)
-                {
-                    body.Add(LinqExpr.Assign(
-                        LinqExpr.MakeIndex(buffers[i], buffers[i].Type.GetProperty("Item"), new LinqExpr[] { n }),
-                        LinqExpr.Multiply(Vo[i], invOversample)));
-                }
+                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(buffers[i], n), LinqExpr.Multiply(Vo[i], invOversample)));
             });
 
             // Copy the global state variables back to the globals.

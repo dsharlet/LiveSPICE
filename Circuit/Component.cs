@@ -31,6 +31,10 @@ namespace Circuit
         /// Time of the simulation.
         /// </summary>
         public static readonly Variable t = Variable.New("t");
+        /// <summary>
+        /// Previous timestep of the simulation.
+        /// </summary>
+        public static readonly Variable t0 = Variable.New("t0");
 
         /// <summary>
         /// Sampling period of the simulation.
