@@ -322,7 +322,7 @@ namespace Circuit
                                 // Compile the pre-solved solutions.
                                 if (S.Solved != null)
                                     foreach (Arrow i in S.Solved)
-                                        body.Add(LinqExpr.Assign(map[i.Left], i.Right.Compile(map)));
+                                        body.Add(LinqExpr.Assign(Redeclare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                                 // Update the old variables.
                                 foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))

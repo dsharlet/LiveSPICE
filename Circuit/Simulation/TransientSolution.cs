@@ -122,24 +122,45 @@ namespace Circuit
                 systems.Add(new LinearSolutions(linear));
             LogExpressions(Log, "Linear solutions:", linear);
             
-            List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+            // Rearrange the MNA system to be F[y] == 0.
             List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
+            // Compute JxF.
+            List<LinearCombination> J = F.Jacobian(y);
 
-            List<Equal> newton = NewtonIteration(F, y0);
-            List<LinearCombination> S = newton.Select(i => new LinearCombination(y, i.Left - i.Right)).ToList();
-            LogExpressions(Log, "Newton iteration:", S.Select(i => i.ToExpression()));
-            systems.Add(new NewtonRhapsonIteration(null, S, y));
+            //// Goal is to permute (J, y) such that we can find the row-echelon form for all the linear equations in the system.
+            //// To do this, we need to move all of the terms of y that have a non-constant entry in the Jacobian to the end
+            //// of the list. These terms need to be solved via newton's method.
+            //List<Expression> ly = y.Where(j => !J.Any(i => i[j].DependsOn(j))).ToList();
+            //// Compute the row-echelon form of the linear part of the Jacobian.
+            //J.ToRowEchelon(ly);
+            //// Solutions for each linear term.
+            //List<Arrow> solved = J.Solve(ly);
+            //// The linear terms are no longer unknowns to be solved for.
+            //y = y.Except(ly).ToList();
+            List<Arrow> solved = new List<Arrow>();
+
+            // Initial guesses of y[t] = y[t0].
+            List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+            // Now get the rows of the Jacobian that we couldn't find a linear solution for.
+            J = J.Where(i => y.Contains(i.PivotVariable)).ToList();
+            List<LinearCombination> newton = new List<LinearCombination>();
+
+            for (int i = 0; i < J.Count; ++i)
+            {
+                // Compute J * (x - x0)
+                Expression Jx = Add.New(y0.Select(j => J[i][j.Left].Evaluate(y0) * (j.Left - j.Right)));
+                // Solve for x.
+                newton.Add(new LinearCombination(y, Jx + ((Expression)J[i].Tag).Evaluate(y0)));
+            }
+                        
+            LogExpressions(Log, "Newton iteration:", newton.Select(i => i.ToExpression()));
+            systems.Add(new NewtonRhapsonIteration(solved, newton, y));
                         
             return new TransientSolution(
                 h,
                 Circuit.Nodes.Select(i => (Expression)i.V).ToList(),
                 systems,
                 null);
-        }
-        
-        private static List<Equal> NewtonIteration(IEnumerable<Expression> f, IEnumerable<Arrow> y)
-        {
-            return f.NewtonRhapson(y);
         }
                 
         // Filters the solutions in S that are dependent on x if evaluated in order.

@@ -77,9 +77,10 @@ namespace Circuit
         }
 
         public override bool DependsOn(Expression x) 
-        { 
-            return solved != null ? solved.Any(i => i.Right.DependsOn(x)) : false ||
-                equations.Any(i => (i.Basis.Contains(x) && !i[x].IsZero()) || i[Constant.One].DependsOn(x)); 
+        {
+            if (solved != null && solved.Any(i => i.Right.DependsOn(x)))
+                return true;
+            return equations.Any(i => i.ToExpression().DependsOn(x)); 
         }
     }
 }
