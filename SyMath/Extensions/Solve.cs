@@ -32,7 +32,9 @@ namespace SyMath
             foreach (Expression PivotVariable in x)
             {
                 // Find the first row with i as a pivot variable.
-                LinearCombination PivotRow = S.FirstOrDefault(j => PivotVariable.Equals(j.PivotVariable));
+                LinearCombination PivotRow = S
+                    .Where(j => PivotVariable.Equals(j.PivotVariable))
+                    .ArgMax(j => j.PivotCoefficient is Constant ? (double)Real.Abs(((Constant)j.PivotCoefficient).Value) : -1.0);
                 if (PivotRow == null) continue;
                 Expression PivotCoefficient = PivotRow.PivotCoefficient;
 

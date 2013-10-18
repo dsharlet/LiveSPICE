@@ -57,6 +57,9 @@ namespace SyMath
             set { terms.SingleOrDefault(i => i.b.Equals(b)).A = value; }
         }
 
+        private object tag;
+        public object Tag { get { return tag; } set { tag = value; } }
+
         /// <summary>
         /// Create a new empty linear combination.
         /// </summary>

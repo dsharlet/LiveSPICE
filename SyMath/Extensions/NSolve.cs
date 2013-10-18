@@ -16,33 +16,18 @@ namespace SyMath
         /// <param name="F"></param>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static Matrix Jacobian(List<Expression> F, List<Expression> x)
+        public static List<LinearCombination> Jacobian(this IEnumerable<Expression> F, IEnumerable<Expression> x)
         {
-            Matrix J = new Matrix(F.Count, x.Count);
-            for (int i = 0; i < F.Count; ++i)
-                for (int j = 0; j < x.Count; ++j)
-                    J[i, j] = F[i].Differentiate(x[j]);
+            List<LinearCombination> J = new List<LinearCombination>();
+            foreach (Expression i in F)
+            {
+                LinearCombination Ji = new LinearCombination(x);
+                Ji.Tag = i;
+                foreach (Expression j in x)
+                    Ji[j] = i.Differentiate(j);
+                J.Add(Ji);
+            }
             return J;
-        }
-
-        private static List<Equal> NewtonRhapson(List<Expression> F, List<Arrow> x0)
-        {
-            List<Expression> x = x0.Select(i => i.Left).ToList();
-
-            Matrix J = Jacobian(F, x);
-
-            // Compute J * (x - x0)
-            Matrix X = new Matrix(x0.Count, 1);
-            for (int i = 0; i < x0.Count; ++i)
-                X[i] = x0[i].Left - x0[i].Right;
-            Matrix JX = J.Evaluate(x0) * X;
-
-            // Solve for x.
-            List<Equal> newton = new List<Equal>();
-            for (int i = 0; i < F.Count; ++i)
-                newton.Add(Equal.New(JX[i, 0], -F[i].Evaluate(x0)));
-            
-            return newton;
         }
 
         private static List<Arrow> NSolve(List<Equal> f, List<Arrow> x0, int N)
@@ -52,34 +37,21 @@ namespace SyMath
             // Numerically approximate the result with Newton's method, 
             // i.e. solve JF(x0)*(x - x0) = -F(x0) for x.
             List<Expression> F = f.Select(i => i.Left - i.Right).ToList();
-            Matrix J = Jacobian(F, x);
+            List<LinearCombination> J = Jacobian(F, x);
             Equal[] newton = new Equal[F.Count];
             for (int n = 0; n < N; ++n)
             {
-                // Compute J * (x - x0)
-                Matrix X = new Matrix(x0.Count, 1);
-                for (int i = 0; i < x0.Count; ++i)
-                    X[i] = x0[i].Left - x0[i].Right;
-                Matrix JX = J.Evaluate(x0) * X;
-
-                // Solve for x.
                 for (int i = 0; i < F.Count; ++i)
-                    newton[i] = Equal.New(JX[i, 0], -F[i].Evaluate(x0));
+                {
+                    // Compute J * (x - x0)
+                    Expression Jx = Add.New(x0.Select(j => J[i][j.Left].Evaluate(x0) * (j.Left - j.Right)));
+                    // Solve for x.
+                    newton[i] = Equal.New(Jx, -F[i].Evaluate(x0));
+                }
                 x0 = newton.Solve(x);
             }
 
             return x0.AsList();
-        }
-
-        /// <summary>
-        /// Compute a single Newton-Rhapson iteration for finding the roots of f(x), but does not solve the resulting system.
-        /// </summary>
-        /// <param name="f"></param>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        public static List<Equal> NewtonRhapson(this IEnumerable<Expression> f, IEnumerable<Arrow> x)
-        {
-            return NewtonRhapson(f.AsList(), x.AsList());
         }
 
         /// <summary>
@@ -93,7 +65,5 @@ namespace SyMath
         {
             return NSolve(f.AsList(), x.AsList(), N);
         }
-
-        
     }
 }
