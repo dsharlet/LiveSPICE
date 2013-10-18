@@ -215,14 +215,23 @@ namespace Circuit
                     {
                         if (ss is LinearSolutions)
                         {
+                            LinearSolutions S = (LinearSolutions)ss;
                             // Linear solutions are easy.
-                            foreach (Arrow i in ((LinearSolutions)ss).Solutions)
+                            foreach (Arrow i in S.Solutions)
                                 body.Add(LinqExpr.Assign(Redeclare<double>(locals, map, i.Left), i.Right.Compile(map)));
+                            // Update the old variables.
+                            foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
+                                body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
                         }
                         else if (ss is NewtonRhapsonIteration)
                         {
                             NewtonRhapsonIteration S = (NewtonRhapsonIteration)ss;
+                            LinqExpr JxF = JxFs[S];
                             
+                            LinearCombination[] eqs = S.Equations.ToArray();
+                            Expression[] vars = S.Updates.ToArray();
+
+                            // Set initial guesses to the previous values.
                             // int it
                             ParamExpr it = Redeclare<int>(locals, "it");
 
@@ -231,11 +240,7 @@ namespace Circuit
                             body.Add(LinqExpr.Assign(it, Iterations));
                             DoWhile(body, (exit) =>
                             {
-                                // Build the system.
-                                LinqExpr JxF = JxFs[S];
-
-                                LinearCombination[] eqs = S.Equations.ToArray();
-                                Expression[] vars = S.Updates.ToArray();
+                                // Build the system.                    
 
                                 // Initialize the matrix.
                                 for (int i = 0; i < eqs.Length; ++i)
@@ -248,7 +253,7 @@ namespace Circuit
                                         LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i), LinqExpr.Constant(vars.Length)),
                                         eqs[i][Constant.One].Compile(map)));
                                 }
-                                
+                                                                
                                 // Gaussian elimination on this turd.
 
                                 // For each variable in the system...
@@ -284,7 +289,7 @@ namespace Circuit
                                             LinqExpr.Assign(temp, LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x))),
                                             LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x)), LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x))),
                                             LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x)), temp))))));
-                                    
+
                                     LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxF, j, j));
 
                                     // Eliminate the rows after the pivot.
@@ -306,21 +311,27 @@ namespace Circuit
                                 });
 
                                 // JxF is now upper triangular, solve.
-                                for (int v = 0; v < vars.Length; ++v)
+                                for (int v = vars.Length - 1; v >= 0; --v)
                                 {
                                     LinqExpr r = LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vars.Length));
                                     for (int vj = v + 1; vj < vars.Length; ++vj)
-                                        r = LinqExpr.Add(r, LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)));
+                                        r = LinqExpr.Add(r, LinqExpr.Multiply(
+                                            LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)),
+                                            map[vars[vj]]));
                                     r = LinqExpr.Negate(r);
                                     body.Add(LinqExpr.Assign(
                                         Redeclare<double>(locals, map, vars[v]),
                                         LinqExpr.Divide(r, LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(v)))));
                                 }
-                                                                
+                                
                                 // Compile the pre-solved solutions.
                                 if (S.Solved != null)
                                     foreach (Arrow i in S.Solved)
                                         body.Add(LinqExpr.Assign(map[i.Left], i.Right.Compile(map)));
+
+                                // Update the old variables.
+                                foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
+                                    body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
 
                                 // TODO: Break early if all the updates are small.
                                 //body.Add(LinqExpression.Goto(exit));
@@ -330,11 +341,7 @@ namespace Circuit
                             }, LinqExpr.GreaterThan(it, LinqExpr.Constant(0)));
                         }
                     }
-
-                    // Update the old variables.
-                    foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                        body.Add(LinqExpr.Assign(map[i.Key], map[i.Key.Evaluate(Simulation.t0, Simulation.t)]));
-                    
+                                        
                     // Update the linearization.
                     if (Transient.Linearization != null)
                         foreach (Arrow i in Transient.Linearization)
