@@ -110,7 +110,8 @@ namespace Circuit
         {
             // Map expressions to identifiers in the syntax tree.
             Dictionary<Expression, LinqExpr> map = new Dictionary<Expression, LinqExpr>();
-            Dictionary<Expression, LinqExpr> buffers = new Dictionary<Expression, LinqExpr>();
+            Dictionary<Expression, LinqExpr> inputs = new Dictionary<Expression, LinqExpr>();
+            List<KeyValuePair<Expression, LinqExpr>> outputs = new List<KeyValuePair<Expression, LinqExpr>>();
             
             // Lambda definition objects.
             List<ParamExpr> parameters = new List<ParamExpr>();
@@ -124,8 +125,10 @@ namespace Circuit
             ParamExpr Oversample = Declare<int>(parameters, "Oversample");
             ParamExpr Iterations = Declare<int>(parameters, "Iterations");
             // Create buffer parameters for each input, output.
-            foreach (Expression i in Input.Concat(Output))
-                Declare<double[]>(parameters, buffers, i);
+            foreach (Expression i in Input)
+                Declare<double[]>(parameters, inputs, i);
+            foreach (Expression i in Output)
+                Declare<double[]>(parameters, outputs, i);
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
                 Declare<double>(parameters, map, i);
@@ -152,11 +155,6 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Key), i.Value));
 
-            // Trivial timestep expressions that are not a function of the input or t can be set once here (outside the sample loop).
-            // This might not be necessary if you trust the .Net expression compiler to lift this invariant code out of the loop.
-            //foreach (Arrow i in Transient.Trivial.Where(i => !i.Right.DependsOn(Input) && !i.Right.DependsOn(Component.t)))
-            //    body.Add(LinqExpression.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
-
             // for (int n = 0; n < SampleCount; ++n)
             ParamExpr n = Declare<int>(locals, "n");
             For(body,
@@ -170,7 +168,7 @@ namespace Circuit
                 foreach (Expression i in Input)
                 {
                     LinqExpr Va = map[i.Evaluate(t_t0)];
-                    LinqExpr Vb = LinqExpr.ArrayAccess(buffers[i], n);
+                    LinqExpr Vb = LinqExpr.ArrayAccess(inputs[i], n);
 
                     // double Vi = Va
                     body.Add(LinqExpr.Assign(Declare<double>(locals, map, i, i.ToString()), Va));
@@ -186,7 +184,7 @@ namespace Circuit
 
                 // Prepare output sample accumulators for low pass filtering.
                 Dictionary<Expression, LinqExpr> Vo = new Dictionary<Expression, LinqExpr>();
-                foreach (Expression i in Output)
+                foreach (Expression i in Output.Distinct())
                     body.Add(LinqExpr.Assign(
                         Declare<double>(locals, Vo, i, i.ToString().Replace("[t]", "")),
                         LinqExpr.Constant(0.0)));
@@ -358,8 +356,8 @@ namespace Circuit
                 }, LinqExpr.GreaterThan(ov, LinqExpr.Constant(0)));
 
                 // Output[i][n] = Vo / Oversample
-                foreach (Expression i in Output)
-                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(buffers[i], n), LinqExpr.Multiply(Vo[i], invOversample)));
+                foreach (KeyValuePair<Expression, LinqExpr> i in outputs)
+                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], invOversample)));
             });
 
             // Copy the global state variables back to the globals.
@@ -529,7 +527,21 @@ namespace Circuit
             return p;
         }
 
+        private static ParamExpr Declare<T>(IList<ParamExpr> Scope, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr, string Name)
+        {
+            ParamExpr p = LinqExpr.Parameter(typeof(T), Name);
+            Scope.Add(p);
+            if (Map != null)
+                Map.Add(new KeyValuePair<Expression, LinqExpr>(Expr, p));
+            return p;
+        }
+
         private static ParamExpr Declare<T>(IList<ParamExpr> Scope, IDictionary<Expression, LinqExpr> Map, Expression Expr)
+        {
+            return Declare<T>(Scope, Map, Expr, Expr.ToString());
+        }
+
+        private static ParamExpr Declare<T>(IList<ParamExpr> Scope, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr)
         {
             return Declare<T>(Scope, Map, Expr, Expr.ToString());
         }
