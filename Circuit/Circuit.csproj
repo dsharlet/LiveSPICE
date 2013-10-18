@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\DelayBuffer.cs" />
     <Compile Include="Components\Input.cs" />
     <Compile Include="Components\OpAmp.cs" />
     <Compile Include="Components\NamedWire.cs" />
