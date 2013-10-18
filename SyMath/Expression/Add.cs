@@ -30,7 +30,7 @@ namespace SyMath
         }
         private static IEnumerable<Expression> CanonicalForm(IEnumerable<Expression> Terms)
         {
-            return FlattenTerms(Terms).OrderBy(i => i);
+            return FlattenTerms(Terms.Where(i => !i.IsZero())).OrderBy(i => i);
         }
 
         /// <summary>
