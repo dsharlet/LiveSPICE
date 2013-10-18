@@ -16,7 +16,7 @@
             <Separator />
             <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=scope, Path=ShowNotes}" />
             <Label Content="A4:" />
-            <TextBox Width="60" Text="{Binding ElementName=scope, Path=A4, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox Width="60" Text="{Binding ElementName=scope, Path=A4}" />
         </ToolBar>
         <ls:OscilloscopeControl x:Name="scope" BorderBrush="DarkGray" BorderThickness="1" />
     </DockPanel>

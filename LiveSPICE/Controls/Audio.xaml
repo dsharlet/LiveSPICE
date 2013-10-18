@@ -26,18 +26,18 @@
         <ComboBox Grid.Row="0" Grid.Column="1" x:Name="drivers" Margin="4" />
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="Sample Rate: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="1" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=SampleRate, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=SampleRate}" />
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="Latency: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="2" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=Latency, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=Latency}" />
 
         <TextBlock Grid.Row="3" Grid.Column="0" Text="Bits per sample: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="3" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=BitsPerSample, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Grid.Row="3" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=BitsPerSample}" />
 
         <TextBlock Grid.Row="4" Grid.Column="0" Text="Input Gain: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="4" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=InputGain, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Grid.Row="4" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=InputGain}" />
 
         <TextBlock Grid.Row="5" Grid.Column="0" Text="Output Gain: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="5" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=OutputGain, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Grid.Row="5" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=OutputGain}" />
     </Grid>
 </UserControl>
