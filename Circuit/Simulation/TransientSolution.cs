@@ -111,7 +111,7 @@ namespace Circuit
             LogExpressions(Log, "Discretized system:", mna);
 
             // Solving the system...
-            List<SolutionSet> systems = new List<SolutionSet>();
+            List<SolutionSet> solutions = new List<SolutionSet>();
 
             // Find linear solutions for y and substitute them into the system. Linear circuits should be completely solved here.
             List<Arrow> linear = mna.Solve(y);
@@ -119,8 +119,10 @@ namespace Circuit
             mna = mna.Evaluate(linear).OfType<Equal>().ToList();
             y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
             if (linear.Any())
-                systems.Add(new LinearSolutions(linear));
-            LogExpressions(Log, "Linear solutions:", linear);
+            {
+                solutions.Add(new LinearSolutions(linear));
+                LogExpressions(Log, "Linear solutions:", linear);
+            }
             
             // Rearrange the MNA system to be F[y] == 0.
             List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
@@ -152,14 +154,27 @@ namespace Circuit
                 // Solve for x.
                 newton.Add(new LinearCombination(y, Jx + ((Expression)J[i].Tag).Evaluate(y0)));
             }
-                        
-            LogExpressions(Log, "Newton iteration:", newton.Select(i => i.ToExpression()));
-            systems.Add(new NewtonRhapsonIteration(solved, newton, y));
-                        
+
+            if (y.Any())
+            {
+                solutions.Add(new NewtonRhapsonIteration(solved, newton, y));
+                LogExpressions(Log, "Newton iteration:", newton.Select(i => i.ToExpression()));
+            }
+            else if (solved.Any())
+            {
+                solutions.Add(new LinearSolutions(solved));
+                LogExpressions(Log, "Linear solutions:", solved);
+            }
+
+            Log.WriteLine(MessageType.Info, "[{0} ms] System solved, {1} solution sets with {2} unknowns", 
+                time.ElapsedMilliseconds, 
+                solutions.Count, 
+                solutions.Sum(i => i.Unknowns.Count()));
+
             return new TransientSolution(
                 h,
                 Circuit.Nodes.Select(i => (Expression)i.V).ToList(),
-                systems,
+                solutions,
                 null);
         }
                 
