@@ -86,9 +86,12 @@ namespace LiveSPICE
         }
 
         protected Circuit.Simulation simulation = null;
+        protected Circuit.TransientSolution solution = null;
         protected AudioIo.WaveIo waveIo = null;
 
+        protected Dictionary<SyMath.Expression, SyMath.Expression> componentVoltages;
         protected Dictionary<SyMath.Expression, double[]> probes = new Dictionary<SyMath.Expression, double[]>();
+        protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
 
         public TransientSimulation(Circuit.Schematic Simulate)
         {
@@ -101,8 +104,15 @@ namespace LiveSPICE
             clone.Elements.ItemAdded += OnElementAdded;
             clone.Elements.ItemRemoved += (o, e) => RefreshProbes();
 
+            IEnumerable<Circuit.Component> components = clone.Symbols.Select(i => i.Component);
+            componentVoltages = components.OfType<Circuit.TwoTerminal>().ToDictionary(
+                i => Circuit.Component.DependentVariable(i.Name, Circuit.Component.t), 
+                i => i.V);
+
             schematic.Schematic = new SimulationSchematic(clone);
-            
+
+            parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
+
             waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
 
             Build();
@@ -155,6 +165,7 @@ namespace LiveSPICE
         private BackgroundWorker builder;
         protected void Build()
         {
+            solution = null;
             simulation = null;
             try
             {
@@ -164,8 +175,10 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        Circuit.TransientSolution TS = Circuit.TransientSolution.SolveCircuit(circuit, 1 / (sampleRate * Oversample), log);
-                        simulation = new Circuit.LinqCompiledSimulation(TS, Oversample, log);
+                        solution = Circuit.TransientSolution.SolveCircuit(circuit, 1 / (sampleRate * Oversample), log);
+                        arguments = solution.Parameters.ToDictionary(i => i.Name, i => 0.5);
+                        Dispatcher.Invoke(() => parameters.UpdateControls(solution.Parameters));
+                        simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, log);
                     }
                     catch (System.Exception ex)
                     {
@@ -208,7 +221,7 @@ namespace LiveSPICE
                     IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
 
                     // Process the samples!
-                    simulation.Run(Input, Samples, output, Iterations);
+                    simulation.Run(Input, Samples, output, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
                     oscilloscope.ProcessSignals(Samples.Length, output, new Circuit.Quantity(Rate, Circuit.Units.Hz));

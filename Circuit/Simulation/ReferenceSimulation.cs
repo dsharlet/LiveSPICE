@@ -54,8 +54,8 @@ namespace Circuit
             long n, double T,
             int N, 
             IEnumerable<KeyValuePair<Expression,double[]>> Input, 
-            IEnumerable<KeyValuePair<Expression,double[]>> Output, 
-            IEnumerable<Arrow> Arguments, 
+            IEnumerable<KeyValuePair<Expression,double[]>> Output,
+            IEnumerable<KeyValuePair<Expression, double>> Arguments,
             int Oversample, int Iterations)
         {
             throw new NotImplementedException();

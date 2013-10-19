@@ -38,35 +38,25 @@ namespace Circuit
         /// a follows SolutionSet b in this enumeration, b's solution may depend on a's solutions.
         /// </summary>
         public IEnumerable<SolutionSet> Solutions { get { return solutions; } }
-        
-        private List<Arrow> linearizations;
-        /// <summary>
-        /// Defines any linearization expressions used in the solution.
-        /// </summary>
-        public IEnumerable<Arrow> Linearizations { get { return linearizations; } }
 
+        private List<Parameter> parameters = new List<Parameter>();
+        /// <summary>
+        /// Enumerate the parameters found in this circuit.
+        /// </summary>
+        public IEnumerable<Parameter> Parameters { get { return parameters; } }
+        
         public TransientSolution(
             Quantity TimeStep,
             List<Expression> Nodes,
             List<SolutionSet> Solutions,
-            List<Arrow> Linearizations)
+            List<Parameter> Parameters)
         {
             h = TimeStep;
             nodes = Nodes;
             solutions = Solutions;
-            linearizations = Linearizations;
+            parameters = Parameters;
         }
-
-        public TransientSolution(
-            Quantity TimeStep,
-            List<Expression> Nodes,
-            List<SolutionSet> Solutions)
-        {
-            h = TimeStep;
-            nodes = Nodes;
-            solutions = Solutions;
-        }
-
+        
         /// <summary>
         /// Solve the given circuit for transient simulation.
         /// </summary>
@@ -89,6 +79,12 @@ namespace Circuit
             Circuit.Analyze(mna, y);
             LogExpressions(Log, "MNA system of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
 
+            // Find and replace the parameters of the simulation.
+            List<Parameter> parameters = new List<Parameter>();
+            mna = FindParameters(mna, parameters);
+            Log.WriteLine(MessageType.Info, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
+
+            // Solve the MNA system.
             Log.WriteLine(MessageType.Info, "[{0} ms] Solving MNA system...", time.ElapsedMilliseconds);
 
             // Separate y into differential and algebraic unknowns.
@@ -175,9 +171,35 @@ namespace Circuit
                 h,
                 Circuit.Nodes.Select(i => (Expression)i.V).ToList(),
                 solutions,
-                null);
+                parameters);
         }
-                
+
+        // Finds and replaces the parameter expressions in Mna with their variables.
+        private static readonly Variable ParamName = Variable.New("name");
+        private static readonly Variable ParamDefault = Variable.New("def");
+        private static readonly Variable ParamLog = Variable.New("log");
+        private static List<Equal> FindParameters(List<Equal> Mna, List<Parameter> Parameters)
+        {
+            Dictionary<Expression, Expression> substitutions = new Dictionary<Expression, Expression>();
+            foreach (MatchContext match in Mna.SelectMany(i => i.FindMatches("P[name]", "P[name, def]", "P[name, def, log]")))
+            {
+                // Build the parameter description.
+                Expression param = match[ParamName];
+                double def = 1.0;
+                bool log = false;
+                if (match.ContainsKey(ParamDefault))
+                    def = (double)match[ParamDefault];
+                if (match.ContainsKey(ParamLog))
+                    log = match[ParamLog].IsTrue();
+                Parameters.Add(new RangeParameter(param.ToString(), def, log));
+
+                // Replace the parameter description with a variable.
+                substitutions[match.Matched] = param;
+            }
+
+            return Mna.Evaluate(substitutions).Cast<Equal>().ToList();
+        }
+
         // Filters the solutions in S that are dependent on x if evaluated in order.
         private static IEnumerable<Arrow> IndependentSolutions(IEnumerable<Arrow> S, IEnumerable<Expression> x)
         {

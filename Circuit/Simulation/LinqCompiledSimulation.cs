@@ -35,10 +35,6 @@ namespace Circuit
                 if (Transient.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
                     globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             }
-
-            if (Transient.Linearizations != null)
-                foreach (Arrow i in Transient.Linearizations)
-                    globals[i.Left] = new GlobalExpr<double>(0.0);
         }
 
         public override void Reset()
@@ -52,11 +48,11 @@ namespace Circuit
             long n, double T,
             int N, 
             IEnumerable<KeyValuePair<Expression,double[]>> Input, 
-            IEnumerable<KeyValuePair<Expression,double[]>> Output, 
-            IEnumerable<Arrow> Arguments, 
+            IEnumerable<KeyValuePair<Expression,double[]>> Output,
+            IEnumerable<KeyValuePair<Expression, double>> Arguments,
             int Oversample, int Iterations)
         {
-            Delegate processor = Compile(Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Left));
+            Delegate processor = Compile(Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Key));
 
             // Build parameter list for the processor.
             List<object> parameters = new List<object>(3 + Input.Count() + Output.Count() + Arguments.Count());
@@ -70,8 +66,8 @@ namespace Circuit
             foreach (KeyValuePair<Expression, double[]> i in Output)
                 parameters.Add(i.Value);
             if (Arguments != null)
-                foreach (Arrow i in Arguments)
-                    parameters.Add((double)i.Right);
+                foreach (KeyValuePair<Expression, double> i in Arguments)
+                    parameters.Add(i.Value);
 
             processor.DynamicInvoke(parameters.ToArray());
         }
@@ -334,12 +330,7 @@ namespace Circuit
                             }, LinqExpr.GreaterThan(it, LinqExpr.Constant(0)));
                         }
                     }
-                                        
-                    // Update the linearization.
-                    if (Transient.Linearizations != null)
-                        foreach (Arrow i in Transient.Linearizations)
-                            body.Add(LinqExpr.Assign(map[i.Left], i.Right.Compile(map)));
-                    
+
                     // t0 = t
                     body.Add(LinqExpr.Assign(t0, t));
 
@@ -516,17 +507,7 @@ namespace Circuit
         {
             DoWhile(Target, (x, y) => Body(), Condition);
         }
-
-
-        private static ParamExpr Declare<T>(IList<ParamExpr> Scope, IDictionary<Expression, LinqExpr> Map, Expression Expr, string Name)
-        {
-            ParamExpr p = LinqExpr.Parameter(typeof(T), Name);
-            Scope.Add(p);
-            if (Map != null)
-                Map.Add(Expr, p);
-            return p;
-        }
-
+                
         private static ParamExpr Declare<T>(IList<ParamExpr> Scope, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr, string Name)
         {
             ParamExpr p = LinqExpr.Parameter(typeof(T), Name);
@@ -536,16 +517,11 @@ namespace Circuit
             return p;
         }
 
-        private static ParamExpr Declare<T>(IList<ParamExpr> Scope, IDictionary<Expression, LinqExpr> Map, Expression Expr)
-        {
-            return Declare<T>(Scope, Map, Expr, Expr.ToString());
-        }
-
         private static ParamExpr Declare<T>(IList<ParamExpr> Scope, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr)
         {
             return Declare<T>(Scope, Map, Expr, Expr.ToString());
         }
-
+        
         private static ParamExpr Redeclare<T>(IList<ParamExpr> Scope, IDictionary<Expression, LinqExpr> Map, Expression Expr)
         {
             LinqExpr decl;

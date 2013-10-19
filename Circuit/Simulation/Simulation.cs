@@ -84,7 +84,7 @@ namespace Circuit
             long n, double T, int N,
             IEnumerable<KeyValuePair<Expression, double[]>> Input,
             IEnumerable<KeyValuePair<Expression, double[]>> Output,
-            IEnumerable<Arrow> Arguments,
+            IEnumerable<KeyValuePair<Expression, double>> Arguments,
             int Oversample, int Iterations);
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Circuit
             int N,
             IEnumerable<KeyValuePair<Expression, double[]>> Input,
             IEnumerable<KeyValuePair<Expression, double[]>> Output,
-            IEnumerable<Arrow> Arguments,
+            IEnumerable<KeyValuePair<Expression, double>> Arguments,
             int Iterations)
         {
             // Call the implementation of process.
@@ -124,8 +124,36 @@ namespace Circuit
 
             n += N;
         }
+        
+        public void Run(
+            Expression InputNode, double[] InputSamples,
+            IEnumerable<KeyValuePair<Expression, double[]>> Output,
+            IEnumerable<KeyValuePair<Expression, double>> Arguments,
+            int Iterations)
+        {
+            Run(
+                InputSamples.Length,
+                new KeyValuePair<Expression, double[]>[] { new KeyValuePair<Expression, double[]>(InputNode, InputSamples) },
+                Output,
+                Arguments,
+                Iterations);
+        }
 
-        private static Arrow[] NoArguments = new Arrow[] { };
+        public void Run(
+            Expression InputNode, double[] InputSamples,
+            Expression OutputNode, double[] OutputSamples,
+            IEnumerable<KeyValuePair<Expression, double>> Arguments,
+            int Iterations)
+        {
+            Run(
+                InputSamples.Length,
+                new KeyValuePair<Expression, double[]>[] { new KeyValuePair<Expression, double[]>(InputNode, InputSamples) },
+                new KeyValuePair<Expression, double[]>[] { new KeyValuePair<Expression, double[]>(OutputNode, OutputSamples) },
+                Arguments,
+                Iterations);
+        }
+
+        private static KeyValuePair<Expression, double>[] NoArguments = new KeyValuePair<Expression, double>[] { };
         public void Run(
             int N,
             IEnumerable<KeyValuePair<Expression, double[]>> Input,
