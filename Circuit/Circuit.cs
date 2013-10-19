@@ -43,7 +43,7 @@ namespace Circuit
         /// <returns></returns>
         public Expression Evaluate(Expression x)
         {
-            MatchContext m = x.Matches(MatchV);
+            MatchContext m = MatchV.Matches(x);
             if (m != null)
             {
                 string name = m[MatchName].ToString();

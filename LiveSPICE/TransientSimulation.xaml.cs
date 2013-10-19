@@ -43,7 +43,7 @@ namespace LiveSPICE
             set { input = value; NotifyChanged("Input"); }
         }
 
-        protected Circuit.Quantity output = new Circuit.Quantity("O1[t]", Circuit.Units.V);
+        protected Circuit.Quantity output = new Circuit.Quantity("V[O1]", Circuit.Units.V);
         public Circuit.Quantity Output
         {
             get { return output; }
@@ -85,6 +85,7 @@ namespace LiveSPICE
             set { outputGain.Set(value); NotifyChanged("OutputGain"); }
         }
 
+        protected Circuit.Circuit circuit = null;
         protected Circuit.Simulation simulation = null;
         protected Circuit.TransientSolution solution = null;
         protected AudioIo.WaveIo waveIo = null;
@@ -105,14 +106,13 @@ namespace LiveSPICE
             Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), log);
             clone.Elements.ItemAdded += OnElementAdded;
             clone.Elements.ItemRemoved += OnElementRemoved;
-
-            IEnumerable<Circuit.Component> components = clone.Symbols.Select(i => i.Component);
-            componentVoltages = components.OfType<Circuit.TwoTerminal>().ToDictionary(
-                i => Circuit.Component.DependentVariable(i.Name, Circuit.Component.t), 
-                i => i.V);
-
             schematic.Schematic = new SimulationSchematic(clone);
 
+            // Find inputs and outputs to use as the default.
+            IEnumerable<Circuit.Component> components = clone.Symbols.Select(i => i.Component);
+            Input = components.OfType<Circuit.Input>().Select(i => Circuit.Component.DependentVariable(i.Name, Circuit.Component.t)).FirstOrDefault();
+            Output = components.OfType<Circuit.Output>().Select(i => Circuit.Component.DependentVariable("V", i.Name)).FirstOrDefault();
+            
             parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
 
             waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
@@ -171,11 +171,12 @@ namespace LiveSPICE
         private BackgroundWorker builder;
         protected void Build()
         {
+            circuit = null;
             solution = null;
             simulation = null;
             try
             {
-                Circuit.Circuit circuit = schematic.Schematic.Schematic.Build(log);
+                circuit = schematic.Schematic.Schematic.Build(log);
                 builder = new BackgroundWorker();
                 builder.DoWork += (o, e) =>
                 {
@@ -222,7 +223,7 @@ namespace LiveSPICE
                     // Build the signal list.
                     IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes
                         .Select(i => i.AllocBuffer(Samples.Length))
-                        .Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
+                        .Append(new KeyValuePair<SyMath.Expression, double[]>(circuit.Evaluate(Output.Value), Samples));
 
                     // Process the samples!
                     simulation.Run(Input, Samples, signals, arguments, Iterations);
