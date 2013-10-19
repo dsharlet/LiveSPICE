@@ -73,23 +73,19 @@ namespace Circuit
 
             Log.WriteLine(MessageType.Info, "[{0} ms] Performing MNA on circuit...", time.ElapsedMilliseconds);
 
-            // Get the voltages of the TwoTerminal components in the circuit.
-            //List<Arrow> components = Circuit.Components.OfType<TwoTerminal>().Select(i => Arrow.New(Component.DependentVariable(i.Name, t), i.V)).ToList();
-
             // Analyze the circuit to get the MNA system and unknowns.
             List<Expression> y = new List<Expression>();
             List<Equal> mna = new List<Equal>();
             Circuit.Analyze(mna, y);
-            //mna = mna.Evaluate(components).Cast<Equal>().ToList();
-            LogExpressions(Log, "MNA system of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
-
+            LogExpressions(Log, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
+            
             // Find and replace the parameters of the simulation.
             List<Parameter> parameters = new List<Parameter>();
             mna = FindParameters(mna, parameters);
             Log.WriteLine(MessageType.Info, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
 
             // Solve the MNA system.
-            Log.WriteLine(MessageType.Info, "[{0} ms] Solving MNA system...", time.ElapsedMilliseconds);
+            Log.WriteLine(MessageType.Info, "[{0} ms] Solving system...", time.ElapsedMilliseconds);
 
             // Separate y into differential and algebraic unknowns.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
@@ -146,6 +142,7 @@ namespace Circuit
                     i.SwapColumns(ly.Concat(y));
                 // Compute the row-echelon form of the linear part of the Jacobian.
                 J.RowReduce(ly);
+                // Turn the Jacobian-ish expressions into a Newton's method system.
                 foreach (LinearCombination i in J)
                     foreach (Arrow j in y0)
                         i[j.Left] = i[j.Left].Evaluate(y0);
@@ -195,22 +192,23 @@ namespace Circuit
         }
 
         // Finds and replaces the parameter expressions in Mna with their variables.
-        private static readonly Variable ParamName = Variable.New("name");
-        private static readonly Variable ParamDefault = Variable.New("def");
-        private static readonly Variable ParamLog = Variable.New("log");
+        private static readonly Variable MatchName = Variable.New("name");
+        private static readonly Variable MatchDefault = Variable.New("def");
+        private static readonly Variable MatchLog = Variable.New("log");
+        private static readonly IEnumerable<Expression> MatchP = new Expression[] { "P[name]", "P[name, def]", "P[name, def, log]" };
         private static List<Equal> FindParameters(List<Equal> Mna, List<Parameter> Parameters)
         {
             Dictionary<Expression, Expression> substitutions = new Dictionary<Expression, Expression>();
-            foreach (MatchContext match in Mna.SelectMany(i => i.FindMatches("P[name]", "P[name, def]", "P[name, def, log]")))
+            foreach (MatchContext match in Mna.SelectMany(i => i.FindMatches(MatchP)))
             {
                 // Build the parameter description.
-                Expression param = match[ParamName];
+                Expression param = match[MatchName];
                 double def = 1.0;
                 bool log = false;
-                if (match.ContainsKey(ParamDefault))
-                    def = (double)match[ParamDefault];
-                if (match.ContainsKey(ParamLog))
-                    log = match[ParamLog].IsTrue();
+                if (match.ContainsKey(MatchDefault))
+                    def = (double)match[MatchDefault];
+                if (match.ContainsKey(MatchLog))
+                    log = match[MatchLog].IsTrue();
                 Parameters.Add(new RangeParameter(param.ToString(), def, log));
 
                 // Replace the parameter description with a variable.
