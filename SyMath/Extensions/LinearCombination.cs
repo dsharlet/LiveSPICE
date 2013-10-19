@@ -82,6 +82,15 @@ namespace SyMath
                 AddTerm(B, t);
         }
 
+        public void SwapColumns(IEnumerable<Expression> NewBasis)
+        {
+            List<Term> old = terms;
+            terms = new List<Term>();
+            foreach (Expression i in NewBasis)
+                terms.Add(old.Single(j => j.b.Equals(i)));
+            terms.Add(old.Single(i => i.b.Equals(Constant.One)));
+        }
+
         /// <summary>
         /// Create an Expression equal to this linear combination.
         /// </summary>
