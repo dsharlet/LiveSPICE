@@ -29,7 +29,7 @@ namespace LiveSPICE
             set { oversample = value; Build(); NotifyChanged("Oversample"); }
         }
 
-        protected int iterations = 1;
+        protected int iterations = 8;
         public int Iterations
         {
             get { return iterations; }
@@ -224,7 +224,7 @@ namespace LiveSPICE
                     simulation.Run(Input, Samples, output, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
-                    oscilloscope.ProcessSignals(Samples.Length, output, new Circuit.Quantity(Rate, Circuit.Units.Hz));
+                    oscilloscope.ProcessSignals(Samples.Length, probes, new Circuit.Quantity(Rate, Circuit.Units.Hz));
                 }
 
                 // Apply output gain.
