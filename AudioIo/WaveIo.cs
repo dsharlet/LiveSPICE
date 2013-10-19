@@ -25,7 +25,7 @@ namespace AudioIo
         /// Handler for accepting new samples in and writing output samples out.
         /// </summary>
         /// <param name="Samples"></param>
-        public delegate void SampleHandler(double[] Samples, int Rate);
+        public delegate void SampleHandler(double[] Samples);
              
         private IntPtr hWaveIn, hWaveOut;
         private WaveFormatEx format;
@@ -111,7 +111,7 @@ namespace AudioIo
                 if (recorded.TryDequeue(out buffer))
                 {
                     Fixed16x1ToDouble(buffer.Buffer, samples, samples.Length);
-                    callback(samples, format.SamplesPerSec);
+                    callback(samples);
                     DoubleToFixed16x1(samples, buffer.Buffer, samples.Length);
                     buffer.PlayHeader.BufferLength = buffer.Size;
                     buffer.Play();

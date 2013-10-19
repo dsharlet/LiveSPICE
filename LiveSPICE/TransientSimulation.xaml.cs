@@ -199,7 +199,7 @@ namespace LiveSPICE
             }
         }
         
-        private void ProcessSamples(double[] Samples, int Rate)
+        private void ProcessSamples(double[] Samples)
         {
             // If there is no simulation, just zero the samples and return.
             if (simulation == null)
@@ -220,12 +220,12 @@ namespace LiveSPICE
                 lock (probes)
                 {
                     // Build the signal list.
-                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Select(i => i.AllocBuffer(Samples.Length));
-
-                    output = output.Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes
+                        .Select(i => i.AllocBuffer(Samples.Length))
+                        .Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
 
                     // Process the samples!
-                    simulation.Run(Input, Samples, output, arguments, Iterations);
+                    simulation.Run(Input, Samples, signals, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
                     oscilloscope.ProcessSignals(Samples.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)));
