@@ -10,19 +10,23 @@ namespace SyMath
     /// </summary>
     public class MatchContext : Dictionary<Expression, Expression>
     {
-        private List<Expression> matched = new List<Expression>();
-        
+        private List<Expression> history = new List<Expression>();
+
+        private Expression matched;
+        public Expression Matched { get { return matched; } }
+
         /// <summary>
         /// Create a match context with conditions.
         /// </summary>
         /// <param name="Conditions"></param>
-        public MatchContext(IEnumerable<Arrow> PreMatch)
+        public MatchContext(Expression Matching, IEnumerable<Arrow> PreMatch)
         {
+            matched = Matching;
             foreach (Arrow i in PreMatch)
                 if (!Matches(i.Left, i.Right))
                     throw new InvalidOperationException("Duplicate prematch failed.");
         }
-        public MatchContext(params Arrow[] PreMatch) : this(PreMatch.AsEnumerable()) { }
+        public MatchContext(Expression Matching, params Arrow[] PreMatch) : this(Matching, PreMatch.AsEnumerable()) { }
 
         /// <summary>
         /// Check if Key has already been matched to Value. If not, store it as the match.
@@ -37,7 +41,7 @@ namespace SyMath
                 return Matched.Equals(Value);
 
             this[Key] = Value;
-            matched.Add(Key);
+            history.Add(Key);
             return true;
         }
 
@@ -49,14 +53,14 @@ namespace SyMath
         public bool TryMatch(Func<bool> F)
         {
             // Remember where this context begins.
-            int at = matched.Count;
+            int at = history.Count;
             if (F())
                 return true;
 
             // Match failed, remove any matches since the beginning of this context.
-            for (int i = at; i < matched.Count; ++i)
-                Remove(matched[i]);
-            matched.RemoveRange(at, matched.Count - at);
+            for (int i = at; i < history.Count; ++i)
+                Remove(history[i]);
+            history.RemoveRange(at, history.Count - at);
             return false;
         }
     }

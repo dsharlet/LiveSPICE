@@ -55,7 +55,7 @@ namespace SyMath
         public virtual bool Matches(Expression Expr, MatchContext Matched) { return Equals(Expr); }
         public MatchContext Matches(Expression Expr, IEnumerable<Arrow> PreMatch)
         {
-            MatchContext Matched = new MatchContext(PreMatch);
+            MatchContext Matched = new MatchContext(Expr, PreMatch);
             if (!Matches(Expr, Matched))
                 return null;
             
