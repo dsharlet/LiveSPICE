@@ -33,7 +33,29 @@ namespace Circuit
         {
             throw new NotImplementedException();
         }
-        
+
+        private static readonly Expression MatchName = Variable.New("name");
+        private static readonly Expression MatchV = DependentVariable("V", MatchName);
+        /// <summary>
+        /// Evaluates x for the components in this circuit.
+        /// </summary>
+        /// <param name="V"></param>
+        /// <returns></returns>
+        public Expression Evaluate(Expression x)
+        {
+            MatchContext m = x.Matches(MatchV);
+            if (m != null)
+            {
+                string name = m[MatchName].ToString();
+                Component of = Components.Single(i => i.Name == name);
+                if (of is TwoTerminal)
+                    return ((TwoTerminal)of).V;
+                else if (of is OneTerminal)
+                    return ((OneTerminal)of).V;
+            }
+            return x;
+        }
+
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             foreach (Component c in Components)
@@ -54,6 +76,14 @@ namespace Circuit
                 Expression i = n.Kcl();
                 if (i != null && !i.IsZero())
                     Mna.Add(Equal.New(i, Constant.Zero));
+            }
+
+            // Add equations for any depenent expressions.
+            foreach (MatchContext v in Mna.SelectMany(i => i.FindMatches(MatchV)).Distinct().ToArray())
+            {
+                string name = v[MatchName].ToString();
+                Mna.Add(Equal.New(v.Matched, Evaluate(v.Matched)));
+                Unknowns.Add(v.Matched);
             }
         }
         
