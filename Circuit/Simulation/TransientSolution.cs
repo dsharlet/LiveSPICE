@@ -38,7 +38,7 @@ namespace Circuit
         /// a follows SolutionSet b in this enumeration, b's solution may depend on a's solutions.
         /// </summary>
         public IEnumerable<SolutionSet> Solutions { get { return solutions; } }
-
+        
         private List<Parameter> parameters = new List<Parameter>();
         /// <summary>
         /// Enumerate the parameters found in this circuit.
@@ -47,14 +47,14 @@ namespace Circuit
         
         public TransientSolution(
             Quantity TimeStep,
-            List<Expression> Nodes,
-            List<SolutionSet> Solutions,
-            List<Parameter> Parameters)
+            IEnumerable<Expression> Nodes,
+            IEnumerable<SolutionSet> Solutions,
+            IEnumerable<Parameter> Parameters)
         {
             h = TimeStep;
-            nodes = Nodes;
-            solutions = Solutions;
-            parameters = Parameters;
+            nodes = Nodes.ToList();
+            solutions = Solutions.ToList();
+            parameters = Parameters.ToList();
         }
         
         /// <summary>
@@ -73,10 +73,14 @@ namespace Circuit
 
             Log.WriteLine(MessageType.Info, "[{0} ms] Performing MNA on circuit...", time.ElapsedMilliseconds);
 
+            // Get the voltages of the TwoTerminal components in the circuit.
+            //List<Arrow> components = Circuit.Components.OfType<TwoTerminal>().Select(i => Arrow.New(Component.DependentVariable(i.Name, t), i.V)).ToList();
+
             // Analyze the circuit to get the MNA system and unknowns.
             List<Expression> y = new List<Expression>();
             List<Equal> mna = new List<Equal>();
             Circuit.Analyze(mna, y);
+            //mna = mna.Evaluate(components).Cast<Equal>().ToList();
             LogExpressions(Log, "MNA system of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
 
             // Find and replace the parameters of the simulation.
@@ -91,19 +95,21 @@ namespace Circuit
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
 
             // Separate mna into differential and algebraic equations.
-            List<Equal> diffeq = mna.Where(i => i.DependsOn(dy_dt)).ToList();
-            mna = mna.Except(diffeq).ToList();
-            LogExpressions(Log, "Differential equations:", diffeq);
+            List<LinearCombination> diffeq = mna.Where(i => i.DependsOn(dy_dt)).InTermsOf(dy_dt).ToList();
+            mna = mna.Where(i => !i.DependsOn(dy_dt)).ToList();
+            LogList(Log, "Differential equations:", diffeq.Select(i => i.ToString()));
 
-            // Add the (potentially implicit) numerical integration of the differential equation to the system.
-            List<Equal> integrated = diffeq
-                .NDIntegrate(dy_dt.Select(i => DOf(i)), t, t0, h, IntegrationMethod.Trapezoid)
+            // Solve the diff eq for dy/dt and integrate the results.
+            diffeq.RowReduce(dy_dt);
+            diffeq.BackSubstitute(dy_dt);
+            List<Equal> integrated = SolveAndRemove(diffeq, dy_dt)
+                .NDIntegrate(t, t0, h, IntegrationMethod.Trapezoid)
                 .Select(i => Equal.New(i.Left, i.Right)).ToList();
             mna.AddRange(integrated);
             LogExpressions(Log, "Integrated solutions:", integrated);
 
-            // Add the differential equations back to the system, with solutions now.
-            mna.InsertRange(0, diffeq.Evaluate(dy_dt.Select(i => Arrow.New(i, (DOf(i) - DOf(i).Evaluate(t, t0)) / h))).OfType<Equal>());
+            // The remaining diffeqs should be algebraic.
+            mna.InsertRange(0, diffeq.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
             LogExpressions(Log, "Discretized system:", mna);
 
             // Solving the system...
@@ -119,42 +125,39 @@ namespace Circuit
                 solutions.Add(new LinearSolutions(linear));
                 LogExpressions(Log, "Linear solutions:", linear);
             }
-            
-            // Rearrange the MNA system to be F[y] == 0.
-            List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
-            // Compute JxF.
-            List<LinearCombination> J = F.Jacobian(y);
-
-            //// Goal is to permute (J, y) such that we can find the row-echelon form for all the linear equations in the system.
-            //// To do this, we need to move all of the terms of y that have a non-constant entry in the Jacobian to the end
-            //// of the list. These terms need to be solved via newton's method.
-            //List<Expression> ly = y.Where(j => !J.Any(i => i[j].DependsOn(j))).ToList();
-            //// Compute the row-echelon form of the linear part of the Jacobian.
-            //J.ToRowEchelon(ly);
-            //// Solutions for each linear term.
-            //List<Arrow> solved = J.Solve(ly);
-            //// The linear terms are no longer unknowns to be solved for.
-            //y = y.Except(ly).ToList();
-            List<Arrow> solved = new List<Arrow>();
 
             // Initial guesses of y[t] = y[t0].
             List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
-            // Now get the rows of the Jacobian that we couldn't find a linear solution for.
-            J = J.Where(i => y.Contains(i.PivotVariable)).ToList();
-            List<LinearCombination> newton = new List<LinearCombination>();
+            // Rearrange the MNA system to be F[y] == 0.
+            List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
+            // Compute JxF + F(y0) == 0.
+            List<LinearCombination> J = F.Jacobian(y);
+            foreach (LinearCombination i in J)
+                i[Constant.One] = ((Expression)i.Tag).Evaluate(y0);
 
-            for (int i = 0; i < J.Count; ++i)
-            {
-                // Compute J * (x - x0)
-                Expression Jx = Add.New(y0.Select(j => J[i][j.Left].Evaluate(y0) * (j.Left - j.Right)));
-                // Solve for x.
-                newton.Add(new LinearCombination(y, Jx + ((Expression)J[i].Tag).Evaluate(y0)));
-            }
+            // Do the row reduction of the linear part of J. This reduces the rank of the non-linear
+            // system to be solved during simulation.
+            List<Expression> ly = y.Where(j => !J.Any(i => i[j].DependsOn(j))).ToList();
+            y = y.Except(ly).ToList();
+            //y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+            foreach (LinearCombination i in J)
+                i.SwapColumns(ly.Concat(y));
+            // Compute the row-echelon form of the linear part of the Jacobian.
+            J.RowReduce(ly);
+            foreach (LinearCombination i in J)
+                foreach (Arrow j in y0)
+                    i[j.Left] = i[j.Left].Evaluate(y0);
+            // Solutions for each linear term.
+            List<Arrow> solved = SolveAndRemove(J, ly);
+            //y = ly.Concat(y).ToList();
+            //List<Arrow> solved = new List<Arrow>();
 
             if (y.Any())
             {
+                List<LinearCombination> newton = J.Select(i => new LinearCombination(y, i.ToExpression())).ToList();
                 solutions.Add(new NewtonRhapsonIteration(solved, newton, y));
                 LogExpressions(Log, "Newton iteration:", newton.Select(i => i.ToExpression()));
+                LogExpressions(Log, "Linear solutions:", solved);
             }
             else if (solved.Any())
             {
@@ -169,9 +172,33 @@ namespace Circuit
 
             return new TransientSolution(
                 h,
-                Circuit.Nodes.Select(i => (Expression)i.V).ToList(),
+                Circuit.Nodes.Select(i => (Expression)i.V),
                 solutions,
                 parameters);
+        }
+
+        // Solve S for x, removing the rows of S that are used for a solution.
+        private static List<Arrow> SolveAndRemove(IList<LinearCombination> S, IEnumerable<Expression> x)
+        {
+            // Solve for the variables in x.
+            List<Arrow> result = new List<Arrow>();
+            foreach (Expression j in x.Reverse())
+            {
+                // Find the row with the pivot variable in this position.
+                LinearCombination i = S.FindPivot(j);
+
+                // If there is no pivot in this position, find any row with a non-zero coefficient of j.
+                if (i == null)
+                    i = S.FirstOrDefault(s => !s[j].IsZero());
+
+                // Solve the row for i.
+                if (i != null)
+                {
+                    result.Add(Arrow.New(j, i.Solve(j)));
+                    S.Remove(i);
+                }
+            }
+            return result;
         }
 
         // Finds and replaces the parameter expressions in Mna with their variables.
@@ -233,17 +260,22 @@ namespace Circuit
                 return d.Arguments.First();
             throw new InvalidOperationException("Expression is not a derivative");
         }
-                        
+
         // Logging helpers.
-        private static void LogExpressions(ILog Log, string Title, IEnumerable<Expression> Expressions)
+        private static void LogList(ILog Log, string Title, IEnumerable<string> List)
         {
-            if (Expressions.Any())
+            if (List.Any())
             {
                 Log.WriteLine(MessageType.Info, Title);
-                foreach (Expression i in Expressions)
-                    Log.WriteLine(MessageType.Info, "  " + i.ToString());
+                foreach (string i in List)
+                    Log.WriteLine(MessageType.Info, "  " + i);
                 Log.WriteLine(MessageType.Info, "");
             }
+        }
+
+        private static void LogExpressions(ILog Log, string Title, IEnumerable<Expression> Expressions)
+        {
+            LogList(Log, Title, Expressions.Select(i => i.ToString()));
         }
     }
 }

@@ -16,10 +16,24 @@ namespace SyMath
         /// <param name="f"></param>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static List<LinearCombination> TermsOf(this IEnumerable<Equal> f, IEnumerable<Expression> x)
+        public static List<LinearCombination> InTermsOf(this IEnumerable<Equal> f, IEnumerable<Expression> x)
         {
             // Convert f to a system of linear equations.
             return f.Select(i => new LinearCombination(x, i.Left - i.Right)).ToList();
+        }
+
+        public static LinearCombination FindPivot(this IEnumerable<LinearCombination> S, Expression x)
+        {
+            IEnumerable<LinearCombination> candidates = S.Where(i => x.Equals(i.PivotVariable));
+            if (candidates.Empty())
+                return null;
+
+            return candidates.ArgMax(i => 
+            {
+                if (i.PivotCoefficient is Constant && i.Basis.All(j => !i[j].DependsOn(j)))
+                    return (double)Real.Abs(((Constant)i.PivotCoefficient).Value);
+                return -1.0;
+            });
         }
 
         /// <summary>
@@ -31,11 +45,9 @@ namespace SyMath
         {
             foreach (Expression j in x)
             {
-                IEnumerable<LinearCombination> rows = S.Where(i => j.Equals(i.PivotVariable));
-                if (rows.Empty())
+                LinearCombination i1 = FindPivot(S, j);
+                if (i1 == null)
                     continue;
-                // Find the row with the largest pivot coefficient if possible.
-                LinearCombination i1 = rows.ArgMax(i => i.PivotCoefficient is Constant ? (double)Real.Abs(((Constant)i.PivotCoefficient).Value) : -1.0);
                 Expression scale = i1.PivotCoefficient;
 
                 // Cancel the pivot variable from other rows.
@@ -53,9 +65,9 @@ namespace SyMath
         /// </summary>
         /// <param name="S"></param>
         /// <returns></returns>
-        public static void BackSubstitute(this IEnumerable<LinearCombination> S)
+        public static void BackSubstitute(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
         {
-            foreach (LinearCombination i in S.Where(i => !ReferenceEquals(i.PivotVariable, null)))
+            foreach (LinearCombination i in S.Where(i => x.Contains(i.PivotVariable)))
             {
                 Expression pivot = i.PivotVariable;
                 Expression scale = i.PivotCoefficient;
@@ -82,18 +94,18 @@ namespace SyMath
         /// <param name="S"></param>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static List<Arrow> Solve(this List<LinearCombination> S, IEnumerable<Expression> x)
+        public static List<Arrow> Solve(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
         {
             // Solve for the variables in x.
             List<Arrow> result = new List<Arrow>();
             foreach (Expression j in x.Reverse())
             {
                 // Find the row with the pivot variable in this position.
-                LinearCombination i = S.Find(s => j.Equals(s.PivotVariable));
+                LinearCombination i = S.FindPivot(j);
 
                 // If there is no pivot in this position, find any row with a non-zero coefficient of j.
                 if (i == null)
-                    i = S.Find(s => !s[j].IsZero());
+                    i = S.FirstOrDefault(s => !s[j].IsZero());
 
                 // Solve the row for i.
                 if (i != null)
@@ -111,13 +123,13 @@ namespace SyMath
         public static List<Arrow> Solve(this IEnumerable<Equal> f, IEnumerable<Expression> x)
         {
             // Convert f to a system of linear equations.
-            List<LinearCombination> S = f.TermsOf(x);
+            List<LinearCombination> S = f.InTermsOf(x);
 
             // Get row-echelon form of S.
             S.RowReduce(x);
 
             // Back substitution.
-            S.BackSubstitute();
+            S.BackSubstitute(x);
 
             // Solve for the variables.
             return S.Solve(x);
@@ -141,7 +153,7 @@ namespace SyMath
         public static List<Arrow> PartialSolve(this IEnumerable<Equal> f, IEnumerable<Expression> x)
         {
             // Convert f to a system of linear equations.
-            List<LinearCombination> S = f.TermsOf(x);
+            List<LinearCombination> S = f.InTermsOf(x);
 
             // Get row-echelon form of S.
             S.RowReduce(x);

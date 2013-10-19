@@ -53,41 +53,32 @@ namespace SyMath
         /// <summary>
         /// Compute expressions for y[t] at t = t0 + h in terms of y[t0], the resulting expressions will be implicit for implicit IntegrationMethods.
         /// </summary>
-        /// <param name="f">Equations to solve.</param>
+        /// <param name="dy_dt">Equations to solve.</param>
         /// <param name="y">Functions to solve for.</param>
         /// <param name="t">Independent variable.</param>
         /// <param name="t0">Previous timestep.</param>
         /// <param name="h">Step size.</param>
         /// <param name="method">Integration method to use for differential equations.</param>
         /// <returns>Expressions for y[t0 + h].</returns>
-        public static IEnumerable<Arrow> NDIntegrate(this IEnumerable<Equal> f, IEnumerable<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method)
-        {
-            // TODO: y = y.ToList(); ?
-
-            // Find y' in terms of y.
-            List<Arrow> dydt = f.Solve(y.Select(i => D(i, t)));
-
-            // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
-            if (dydt.Any(i => i.Right.DependsOn(dydt.Select(j => j.Left))))
-                throw new AlgebraException("Differential equation is singular or not linear.");
-
+        public static IEnumerable<Arrow> NDIntegrate(this IEnumerable<Arrow> dy_dt, Expression t, Expression t0, Expression h, IntegrationMethod method)
+        {            
             switch (method)
             {
                 // y[t] = y[t0] + h*f[t0, y[t0]]
                 case IntegrationMethod.Euler:
-                    return dydt.Select(i => Arrow.New(
+                    return dy_dt.Select(i => Arrow.New(
                         DOf(i.Left),
                         DOf(i.Left).Evaluate(t, t0) + h * i.Right.Evaluate(t, t0)));
 
                 // y[t] = y[t0] + h*f[t, y[t]]
                 case IntegrationMethod.BackwardEuler:
-                    return dydt.Select(i => Arrow.New(
+                    return dy_dt.Select(i => Arrow.New(
                         DOf(i.Left),
                         DOf(i.Left).Evaluate(t, t0) + h * i.Right));
 
                 // y[t] = y[t0] + (h/2)*(f[t0, y[t0]] + f[t, y[t]])
                 case IntegrationMethod.Trapezoid:
-                    return dydt.Select(i => Arrow.New(
+                    return dy_dt.Select(i => Arrow.New(
                         DOf(i.Left),
                         DOf(i.Left).Evaluate(t, t0) + (h / 2) * (i.Right.Evaluate(t, t0) + i.Right)));
 
@@ -108,7 +99,14 @@ namespace SyMath
         /// <returns>Expressions for y[t0 + h].</returns>
         public static List<Arrow> NDSolve(this IEnumerable<Equal> f, IEnumerable<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method)
         {
-            return NDIntegrate(f, y, t, t0, h, method)
+            // Find y' in terms of y.
+            List<Arrow> dy_dt = f.Solve(y.Select(i => D(i, t)));
+
+            // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
+            if (dy_dt.Any(i => i.Right.DependsOn(dy_dt.Select(j => j.Left))))
+                throw new AlgebraException("Differential equation is singular or not linear.");
+
+            return NDIntegrate(dy_dt, t, t0, h, method)
                 .Select(i => Equal.New(i.Left, i.Right))
                 .Solve(y);
         }
@@ -125,7 +123,14 @@ namespace SyMath
         /// <returns>Expressions for y[t0 + h].</returns>
         public static List<Arrow> NDPartialSolve(this IEnumerable<Equal> f, IEnumerable<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method)
         {
-            return NDIntegrate(f, y, t, t0, h, method)
+            // Find y' in terms of y.
+            List<Arrow> dy_dt = f.Solve(y.Select(i => D(i, t)));
+
+            // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
+            if (dy_dt.Any(i => i.Right.DependsOn(dy_dt.Select(j => j.Left))))
+                throw new AlgebraException("Differential equation is singular or not linear.");
+
+            return NDIntegrate(dy_dt, t, t0, h, method)
                 .Select(i => Equal.New(i.Left, i.Right))
                 .PartialSolve(y);
         }

@@ -69,11 +69,11 @@ namespace Circuit
 
         public override IEnumerable<Expression> Unknowns { get { return solved != null ? solved.Select(i => i.Left).Concat(updates) : updates; } }
 
-        public NewtonRhapsonIteration(List<Arrow> Solved, List<LinearCombination> Equations, List<Expression> Updates)
+        public NewtonRhapsonIteration(IEnumerable<Arrow> Solved, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Updates)
         {
-            solved = Solved;
-            equations = Equations;
-            updates = Updates;
+            solved = Solved.ToList();
+            equations = Equations.ToList();
+            updates = Updates.ToList();
         }
 
         public override bool DependsOn(Expression x) 
