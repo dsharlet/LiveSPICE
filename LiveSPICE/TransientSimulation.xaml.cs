@@ -215,9 +215,10 @@ namespace LiveSPICE
                 lock (probes)
                 {
                     // Build the signal list.
-                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes
-                        .Select(i => i.AllocBuffer(Samples.Length))
-                        .Append(new KeyValuePair<SyMath.Expression, double[]>(circuit.Evaluate(Output.Value), Samples));
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(Samples.Length));
+
+                    if (Output.Value != null)
+                        signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(circuit.Evaluate(Output.Value), Samples));
 
                     // Process the samples!
                     simulation.Run(Input, Samples, signals, arguments, Iterations);

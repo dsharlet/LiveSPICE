@@ -168,9 +168,14 @@ namespace Circuit
                 SB.Append(" ");
                 SB.Append(prefixes[prefix + 5]);
             }
-            else
+            else if (Value != null)
             {
                 SB.Append(Value.ToString());
+                SB.Append(" ");
+            }
+            else
+            {
+                SB.Append("0");
                 SB.Append(" ");
             }
             SB.Append(Units);
