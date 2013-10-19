@@ -12,7 +12,6 @@ namespace Circuit
     {
         protected Expression wipe = 0.5m;
         [SchematicPersistent]
-        [RangedSimulationParameter(0, 1)]
         public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
         public VariableResistor() { }

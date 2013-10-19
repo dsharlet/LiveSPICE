@@ -8,19 +8,6 @@ using SyMath;
 namespace Circuit
 {
     public class SchematicPersistent : Attribute { };
-    public class SimulationParameter : Attribute
-    {
-        public SimulationParameter() { }
-    }
-
-    public class RangedSimulationParameter : SimulationParameter
-    {
-        private double min, max;
-        public double Min { get { return min; } }
-        public double Max { get { return max; } }
-
-        public RangedSimulationParameter(double Min, double Max) { min = Min; max = Max; }
-    }
 
     /// <summary>
     /// Components are capable of performing MNA to produce a set of equations and unknowns describing their behavior.

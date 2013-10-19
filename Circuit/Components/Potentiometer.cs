@@ -44,13 +44,11 @@ namespace Circuit
         [SchematicPersistent]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
-        protected Expression wipe = 0.5m;
-        [Description("Position of the wiper as a ratio from 0 to 1. 1 corresponds to all the resistance between the wiper and the cathode.")]
+        protected double wipe = 0.5;
+        [Description("Default position of the wiper as a ratio from 0 to 1. 1 corresponds to all the resistance between the wiper and the cathode.")]
         [SchematicPersistent]
-        [RangedSimulationParameter(0, 1)]
-        public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
-
-
+        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+        
         public void ConnectTo(Node A, Node C, Node W)
         {
             Anode.ConnectTo(A);
@@ -60,14 +58,16 @@ namespace Circuit
 
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
-            Expression R1 = resistance.Value * (1 - wipe);
-            Expression R2 = resistance.Value * wipe;
+            Expression P = Wipe; // RangeParameter.New(Name, wipe, false);
+
+            Expression R1 = resistance.Value * (1 - P);
+            Expression R2 = resistance.Value * P;
 
             Expression VR1 = Anode.V - Wiper.V;
             Expression VR2 = Wiper.V - Cathode.V;
 
-            Cathode.i = VR1 / -R1;
-            Anode.i = VR2 / R2;
+            Cathode.i = -VR1 / (R1 + 1e-32m);
+            Anode.i = VR2 / (R2 + 1e-32m);
             Wiper.i = Cathode.i + Anode.i;
         }
         
