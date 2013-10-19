@@ -23,7 +23,7 @@ namespace Circuit
 
         public override Expression i(Expression V)
         {
-            return V / Resistance.Value;
+            return V / (Resistance.Value + 1e-32m);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
@@ -38,6 +38,9 @@ namespace Circuit
                 (t) => Math.Abs((t + 0.5) % 2 - 1) * 8 - 4, 
                 (t) => t * 32 / N - 16,
                 0, N, N * 2);
+
+            if (!(resistance.Value is Constant))
+                Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
 
             Sym.DrawText(Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(resistance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
