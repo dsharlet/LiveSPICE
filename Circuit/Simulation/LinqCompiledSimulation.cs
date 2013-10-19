@@ -231,7 +231,7 @@ namespace Circuit
                             // it = Oversample
                             // do { ... --it } while(it > 0)
                             body.Add(LinqExpr.Assign(it, Iterations));
-                            DoWhile(body, (exit) =>
+                            DoWhile(body, (Break) =>
                             {
                                 // Initialize the matrix.
                                 for (int i = 0; i < eqs.Length; ++i)
@@ -323,7 +323,7 @@ namespace Circuit
                                     body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
 
                                 // TODO: Break early if all the updates are small.
-                                //body.Add(LinqExpression.Goto(exit));
+                                //Break();
                                 
                                 // --it;
                                 body.Add(LinqExpr.PreDecrementAssign(it));
@@ -429,7 +429,7 @@ namespace Circuit
         private static void While(
             IList<LinqExpr> Target,
             LinqExpr Condition,
-            Action<LinqExprs.LabelTarget, LinqExprs.LabelTarget> Body)
+            Action<Action, Action> Body)
         {
             string name = (Target.Count + 1).ToString();
             LinqExprs.LabelTarget begin = LinqExpr.Label("while_" + name + "_begin");
@@ -440,7 +440,7 @@ namespace Circuit
             Target.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
 
             // Generate the body code.
-            Body(end, begin);
+            Body(() => Target.Add(LinqExpr.Goto(end)), () => Target.Add(LinqExpr.Goto(begin)));
 
             // Loop.
             Target.Add(LinqExpr.Goto(begin));
@@ -453,7 +453,7 @@ namespace Circuit
         private static void While(
             IList<LinqExpr> Target,
             LinqExpr Condition,
-            Action<LinqExprs.LabelTarget> Body)
+            Action<Action> Body)
         {
             While(Target, Condition, (end, y) => Body(end));
         }
@@ -470,7 +470,7 @@ namespace Circuit
         // Generate a do-while loop given the condition and body expressions.
         private static void DoWhile(
             IList<LinqExpr> Target,
-            Action<LinqExprs.LabelTarget, LinqExprs.LabelTarget> Body,
+            Action<Action, Action> Body,
             LinqExpr Condition)
         {
             string name = (Target.Count + 1).ToString();
@@ -481,7 +481,7 @@ namespace Circuit
             Target.Add(LinqExpr.Label(begin));
 
             // Generate the body code.
-            Body(end, begin);
+            Body(() => Target.Add(LinqExpr.Goto(end)), () => Target.Add(LinqExpr.Goto(begin)));
 
             // Loop.
             Target.Add(LinqExpr.IfThen(Condition, LinqExpr.Goto(begin)));
@@ -493,7 +493,7 @@ namespace Circuit
         // Generate a do-while loop given the condition and body expressions.
         private static void DoWhile(
             IList<LinqExpr> Target,
-            Action<LinqExprs.LabelTarget> Body,
+            Action<Action> Body,
             LinqExpr Condition)
         {
             DoWhile(Target, (end, y) => Body(end), Condition);
