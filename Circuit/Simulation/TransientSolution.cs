@@ -126,46 +126,38 @@ namespace Circuit
                 LogExpressions(Log, "Linear solutions:", linear);
             }
 
-            // Initial guesses of y[t] = y[t0].
-            List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
-            // Rearrange the MNA system to be F[y] == 0.
-            List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
-            // Compute JxF + F(y0) == 0.
-            List<LinearCombination> J = F.Jacobian(y);
-            foreach (LinearCombination i in J)
-                i[Constant.One] = ((Expression)i.Tag).Evaluate(y0);
-
-            // Do the row reduction of the linear part of J. This reduces the rank of the non-linear
-            // system to be solved during simulation.
-            List<Expression> ly = y.Where(j => !J.Any(i => i[j].DependsOn(j))).ToList();
-            y = y.Except(ly).ToList();
-            //y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
-            foreach (LinearCombination i in J)
-                i.SwapColumns(ly.Concat(y));
-            // Compute the row-echelon form of the linear part of the Jacobian.
-            J.RowReduce(ly);
-            foreach (LinearCombination i in J)
-                foreach (Arrow j in y0)
-                    i[j.Left] = i[j.Left].Evaluate(y0);
-            // Solutions for each linear term.
-            List<Arrow> solved = SolveAndRemove(J, ly);
-            //y = ly.Concat(y).ToList();
-            //List<Arrow> solved = new List<Arrow>();
-
-            if (y.Any())
+            if (mna.Any())
             {
+                // Initial guesses of y[t] = y[t0].
+                List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+                // Rearrange the MNA system to be F[y] == 0.
+                List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
+                // Compute JxF + F(y0) == 0.
+                List<LinearCombination> J = F.Jacobian(y);
+                foreach (LinearCombination i in J)
+                    i[Constant.One] = ((Expression)i.Tag).Evaluate(y0);
+
+                // Solve for the linear update equations of Newton's method. This reduces the rank of the non-linear
+                // system to be solved during simulation.
+                List<Expression> ly = y.Where(j => !J.Any(i => i[j].DependsOn(j))).ToList();
+                y = y.Except(ly).ToList();
+                foreach (LinearCombination i in J)
+                    i.SwapColumns(ly.Concat(y));
+                // Compute the row-echelon form of the linear part of the Jacobian.
+                J.RowReduce(ly);
+                foreach (LinearCombination i in J)
+                    foreach (Arrow j in y0)
+                        i[j.Left] = i[j.Left].Evaluate(y0);
+                // Solutions for each linear update equation.
+                List<Arrow> solved = SolveAndRemove(J, ly);
+
                 List<LinearCombination> newton = J.Select(i => new LinearCombination(y, i.ToExpression())).ToList();
                 solutions.Add(new NewtonRhapsonIteration(solved, newton, y));
-                LogExpressions(Log, "Newton iteration:", newton.Select(i => i.ToExpression()));
-                LogExpressions(Log, "Linear solutions:", solved);
-            }
-            else if (solved.Any())
-            {
-                solutions.Add(new LinearSolutions(solved));
-                LogExpressions(Log, "Linear solutions:", solved);
+                LogExpressions(Log, "Non-linear Newton update equations:", newton.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+                LogExpressions(Log, "Linear Newton update:", solved);
             }
 
-            Log.WriteLine(MessageType.Info, "[{0} ms] System solved, {1} solution sets with {2} unknowns", 
+            Log.WriteLine(MessageType.Info, "[{0} ms] System solved, {1} solution sets for {2} unknowns", 
                 time.ElapsedMilliseconds, 
                 solutions.Count, 
                 solutions.Sum(i => i.Unknowns.Count()));
