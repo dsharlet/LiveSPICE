@@ -35,6 +35,9 @@ namespace Circuit
                 if (Transient.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
                     globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             }
+            // Also need globals for any Newton's method unknowns.
+            foreach (Expression i in Transient.Solutions.OfType<NewtonRhapsonIteration>().SelectMany(i => i.Unknowns))
+                globals[i] = new GlobalExpr<double>(0.0);
         }
 
         public override void Reset()
@@ -212,7 +215,7 @@ namespace Circuit
                             LinearSolutions S = (LinearSolutions)ss;
                             // Linear solutions are easy.
                             foreach (Arrow i in S.Solutions)
-                                body.Add(LinqExpr.Assign(Redeclare<double>(locals, map, i.Left), i.Right.Compile(map)));
+                                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
                             // Update the old variables.
                             foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
                                 body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
@@ -311,29 +314,32 @@ namespace Circuit
                                         r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)), updates[vars[vj]]));
                                     r = LinqExpr.Negate(r);
                                     body.Add(LinqExpr.Assign(
-                                        Declare<double>(locals, updates, vars[v], "d" + vars[v].ToString()),
+                                        Declare<double>(locals, updates, vars[v]),
                                         LinqExpr.Divide(r, LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(v)))));
                                 }
 
                                 // Compile the pre-solved solutions.
                                 if (S.Solved != null)
                                     foreach (Arrow i in S.Solved)
-                                        body.Add(LinqExpr.Assign(Declare<double>(locals, updates, i.Left), i.Right.Compile(map.Concat(updates).ToDictionary(x => x.Key, x => x.Value))));
+                                        body.Add(LinqExpr.Assign(
+                                            Declare<double>(locals, updates, i.Left), 
+                                            i.Right.Compile(map.Where(x => !updates.ContainsKey(x.Key)).Concat(updates).ToDictionary(x => x.Key, x => x.Value))));
 
+                                // bool done = true
                                 LinqExpr done = Redeclare(locals, body, "done", LinqExpr.Constant(true));
                                 foreach (KeyValuePair<Expression, LinqExpr> i in updates)
                                 {
-                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(i.Value, i.Value), LinqExpr.Constant(1e-6))));
-                                    body.Add(LinqExpr.AddAssign(Redeclare<double>(locals, map, i.Key), i.Value));
+                                    // done = done && (|dv| < |v|*1e-4)
+                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(i.Value), LinqExpr.Multiply(Abs(map[i.Key]), LinqExpr.Constant(1e-2)))));
+                                    // v += dv
+                                    body.Add(LinqExpr.AddAssign(map[i.Key], i.Value));
+
+                                    // Update the old variables.
+                                    if (map.ContainsKey(i.Key.Evaluate(t_t0)))
+                                        body.Add(LinqExpr.Assign(map[i.Key.Evaluate(t_t0)], map[i.Key]));
                                 }
-                                
-
-                                // Update the old variables.
-                                foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
-                                    body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
-
-                                // TODO: Break early if all the updates are small.
-                                body.Add(LinqExpr.IfThen(done, Break()));
+                                // if (done) break
+                                body.Add(LinqExpr.IfThen(done, Break));
                                 
                                 // --it;
                                 body.Add(LinqExpr.PreDecrementAssign(it));
@@ -345,7 +351,7 @@ namespace Circuit
                     body.Add(LinqExpr.Assign(t0, t));
 
                     // Vo += i
-                    foreach (Expression i in Output)
+                    foreach (Expression i in Output.Distinct())
                         body.Add(LinqExpr.AddAssign(Vo[i], CompileOrWarn(i, map)));
 
                     // Vi_t0 = Vi
@@ -389,7 +395,7 @@ namespace Circuit
             Action Init,
             LinqExpr Condition,
             Action Step,
-            Action<Func<LinqExpr>, Func<LinqExpr>> Body)
+            Action<LinqExpr, LinqExpr> Body)
         {
             string name = Target.Count.ToString();
             LinqExprs.LabelTarget begin = LinqExpr.Label("for_" + name + "_begin");
@@ -403,7 +409,7 @@ namespace Circuit
             Target.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
 
             // Generate the body code.
-            Body(() => LinqExpr.Goto(end), () => LinqExpr.Goto(begin));
+            Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
 
             // Generate the step code.
             Step();
@@ -419,7 +425,7 @@ namespace Circuit
             Action Init,
             LinqExpr Condition,
             Action Step,
-            Action<Func<LinqExpr>> Body)
+            Action<LinqExpr> Body)
         {
             For(Target, Init, Condition, Step, (end, y) => Body(end));
         }
@@ -439,7 +445,7 @@ namespace Circuit
         private static void While(
             IList<LinqExpr> Target,
             LinqExpr Condition,
-            Action<Func<LinqExpr>, Func<LinqExpr>> Body)
+            Action<LinqExpr, LinqExpr> Body)
         {
             string name = (Target.Count + 1).ToString();
             LinqExprs.LabelTarget begin = LinqExpr.Label("while_" + name + "_begin");
@@ -450,7 +456,7 @@ namespace Circuit
             Target.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
 
             // Generate the body code.
-            Body(() => LinqExpr.Goto(end), () => LinqExpr.Goto(begin));
+            Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
 
             // Loop.
             Target.Add(LinqExpr.Goto(begin));
@@ -463,7 +469,7 @@ namespace Circuit
         private static void While(
             IList<LinqExpr> Target,
             LinqExpr Condition,
-            Action<Func<LinqExpr>> Body)
+            Action<LinqExpr> Body)
         {
             While(Target, Condition, (end, y) => Body(end));
         }
@@ -480,7 +486,7 @@ namespace Circuit
         // Generate a do-while loop given the condition and body expressions.
         private static void DoWhile(
             IList<LinqExpr> Target,
-            Action<Func<LinqExpr>, Func<LinqExpr>> Body,
+            Action<LinqExpr, LinqExpr> Body,
             LinqExpr Condition)
         {
             string name = (Target.Count + 1).ToString();
@@ -491,7 +497,7 @@ namespace Circuit
             Target.Add(LinqExpr.Label(begin));
 
             // Generate the body code.
-            Body(() => LinqExpr.Goto(end), () => LinqExpr.Goto(begin));
+            Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
 
             // Loop.
             Target.Add(LinqExpr.IfThen(Condition, LinqExpr.Goto(begin)));
@@ -503,7 +509,7 @@ namespace Circuit
         // Generate a do-while loop given the condition and body expressions.
         private static void DoWhile(
             IList<LinqExpr> Target,
-            Action<Func<LinqExpr>> Body,
+            Action<LinqExpr> Body,
             LinqExpr Condition)
         {
             DoWhile(Target, (end, y) => Body(end), Condition);
@@ -604,5 +610,7 @@ namespace Circuit
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }
         // Returns abs(x).
         private static LinqExpr Abs(LinqExpr x) { return LinqExpr.Condition(LinqExpr.LessThan(x, ConstantExpr(0.0, x.Type)), LinqExpr.Negate(x), x); }
+        // Returns x*x.
+        private static LinqExpr Square(LinqExpr x) { return LinqExpr.Multiply(x, x); }
     }
 }
