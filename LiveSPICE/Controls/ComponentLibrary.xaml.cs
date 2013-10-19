@@ -95,8 +95,14 @@ namespace LiveSPICE
                 };
                 content.Children.Add(name);
 
-                Button button = new Button() { Tag = T, ToolTip = GetDisplayName(T), Content = content };
+                Button button = new Button() 
+                { 
+                    Tag = T, 
+                    ToolTip = GetDisplayName(T), 
+                    Content = content,
+                };
                 button.Click += OnClick;
+                
                 ((Panel)Group.Content).Children.Add(button);
 
                 return button;
