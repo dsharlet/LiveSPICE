@@ -36,7 +36,7 @@ namespace LiveSPICE
 
         public override void MouseUp(Circuit.Coord At)
         {
-            Target.Tool = new ProbeSelectionTool(Simulation);
+            Target.Tool = new ProbeTool(Simulation);
         }
 
         public override void MouseMove(Circuit.Coord At)

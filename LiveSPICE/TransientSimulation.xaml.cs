@@ -152,12 +152,6 @@ namespace LiveSPICE
             }
         }
 
-        private void Probe_Click(object sender, RoutedEventArgs e)
-        {
-            schematic.Schematic.Tool = new ProbeTool((SimulationSchematic)schematic.Schematic);
-            schematic.Schematic.Focus();
-        }
-
         public void ConnectProbes()
         {
             lock (probes)

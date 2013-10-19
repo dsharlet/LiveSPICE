@@ -96,8 +96,6 @@
     <Compile Include="Controls\Oscilloscope\SignalCollection.cs" />
     <Compile Include="Controls\Oscilloscope\Signal.cs" />
     <Compile Include="Controls\Simulation\MoveProbeTool.cs" />
-    <Compile Include="Controls\Simulation\SimulationTool.cs" />
-    <Compile Include="Controls\Simulation\ProbeSelectionTool.cs" />
     <Compile Include="Controls\Simulation\ProbeTool.cs" />
     <Compile Include="Controls\Simulation\SimulationSchematic.cs" />
     <Compile Include="Controls\Parameters.xaml.cs">
@@ -119,6 +117,7 @@
     <Compile Include="Controls\Oscilloscope\Oscilloscope.xaml.cs">
       <DependentUpon>Oscilloscope.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Simulation\SimulationTool.cs" />
     <Compile Include="TransientSimulation.xaml.cs">
       <DependentUpon>TransientSimulation.xaml</DependentUpon>
     </Compile>

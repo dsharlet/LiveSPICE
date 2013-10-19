@@ -36,7 +36,7 @@ namespace LiveSPICE
             Focusable = true;
             Cursor = Cursors.Cross;
 
-            Tool = new ProbeSelectionTool(this);
+            Tool = new ProbeTool(this);
 
             int pad = Grid * 2;
             int align = Grid * 10;

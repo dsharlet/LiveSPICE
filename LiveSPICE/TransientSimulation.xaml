@@ -54,7 +54,6 @@
                 <TextBox Text="{Binding ElementName=_this, Path=Output}" />
 
                 <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
-                <Button Click="Probe_Click"  Content="Probe" />
             </ToolBar>
             <!-- View -->
             <ToolBar Band="1" BandIndex="2" FocusManager.IsFocusScope="False">

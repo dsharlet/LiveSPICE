@@ -26,7 +26,7 @@ namespace LiveSPICE
             switch (Key)
             {
                 case System.Windows.Input.Key.Escape:
-                    Target.Tool = new ProbeSelectionTool(Simulation); 
+                    Target.Tool = new ProbeTool(Simulation); 
                     return true;
                 default: return false;
             }

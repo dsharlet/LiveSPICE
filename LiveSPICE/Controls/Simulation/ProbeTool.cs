@@ -1,10 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,17 +12,72 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Microsoft.Win32;
-using System.Xml.Linq;
 using SyMath;
 
 namespace LiveSPICE
-{   
-    /// <summary>
-    /// SchematicTool for adding symbols to the schematic.
-    /// </summary>
+{
     public class ProbeTool : SimulationTool
     {
+        protected Circuit.Coord a, b;
+        protected Path path;
+
+        public ProbeTool(SimulationSchematic Target) : base(Target) 
+        {
+            path = new Path()
+            {
+                Fill = null,
+                Stroke = Brushes.Blue,
+                StrokeThickness = 1,
+                StrokeDashArray = new DoubleCollection() { 2, 1 },
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center,
+                Visibility = Visibility.Hidden,
+                SnapsToDevicePixels = true,
+                Data = new RectangleGeometry()
+            };
+        }
+
+        public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Cross; }
+        public override void End() { Target.overlays.Children.Remove(path); base.End(); }
+        public override void Cancel() { path.Visibility = Visibility.Hidden; }
+
+        private bool Movable(Circuit.Coord At)
+        {
+            return 
+                ProbesOf(Target.AtPoint(At)).Any(i => ((ElementControl)i.Tag).Selected) &&
+                (Keyboard.Modifiers & ModifierKeys.Control) == 0;
+        }
+
+        public override void MouseDown(Circuit.Coord At)
+        {
+            if (Movable(At))
+            {
+                Target.Tool = new MoveProbeTool(Simulation, At);
+            }
+            else
+            {
+                a = b = At;
+                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a), ToPoint(b));
+                path.Visibility = Visibility.Visible;
+            }
+        }
+
+        public override void MouseMove(Circuit.Coord At)
+        {
+            b = At;
+            if (path.Visibility != Visibility.Visible)
+            {
+                a = b;
+                Target.Cursor = Movable(At) ? Cursors.SizeAll : Cursors.Cross;
+            }
+            else
+            {
+                Vector dx = new Vector(-0.5, -0.5);
+                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a) + dx, ToPoint(b) + dx);
+            }
+            Target.Highlight(ProbesOf(a == b ? Target.AtPoint(a) : Target.InRect(a, b)));
+        }
+
         protected static Circuit.EdgeType[] Colors =
         {
             Circuit.EdgeType.Red,
@@ -36,79 +88,39 @@ namespace LiveSPICE
             Circuit.EdgeType.Magenta,
         };
 
-        protected Probe probe = new Probe();
-        protected SymbolControl overlay;
-        
-        public ProbeTool(SimulationSchematic Target)
-            : base(Target)
-        {
-            overlay = new SymbolControl(new Circuit.Symbol(probe))
-            {
-                Visibility = Visibility.Hidden,
-                ShowText = false,
-                Highlighted = false,
-                Pen = new Pen(Brushes.Gray, 1.0) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }
-            };
-        }
-
-        public override void Begin() { base.Begin(); Target.AddOverlay(overlay); Target.Cursor = Cursors.None; }
-        public override void End() { Target.RemoveOverlay(overlay); base.End(); }
-
-        public override void MouseDown(Circuit.Coord At)
-        {
-            if (overlay.Visibility != Visibility.Visible)
-                return;
-
-            Probe p = new Probe(Colors.ArgMin(i => Simulation.Probes.Count(j => j.Color == i)));
-            Circuit.Symbol S = new Circuit.Symbol(p)
-            {
-                Rotation = overlay.Symbol.Rotation,
-                Flip = overlay.Symbol.Flip,
-                Position = overlay.Symbol.Position
-            };
-            Target.Schematic.Add(S);
-
-            overlay.Pen.Brush = Brushes.Black;
-            if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
-                Target.Tool = new ProbeSelectionTool(Simulation);
-        }
         public override void MouseUp(Circuit.Coord At)
         {
-            overlay.Pen.Brush = Brushes.Gray;
-        }
-
-        public override void MouseMove(Circuit.Coord At)
-        {
-            Circuit.Symbol symbol = overlay.Symbol;
-
-            symbol.Position = At;
-
-            //Circuit.Coord x = symbol.MapTerminal(probe.Terminal);
-            //Target.Cursor = Target.Schematic.NodeAt(x) != null ? Cursors.None : Cursors.No;
-            overlay.Visibility = Visibility.Visible;
-        }
-
-        public override void MouseLeave(Circuit.Coord At)
-        {
-            overlay.Visibility = Visibility.Hidden;
-        }
-
-        public override bool KeyDown(Key Key)
-        {
-            Circuit.Symbol symbol = overlay.Symbol;
-
-            Circuit.Coord x = symbol.Position;
-            switch (Key)
+            b = At;
+            if (path.Visibility == Visibility.Visible)
             {
-                case System.Windows.Input.Key.Left: symbol.Rotation += 1; break;
-                case System.Windows.Input.Key.Right: symbol.Rotation -= 1; break;
-                case System.Windows.Input.Key.Down: symbol.Flip = !symbol.Flip; break;
-                case System.Windows.Input.Key.Up: symbol.Flip = !symbol.Flip; break;
-                default: return base.KeyDown(Key);
+                if (a == b)
+                {
+                    IEnumerable<Circuit.Element> at = Target.AtPoint(a);
+                    IEnumerable<Circuit.Symbol> probes = ProbesOf(at);
+                    if (probes.Any())
+                    {
+                        Target.ToggleSelect(ProbesOf(Target.AtPoint(a)));
+                    }
+                    else if (at.Any(i => i is Circuit.Wire))
+                    {
+                        Probe p = new Probe(Colors.ArgMin(i => Simulation.Probes.Count(j => j.Color == i)));
+                        Target.Schematic.Add(new Circuit.Symbol(p) { Position = a });
+                    }
+                }
+                else
+                {
+                    Target.Select(ProbesOf(Target.InRect(a, b)));
+                }
+                path.Visibility = Visibility.Hidden;
+                Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross;
             }
-
-            symbol.Position = x;
-            return true;
         }
+
+        private static IEnumerable<Circuit.Symbol> ProbesOf(IEnumerable<Circuit.Element> Of)
+        {
+            return Of.OfType<Circuit.Symbol>().Where(i => i.Component is Probe);
+        }
+
+        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
     }
 }
