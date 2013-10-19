@@ -8,7 +8,7 @@
     <DockPanel>
         <ToolBar Height="28" DockPanel.Dock="Top">
             <Label Content="Filter:" />
-            <TextBox Width="110" Text="{Binding Path=Filter}" />
+            <TextBox Width="110" Text="{Binding Path=Filter, UpdateSourceTrigger=PropertyChanged}" />
         </ToolBar>
         <ScrollViewer HorizontalAlignment="Stretch" 
                       VerticalAlignment="Stretch" 

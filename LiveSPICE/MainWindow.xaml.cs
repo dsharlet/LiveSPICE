@@ -29,7 +29,6 @@ namespace LiveSPICE
             InitializeComponent();
             
             components.Init(this, toolbox_Click);
-            New(new SchematicEditor());
         }
 
         public LayoutContent ActiveContent { get { return schematics.SelectedContent; } }
@@ -41,7 +40,7 @@ namespace LiveSPICE
                 return selected != null ? (SchematicViewer)selected.Content : null;
             } 
         }
-        public SchematicEditor ActiveSchematic 
+        public SchematicEditor ActiveEditor 
         { 
             get 
             {
@@ -50,15 +49,27 @@ namespace LiveSPICE
             } 
         }
 
+        private string status;
+        public string Status 
+        {
+            get { return status != null ? status : "Ready"; } 
+            set { status = value; NotifyChanged("Status"); }
+        }
+
         private SchematicViewer New(SchematicEditor Schematic)
         {
             Schematic.SelectionChanged += schematic_SelectionChanged;
 
             SchematicViewer sv = new SchematicViewer(Schematic);
-            LayoutDocument doc = new LayoutDocument();
-            doc.Content = sv;
-           
+            LayoutDocument doc = new LayoutDocument()
+            {
+                Content = sv,
+                Title = Schematic.FileName,
+                ToolTip = Schematic.FileName,
+                IsActive = true
+            };
             doc.Closing += (o, e) => e.Cancel = !Schematic.CanClose();
+
             Schematic.PropertyChanged += (o, e) => 
             {
                 if (e.PropertyName != "FileName") return;
@@ -66,11 +77,8 @@ namespace LiveSPICE
                 doc.Title = Schematic.FileName;
                 doc.ToolTip = Schematic.FileName;
             };
-            doc.Title = Schematic.FileName;
-            doc.ToolTip = Schematic.FileName;
 
             schematics.Children.Add(doc);
-            doc.IsActive = true;
             dock.UpdateLayout();
             sv.FocusCenter();
             return sv;
@@ -81,10 +89,12 @@ namespace LiveSPICE
         {
             try
             {
-                OpenFileDialog d = new OpenFileDialog();
-                d.Filter = "Circuit Schematics|*" + SchematicEditor.FileExtension;
-                d.DefaultExt = SchematicEditor.FileExtension;
-                d.Multiselect = true;
+                OpenFileDialog d = new OpenFileDialog()
+                {
+                    Filter = "Circuit Schematics|*" + SchematicEditor.FileExtension,
+                    DefaultExt = SchematicEditor.FileExtension,
+                    Multiselect = true
+                };
                 if (d.ShowDialog(this) ?? false)
                 {
                     foreach (string i in d.FileNames)
@@ -154,21 +164,25 @@ namespace LiveSPICE
 
         private void toolbox_Click(object s, RoutedEventArgs e) 
         {
-            SchematicEditor active = ActiveSchematic;
+            SchematicEditor active = ActiveEditor;
             if (active == null)
                 return;
+
+            e.Handled = true;
 
             Type type = (Type)((Button)s).Tag;
             if (type == typeof(Circuit.Conductor))
                 active.Tool = new WireTool(active);
             else
                 active.Tool = new SymbolTool(active, type);
+
             active.Focus();
+            Keyboard.Focus(active);
         }
         
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            TransientSimulation simulation = new TransientSimulation(ActiveSchematic.Schematic);
+            TransientSimulation simulation = new TransientSimulation(ActiveEditor.Schematic);
             simulation.Owner = this;
             simulation.Show();
         }
