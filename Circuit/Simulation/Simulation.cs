@@ -118,7 +118,7 @@ namespace Circuit
                                 return k;
                         return j.Value.Length;
                     });
-                    throw new OverflowException("Simulation diverged at t = " + Quantity.ToString(Time, Units.s) + " + " + diverged);
+                    throw new NotFiniteNumberException("Simulation diverged at t = " + Quantity.ToString(Time, Units.s) + " + " + diverged);
                 }
             }
 
