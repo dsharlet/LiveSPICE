@@ -126,6 +126,7 @@ namespace Circuit
                 LogExpressions(Log, "Linear solutions:", linear);
             }
 
+            // If there are any equations left, there are some non-linear equations requiring numerical techniques to solve.
             if (mna.Any())
             {
                 // Initial guesses of y[t] = y[t0].
@@ -153,8 +154,8 @@ namespace Circuit
 
                 List<LinearCombination> newton = J.Select(i => new LinearCombination(y, i.ToExpression())).ToList();
                 solutions.Add(new NewtonRhapsonIteration(solved, newton, y));
-                LogExpressions(Log, "Non-linear Newton update:", newton.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
-                LogExpressions(Log, "Linear Newton update:", solved);
+                LogExpressions(Log, "Non-linear Newton's method solutions:", newton.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+                LogExpressions(Log, "Linear Newton's method solutions:", solved);
             }
 
             Log.WriteLine(MessageType.Info, "[{0} ms] System solved, {1} solution sets for {2} unknowns", 
