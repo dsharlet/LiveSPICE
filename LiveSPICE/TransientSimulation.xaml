@@ -40,7 +40,7 @@
 
         <!-- Toolbars -->
         <ToolBarTray Grid.Row="2" Background="{StaticResource ResourceKey=Background}">
-            <ToolBar Band="1" BandIndex="1">
+            <ToolBar Band="1" BandIndex="1" FocusManager.IsFocusScope="False">
                 <TextBlock Text="Oversample: " HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Oversample}" />
 
@@ -57,7 +57,7 @@
                 <Button Click="Probe_Click"  Content="Probe" />
             </ToolBar>
             <!-- View -->
-            <ToolBar Band="1" BandIndex="2">
+            <ToolBar Band="1" BandIndex="2" FocusManager.IsFocusScope="False">
                 <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
                 <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
                 <ComboBox Width="40" SelectedValue="{Binding ElementName=ActiveViewer, Path=Zoom}">

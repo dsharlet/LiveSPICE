@@ -93,6 +93,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
+    <Compile Include="Controls\Oscilloscope\SignalCollection.cs" />
+    <Compile Include="Controls\Oscilloscope\Signal.cs" />
     <Compile Include="Controls\Simulation\MoveProbeTool.cs" />
     <Compile Include="Controls\Simulation\SimulationTool.cs" />
     <Compile Include="Controls\Simulation\ProbeSelectionTool.cs" />
@@ -114,7 +116,7 @@
     <Compile Include="Controls\Schematic\SymbolControl.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Controls\Oscilloscope.xaml.cs">
+    <Compile Include="Controls\Oscilloscope\Oscilloscope.xaml.cs">
       <DependentUpon>Oscilloscope.xaml</DependentUpon>
     </Compile>
     <Compile Include="TransientSimulation.xaml.cs">
@@ -145,7 +147,7 @@
     <Compile Include="Utils\Command.cs" />
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
-    <Compile Include="Controls\OscilloscopeControl.cs" />
+    <Compile Include="Controls\Oscilloscope\OscilloscopeControl.cs" />
     <Page Include="Controls\Parameters.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -158,7 +160,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Oscilloscope.xaml">
+    <Page Include="Controls\Oscilloscope\Oscilloscope.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

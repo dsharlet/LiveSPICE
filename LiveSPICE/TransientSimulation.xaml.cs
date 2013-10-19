@@ -90,7 +90,7 @@ namespace LiveSPICE
         protected AudioIo.WaveIo waveIo = null;
 
         protected Dictionary<SyMath.Expression, SyMath.Expression> componentVoltages;
-        protected Dictionary<SyMath.Expression, double[]> probes = new Dictionary<SyMath.Expression, double[]>();
+        protected List<Probe> probes = new List<Probe>();
         protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
 
         public TransientSimulation(Circuit.Schematic Simulate)
@@ -99,10 +99,12 @@ namespace LiveSPICE
 
             Closed += OnClosed;
 
+            oscilloscope.Scope.SampleRate = sampleRate;
+
             // Make a clone of the schematic so we can mess with it.
             Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), log);
             clone.Elements.ItemAdded += OnElementAdded;
-            clone.Elements.ItemRemoved += (o, e) => RefreshProbes();
+            clone.Elements.ItemRemoved += OnElementRemoved;
 
             IEnumerable<Circuit.Component> components = clone.Symbols.Select(i => i.Component);
             componentVoltages = components.OfType<Circuit.TwoTerminal>().ToDictionary(
@@ -121,8 +123,33 @@ namespace LiveSPICE
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
         {
             if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
-                e.Element.LayoutChanged += (x, y) => RefreshProbes();
-            RefreshProbes();
+            {
+                Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
+                
+                Pen p;
+                switch (probe.Color)
+                {
+                    // These two need to be brighter than the normal colors.
+                    case Circuit.EdgeType.Red: p = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
+                    case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(20, 180, 255)), 1.0); break;
+                    default: p = ElementControl.MapToPen(probe.Color); break;
+                }
+                probe.Signal = new Signal() { Name = probe.V.ToString(), Pen = p };
+                oscilloscope.Scope.Signals.Add(probe.Signal);
+
+                e.Element.LayoutChanged += (x, y) => ConnectProbes();
+            }
+            ConnectProbes();
+        }
+
+        private void OnElementRemoved(object sender, Circuit.ElementEventArgs e)
+        {
+            if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
+            {
+                Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
+
+                oscilloscope.Scope.Signals.Remove(probe.Signal);
+            }
         }
 
         private void Probe_Click(object sender, RoutedEventArgs e)
@@ -131,34 +158,13 @@ namespace LiveSPICE
             schematic.Schematic.Focus();
         }
 
-        public void RefreshProbes()
+        public void ConnectProbes()
         {
             lock (probes)
             {
                 probes.Clear();
                 foreach (Probe i in ((SimulationSchematic)schematic.Schematic).Probes.Where(i => i.ConnectedTo != null))
-                {
-                    probes[i.V] = new double[0];
-
-                    // If this signal isn't already in the oscilloscope, add it.
-                    if (!oscilloscope.Signals.Contains(i.V))
-                    {
-                        Pen p;
-                        switch (i.Color)
-                        {
-                            // These two need to be brighter than the normal colors.
-                            case Circuit.EdgeType.Red: p = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
-                            case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(20, 180, 255)), 1.0); break;
-                            default: p = ElementControl.MapToPen(i.Color); break;
-                        }
-                        oscilloscope.AddSignal(i.V, p);
-                    }
-                }
-
-                // Remove signals that aren't being processed from the oscilloscope.
-                foreach (SyMath.Expression i in oscilloscope.Signals.ToArray())
-                    if (!probes.ContainsKey(i))
-                        oscilloscope.RemoveSignal(i);
+                    probes.Add(i);
             }
         }
 
@@ -214,17 +220,15 @@ namespace LiveSPICE
                 lock (probes)
                 {
                     // Build the signal list.
-                    foreach (SyMath.Expression i in probes.Keys.ToArray())
-                        if (probes[i].Length < Samples.Length)
-                            probes[i] = new double[Samples.Length];
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Select(i => i.AllocBuffer(Samples.Length));
 
-                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> output = probes.Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
+                    output = output.Append(new KeyValuePair<SyMath.Expression, double[]>(Output.Value, Samples));
 
                     // Process the samples!
                     simulation.Run(Input, Samples, output, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
-                    oscilloscope.ProcessSignals(Samples.Length, probes, new Circuit.Quantity(Rate, Circuit.Units.Hz));
+                    oscilloscope.ProcessSignals(Samples.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)));
                 }
 
                 // Apply output gain.

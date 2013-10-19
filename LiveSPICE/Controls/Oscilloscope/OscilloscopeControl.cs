@@ -20,7 +20,7 @@ using System.Numerics;
 using SyMath;
 
 namespace LiveSPICE
-{
+{   
     public class OscilloscopeControl : Control, INotifyPropertyChanged
     {
         protected const double MinFrequency = 20.0;
@@ -28,8 +28,17 @@ namespace LiveSPICE
 
         static OscilloscopeControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(OscilloscopeControl), new FrameworkPropertyMetadata(typeof(OscilloscopeControl))); }
 
-        private Circuit.Quantity sampleRate;
-        public Circuit.Quantity SampleRate { get { return sampleRate; } }
+        private Circuit.Quantity sampleRate = new Circuit.Quantity(0, Circuit.Units.Hz);
+        public Circuit.Quantity SampleRate 
+        { 
+            get { return sampleRate; } 
+            set 
+            { 
+                sampleRate.Set(value); 
+                InvalidateVisual(); 
+                NotifyChanged("SampleRate"); 
+            } 
+        }
 
         private Circuit.Quantity a4 = new Circuit.Quantity(440, Circuit.Units.Hz);
         public Circuit.Quantity A4
@@ -71,65 +80,27 @@ namespace LiveSPICE
         public Pen AxisPen = new Pen(Brushes.Gray, 0.5);
         public Pen TracePen = new Pen(Brushes.White, 0.5);
 
-        /// <summary>
-        /// Properties and methods associated with a particular signal.
-        /// </summary>
-        public class Signal : IEnumerable<double>
-        {
-            private List<double> samples = new List<double>();
-
-            // Display parameters.
-            private Pen pen = new Pen(Brushes.White, 1.0);
-            public Pen Pen { get { return pen; } set { pen = value; } }
-
-            private object tag;
-            public object Tag { get { return tag; } set { tag = value; } }
-
-            // Process new samples for this signal.
-            public void AddSamples(long Clock, double[] Samples, int Truncate)
-            {
-                samples.AddRange(Samples);
-                if (samples.Count > Truncate)
-                {
-                    int remove = samples.Count - Truncate;
-                    samples.RemoveRange(0, remove);
-                }
-
-                clock = Clock;
-            }
-
-            private long clock = 0;
-            public long Clock { get { return clock; } }
-
-            public void Clear() { samples.Clear(); clock = 0; }
-
-            public int Count { get { return samples.Count; } }
-            public double this[int i] 
-            { 
-                get 
-                {
-                    if (0 <= i && i < samples.Count)
-                        return samples[(int)i];
-                    else
-                        return double.NaN;
-                } 
-            }
-
-            // IEnumerable<double> interface
-            IEnumerator<double> IEnumerable<double>.GetEnumerator() { return samples.GetEnumerator(); }
-            IEnumerator IEnumerable.GetEnumerator() { return samples.GetEnumerator(); }
-        }
-
-        protected ConcurrentDictionary<SyMath.Expression, Signal> signals = new ConcurrentDictionary<SyMath.Expression, Signal>();
-        public ConcurrentDictionary<SyMath.Expression, Signal> Signals { get { return signals; } }
+        protected SignalCollection signals = new SignalCollection();
+        public SignalCollection Signals { get { return signals; } }
                 
-        private SyMath.Expression selected;
-        public SyMath.Expression SelectedSignal 
+        private Signal selected;
+        public Signal SelectedSignal 
         {
             get 
             {
-                if (signals.Count > 0 && (selected == null || !signals.ContainsKey(selected)))
-                    selected = signals.First().Key;
+                if (!signals.Contains(selected))
+                {
+                    if (signals.Any())
+                    {
+                        selected = signals.First();
+                        NotifyChanged("SelectedSignal");
+                    }
+                    else if (selected != null)
+                    {
+                        selected = null;
+                        NotifyChanged("SelectedSignal");
+                    }
+                }
                 return selected; 
             }
             set { selected = value; NotifyChanged("SelectedSignal"); } 
@@ -160,24 +131,22 @@ namespace LiveSPICE
             InvalidateVisual();
         }
 
-        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<SyMath.Expression, double[]>> Signals, Circuit.Quantity Rate)
+        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals)
         {
             clock += SampleCount;
-            sampleRate = Rate;
 
             int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
 
             // Add signal data.
-            foreach (KeyValuePair<SyMath.Expression, double[]> i in Signals)
-            {
-                Signal S;
-                if (signals.TryGetValue(i.Key.ToString(), out S))
-                    lock (S) S.AddSamples(clock, i.Value, truncate);
-            }
+            foreach (KeyValuePair<Signal, double[]> i in Signals)
+                lock (i.Key) i.Key.AddSamples(clock, i.Value, truncate);
 
             // Remove the signals that we didn't get data for.
-            foreach (KeyValuePair<SyMath.Expression, Signal> i in signals.Where(j => j.Value.Clock < clock))
-                lock(i.Value) i.Value.Clear();
+            signals.ForEach(i => 
+            {
+                if (i.Clock < clock)
+                    i.Clear();
+            });
 
             Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
@@ -195,9 +164,7 @@ namespace LiveSPICE
 
             DrawTimeAxis(DC, bounds);
 
-            Signal stats = null;
-            if (SelectedSignal == null || !signals.TryGetValue(SelectedSignal, out stats))
-                stats = signals.Values.FirstOrDefault(i => { lock (i) return i.Count > 0; });
+            Signal stats = SelectedSignal;
 
             double peak = 0.0;
             double rms = 0.0;
@@ -241,9 +208,9 @@ namespace LiveSPICE
             }
             else if (signals.Count > 0)
             {
-                align = signals.Max(i => { lock (i.Value) return i.Value.Count; });
+                align = signals.Max(i => { lock (i) return i.Count; });
 
-                foreach (Signal i in signals.Values)
+                foreach (Signal i in signals)
                     lock(i) peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
             }
                                 
@@ -266,7 +233,7 @@ namespace LiveSPICE
 
             DrawSignalAxis(DC, bounds);
 
-            foreach (Signal i in signals.Values.Except(stats))
+            foreach (Signal i in signals.Except(stats))
                 lock (i) DrawSignal(DC, bounds, i, align - (int)(i.Clock - sync));
             
             // Draw the focus signal last.

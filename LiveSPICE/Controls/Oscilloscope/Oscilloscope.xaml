@@ -8,11 +8,11 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Background="{StaticResource ResourceKey=Background}">
     <DockPanel>
-        <ToolBar Height="28" DockPanel.Dock="Top">
+        <ToolBar Height="28" DockPanel.Dock="Top" FocusManager.IsFocusScope="False">
             <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
             <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
             <Separator />
-            <ComboBox Width="70" x:Name="signals" SelectedValue="{Binding ElementName=scope, Path=SelectedSignal}" SelectedValuePath="Content" />
+            <ComboBox Width="70" x:Name="signals" SelectedValue="{Binding ElementName=scope, Path=SelectedSignal}" SelectedValuePath="Tag" />
             <Separator />
             <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=scope, Path=ShowNotes}" />
             <Label Content="A4:" />
