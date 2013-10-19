@@ -9,7 +9,7 @@ namespace Circuit
 {
     public abstract class TriodeModel
     {
-        public abstract void Evaluate(Expression Vp, Expression Vg, Expression Vk, out Expression Ip, out Expression Ig, out Expression Ik);
+        public abstract void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik);
     }
 
     /// <summary>
@@ -35,15 +35,12 @@ namespace Circuit
             : this(100.0m, 1.4m, 1060.0m, 600.0m, 300.0m, 1.0e6m, 0.33m)
         { }
 
-        public override void Evaluate(Expression Vp, Expression Vg, Expression Vk, out Expression Ip, out Expression Ig, out Expression Ik)
+        public override void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik)
         {
-            Expression Vpk = Vp - Vk;
-            Expression Vgk = Vg - Vk;
-
             Expression ex = Kp * (1 / Mu + Vgk / Call.Sqrt(Kvb + Vpk * Vpk));
 
             // ln(1+e^x) = x for large x, and large x causes numerical issues.
-            Expression E1 = Call.If(ex > 10, ex, Call.Ln(1 + Call.Exp(ex))) * Vpk / Kp;
+            Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + Call.Exp(ex))) * Vpk / Kp;
 
             Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, Constant.Zero);
             // TODO: Use Max instead?
@@ -70,11 +67,8 @@ namespace Circuit
             : this(83.5m, 1.73e-6m)
         { }
 
-        public override void Evaluate(Expression Vp, Expression Vg, Expression Vk, out Expression Ip, out Expression Ig, out Expression Ik)
+        public override void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik)
         {
-            Expression Vpk = Vp - Vk;
-            Expression Vgk = Vg - Vk;
-
             Expression Ed = Mu * Vgk + Vpk;
             Ip = Call.If(Ed > 0, K * (Ed ^ 1.5), 0);
             Ig = 0;
@@ -121,7 +115,15 @@ namespace Circuit
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
             Expression Ip, Ig, Ik;
-            model.Evaluate(p.V, g.V, k.V, out Ip, out Ig, out Ik);
+
+            Expression Vpk = DependentVariable(Name + "pk", t);
+            Expression Vgk = DependentVariable(Name + "gk", t);
+            Mna.Add(Equal.New(Vpk, p.V - k.V));
+            Mna.Add(Equal.New(Vgk, g.V - k.V));
+            Unknowns.Add(Vpk);
+            Unknowns.Add(Vgk);
+
+            model.Evaluate(Vpk, Vgk, out Ip, out Ig, out Ik);
             p.i = Ip;
             g.i = Ig;
             k.i = Ik;
