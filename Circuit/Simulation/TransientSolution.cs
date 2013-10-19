@@ -153,7 +153,7 @@ namespace Circuit
 
                 List<LinearCombination> newton = J.Select(i => new LinearCombination(y, i.ToExpression())).ToList();
                 solutions.Add(new NewtonRhapsonIteration(solved, newton, y));
-                LogExpressions(Log, "Non-linear Newton update equations:", newton.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+                LogExpressions(Log, "Non-linear Newton update:", newton.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
                 LogExpressions(Log, "Linear Newton update:", solved);
             }
 
