@@ -114,8 +114,6 @@ namespace Circuit
 
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
-            Expression Ip, Ig, Ik;
-
             Expression Vpk = DependentVariable(Name + "pk", t);
             Expression Vgk = DependentVariable(Name + "gk", t);
             Mna.Add(Equal.New(Vpk, p.V - k.V));
@@ -123,6 +121,7 @@ namespace Circuit
             Unknowns.Add(Vpk);
             Unknowns.Add(Vgk);
 
+            Expression Ip, Ig, Ik;
             model.Evaluate(Vpk, Vgk, out Ip, out Ig, out Ik);
             p.i = Ip;
             g.i = Ig;

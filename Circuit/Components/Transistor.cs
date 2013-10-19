@@ -9,7 +9,7 @@ namespace Circuit
 {
     public abstract class BJTModel
     {
-        public abstract void Evaluate(Expression VC, Expression VB, Expression VE, out Expression iC, out Expression iB, out Expression iE);
+        public abstract void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie);
     }
 
     public class EbersMollTransistor : BJTModel
@@ -30,14 +30,14 @@ namespace Circuit
 
         public EbersMollTransistor() : this(260, 10, 10e-12m, 25.85e-3m) { }
 
-        public override void Evaluate(Expression VC, Expression VB, Expression VE, out Expression iC, out Expression iB, out Expression iE)
+        public override void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie)
         {
-            Expression eVBC = Call.Exp((VB - VC) / VT);
-            Expression eVBE = Call.Exp((VB - VE) / VT);
+            Expression eVbc = Call.Exp(Vbc / VT);
+            Expression eVbe = Call.Exp(Vbe / VT);
 
-            iC = IS * (eVBE - eVBC)         - (IS / BR) * (eVBC - 1);
-            iB = (IS / BF) * (eVBE - 1)     + (IS / BR) * (eVBC - 1);
-            iE = IS * (eVBE - eVBC)         + (IS / BF) * (eVBE - 1);
+            ic = IS * (eVbe - eVbc)         - (IS / BR) * (eVbc - 1);
+            ib = (IS / BF) * (eVbe - 1)     + (IS / BR) * (eVbc - 1);
+            ie = IS * (eVbe - eVbc)         + (IS / BF) * (eVbe - 1);
         }
     };
 
@@ -77,11 +77,18 @@ namespace Circuit
 
         public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
         {
-            Expression Ic, Ib, Ie;
-            model.Evaluate(c.V, b.V, e.V, out Ic, out Ib, out Ie);
-            c.i = Ic;
-            b.i = Ib;
-            e.i = Ie;
+            Expression Vbc = DependentVariable(Name + "bc", t);
+            Expression Vbe = DependentVariable(Name + "be", t);
+            Mna.Add(Equal.New(Vbc, b.V - e.V));
+            Mna.Add(Equal.New(Vbe, b.V - e.V));
+            Unknowns.Add(Vbc);
+            Unknowns.Add(Vbe);
+
+            Expression ic, ib, ie;
+            model.Evaluate(Vbc, Vbe, out ic, out ib, out ie);
+            c.i = ic;
+            b.i = ib;
+            e.i = ie;
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
