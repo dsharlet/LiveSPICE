@@ -105,7 +105,7 @@ namespace Circuit
             LogExpressions(Log, "Integrated solutions:", integrated);
 
             // The remaining diffeqs should be algebraic.
-            mna.InsertRange(0, diffeq.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+            mna.AddRange(diffeq.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
             LogExpressions(Log, "Discretized system:", mna);
 
             // Solving the system...
