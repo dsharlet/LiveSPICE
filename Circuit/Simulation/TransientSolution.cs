@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Reflection;
-using System.Reflection.Emit;
 using SyMath;
 
 namespace Circuit
@@ -122,8 +121,8 @@ namespace Circuit
                 LogExpressions(Log, "Linear solutions:", linear);
             }
 
-            // If there are any equations left, there are some non-linear equations requiring numerical techniques to solve.
-            if (mna.Any())
+            // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
+            if (y.Any())
             {
                 // The variables of this system are the newton iteration updates.
                 List<Expression> dy = y.Select(i => NewtonIteration.Delta(i)).ToList();
