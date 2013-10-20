@@ -57,10 +57,12 @@ namespace Circuit
         }
         
         /// <summary>
-        /// Solve the given circuit for transient simulation.
+        /// Solve the circuit for transient simulation.
         /// </summary>
-        /// <param name="Circuit">Circuit to simulate.</param>
-        /// <param name="SampleRate">Sampling period.</param>
+        /// <param name="Circuit">Circuit to solve.</param>
+        /// <param name="TimeStep">Discretization timestep.</param>
+        /// <param name="Log">Where to send output.</param>
+        /// <returns>TransientSolution describing the solution of the circuit.</returns>
         public static TransientSolution SolveCircuit(Circuit Circuit, Quantity TimeStep, ILog Log)
         {
             Stopwatch time = new Stopwatch();
