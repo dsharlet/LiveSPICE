@@ -270,21 +270,36 @@ namespace LiveSPICE
                 overlapping.Max(i => Math.Max(i.A.x, i.B.x), Math.Max(A.x, B.x)),
                 overlapping.Max(i => Math.Max(i.A.y, i.B.y), Math.Max(A.y, B.y)));
 
-            // Find all of the terminals between a and b.
             List<Circuit.Coord> terminals = new List<Circuit.Coord>() { a, b };
-            //foreach (Circuit.Element i in InRect(a, b))
-            //{
-            //    foreach (Circuit.Terminal j in i.Terminals)
-            //    {
-            //        if (Circuit.Wire.PointOnLine(i.MapTerminal(j), a, b))
-            //        {
-            //            // If i is not a wire, or it is a wire that is not coincident with a, b, add the terminal to the list.
-            //            if (!(i is Circuit.Wire) || 
-            //                i.Terminals.Any(k => !Circuit.Wire.PointOnLine(i.MapTerminal(k), a, b)))
-            //                terminals.Add(i.MapTerminal(j));
-            //        }
-            //    }
-            //}
+            foreach (Circuit.Element i in InRect(a - 1, b + 1))
+            {
+                // Find all of the terminals between a and b.
+                foreach (Circuit.Terminal j in i.Terminals)
+                {
+                    if (Circuit.Wire.PointOnSegment(i.MapTerminal(j), a, b))
+                    {
+                        // If i is not a wire, or it is a wire that is not coincident with a, b, add the terminal to the list.
+                        if (!(i is Circuit.Wire) ||
+                            i.Terminals.Any(k => !Circuit.Wire.PointOnLine(i.MapTerminal(k), a, b)))
+                            terminals.Add(i.MapTerminal(j));
+                    }
+                }
+
+                // If i is a Wire that crosses a, b, add a terminal at the intersection.
+                if (i is Circuit.Wire)
+                {
+                    Circuit.Wire w = (Circuit.Wire)i;
+
+                    Circuit.Coord ia = w.MapTerminal(w.Anode);
+                    Circuit.Coord ib = w.MapTerminal(w.Cathode);
+
+                    // If one of A, B is intersecting this wire, we shouldn't merge wires across this point.
+                    if (Circuit.Wire.PointOnLine(A, ia, ib) && !Circuit.Wire.PointOnLine(B, ia, ib))
+                        terminals.Add(A);
+                    else if (Circuit.Wire.PointOnLine(B, ia, ib) && !Circuit.Wire.PointOnLine(A, ia, ib))
+                        terminals.Add(B);                        
+                }
+            }
             terminals.Sort((t1, t2) => t1.x == t2.x ? t1.y.CompareTo(t2.y) : t1.x.CompareTo(t2.x));
 
             // Remove the original wires, and add new ones between each terminal between a and b.
