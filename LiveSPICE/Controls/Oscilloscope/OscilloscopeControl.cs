@@ -107,7 +107,7 @@ namespace LiveSPICE
         }
 
         protected long clock = 0;
-        protected double Vmax;
+        protected double Vmax, Vmean;
         protected Point? tracePoint;
         
         public OscilloscopeControl()
@@ -181,8 +181,9 @@ namespace LiveSPICE
 
                     // Compute statistics of the clock signal.
                     align = stats.Count;
-                    peak = stats.Max(i => Math.Abs(i), 0.0);
-                    rms = Math.Sqrt(stats.Sum(i => i * i) / stats.Count);
+                    Vmean = stats.Sum() / stats.Count;
+                    peak = stats.Max(i => Math.Abs(i - Vmean), 0.0);
+                    rms = Math.Sqrt(stats.Sum(i => (i - Vmean) * (i - Vmean)) / stats.Count);
 
                     int Decimate = 1 << (int)Math.Floor(Math.Log((double)sampleRate / 24000, 2));
                     int BlockSize = 8192;
@@ -240,7 +241,7 @@ namespace LiveSPICE
             if (stats != null)
             {
                 lock (stats) DrawSignal(DC, bounds, stats, align - (int)(stats.Clock - sync));
-                DrawStatistics(DC, bounds, stats.Pen.Brush, peak, rms, f0);
+                DrawStatistics(DC, bounds, stats.Pen.Brush, peak, Vmean, rms, f0);
             }
 
             if (tracePoint.HasValue)
@@ -298,7 +299,7 @@ namespace LiveSPICE
 
             Typeface typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
 
-            for (double v = -Vmax + (2 * Vmax - (labels * dv)) / 2; v < Vmax; v += dv)
+            for (double v = -Vmax + (2 * Vmax - (labels * dv)) / 2 + Vmean; v < Vmax + Vmean; v += dv)
             {
                 double y = MapFromSignal(Bounds, v);
                 if (y + 10 < (Bounds.Top + Bounds.Bottom) / 2 || 
@@ -382,13 +383,14 @@ namespace LiveSPICE
             DC.DrawText(volts, new Point(Bounds.Right - volts.Width - 4, At.Y));
         }
 
-        protected void DrawStatistics(DrawingContext DC, Rect Bounds, Brush Brush, double Peak, double Rms, double Freq)
+        protected void DrawStatistics(DrawingContext DC, Rect Bounds, Brush Brush, double Peak, double Mean, double Rms, double Freq)
         {
             FormattedText stats = new FormattedText(
                 String.Format(
-                    "\u0192\u2080:   {0}\nPeak: {1}\nRms:  {2}", 
+                    "\u0192\u2080:   {0}\nPeak: {1}\nMean: {2}\nRms:  {3}", 
                     FrequencyToString(Freq),
                     Circuit.Quantity.ToString(Peak, Circuit.Units.V, "+G3"),
+                    Circuit.Quantity.ToString(Mean, Circuit.Units.V, "+G3"),
                     Circuit.Quantity.ToString(Rms, Circuit.Units.V, "+G3")),
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
@@ -402,8 +404,8 @@ namespace LiveSPICE
 
         private int MapToSample(Rect Bounds, double x, int shift) { return (int)Math.Round(((x - Bounds.Right) * zoom * (double)sampleRate) / Bounds.Width) + shift; }
 
-        private double MapToSignal(Rect Bounds, double y) { return Vmax - (y - Bounds.Top) * 2 * Vmax / Bounds.Height; }
-        private double MapFromSignal(Rect Bounds, double v) { return Bounds.Top + ((Vmax - v) / (2 * Vmax) * Bounds.Height); }
+        private double MapToSignal(Rect Bounds, double y) { return Vmax - (y - Bounds.Top) * 2 * Vmax / Bounds.Height + Vmean; }
+        private double MapFromSignal(Rect Bounds, double v) { return Bounds.Top + ((Vmax - (v - Vmean)) / (2 * Vmax) * Bounds.Height); }
 
         private string FrequencyToString(double f)
         {
