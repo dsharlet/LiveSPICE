@@ -55,15 +55,12 @@ namespace Circuit
             IEnumerable<KeyValuePair<Expression, double>> Arguments,
             int Oversample, int Iterations)
         {
-            Delegate processor = Compile(Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Key));
+            Delegate processor = Compile(T, Oversample, Iterations, Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Key));
 
             // Build parameter list for the processor.
             List<object> parameters = new List<object>(3 + Input.Count() + Output.Count() + Arguments.Count());
             parameters.Add(N);
             parameters.Add((double)n * T);
-            parameters.Add(T);
-            parameters.Add(Oversample);
-            parameters.Add(Iterations);
             foreach (KeyValuePair<Expression, double[]> i in Input)
                 parameters.Add(i.Value);
             foreach (KeyValuePair<Expression, double[]> i in Output)
@@ -76,12 +73,16 @@ namespace Circuit
         }
         
         // Compile and cache delegates for processing various IO configurations for this simulation.
-        private Dictionary<long, Delegate> compiled = new Dictionary<long, Delegate>();
-        private Delegate Compile(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
+        private Dictionary<int, Delegate> compiled = new Dictionary<int, Delegate>();
+        private Delegate Compile(double T, int Oversample, int Iterations, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
-            long hash = Input.OrderedHashCode();
-            hash = hash * 33 + Output.OrderedHashCode();
-            hash = hash * 33 + Parameters.OrderedHashCode();
+            int hash = OrderedHashCode(
+                T.GetHashCode(),
+                Oversample.GetHashCode(),
+                Iterations.GetHashCode(),
+                Input.OrderedHashCode(), 
+                Output.OrderedHashCode(), 
+                Parameters.OrderedHashCode());
 
             Delegate d;
             if (compiled.TryGetValue(hash, out d))
@@ -94,7 +95,7 @@ namespace Circuit
             Log.WriteLine(MessageType.Info, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Info, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Info, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
-            LinqExprs.LambdaExpression lambda = DefineProcessFunction(Input, Output, Parameters);
+            LinqExprs.LambdaExpression lambda = DefineProcessFunction(T, Oversample, Iterations, Input, Output, Parameters);
             Log.WriteLine(MessageType.Info, "[{0} ms] Compiling sample processing function...", time.ElapsedMilliseconds);
             d = lambda.Compile();
             Log.WriteLine(MessageType.Info, "[{0} ms] Done.", time.ElapsedMilliseconds);
@@ -105,7 +106,7 @@ namespace Circuit
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
         //  { ... }
-        private LinqExprs.LambdaExpression DefineProcessFunction(IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
+        private LinqExprs.LambdaExpression DefineProcessFunction(double T, int Oversample, int Iterations, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             // Map expressions to identifiers in the syntax tree.
             Dictionary<Expression, LinqExpr> map = new Dictionary<Expression, LinqExpr>();
@@ -120,9 +121,6 @@ namespace Circuit
             // Create parameters for the basic simulation info (N, t, T, Oversample, Iterations).
             ParamExpr SampleCount = Declare<int>(parameters, "SampleCount");
             ParamExpr t0 = Declare<double>(parameters, map, Simulation.t0);
-            ParamExpr T = Declare<double>(parameters, map, Component.T);
-            ParamExpr Oversample = Declare<int>(parameters, "Oversample");
-            ParamExpr Iterations = Declare<int>(parameters, "Iterations");
             // Create buffer parameters for each input, output.
             foreach (Expression i in Input)
                 Declare<double[]>(parameters, inputs, i);
@@ -143,12 +141,7 @@ namespace Circuit
             body.Add(LinqExpr.Assign(t, t0));
 
             // double h = T / Oversample
-            ParamExpr h = Declare<double>(locals, "h");
-            body.Add(LinqExpr.Assign(h, LinqExpr.Divide(T, LinqExpr.Convert(Oversample, typeof(double)))));
-
-            // double invOversample = 1 / (double)Oversample
-            ParamExpr invOversample = Declare<double>(locals, "invOversample");
-            body.Add(LinqExpr.Assign(invOversample, Reciprocal(LinqExpr.Convert(Oversample, typeof(double)))));
+            LinqExpr h = LinqExpr.Constant((double)T / (double)Oversample);
 
             // Load the globals to local variables and add them to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
@@ -175,7 +168,7 @@ namespace Circuit
                     // dVi = (Vb - Vi) / Oversample
                     body.Add(LinqExpr.Assign(
                         Declare<double>(locals, dVi, i, "d" + i.ToString().Replace("[t]", "")),
-                        LinqExpr.Multiply(LinqExpr.Subtract(Vb, Va), invOversample)));
+                        LinqExpr.Multiply(LinqExpr.Subtract(Vb, Va), LinqExpr.Constant(1.0 / (double)Oversample))));
 
                     // Va = Vb
                     body.Add(LinqExpr.Assign(Va, Vb));
@@ -197,7 +190,7 @@ namespace Circuit
                 // int ov = Oversample; 
                 // do { -- ov; } while(ov > 0)
                 ParamExpr ov = Declare<int>(locals, "ov");
-                body.Add(LinqExpr.Assign(ov, Oversample));
+                body.Add(LinqExpr.Assign(ov, LinqExpr.Constant(Oversample)));
                 DoWhile(body, () =>
                 {
                     // t += h
@@ -233,7 +226,7 @@ namespace Circuit
                             ParamExpr it = Redeclare<int>(locals, "it");
                             // it = Oversample
                             // do { ... --it } while(it > 0)
-                            body.Add(LinqExpr.Assign(it, Iterations));
+                            body.Add(LinqExpr.Assign(it, LinqExpr.Constant(Iterations)));
                             DoWhile(body, (Break) =>
                             {
                                 // Initialize the matrix.
@@ -369,7 +362,7 @@ namespace Circuit
 
                 // Output[i][n] = Vo / Oversample
                 foreach (KeyValuePair<Expression, LinqExpr> i in outputs)
-                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], invOversample)));
+                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], LinqExpr.Constant(1.0 / (double)Oversample))));
             });
 
             // Copy the global state variables back to the globals.
@@ -603,6 +596,14 @@ namespace Circuit
                 return LinqExpr.Constant((float)x);
             else
                 throw new NotImplementedException("Constant");
+        }
+
+        private static int OrderedHashCode(params int[] Hashes)
+        {
+            int hash = 17;
+            foreach (int i in Hashes)
+                hash = hash * 33 + i;
+            return hash;
         }
 
         // Returns 1 / x.
