@@ -240,15 +240,6 @@ namespace Circuit
             return false;
         }
 
-        // Get the expression that x is a derivative of.
-        protected static Expression DOf(Expression x)
-        {
-            Call d = (Call)x;
-            if (d.Target.Name == "D")
-                return d.Arguments.First();
-            throw new InvalidCastException("Expression is not a derivative");
-        }
-
         // Logging helpers.
         private static void LogList(ILog Log, string Title, IEnumerable<string> List)
         {

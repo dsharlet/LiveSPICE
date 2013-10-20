@@ -141,7 +141,7 @@ namespace SyMath
             Call d = (Call)x;
             if (d.Target.Name == "D")
                 return d.Arguments.First();
-            throw new InvalidOperationException("Expression is not a derivative");
+            throw new InvalidCastException("Expression is not a derivative");
         }
 
         // Helpers.
