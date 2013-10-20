@@ -611,16 +611,6 @@ namespace Circuit
                 throw new NotImplementedException("Constant");
         }
 
-        // Returns a dictionary with the members of A, replaced with the members of B.
-        private static IDictionary<K, V> Replace<K, V>(IDictionary<K, V> A, params IEnumerable<KeyValuePair<K, V>>[] B)
-        {
-            Dictionary<K, V> replaced = new Dictionary<K, V>(A);
-            foreach (IEnumerable<KeyValuePair<K, V>> i in B)
-                foreach (KeyValuePair<K, V> j in i)
-                    replaced[j.Key] = j.Value;
-            return replaced;
-        }
-
         // Returns 1 / x.
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }
         // Returns abs(x).
