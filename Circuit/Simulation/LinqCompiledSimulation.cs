@@ -555,16 +555,10 @@ namespace Circuit
         private static ParamExpr Redeclare<T>(IList<ParamExpr> Scope, IList<LinqExpr> Target, IDictionary<Expression, LinqExpr> Map, Expression Expr, LinqExpr Init)
         {
             LinqExpr decl;
-            if (Map.TryGetValue(Expr, out decl))
-            {
-                return (ParamExpr)decl;
-            }
-            else
-            {
+            if (!Map.TryGetValue(Expr, out decl))
                 decl = Declare<T>(Scope, Map, Expr, Expr.ToString());
-                Target.Add(LinqExpr.Assign(decl, Init));
-                return (ParamExpr)decl;
-            }
+            Target.Add(LinqExpr.Assign(decl, Init));
+            return (ParamExpr)decl;
         }
 
         private static ParamExpr Declare<T>(IList<ParamExpr> Scope, string Name)
