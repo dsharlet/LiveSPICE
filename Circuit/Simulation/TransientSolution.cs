@@ -125,34 +125,31 @@ namespace Circuit
             // If there are any equations left, there are some non-linear equations requiring numerical techniques to solve.
             if (mna.Any())
             {
-                // Initial guesses of y[t] = y[t0].
-                List<Arrow> y0 = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+                // The variables of this system are the newton iteration updates.
+                List<Expression> dy = y.Select(i => NewtonIteration.Delta(i)).ToList();
+
                 // Rearrange the MNA system to be F[y] == 0.
                 List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
-                // Compute JxF + F(y0) == 0.
-                List<LinearCombination> J = F.Jacobian(y);
+                // Compute JxF*dy + F(y0) == 0.
+                List<LinearCombination> J = F.Jacobian(y.Select(i => Arrow.New(i, NewtonIteration.Delta(i))));
                 foreach (LinearCombination i in J)
-                    i[Constant.One] = ((Expression)i.Tag).Evaluate(y0);
+                    i[Constant.One] = ((Expression)i.Tag);
 
-                // Solve for the linear update equations of Newton's method. This reduces the rank of the non-linear
-                // system to be solved during simulation.
-                List<Expression> ly = y.Where(j => !J.Any(i => i[j].DependsOn(j))).ToList();
-                y = y.Except(ly).ToList();
+                // ly is the subset of y that can be found linearly.
+                List<Expression> ly = dy.Where(j => !J.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
+                // Swap the columns such that ly appear first.
+                dy = dy.Except(ly).ToList();
                 foreach (LinearCombination i in J)
-                    i.SwapColumns(ly.Concat(y));
+                    i.SwapColumns(ly.Concat(dy));
+
                 // Compute the row-echelon form of the linear part of the Jacobian.
                 J.RowReduce(ly);
-                // Turn the Jacobian-ish expressions into a Newton's method system.
-                foreach (LinearCombination i in J)
-                    foreach (Arrow j in y0)
-                        i[j.Left] = i[j.Left].Evaluate(y0);
                 // Solutions for each linear update equation.
                 List<Arrow> solved = SolveAndRemove(J, ly);
 
-                List<LinearCombination> newton = J.Select(i => new LinearCombination(y, i.ToExpression())).ToList();
-                solutions.Add(new NewtonRhapsonIteration(solved, newton, y));
-                LogExpressions(Log, "Non-linear Newton's method solutions:", newton.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
-                LogExpressions(Log, "Linear Newton's method solutions:", solved);
+                solutions.Add(new NewtonIteration(solved, J, dy));
+                LogExpressions(Log, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+                LogExpressions(Log, "Linear Newton's method updates:", solved);
             }
 
             Log.WriteLine(MessageType.Info, "[{0} ms] System solved, {1} solution sets for {2} unknowns", 
@@ -249,7 +246,7 @@ namespace Circuit
             Call d = (Call)x;
             if (d.Target.Name == "D")
                 return d.Arguments.First();
-            throw new InvalidOperationException("Expression is not a derivative");
+            throw new InvalidCastException("Expression is not a derivative");
         }
 
         // Logging helpers.

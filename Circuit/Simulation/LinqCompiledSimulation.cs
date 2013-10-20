@@ -36,8 +36,8 @@ namespace Circuit
                     globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             }
             // Also need globals for any Newton's method unknowns.
-            foreach (Expression i in Transient.Solutions.OfType<NewtonRhapsonIteration>().SelectMany(i => i.Unknowns))
-                globals[i] = new GlobalExpr<double>(0.0);
+            foreach (Expression i in Transient.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
+                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
         }
 
         public override void Reset()
@@ -189,8 +189,8 @@ namespace Circuit
                         LinqExpr.Constant(0.0)));
 
                 // Create arrays for the newton's method systems.
-                Dictionary<NewtonRhapsonIteration, LinqExpr> JxFs = new Dictionary<NewtonRhapsonIteration,LinqExpr>();
-                foreach (NewtonRhapsonIteration i in Transient.Solutions.OfType<NewtonRhapsonIteration>())
+                Dictionary<NewtonIteration, LinqExpr> JxFs = new Dictionary<NewtonIteration,LinqExpr>();
+                foreach (NewtonIteration i in Transient.Solutions.OfType<NewtonIteration>())
                     JxFs[i] = Declare(locals, body, "JxF" + JxFs.Count.ToString(), 
                         LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(i.Equations.Count()), LinqExpr.Constant(i.Updates.Count() + 1)));
 
@@ -212,25 +212,25 @@ namespace Circuit
                     {
                         if (ss is LinearSolutions)
                         {
-                            LinearSolutions S = (LinearSolutions)ss;
                             // Linear solutions are easy.
+                            LinearSolutions S = (LinearSolutions)ss;
                             foreach (Arrow i in S.Solutions)
                                 body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
-                            // Update the old variables.
-                            foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
-                                body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
                         }
-                        else if (ss is NewtonRhapsonIteration)
+                        else if (ss is NewtonIteration)
                         {
-                            NewtonRhapsonIteration S = (NewtonRhapsonIteration)ss;
+                            NewtonIteration S = (NewtonIteration)ss;
                             LinqExpr JxF = JxFs[S];
                             
                             LinearCombination[] eqs = S.Equations.ToArray();
-                            Expression[] vars = S.Updates.ToArray();
+                            Expression[] deltas = S.Updates.ToArray();
+
+                            // y[t] = y[t0] in the map for newton's method updates.
+                            foreach (Expression i in S.Unknowns)
+                                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i), map[i.Evaluate(t_t0)]));
 
                             // int it
                             ParamExpr it = Redeclare<int>(locals, "it");
-
                             // it = Oversample
                             // do { ... --it } while(it > 0)
                             body.Add(LinqExpr.Assign(it, Iterations));
@@ -239,12 +239,12 @@ namespace Circuit
                                 // Initialize the matrix.
                                 for (int i = 0; i < eqs.Length; ++i)
                                 {
-                                    for (int x = 0; x < vars.Length; ++x)
+                                    for (int x = 0; x < deltas.Length; ++x)
                                         body.Add(LinqExpr.Assign(
                                             LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i), LinqExpr.Constant(x)),
-                                            eqs[i][vars[x]].Compile(map)));
+                                            eqs[i][deltas[x]].Compile(map)));
                                     body.Add(LinqExpr.Assign(
-                                        LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i), LinqExpr.Constant(vars.Length)),
+                                        LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i), LinqExpr.Constant(deltas.Length)),
                                         eqs[i][Constant.One].Compile(map)));
                                 }
                                                                 
@@ -254,7 +254,7 @@ namespace Circuit
                                 LinqExpr j = Redeclare<int>(locals, "j");
                                 For(body,
                                     () => body.Add(LinqExpr.Assign(j, LinqExpr.Constant(0))),
-                                    LinqExpr.LessThan(j, LinqExpr.Constant(vars.Length)),
+                                    LinqExpr.LessThan(j, LinqExpr.Constant(deltas.Length)),
                                     () => body.Add(LinqExpr.PreIncrementAssign(j)),
                                     () =>
                                 {
@@ -279,7 +279,7 @@ namespace Circuit
                                     LinqExpr temp = Redeclare<double>(locals, "temp");
                                     body.Add(LinqExpr.IfThen(
                                         LinqExpr.NotEqual(j, pivot),
-                                        LinqExpr.Block(Enumerable.Range(0, vars.Length + 1).Select(x => LinqExpr.Block(
+                                        LinqExpr.Block(Enumerable.Range(0, deltas.Length + 1).Select(x => LinqExpr.Block(
                                             LinqExpr.Assign(temp, LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x))),
                                             LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x)), LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x))),
                                             LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x)), temp))))));
@@ -298,23 +298,21 @@ namespace Circuit
                                         LinqExpr jj = Redeclare<int>(locals, "jj");
                                         For(body,
                                             () => body.Add(LinqExpr.Assign(jj, LinqExpr.Increment(j))),
-                                            LinqExpr.LessThan(jj, LinqExpr.Constant(vars.Length + 1)),
+                                            LinqExpr.LessThan(jj, LinqExpr.Constant(deltas.Length + 1)),
                                             () => body.Add(LinqExpr.PreIncrementAssign(jj)),
                                             () => body.Add(LinqExpr.SubtractAssign(LinqExpr.ArrayAccess(JxF, i, jj), LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, j, jj), s))));
                                     });
                                 });
 
-                                Dictionary<Expression, LinqExpr> updates = new Dictionary<Expression, LinqExpr>();
-
                                 // JxF is now upper triangular, solve it.
-                                for (int v = vars.Length - 1; v >= 0; --v)
+                                for (int v = deltas.Length - 1; v >= 0; --v)
                                 {
-                                    LinqExpr r = LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vars.Length));
-                                    for (int vj = v + 1; vj < vars.Length; ++vj)
-                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)), updates[vars[vj]]));
+                                    LinqExpr r = LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(deltas.Length));
+                                    for (int vj = v + 1; vj < deltas.Length; ++vj)
+                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)), map[deltas[vj]]));
                                     r = LinqExpr.Negate(r);
                                     body.Add(LinqExpr.Assign(
-                                        Declare<double>(locals, updates, vars[v]),
+                                        Declare<double>(locals, map, deltas[v]),
                                         LinqExpr.Divide(r, LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(v)))));
                                 }
 
@@ -322,21 +320,20 @@ namespace Circuit
                                 if (S.Solved != null)
                                     foreach (Arrow i in S.Solved)
                                         body.Add(LinqExpr.Assign(
-                                            Declare<double>(locals, updates, i.Left), 
-                                            i.Right.Compile(map.Where(x => !updates.ContainsKey(x.Key)).Concat(updates).ToDictionary(x => x.Key, x => x.Value))));
+                                            Declare<double>(locals, map, i.Left), 
+                                            i.Right.Compile(map)));
 
                                 // bool done = true
                                 LinqExpr done = Redeclare(locals, body, "done", LinqExpr.Constant(true));
-                                foreach (KeyValuePair<Expression, LinqExpr> i in updates)
+                                foreach (Expression i in S.Unknowns)
                                 {
-                                    // done = done && (|dv| < |v|*1e-4)
-                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(i.Value), LinqExpr.Multiply(Abs(map[i.Key]), LinqExpr.Constant(1e-2)))));
-                                    // v += dv
-                                    body.Add(LinqExpr.AddAssign(map[i.Key], i.Value));
+                                    LinqExpr v = map[i];
+                                    LinqExpr dv = map[Delta(i)];
 
-                                    // Update the old variables.
-                                    if (map.ContainsKey(i.Key.Evaluate(t_t0)))
-                                        body.Add(LinqExpr.Assign(map[i.Key.Evaluate(t_t0)], map[i.Key]));
+                                    // done = done && (|dv| < |v|*1e-4)
+                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), LinqExpr.Multiply(Abs(v), LinqExpr.Constant(1e-2)))));
+                                    // v += dv
+                                    body.Add(LinqExpr.AddAssign(v, dv));
                                 }
                                 // if (done) break
                                 body.Add(LinqExpr.IfThen(done, Break));
@@ -347,13 +344,21 @@ namespace Circuit
                         }
                     }
 
+                    // Update the previous timestep variables.
+                    foreach (SolutionSet S in Transient.Solutions)
+                    {
+                        // Update the old variables.
+                        foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
+                            body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
+                    }
+
                     // t0 = t
                     body.Add(LinqExpr.Assign(t0, t));
 
                     // Vo += i
                     foreach (Expression i in Output.Distinct())
                         body.Add(LinqExpr.AddAssign(Vo[i], CompileOrWarn(i, map)));
-
+                    
                     // Vi_t0 = Vi
                     foreach (Expression i in Input)
                         body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
@@ -605,6 +610,18 @@ namespace Circuit
             else
                 throw new NotImplementedException("Constant");
         }
+
+        // Returns a dictionary with the members of A, replaced with the members of B.
+        private static IDictionary<K, V> Replace<K, V>(IDictionary<K, V> A, params IEnumerable<KeyValuePair<K, V>>[] B)
+        {
+            Dictionary<K, V> replaced = new Dictionary<K, V>(A);
+            foreach (IEnumerable<KeyValuePair<K, V>> i in B)
+                foreach (KeyValuePair<K, V> j in i)
+                    replaced[j.Key] = j.Value;
+            return replaced;
+        }
+
+        private static Expression Delta(Expression x) { return NewtonIteration.Delta(x); }
 
         // Returns 1 / x.
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }

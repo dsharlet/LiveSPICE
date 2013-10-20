@@ -9,7 +9,28 @@ namespace SyMath
     /// Extensions for solving equations.
     /// </summary>
     public static class NSolveExtension
-    {        
+    {
+        /// <summary>
+        /// Compute the Jacobian of F(x).
+        /// </summary>
+        /// <param name="F"></param>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static List<LinearCombination> Jacobian(this IEnumerable<Expression> F, IEnumerable<Arrow> x)
+        {
+            List<Expression> B = x.Select(i => i.Right).ToList();
+            List<LinearCombination> J = new List<LinearCombination>();
+            foreach (Expression i in F)
+            {
+                LinearCombination Ji = new LinearCombination(B);
+                Ji.Tag = i;
+                foreach (Arrow j in x)
+                    Ji[j.Right] = i.Differentiate(j.Left);
+                J.Add(Ji);
+            }
+            return J;
+        }
+
         /// <summary>
         /// Compute the Jacobian of F(x).
         /// </summary>
@@ -18,16 +39,7 @@ namespace SyMath
         /// <returns></returns>
         public static List<LinearCombination> Jacobian(this IEnumerable<Expression> F, IEnumerable<Expression> x)
         {
-            List<LinearCombination> J = new List<LinearCombination>();
-            foreach (Expression i in F)
-            {
-                LinearCombination Ji = new LinearCombination(x);
-                Ji.Tag = i;
-                foreach (Expression j in x)
-                    Ji[j] = i.Differentiate(j);
-                J.Add(Ji);
-            }
-            return J;
+            return Jacobian(F, x.Select(i => Arrow.New(i, i)));
         }
 
         private static List<Arrow> NSolve(List<Equal> f, List<Arrow> x0, int N)

@@ -47,11 +47,11 @@ namespace Circuit
     /// <summary>
     /// A solution set described by an iteration of newton's method, partially solved.
     /// </summary>
-    public class NewtonRhapsonIteration : SolutionSet
+    public class NewtonIteration : SolutionSet
     {
         private List<Arrow> solved;
         /// <summary>
-        /// Enumerate the solved solutions.
+        /// Enumerate the solved Newton deltas.
         /// </summary>
         public IEnumerable<Arrow> Solved { get { return solved; } }
 
@@ -63,13 +63,18 @@ namespace Circuit
 
         private List<Expression> updates;
         /// <summary>
-        /// Enumerate the variables that have an update delta described by the Equations member.
+        /// Enumerate the Newton deltas of the Equations system.
         /// </summary>
         public IEnumerable<Expression> Updates { get { return updates; } }
 
-        public override IEnumerable<Expression> Unknowns { get { return solved != null ? solved.Select(i => i.Left).Concat(updates) : updates; } }
+        /// <summary>
+        /// Enumerate the Newton update deltas in this solution set.
+        /// </summary>
+        public IEnumerable<Expression> Deltas { get { return solved != null ? solved.Select(i => i.Left).Concat(updates) : updates; } }
+        
+        public override IEnumerable<Expression> Unknowns { get { return Deltas.Select(i => DeltaOf(i)); } }
 
-        public NewtonRhapsonIteration(IEnumerable<Arrow> Solved, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Updates)
+        public NewtonIteration(IEnumerable<Arrow> Solved, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Updates)
         {
             solved = Solved.ToList();
             equations = Equations.ToList();
@@ -81,6 +86,16 @@ namespace Circuit
             if (solved != null && solved.Any(i => i.Right.DependsOn(x)))
                 return true;
             return equations.Any(i => i.ToExpression().DependsOn(x)); 
+        }
+
+        private static Function d = ExprFunction.New("d", Variable.New("x"));
+        public static Expression Delta(Expression x) { return Call.New(d, x); }
+        public static Expression DeltaOf(Expression x)
+        {
+            Call c = (Call)x;
+            if (c.Target == d)
+                return c.Arguments.First();
+            throw new InvalidCastException("Expression is not a Newton Delta");
         }
     }
 }
