@@ -17,9 +17,9 @@ namespace CircuitTests
         static readonly Variable t = Component.t;
 
         static Quantity SampleRate = new Quantity(48000, Units.Hz);
-        static int Samples = 4800;
-        static int Oversample = 4;
-        static int Iterations = 4;
+        static int Samples = 48000;
+        static int Oversample = 8;
+        static int Iterations = 8;
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
@@ -32,8 +32,9 @@ namespace CircuitTests
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
 
-            //Run(@"..\..\..\..\Circuits\Parameter.xml", Vin);
-            //Run(@"..\..\..\..\Circuits\SeriesDiodes.xml", Vin);
+            //Run(@"..\..\..\..\Circuits\FilterDiode.xml", Vin);
+            //Run(@"..\..\..\..\Circuits\CommonCathodeTriodeAmplifier.xml", Vin);
+            //Run(@"..\..\..\..\Circuits\TransistorAmp.xml", Vin);
             //return;
             
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
@@ -41,11 +42,11 @@ namespace CircuitTests
                 try
                 {
                     double p = Run(File, Vin);
-                    performance.Add(File + ": " + p.ToString());
+                    performance.Add(File + ":\t" + p.ToString());
                 }
                 catch (Exception ex) 
                 {
-                    errors.Add(File + ": " + ex.Message);
+                    errors.Add(File + ":\t" + ex.Message);
                     System.Console.WriteLine(ex.Message);
                 }
             }
@@ -67,14 +68,14 @@ namespace CircuitTests
             System.Console.WriteLine("");
 
             return RunTest(
-                S, 
+                C, S, 
                 TS.Parameters.ToDictionary(i => i.Name, i => i.Default), 
                 Vin, 
                 Samples, 
                 System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
-        public static double RunTest(Simulation S, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
+        public static double RunTest(Circuit.Circuit C, Simulation S, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
         {            
             double t0 = (double)S.Time;
             
@@ -84,8 +85,8 @@ namespace CircuitTests
                 vs[n] = Vin(n * S.TimeStep);
             input.Add("V1[t]", vs);
 
-            Dictionary<Expression, double[]> output = S.Transient.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
-            //Dictionary<Expression, double[]> output = new Expression[] { "Vo[t]" }.ToDictionary(i => i, i => new double[vs.Length]);
+            //Dictionary<Expression, double[]> output = S.Transient.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
+            Dictionary<Expression, double[]> output = new Expression[] { C.Evaluate("V[O1]") }.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is cached before benchmarking.
             S.Run(1, input, output, Arguments, Iterations);
