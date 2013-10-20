@@ -328,7 +328,7 @@ namespace Circuit
                                 foreach (Expression i in S.Unknowns)
                                 {
                                     LinqExpr v = map[i];
-                                    LinqExpr dv = map[Delta(i)];
+                                    LinqExpr dv = map[NewtonIteration.Delta(i)];
 
                                     // done = done && (|dv| < |v|*1e-4)
                                     body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), LinqExpr.Multiply(Abs(v), LinqExpr.Constant(1e-2)))));
@@ -620,8 +620,6 @@ namespace Circuit
                     replaced[j.Key] = j.Value;
             return replaced;
         }
-
-        private static Expression Delta(Expression x) { return NewtonIteration.Delta(x); }
 
         // Returns 1 / x.
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }
