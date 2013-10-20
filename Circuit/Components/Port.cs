@@ -19,7 +19,7 @@ namespace Circuit
     [DisplayName("Output Port")]
     public class OutputPort : Port
     {
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns) { i = Constant.Zero; }
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns) { i = Constant.Zero; }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {
@@ -41,7 +41,7 @@ namespace Circuit
     [DisplayName("Input Port")]
     public class InputPort : Port
     {
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         { 
             i = null; 
         }

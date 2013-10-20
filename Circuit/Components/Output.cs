@@ -13,7 +13,7 @@ namespace Circuit
     {
         public Output() { Name = "O1"; }
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             Anode.i = 0;
             Cathode.i = 0;

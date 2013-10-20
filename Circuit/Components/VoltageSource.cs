@@ -24,7 +24,7 @@ namespace Circuit
 
         public VoltageSource() { Name = "V1"; }
         
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             Expression i = DependentVariable("i" + Name, t);
             Anode.i = i;

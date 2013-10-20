@@ -112,7 +112,7 @@ namespace Circuit
         }
 
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             Expression Vpk = DependentVariable(Name + "pk", t);
             Expression Vgk = DependentVariable(Name + "gk", t);

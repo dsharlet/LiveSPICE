@@ -124,7 +124,7 @@ namespace Circuit
         [Browsable(false)]
         public abstract Expression i(Expression V);
 
-        public override sealed void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override sealed void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             Expression i = this.i(V);  
 

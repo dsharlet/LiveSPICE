@@ -17,7 +17,7 @@ namespace Circuit
     {
         public Conductor() { Name = "_1"; }
 
-        public override void Analyze(IList<Equal> Mna, IList<SyMath.Expression> Unknowns) 
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns) 
         {
             Expression i = DependentVariable("i" + Name, t);
             Anode.i = i;

@@ -63,7 +63,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Mna"></param>
         /// <param name="Unknowns"></param>
-        public virtual void Analyze(IList<Equal> Mna, IList<Expression> Unknowns) { }
+        public virtual void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns) { }
         
         /// <summary>
         /// Define the schematic layout of this component.

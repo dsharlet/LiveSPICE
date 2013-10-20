@@ -34,7 +34,7 @@ namespace LiveSPICE
         public Probe() : this(EdgeType.Red) { }
         public Probe(EdgeType Color) { color = Color; }
 
-        public override void Analyze(IList<SyMath.Equal> Mna, IList<SyMath.Expression> Unknowns)
+        public override void Analyze(ICollection<SyMath.Equal> Mna, ICollection<SyMath.Expression> Unknowns)
         {
             // Probes don't affect the circuit.
             i = 0;

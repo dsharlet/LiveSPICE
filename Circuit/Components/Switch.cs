@@ -22,7 +22,7 @@ namespace Circuit
         public Switch() { Name = "S1"; }
         public Switch(bool Closed) : this() { closed = Closed; }
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             if (closed)
             {

@@ -21,7 +21,7 @@ namespace Circuit
 
         public Capacitor() { Name = "C1"; }
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             // Vac = Va - Vc
             Expression Vac = DependentVariable("V" + Name, t);

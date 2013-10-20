@@ -56,7 +56,7 @@ namespace Circuit
             return x;
         }
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             foreach (Component c in Components)
             {

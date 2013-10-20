@@ -49,7 +49,7 @@ namespace Circuit
 
         public Diode() { Name = "D1"; }
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             // Make a new unknown for Va - Vc to reduce the number of non-linear variables.
 

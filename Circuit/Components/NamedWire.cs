@@ -20,7 +20,7 @@ namespace Circuit
         [SchematicPersistent]
         public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire");  } }
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns) 
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns) 
         {
             Terminal.i = 0;
         }

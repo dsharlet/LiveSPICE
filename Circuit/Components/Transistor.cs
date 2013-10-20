@@ -75,7 +75,7 @@ namespace Circuit
             Name = "Q1";
         }
 
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             Expression Vbc = DependentVariable(Name + "bc", t);
             Expression Vbe = DependentVariable(Name + "be", t);
@@ -88,7 +88,7 @@ namespace Circuit
             model.Evaluate(Vbc, Vbe, out ic, out ib, out ie);
             c.i = ic;
             b.i = ib;
-            e.i = ie;
+            e.i = -(ic + ib);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

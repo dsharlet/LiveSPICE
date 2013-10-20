@@ -29,7 +29,7 @@ namespace Circuit
         [SchematicPersistent]
         public decimal Gain { get { return gain; } set { gain = value; NotifyChanged("Gain"); } }
         
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             // The input terminals are connected by a resistor Rin.
             Expression Vin = Positive.V - Negative.V;

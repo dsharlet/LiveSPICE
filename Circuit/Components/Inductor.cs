@@ -22,7 +22,7 @@ namespace Circuit
         public Inductor() { Name = "L1"; }
 
         // Inductor is modeled as a voltage source where V = L*di/dt.
-        public override void Analyze(IList<Equal> Mna, IList<Expression> Unknowns)
+        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
         {
             // Define a new unknown for the current through this inductor.
             Expression i = DependentVariable("i" + Name, t);
