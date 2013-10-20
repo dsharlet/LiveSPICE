@@ -18,7 +18,7 @@ namespace Circuit
         protected decimal VT = 25.85e-3m; // V
 
         protected decimal BF = 200m;
-        protected decimal BR = 0.1m;
+        protected decimal BR = 10m;
 
         public EbersMollTransistor(decimal BF, decimal BR, decimal IS, decimal VT)
         {
@@ -97,10 +97,16 @@ namespace Circuit
             Sym.AddTerminal(e, new Coord(10, 30));
             Sym.AddTerminal(c, new Coord(10, -30));
 
-            Sym.AddWire(b, new Coord(-20, 0));
+            int bx = -5;
+            Sym.AddWire(b, new Coord(bx, 0));
             Sym.AddWire(e, new Coord(10, 17));
             Sym.AddWire(c, new Coord(10, -17));
 
+            Sym.DrawLine(EdgeType.Black, new Coord(bx, 12), new Coord(bx, -12));
+            Sym.DrawLine(EdgeType.Black, new Coord(10, 17), new Coord(bx, 8));
+            Sym.DrawArrow(EdgeType.Black, new Coord(bx, -8), new Coord(10, -17), 0.2, 0.3);
+
+            Sym.DrawText(Name, new Point(0, -20), Alignment.Far, Alignment.Far);
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
         }
     }

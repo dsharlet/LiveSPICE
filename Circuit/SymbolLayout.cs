@@ -191,15 +191,16 @@ namespace Circuit
         public void DrawCurve(EdgeType Type, IEnumerable<Point> x) { curves.Add(new Curve(Type, x.ToArray())); }
 
         // Add common shapes to the schematic.
-        public void DrawArrow(EdgeType Type, Coord x1, Coord x2, double dh)
+        public void DrawArrow(EdgeType Type, Coord x1, Coord x2, double hw, double hl)
         {
-            Point dy = new Point((x2.x - x1.x) * dh, (x2.y - x1.y) * dh);
-            Point dx = new Point(-dy.y, dy.x);
+            Point dy = new Point((x2.x - x1.x) * hl, (x2.y - x1.y) * hl);
+            Point dx = new Point((x1.y - x2.y) * hw, (x2.x - x1.x) * hw);
 
             DrawLine(Type, x1, x2);
             DrawLine(Type, (Point)x2, new Point(x2.x + dx.x - dy.x, x2.y + dx.y - dy.y));
             DrawLine(Type, (Point)x2, new Point(x2.x - dx.x - dy.x, x2.y - dx.y - dy.y));
         }
+        public void DrawArrow(EdgeType Type, Coord x1, Coord x2, double dh) { DrawArrow(Type, x1, x2, dh, dh); }
         public void DrawPositive(EdgeType Type, Coord x)
         {
             DrawLine(Type, new Point(x.x - 1.5, x.y), new Point(x.x + 1.5, x.y));
