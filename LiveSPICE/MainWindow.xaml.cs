@@ -36,6 +36,7 @@ namespace LiveSPICE
         { 
             get 
             {
+                if (schematics == null) return null;
                 LayoutContent selected = schematics.SelectedContent;
                 return selected != null ? (SchematicViewer)selected.Content : null;
             } 
@@ -139,7 +140,7 @@ namespace LiveSPICE
                 e.Cancel = true;
                 return;
             }
-            if (dlg.Result.Value)
+            else if (dlg.Result.Value)
             {
                 foreach (TextBlock i in dlg.files.SelectedItems)
                 {
@@ -179,12 +180,23 @@ namespace LiveSPICE
             active.Focus();
             Keyboard.Focus(active);
         }
-        
+
+        private AudioConfiguration ConfigAudio()
+        {
+            AudioConfiguration audio = new AudioConfiguration() { Owner = this };
+            bool? result = audio.ShowDialog();
+            return result ?? false ? audio : null;
+        }
+
+        private void Simulate_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveEditor != null; }
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            TransientSimulation simulation = new TransientSimulation(ActiveEditor.Schematic);
-            simulation.Owner = this;
-            simulation.Show();
+            AudioConfiguration audio = ConfigAudio();
+            if (audio != null)
+            {
+                TransientSimulation simulation = new TransientSimulation(ActiveEditor.Schematic, audio) { Owner = this };
+                simulation.Show();
+            }
         }
         
         // INotifyPropertyChanged.

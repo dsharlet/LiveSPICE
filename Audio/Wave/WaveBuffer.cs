@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace AudioIo
+namespace Audio
 {
     /// <summary>
     /// Helper to manage the memory associated with a WAVEHDR.
@@ -14,7 +14,7 @@ namespace AudioIo
     {
         private GCHandle handle;
         private IntPtr hWaveIn, hWaveOut;
-        public WaveHdr RecordHeader, PlayHeader;
+        public WAVEHDR RecordHeader, PlayHeader;
         private GCHandle pinHdrIn, pinHdrOut;
         private IntPtr buffer;
         private int size;
@@ -33,21 +33,21 @@ namespace AudioIo
             buffer = Marshal.AllocHGlobal(Size);
             size = Size;
 
-            RecordHeader = new WaveHdr();
-            RecordHeader.Data = buffer;
-            RecordHeader.User = (IntPtr)handle;
-            RecordHeader.BufferLength = size;
-            RecordHeader.Flags = 0;
+            RecordHeader = new WAVEHDR();
+            RecordHeader.lpData = buffer;
+            RecordHeader.dwUser = (IntPtr)handle;
+            RecordHeader.dwBufferLength = (uint)size;
+            RecordHeader.dwFlags = 0;
             pinHdrIn = GCHandle.Alloc(RecordHeader, GCHandleType.Pinned);
-            MmException.CheckThrow(WaveApi.waveInPrepareHeader(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader)));
+            MmException.CheckThrow(Winmm.waveInPrepareHeader(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader)));
 
-            PlayHeader = new WaveHdr();
-            PlayHeader.Data = buffer;
-            PlayHeader.User = (IntPtr)handle;
-            PlayHeader.BufferLength = size;
-            PlayHeader.Flags = 0;
+            PlayHeader = new WAVEHDR();
+            PlayHeader.lpData = buffer;
+            PlayHeader.dwUser = (IntPtr)handle;
+            PlayHeader.dwBufferLength = (uint)size;
+            PlayHeader.dwFlags = 0;
             pinHdrOut = GCHandle.Alloc(PlayHeader, GCHandleType.Pinned);
-            MmException.CheckThrow(WaveApi.waveOutPrepareHeader(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader)));
+            MmException.CheckThrow(Winmm.waveOutPrepareHeader(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader)));
         }
 
         ~WaveBuffer() { Dispose(false); }
@@ -59,8 +59,8 @@ namespace AudioIo
             if (disposed) return;
 
             // Not checked intentionally.
-            WaveApi.waveInUnprepareHeader(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader));
-            WaveApi.waveOutUnprepareHeader(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader));
+            Winmm.waveInUnprepareHeader(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader));
+            Winmm.waveOutUnprepareHeader(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader));
 
             if (buffer != IntPtr.Zero)
             {
@@ -81,13 +81,13 @@ namespace AudioIo
         
         public void Record()
         {
-            RecordHeader.BufferLength = size;
-            MmException.CheckThrow(WaveApi.waveInAddBuffer(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader)));
+            RecordHeader.dwBufferLength = (uint)size;
+            MmException.CheckThrow(Winmm.waveInAddBuffer(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader)));
         }
 
         public void Play()
         {
-            MmException.CheckThrow(WaveApi.waveOutWrite(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader)));
+            MmException.CheckThrow(Winmm.waveOutWrite(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader)));
         }
     }
 }

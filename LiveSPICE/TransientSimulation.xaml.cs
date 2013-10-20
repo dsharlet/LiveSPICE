@@ -88,13 +88,13 @@ namespace LiveSPICE
         protected Circuit.Circuit circuit = null;
         protected Circuit.Simulation simulation = null;
         protected Circuit.TransientSolution solution = null;
-        protected AudioIo.WaveIo waveIo = null;
+        protected Audio.Stream waveIo = null;
 
         protected Dictionary<SyMath.Expression, SyMath.Expression> componentVoltages;
         protected List<Probe> probes = new List<Probe>();
         protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
 
-        public TransientSimulation(Circuit.Schematic Simulate)
+        public TransientSimulation(Circuit.Schematic Simulate, AudioConfiguration Audio)
         {
             InitializeComponent();
 
@@ -114,10 +114,16 @@ namespace LiveSPICE
             Output = components.OfType<Circuit.Output>().Select(i => Circuit.Component.DependentVariable("V", i.Name)).FirstOrDefault();
             
             parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
-
-            waveIo = new AudioIo.WaveIo(ProcessSamples, (int)sampleRate, 1, bitsPerSample, (double)latency);
-
+            
             Build();
+
+            waveIo = Audio.Device.Open(
+                ProcessSamples, 
+                Audio.InputChannel, 
+                Audio.OutputChannel, 
+                (double)Audio.SampleRate, 
+                Audio.BitsPerSample,
+                (double)Audio.Latency);
         }
 
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
@@ -249,7 +255,7 @@ namespace LiveSPICE
 
         private void OnClosed(object sender, EventArgs e)
         {
-            waveIo.Dispose();
+            waveIo.Stop();
             waveIo = null;
         }
 

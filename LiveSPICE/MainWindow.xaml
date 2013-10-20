@@ -17,7 +17,7 @@
         <CommandBinding Command="{x:Static ls:CustomCommands.SaveAll}" Executed="SaveAll_Executed" />
         <CommandBinding Command="ApplicationCommands.Close" CanExecute="Close_CanExecute" Executed="Close_Executed" />
 
-        <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" />
+        <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" CanExecute="Simulate_CanExecute" />
 
         <CommandBinding Command="{x:Static ls:CustomCommands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>

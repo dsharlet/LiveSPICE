@@ -39,10 +39,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WaveApi.cs" />
+    <Compile Include="Device.cs" />
+    <Compile Include="Driver.cs" />
+    <Compile Include="Stream.cs" />
+    <Compile Include="Wave\Winmm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WaveBuffer.cs" />
-    <Compile Include="WaveIo.cs" />
+    <Compile Include="Wave\WaveBuffer.cs" />
+    <Compile Include="Wave\WaveDevice.cs" />
+    <Compile Include="Wave\WaveDriver.cs" />
+    <Compile Include="Wave\WaveStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
