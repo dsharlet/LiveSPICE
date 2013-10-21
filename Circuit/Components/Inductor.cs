@@ -30,7 +30,7 @@ namespace Circuit
             Cathode.i = -i;
             Unknowns.Add(i);
 
-            // V = i*di/dt
+            // V = L*di/dt
             Mna.Add(Equal.New(Anode.V - Cathode.V, inductance.Value * D(i, t)));
         }
 
