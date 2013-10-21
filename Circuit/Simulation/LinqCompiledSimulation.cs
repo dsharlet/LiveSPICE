@@ -300,13 +300,14 @@ namespace Circuit
                                 // JxF is now upper triangular, solve it.
                                 for (int v = deltas.Length - 1; v >= 0; --v)
                                 {
-                                    LinqExpr r = LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(deltas.Length));
+                                    LinqExpr vx = LinqExpr.Constant(v);
+                                    LinqExpr r = LinqExpr.ArrayAccess(JxF, vx, LinqExpr.Constant(deltas.Length));
                                     for (int vj = v + 1; vj < deltas.Length; ++vj)
-                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(vj)), map[deltas[vj]]));
+                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, vx, LinqExpr.Constant(vj)), map[deltas[vj]]));
                                     r = LinqExpr.Negate(r);
                                     body.Add(LinqExpr.Assign(
                                         Declare<double>(locals, map, deltas[v]),
-                                        LinqExpr.Divide(r, LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(v), LinqExpr.Constant(v)))));
+                                        LinqExpr.Divide(r, LinqExpr.ArrayAccess(JxF, vx, vx))));
                                 }
 
                                 // Compile the pre-solved solutions.
@@ -324,7 +325,7 @@ namespace Circuit
                                     LinqExpr dv = map[NewtonIteration.Delta(i)];
 
                                     // done = done && (|dv| < |v|*1e-4)
-                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), LinqExpr.Multiply(Abs(v), LinqExpr.Constant(1e-2)))));
+                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), LinqExpr.Multiply(Abs(v), LinqExpr.Constant(1e-4)))));
                                     // v += dv
                                     body.Add(LinqExpr.AddAssign(v, dv));
                                 }
@@ -609,7 +610,7 @@ namespace Circuit
         // Returns 1 / x.
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }
         // Returns abs(x).
-        private static LinqExpr Abs(LinqExpr x) { return LinqExpr.Condition(LinqExpr.LessThan(x, ConstantExpr(0.0, x.Type)), LinqExpr.Negate(x), x); }
+        private static LinqExpr Abs(LinqExpr x) { return LinqExpr.Call(typeof(System.Math).GetMethod("Abs", new Type[] { x.Type }), x); }
         // Returns x*x.
         private static LinqExpr Square(LinqExpr x) { return LinqExpr.Multiply(x, x); }
     }
