@@ -23,12 +23,20 @@ namespace LiveSPICE
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
-    {                
+    {
+        private System.Windows.Forms.PropertyGrid Properties;
+
         public MainWindow()
         {
             InitializeComponent();
-            
+
+            Properties = new System.Windows.Forms.PropertyGrid();
             components.Init(this, toolbox_Click);
+
+            properties.Content = new System.Windows.Forms.Integration.WindowsFormsHost() 
+            { 
+                Child = Properties 
+            };
         }
 
         public LayoutContent ActiveContent { get { return schematics.SelectedContent; } }
@@ -155,7 +163,7 @@ namespace LiveSPICE
 
         private void schematic_SelectionChanged(object Sender, EventArgs Args)
         {
-            properties.SelectedObject = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).FirstOrDefault();
+            Properties.SelectedObjects = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
