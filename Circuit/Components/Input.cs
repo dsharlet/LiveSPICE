@@ -34,10 +34,11 @@ namespace Circuit
 
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
-            Sym.AddLine(EdgeType.Black, new Coord(-5, y), new Coord(5, y));
-            Sym.DrawPositive(EdgeType.Black, new Coord(0, y - 3));
-            Sym.AddLine(EdgeType.Black, new Coord(-5, -y), new Coord(5, -y));
-            Sym.DrawNegative(EdgeType.Black, new Coord(0, -y + 3));
+            int w = 7;
+            Sym.AddLine(EdgeType.Black, new Coord(-w, y), new Coord(w, y));
+            Sym.DrawPositive(EdgeType.Black, new Coord(0, y - 4));
+            Sym.AddLine(EdgeType.Black, new Coord(-w, -y), new Coord(w, -y));
+            Sym.DrawNegative(EdgeType.Black, new Coord(0, -y + 4));
 
             Sym.DrawText(Name.ToString(), new Point(0, 0), Alignment.Center, Alignment.Center);
         }
