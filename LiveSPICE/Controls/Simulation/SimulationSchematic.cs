@@ -58,7 +58,7 @@ namespace LiveSPICE
 
         public IEnumerable<Probe> Probes { get { return Symbols.Select(i => i.Component).OfType<Probe>(); } }
 
-        public static IEnumerable<Circuit.Element> ProbesOf(IEnumerable<Circuit.Element> Of)
+        public static IEnumerable<Circuit.Symbol> ProbesOf(IEnumerable<Circuit.Element> Of)
         {
             return Of.OfType<Circuit.Symbol>().Where(i => i.Component is Probe);
         }
