@@ -9,6 +9,17 @@ namespace SyMath
 {
     class GlobalNamespace : Namespace
     {
+        private static IfFunction If = IfFunction.New();
+
+        public GlobalNamespace() : base(typeof(GlobalNamespace)) { }
+
+        public override IEnumerable<Expression> LookupName(string Name)
+        {
+            if (Name == "If")
+                return new Expression[] { If };
+            return base.LookupName(Name);
+        }
+
         // Some useful constants.
         public static readonly Expression Pi = Constant.New(Math.PI);
         public static readonly Expression e = Constant.New(Math.E);
@@ -71,8 +82,6 @@ namespace SyMath
         public static Expression IsInteger(Constant x) { return Constant.New((Real)x % 1 == 0); }
         public static Expression IsNatural(Constant x) { return Constant.New((Real)x % 1 == 0 && (Real)x > 0); }
 
-        public static Expression If(Constant x, Expression t, Expression f) { return (Real)x == 0 ? f : t; }
-        
         public static Expression IsFunctionOf(Expression f, Expression x) { return Constant.New(f.DependsOn(x)); }
         
         public static Expression Simplify(Expression x) { return x.Simplify(); }

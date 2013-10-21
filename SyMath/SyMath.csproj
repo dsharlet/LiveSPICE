@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Expression\Arrow.cs" />
     <Compile Include="Expression\Atom.cs" />
+    <Compile Include="Expression\Functions\IfFunction.cs" />
     <Compile Include="Expression\Functions\LutFunction.cs" />
     <Compile Include="Expression\Functions\ExprFunction.cs" />
     <Compile Include="Expression\Functions\NativeFunction.cs" />

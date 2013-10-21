@@ -22,7 +22,7 @@ namespace SyMath
     {
         private Dictionary<string, List<Expression>> members = new Dictionary<string, List<Expression>>();
 
-        public IEnumerable<Expression> LookupName(string Name)
+        public virtual IEnumerable<Expression> LookupName(string Name)
         {
             List<Expression> lookup;
             if (members.TryGetValue(Name, out lookup))
@@ -90,7 +90,7 @@ namespace SyMath
                 Add(i.Name, (Expression)i.GetValue(null));
         }
 
-        private static Namespace global = new Namespace(typeof(GlobalNamespace));
+        private static GlobalNamespace global = new GlobalNamespace();
         /// <summary>
         /// Get the global namespace.
         /// </summary>
