@@ -219,7 +219,7 @@ namespace LiveSPICE
             // Compute the target min/max
             double gamma = 0.05;
             double window = Math.Max(Math.Pow(2.0, Math.Ceiling(Math.Log(peak * 1.1 + 1e-9, 2.0))), 1e-2);
-            Vmax = Math.Max(TimeFilter(Vmax, window, gamma), window);
+            Vmax = Math.Max(TimeFilter(Vmax, window, gamma), Math.Abs(peak + (Vmean - mean)));
             Vmean = TimeFilter(Vmean, mean, gamma);
 
             DrawSignalAxis(DC, bounds);
@@ -471,7 +471,7 @@ namespace LiveSPICE
         
         private static double TimeFilter(double Prev, double Cur, double t)
         {   
-            if (double.IsNaN(Prev))
+            if (double.IsNaN(Prev) || double.IsNaN(Cur))
                 return Cur;
 
             double prevs = SignMag(ref Prev);
@@ -537,6 +537,8 @@ namespace LiveSPICE
             Complex[] data = DecimateSignal(Samples, Decimate);
             int N = data.Length;
             MathNet.Numerics.IntegralTransforms.Transform.FourierForward(data);
+            // Zero the DC bin.
+            data[0] = 0.0;
 
             double f = 0.0;
             double max = 0.0;
