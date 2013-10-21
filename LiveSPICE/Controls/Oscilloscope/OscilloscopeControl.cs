@@ -166,6 +166,7 @@ namespace LiveSPICE
 
             Signal stats = SelectedSignal;
 
+            double mean = 0.0;
             double peak = 0.0;
             double rms = 0.0;
             double f0 = 0.0;
@@ -181,9 +182,9 @@ namespace LiveSPICE
 
                     // Compute statistics of the clock signal.
                     align = stats.Count;
-                    Vmean = stats.Sum() / stats.Count;
-                    peak = stats.Max(i => Math.Abs(i - Vmean), 0.0);
-                    rms = Math.Sqrt(stats.Sum(i => (i - Vmean) * (i - Vmean)) / stats.Count);
+                    mean = stats.Sum() / stats.Count;
+                    peak = stats.Max(i => Math.Abs(i - mean), 0.0);
+                    rms = Math.Sqrt(stats.Sum(i => (i - mean) * (i - mean)) / stats.Count);
 
                     int Decimate = 1 << (int)Math.Floor(Math.Log((double)sampleRate / 24000, 2));
                     int BlockSize = 8192;
@@ -216,21 +217,10 @@ namespace LiveSPICE
             }
                                 
             // Compute the target min/max
-            double window = Math.Pow(2.0, Math.Ceiling(Math.Log(peak * 1.1 + 1e-9, 2.0)));
-            // Animate transition from current min/max to target min/max.
-            if (double.IsNaN(Vmax))
-            {
-                Vmax = window;
-            }
-            else
-            {
-                // Lerp in log domain to cover huge distances quickly.
-                Vmax = System.Math.Log(Math.Max(Vmax, window));
-                window = System.Math.Log(window);
-                Vmax = System.Math.Exp(Vmax + (window - Vmax) * 0.1);
-            }
-
-            Vmax = Math.Max(Vmax, 1e-2);
+            double gamma = 0.05;
+            double window = Math.Max(Math.Pow(2.0, Math.Ceiling(Math.Log(peak * 1.1 + 1e-9, 2.0))), 1e-2);
+            Vmax = Math.Max(TimeFilter(Vmax, window, gamma), window);
+            Vmean = TimeFilter(Vmean, mean, gamma);
 
             DrawSignalAxis(DC, bounds);
 
@@ -241,7 +231,7 @@ namespace LiveSPICE
             if (stats != null)
             {
                 lock (stats) DrawSignal(DC, bounds, stats, align - (int)(stats.Clock - sync));
-                DrawStatistics(DC, bounds, stats.Pen.Brush, peak, Vmean, rms, f0);
+                DrawStatistics(DC, bounds, stats.Pen.Brush, peak, mean, rms, f0);
             }
 
             if (tracePoint.HasValue)
@@ -471,6 +461,31 @@ namespace LiveSPICE
                 PropertyChanged(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private static double SignMag(ref double x)
+        {
+            double sign = Math.Sign(x);
+            x = Math.Abs(x);
+            return sign;
+        }
+        
+        private static double TimeFilter(double Prev, double Cur, double t)
+        {   
+            if (double.IsNaN(Prev))
+                return Cur;
+
+            double prevs = SignMag(ref Prev);
+            double curs = SignMag(ref Cur);
+
+            // If the signs are different, just lerp.
+            if (prevs != curs)
+                return Prev + (Cur - Prev) * t;
+
+            // Lerp in log domain to cover huge distances quickly.
+            Prev = System.Math.Log(Prev);
+            Cur = System.Math.Log(Cur);
+            return curs * System.Math.Exp(Prev + (Cur - Prev) * t);
+        }
 
         private static double Hann(int i, int N) { return 0.5 * (1.0 - Math.Cos((2.0 * 3.14159265 * i) / (N - 1))); }
 
