@@ -12,15 +12,16 @@ namespace Circuit
         public abstract void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie);
     }
 
-    public class EbersMollTransistor : BJTModel
+    // http://people.seas.harvard.edu/~jones/es154/lectures/lecture_3/bjt_models/ebers_moll/ebers_moll.html
+    public class EbersMollModel : BJTModel
     {
         protected decimal IS = 6.734e-15m; // A
         protected decimal VT = 25.85e-3m; // V
 
-        protected decimal BF = 200m;
-        protected decimal BR = 10m;
+        protected decimal BF = 100m;
+        protected decimal BR = 0.5m;
 
-        public EbersMollTransistor(decimal BF, decimal BR, decimal IS, decimal VT)
+        public EbersMollModel(decimal BF, decimal BR, decimal IS, decimal VT)
         {
             this.BF = BF;
             this.BR = BR;
@@ -28,19 +29,22 @@ namespace Circuit
             this.VT = VT;
         }
 
-        public EbersMollTransistor() : this(260, 10, 10e-12m, 25.85e-3m) { }
+        public EbersMollModel() { }
 
         public override void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie)
         {
-            Expression eVbc = Call.Exp(Vbc / VT);
-            Expression eVbe = Call.Exp(Vbe / VT);
+            decimal aR = BR / (1 + BR);
+            decimal aF = BF / (1 + BF);
 
-            ic = IS * (eVbe - eVbc)         - (IS / BR) * (eVbc - 1);
-            ib = (IS / BF) * (eVbe - 1)     + (IS / BR) * (eVbc - 1);
-            ie = IS * (eVbe - eVbc)         + (IS / BF) * (eVbe - 1);
+            Expression iDE = IS * (Call.Exp(Vbe / VT) - 1);
+            Expression iDC = IS * (Call.Exp(Vbc / VT) - 1);
+
+            ie = iDE - aR * iDC;
+            ic = -iDC + aF * iDE;
+            ib = (1 - aF) * iDE + (1 - aR) * iDC;
         }
     };
-
+    
     /// <summary>
     /// Transistors.
     /// </summary>
@@ -65,7 +69,7 @@ namespace Circuit
         [Browsable(false)]
         public Terminal Base { get { return b; } }
 
-        protected BJTModel model = new EbersMollTransistor();
+        protected BJTModel model = new EbersMollModel();
 
         public BJT()
         {
@@ -79,7 +83,7 @@ namespace Circuit
         {
             Expression Vbc = DependentVariable(Name + "bc", t);
             Expression Vbe = DependentVariable(Name + "be", t);
-            Mna.Add(Equal.New(Vbc, b.V - e.V));
+            Mna.Add(Equal.New(Vbc, b.V - c.V));
             Mna.Add(Equal.New(Vbe, b.V - e.V));
             Unknowns.Add(Vbc);
             Unknowns.Add(Vbe);
@@ -93,14 +97,14 @@ namespace Circuit
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
+            Sym.AddTerminal(c, new Coord(10, 30));
             Sym.AddTerminal(b, new Coord(-30, 0));
-            Sym.AddTerminal(e, new Coord(10, 30));
-            Sym.AddTerminal(c, new Coord(10, -30));
+            Sym.AddTerminal(e, new Coord(10, -30));
 
             int bx = -5;
+            Sym.AddWire(c, new Coord(10, 17));
             Sym.AddWire(b, new Coord(bx, 0));
-            Sym.AddWire(e, new Coord(10, 17));
-            Sym.AddWire(c, new Coord(10, -17));
+            Sym.AddWire(e, new Coord(10, -17));
 
             Sym.DrawLine(EdgeType.Black, new Coord(bx, 12), new Coord(bx, -12));
             Sym.DrawLine(EdgeType.Black, new Coord(10, 17), new Coord(bx, 8));
