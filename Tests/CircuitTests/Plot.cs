@@ -26,6 +26,9 @@ namespace CircuitTests
             public Color Color { get { return color; } set { color = value; } }
 
             public abstract void Paint(Matrix T, double x0, double x1, Graphics G);
+
+            public virtual double MinY { get { return 0.0; } }
+            public virtual double MaxY { get { return 0.0; } }
         }
 
         public class Function : Series
@@ -84,6 +87,9 @@ namespace CircuitTests
                 T.TransformPoints(Tpoints);
                 G.DrawLines(pen, Tpoints);
             }
+
+            public override double MinY { get { return points.Min(i => i.Y); } }
+            public override double MaxY { get { return points.Max(i => i.Y); } }
         }
 
         protected Thread thread;
@@ -96,6 +102,16 @@ namespace CircuitTests
 
         public Plot(string Name, int Width, int Height, double x0, double y0, double x1, double y1, Dictionary<string, Series> Series)
         {
+            if (y1 - y0 <= 0)
+            {
+                y0 = Series.Min(i => i.Value.MinY);
+                y1 = Series.Max(i => i.Value.MaxY);
+                double y = (y0 + y1) / 2.0;
+
+                y0 = (y0 - y) * 1.25 + y;
+                y1 = (y1 - y) * 1.25 + y;
+            }
+
             this.x0 = new PointF((float)x0, (float)y0);
             this.x1 = new PointF((float)x1, (float)y1);
             series = Series;

@@ -23,7 +23,7 @@ namespace CircuitTests
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
-        static Expression V1 = Harmonics(t, 1.0, 82, 4);
+        static Expression V1 = Harmonics(t, 1.0, 328, 1);
         
         static void Main(string[] args)
         {
@@ -107,8 +107,8 @@ namespace CircuitTests
             Plot p = new Plot(
                 Name, 
                 800, 400, 
-                t0, series.Min(i => i.Min()) * 1.25 - 0.1, 
-                S.TimeStep * t1, series.Max(i => i.Max()) * 1.25 + 0.1, 
+                t0, 0, 
+                S.TimeStep * t1, 0, 
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
 
             return (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0);
