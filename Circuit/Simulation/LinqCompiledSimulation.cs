@@ -25,18 +25,18 @@ namespace Circuit
         /// <summary>
         /// Create a simulation for the given system solution.
         /// </summary>
-        /// <param name="Transient">Transient solution to run.</param>
+        /// <param name="Solution">Transient solution to run.</param>
         /// <param name="Log">Log for simulation output.</param>
-        public LinqCompiledSimulation(TransientSolution Transient, int Oversample, ILog Log) : base(Transient, Oversample, Log)
+        public LinqCompiledSimulation(TransientSolution Solution, int Oversample, ILog Log) : base(Solution, Oversample, Log)
         {
-            foreach (Expression i in Transient.Solutions.SelectMany(i => i.Unknowns))
+            foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
             {
                 // If any system depends on the previous value of i, we need a global variable for it.
-                if (Transient.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
+                if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
                     globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
             }
             // Also need globals for any Newton's method unknowns.
-            foreach (Expression i in Transient.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
+            foreach (Expression i in Solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
                 globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
         }
 
@@ -183,7 +183,7 @@ namespace Circuit
 
                 // Create arrays for the newton's method systems.
                 Dictionary<NewtonIteration, LinqExpr> JxFs = new Dictionary<NewtonIteration,LinqExpr>();
-                foreach (NewtonIteration i in Transient.Solutions.OfType<NewtonIteration>())
+                foreach (NewtonIteration i in Solution.Solutions.OfType<NewtonIteration>())
                     JxFs[i] = Declare(locals, body, "JxF" + JxFs.Count.ToString(), 
                         LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(i.Equations.Count()), LinqExpr.Constant(i.Updates.Count() + 1)));
 
@@ -201,7 +201,7 @@ namespace Circuit
                         body.Add(LinqExpr.AddAssign(map[i], dVi[i]));
 
                     // Compile all of the SolutionSets in the solution.
-                    foreach (SolutionSet ss in Transient.Solutions)
+                    foreach (SolutionSet ss in Solution.Solutions)
                     {
                         if (ss is LinearSolutions)
                         {
@@ -338,7 +338,7 @@ namespace Circuit
                     }
 
                     // Update the previous timestep variables.
-                    foreach (SolutionSet S in Transient.Solutions)
+                    foreach (SolutionSet S in Solution.Solutions)
                     {
                         // Update the old variables.
                         foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))

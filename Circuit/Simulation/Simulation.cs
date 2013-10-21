@@ -34,7 +34,7 @@ namespace Circuit
         /// <summary>
         /// Get the timestep for the simulation.
         /// </summary>
-        public double TimeStep { get { return (double)(Transient.TimeStep * oversample); } }
+        public double TimeStep { get { return (double)(Solution.TimeStep * oversample); } }
 
         private ILog log = new ConsoleLog();
         /// <summary>
@@ -42,11 +42,11 @@ namespace Circuit
         /// </summary>
         public ILog Log { get { return log; } set { log = value; } }
 
-        private TransientSolution transient;
+        private TransientSolution solution;
         /// <summary>
         /// The solution of the circuit we are simulating.
         /// </summary>
-        public TransientSolution Transient { get { return transient; } }
+        public TransientSolution Solution { get { return solution; } }
 
         private int oversample;
         /// <summary>
@@ -57,16 +57,16 @@ namespace Circuit
         /// <summary>
         /// The sampling rate of this simulation, the sampling rate of the transient solution divided by the oversampling factor.
         /// </summary>
-        public Quantity SampleRate { get { return 1 / (Transient.TimeStep * oversample); } }
+        public Quantity SampleRate { get { return 1 / (Solution.TimeStep * oversample); } }
 
         /// <summary>
         /// Create a simulation for the given system solution.
         /// </summary>
-        /// <param name="Transient">Transient solution to run.</param>
+        /// <param name="Solution">Transient solution to run.</param>
         /// <param name="Log">Log for simulation output.</param>
-        public Simulation(TransientSolution Transient, int Oversample, ILog Log)
+        public Simulation(TransientSolution Solution, int Oversample, ILog Log)
         {
-            transient = Transient;
+            solution = Solution;
             oversample = Oversample;
             log = Log;
         }

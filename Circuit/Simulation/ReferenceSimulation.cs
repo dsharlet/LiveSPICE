@@ -33,7 +33,7 @@ namespace Circuit
             base.Reset();
 
             // State for each node.
-            foreach (Expression i in Transient.Nodes)
+            foreach (Expression i in Solution.Nodes)
                 state[i] = Constant.Zero;
 
             //// State for the state variables (differentials).
