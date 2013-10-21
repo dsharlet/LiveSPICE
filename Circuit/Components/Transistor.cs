@@ -7,34 +7,40 @@ using System.ComponentModel;
 
 namespace Circuit
 {
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public abstract class BJTModel
     {
         public abstract void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie);
     }
 
     // http://people.seas.harvard.edu/~jones/es154/lectures/lecture_3/bjt_models/ebers_moll/ebers_moll.html
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public class EbersMollModel : BJTModel
     {
-        protected decimal IS = 6.734e-15m; // A
-        protected decimal VT = 25.85e-3m; // V
+        private double bf = 100;
+        private double br = 1.0;
+        private double _is = 6.734e-15; // A
+        private double vt = 25.85e-3; // V
 
-        protected decimal BF = 100m;
-        protected decimal BR = 0.5m;
-
-        public EbersMollModel(decimal BF, decimal BR, decimal IS, decimal VT)
+        public double BF { get { return bf; } set { bf = value; } }
+        public double BR { get { return br; } set { br = value; } }
+        public double IS { get { return _is; } set { _is = value; } }
+        public double VT { get { return vt; } set { vt = value; } }
+        
+        public EbersMollModel(double BF, double BR, double IS, double VT)
         {
-            this.BF = BF;
-            this.BR = BR;
-            this.IS = IS;
-            this.VT = VT;
+            bf = BF;
+            br = BR;
+            _is = IS;
+            vt = VT;
         }
 
         public EbersMollModel() { }
 
         public override void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie)
         {
-            decimal aR = BR / (1 + BR);
-            decimal aF = BF / (1 + BF);
+            double aR = BR / (1 + BR);
+            double aF = BF / (1 + BF);
 
             Expression iDE = IS * (Call.Exp(Vbe / VT) - 1);
             Expression iDC = IS * (Call.Exp(Vbc / VT) - 1);
@@ -70,6 +76,7 @@ namespace Circuit
         public Terminal Base { get { return b; } }
 
         protected BJTModel model = new EbersMollModel();
+        public BJTModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
 
         public BJT()
         {

@@ -7,6 +7,7 @@ using System.ComponentModel;
 
 namespace Circuit
 {
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public abstract class TriodeModel
     {
         public abstract void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik);
@@ -15,25 +16,31 @@ namespace Circuit
     /// <summary>
     /// Norman Koren's triode model: http://www.normankoren.com/Audio/Tubemodspice_article.html
     /// </summary>
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public class KorenTriode : TriodeModel
     {
-        protected decimal Mu, Ex, Kg, Kp, Kvb, Rgk, Vg;
-        
-        public KorenTriode(decimal Mu, decimal Ex, decimal Kg, decimal Kp, decimal Kvb, decimal Rgk, decimal Vg)
+        private double mu, ex, kg, kp, kvb, rgk, vg;
+
+        public double Mu { get { return mu; } set { mu = value; } }
+        public double Ex { get { return ex; } set { ex = value; } }
+        public double Kg { get { return kg; } set { kg = value; } }
+        public double Kp { get { return kp; } set { kp = value; } }
+        public double Kvb { get { return kvb; } set { kvb = value; } }
+        public double Rgk { get { return rgk; } set { rgk = value; } }
+        public double Vg { get { return vg; } set { vg = value; } }
+
+        public KorenTriode(double Mu, double Ex, double Kg, double Kp, double Kvb, double Rgk, double Vg)
         {
-            this.Mu = Mu;
-            this.Ex = Ex;
-            this.Kg = Kg;
-            this.Kp = Kp;
-            this.Kvb = Kvb;
-            this.Rgk = Rgk;
-            this.Vg = Vg;
+            mu = Mu;
+            ex = Ex;
+            kg = Kg;
+            kp = Kp;
+            kvb = Kvb;
+            rgk = Rgk;
+            vg = Vg;
         }
 
-        // Default is the parameters for 12AX7.
-        public KorenTriode() 
-            : this(100.0m, 1.4m, 1060.0m, 600.0m, 300.0m, 1.0e6m, 0.33m)
-        { }
+        public KorenTriode(KorenTriode T) : this(T.Mu, T.Ex, T.Kg, T.Kp, T.Kvb, T.Rgk, T.Vg) { }
 
         public override void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik)
         {
@@ -47,25 +54,33 @@ namespace Circuit
             Ig = Call.If(Vgk > Vg, (Vgk - Vg) / Rgk, Constant.Zero);
             Ik = -(Ip + Ig);
         }
+
+        
+        public static KorenTriode _12AX7 { get { return new KorenTriode(100.0,	1.4,	1060.0,	600.0,	300.0,	1e6,	0.33); } }
+	    public static KorenTriode _12AZ7 { get { return new KorenTriode(74.08,	1.371,	382.0,	190.11,	300.0,	1e6,	0.33); } }
+	    public static KorenTriode _12AT7 { get { return new KorenTriode(67.49,	1.234,	419.1,	213.96,	300.0,	1e6,	0.33); } }
+	    public static KorenTriode _12AY7 { get { return new KorenTriode(44.16,	1.113,	1192.4,	409.96,	300.0,	1e6,	0.33); } }
+	    public static KorenTriode _12AU7 { get { return new KorenTriode(21.5,	1.3,	1180.0,	84.0,	300.0,	1e6,	0.33); } }
     };
 
     /// <summary>
     /// Child-Langmuir triode.
     /// </summary>
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public class ChildLangmuirTriode : TriodeModel
     {
-        protected decimal Mu, K;
-        
-        public ChildLangmuirTriode(decimal Mu, decimal K)
+        protected double mu, k;
+
+        public double Mu { get { return mu; } set { mu = value; } }
+        public double K { get { return k; } set { k = value; } }
+
+        public ChildLangmuirTriode(double Mu, double K)
         {
-            this.Mu = Mu;
-            this.K = K;
+            mu = Mu;
+            k = K;
         }
 
-        // Default is the parameters for 12AX7.
-        public ChildLangmuirTriode()
-            : this(83.5m, 1.73e-6m)
-        { }
+        public ChildLangmuirTriode(ChildLangmuirTriode T) : this(T.Mu, T.K) { }
 
         public override void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik)
         {
@@ -74,6 +89,8 @@ namespace Circuit
             Ig = 0;
             Ik = -Ip;
         }
+
+        public static ChildLangmuirTriode _12AX7 { get { return new ChildLangmuirTriode(83.5, 1.73e-6); } }
     }
 
 
@@ -101,7 +118,8 @@ namespace Circuit
         [Browsable(false)]
         public Terminal K { get { return k; } }
 
-        protected TriodeModel model = new KorenTriode();
+        protected TriodeModel model = new KorenTriode(KorenTriode._12AX7);
+        public TriodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
         
         public Triode()
         {
@@ -125,7 +143,7 @@ namespace Circuit
             model.Evaluate(Vpk, Vgk, out Ip, out Ig, out Ik);
             p.i = Ip;
             g.i = Ig;
-            k.i = Ik;
+            k.i = -(p.i + g.i);
         }
 
         public void ConnectTo(Node A, Node G, Node C)

@@ -7,6 +7,7 @@ using System.ComponentModel;
 
 namespace Circuit
 {
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public abstract class DiodeModel
     {
         public abstract Expression Evaluate(Expression V);
@@ -17,24 +18,31 @@ namespace Circuit
     /// <summary>
     /// Shockley diode model: http://en.wikipedia.org/wiki/Diode_modelling#Shockley_diode_model
     /// </summary>
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public class ShockleyDiodeModel : DiodeModel
     {
         // Shockley diode model parameters.
-        protected decimal IS = 6.734e-15m; // A
-        protected decimal VT = 25.85e-3m; // V
-        protected decimal n = 1.0m;
+        protected double _is = 6.734e-15; // A
+        protected double vt = 25.85e-3; // V
+        protected double _n = 1.0;
+        protected bool led = false;
 
-        public ShockleyDiodeModel(decimal IS, decimal VT, decimal n)
+        public double IS { get { return _is; } set { _is = value; } }
+        public double VT { get { return vt; } set { vt = value; } }
+        public double n { get { return _n; } set { _n = value; } }
+        public bool Led { get { return led; } set { led = value; } }
+
+        public ShockleyDiodeModel(double IS, double VT, double n)
         {
-            this.IS = IS;
-            this.VT = VT;
-            this.n = n;
+            _is = IS;
+            vt = VT;
+            _n = n;
         }
 
-        public ShockleyDiodeModel()
-            : this(1e-12m, 25.85e-3m, 1.0m)
-        { }
+        public ShockleyDiodeModel() { }
 
+        public override bool IsLed() { return Led; }
+        
         public override Expression Evaluate(Expression V)
         {
             return IS * (Call.Exp(V / (n * VT)) - 1);
@@ -46,6 +54,7 @@ namespace Circuit
     public class Diode : TwoTerminal
     {
         protected DiodeModel model = new ShockleyDiodeModel();
+        public DiodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
 
         public Diode() { Name = "D1"; }
 
