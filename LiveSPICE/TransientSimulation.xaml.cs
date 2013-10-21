@@ -57,20 +57,6 @@ namespace LiveSPICE
             set { sampleRate.Set(value); NotifyChanged("SampleRate"); }
         }
 
-        protected Circuit.Quantity latency = new Circuit.Quantity(50e-3m, Circuit.Units.s);
-        public Circuit.Quantity Latency
-        {
-            get { return latency; }
-            set { latency.Set(value); NotifyChanged("Latency"); }
-        }
-
-        protected int bitsPerSample = 16;
-        public int BitsPerSample
-        {
-            get { return bitsPerSample; }
-            set { bitsPerSample = value; NotifyChanged("BitsPerSample"); }
-        }
-
         protected Circuit.Quantity inputGain = new Circuit.Quantity(1, Circuit.Units.None);
         public Circuit.Quantity InputGain
         {
@@ -100,6 +86,7 @@ namespace LiveSPICE
 
             Closed += OnClosed;
 
+            sampleRate = Audio.SampleRate;
             oscilloscope.Scope.SampleRate = sampleRate;
 
             // Make a clone of the schematic so we can mess with it.
@@ -107,6 +94,7 @@ namespace LiveSPICE
             clone.Elements.ItemAdded += OnElementAdded;
             clone.Elements.ItemRemoved += OnElementRemoved;
             schematic.Schematic = new SimulationSchematic(clone);
+            schematic.Schematic.SelectionChanged += OnProbeSelected;
 
             // Find inputs and outputs to use as the default.
             IEnumerable<Circuit.Component> components = clone.Symbols.Select(i => i.Component);
@@ -156,6 +144,13 @@ namespace LiveSPICE
 
                 oscilloscope.Scope.Signals.Remove(probe.Signal);
             }
+        }
+
+        private void OnProbeSelected(object sender, EventArgs e)
+        {
+            IEnumerable<Circuit.Symbol> selected = SimulationSchematic.ProbesOf(schematic.Schematic.Selected);
+            if (selected.Any())
+                oscilloscope.Scope.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
 
         public void ConnectProbes()
