@@ -9,6 +9,14 @@ using SyMath;
 
 namespace Circuit
 {
+    public class SimulationDiverged : NotFiniteNumberException
+    {
+        private long at;
+        public long At { get { return at; } }
+
+        public SimulationDiverged(string Message, long At) : base(Message) { at = At; }
+    }
+
     /// <summary>
     /// Simulate a circuit.
     /// </summary>
@@ -118,7 +126,7 @@ namespace Circuit
                                 return k;
                         return j.Value.Length;
                     });
-                    throw new NotFiniteNumberException("Simulation diverged at t = " + Quantity.ToString(Time, Units.s) + " + " + diverged);
+                    throw new SimulationDiverged("Simulation diverged at t = " + Quantity.ToString(Time, Units.s) + " + " + diverged, n + diverged);
                 }
             }
 
