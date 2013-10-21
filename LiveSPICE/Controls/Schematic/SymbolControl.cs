@@ -34,6 +34,8 @@ namespace LiveSPICE
         public SymbolControl(Circuit.Symbol S) : base(S)
         {
             Component.LayoutSymbol(layout);
+
+            S.Component.PropertyChanged += (o, e) => InvalidateVisual();
         }
         public SymbolControl(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
 
