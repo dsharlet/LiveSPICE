@@ -147,6 +147,9 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Key), i.Value));
 
+            foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
+                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Key), map[i.Key.Evaluate(t_t0)]));
+            
             // for (int n = 0; n < SampleCount; ++n)
             ParamExpr n = Declare<int>(locals, "n");
             For(body,
@@ -159,19 +162,13 @@ namespace Circuit
                 Dictionary<Expression, LinqExpr> dVi = new Dictionary<Expression, LinqExpr>();
                 foreach (Expression i in Input)
                 {
-                    LinqExpr Va = map[i.Evaluate(t_t0)];
+                    LinqExpr Va = map[i];
                     LinqExpr Vb = LinqExpr.ArrayAccess(inputs[i], n);
 
-                    // double Vi = Va
-                    body.Add(LinqExpr.Assign(Declare<double>(locals, map, i, i.ToString()), Va));
-
-                    // dVi = (Vb - Vi) / Oversample
+                    // dVi = (Vb - Va) / Oversample
                     body.Add(LinqExpr.Assign(
                         Declare<double>(locals, dVi, i, "d" + i.ToString().Replace("[t]", "")),
                         LinqExpr.Multiply(LinqExpr.Subtract(Vb, Va), LinqExpr.Constant(1.0 / (double)Oversample))));
-
-                    // Va = Vb
-                    body.Add(LinqExpr.Assign(Va, Vb));
                 }
 
                 // Prepare output sample accumulators for low pass filtering.
