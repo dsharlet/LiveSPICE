@@ -249,6 +249,7 @@ namespace Circuit
                                     () =>
                                 {
                                     LinqExpr pivot = Redeclare(locals, body, "pivot", j);
+                                    LinqExpr max = Redeclare(locals, body, "max", LinqExpr.Constant(0.0));
                                     
                                     // Find a pivot row for this variable.
                                     LinqExpr i = Redeclare<int>(locals, "i");
@@ -261,8 +262,10 @@ namespace Circuit
                                         // If this row contains the max pivot column value, store it as the max.
                                         LinqExpr maxj = Redeclare(locals, body, "maxj", Abs(LinqExpr.ArrayAccess(JxF, i, j)));
                                         body.Add(LinqExpr.IfThen(
-                                            LinqExpr.GreaterThan(maxj, Abs(LinqExpr.ArrayAccess(JxF, pivot, j))),
-                                            LinqExpr.Assign(pivot, i)));
+                                            LinqExpr.GreaterThan(maxj, max),
+                                            LinqExpr.Block(
+                                                LinqExpr.Assign(pivot, i), 
+                                                LinqExpr.Assign(max, maxj))));
                                     });
                                     
                                     // (Maybe) swap the pivot row with the current row.
