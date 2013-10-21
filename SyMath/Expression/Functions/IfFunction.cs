@@ -22,7 +22,7 @@ namespace SyMath
         public override Expression Call(IEnumerable<Expression> Args)
         {
             Expression[] args = Args.ToArray();
-            if (args[1] == args[2])
+            if (args[1].Equals(args[2]))
                 return args[1];
             if (args[0].IsTrue())
                 return args[1];
