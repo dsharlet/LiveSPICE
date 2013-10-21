@@ -210,16 +210,23 @@ namespace LiveSPICE
             }
             else if (signals.Count > 0)
             {
-                align = signals.Max(i => { lock (i) return i.Count; });
-
                 foreach (Signal i in signals)
-                    lock(i) peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
+                {
+                    lock (i)
+                    {
+                        mean += i.Sum() / i.Count;
+                        peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
+                        align = Math.Max(align, i.Count);
+                    }
+                }
+                mean /= signals.Count();
             }
                                 
             // Compute the target min/max
-            double gamma = 0.05;
-            double window = Math.Max(Math.Pow(2.0, Math.Ceiling(Math.Log(peak * 1.1 + 1e-9, 2.0))), 1e-2);
-            Vmax = Math.Max(TimeFilter(Vmax, window, gamma), Math.Abs(peak + (Vmean - mean)));
+            double bound = peak;
+            double gamma = 0.1;
+            double window = Math.Max(Math.Pow(2.0, Math.Ceiling(Math.Log(bound + 1e-9, 2.0))), 1e-2);
+            Vmax = Math.Max(TimeFilter(Vmax, window, gamma), Math.Abs(bound + (Vmean - mean)));
             Vmean = TimeFilter(Vmean, mean, gamma);
 
             DrawSignalAxis(DC, bounds);
@@ -474,17 +481,7 @@ namespace LiveSPICE
             if (double.IsNaN(Prev) || double.IsNaN(Cur))
                 return Cur;
 
-            double prevs = SignMag(ref Prev);
-            double curs = SignMag(ref Cur);
-
-            // If the signs are different, just lerp.
-            if (prevs != curs)
-                return Prev + (Cur - Prev) * t;
-
-            // Lerp in log domain to cover huge distances quickly.
-            Prev = System.Math.Log(Prev);
-            Cur = System.Math.Log(Cur);
-            return curs * System.Math.Exp(Prev + (Cur - Prev) * t);
+            return Prev + (Cur - Prev) * t;
         }
 
         private static double Hann(int i, int N) { return 0.5 * (1.0 - Math.Cos((2.0 * 3.14159265 * i) / (N - 1))); }
