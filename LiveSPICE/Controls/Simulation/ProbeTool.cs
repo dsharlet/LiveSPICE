@@ -16,30 +16,17 @@ using SyMath;
 
 namespace LiveSPICE
 {
-    public class ProbeTool : SimulationTool
+    public class ProbeTool : SchematicTool
     {
+        public SimulationSchematic Simulation { get { return (SimulationSchematic)Target; } }
+
         protected Circuit.Coord a, b;
-        protected Path path;
 
         public ProbeTool(SimulationSchematic Target) : base(Target) 
         {
-            path = new Path()
-            {
-                Fill = null,
-                Stroke = Brushes.Blue,
-                StrokeThickness = 1,
-                StrokeDashArray = new DoubleCollection() { 2, 1 },
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center,
-                Visibility = Visibility.Hidden,
-                SnapsToDevicePixels = true,
-                Data = new RectangleGeometry()
-            };
         }
 
-        public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Cross; }
-        public override void End() { Target.overlays.Children.Remove(path); base.End(); }
-        public override void Cancel() { path.Visibility = Visibility.Hidden; }
+        public override void Begin() { base.Begin(); Target.Cursor = Cursors.Cross; }
 
         private bool Movable(Circuit.Coord At)
         {
@@ -50,32 +37,13 @@ namespace LiveSPICE
 
         public override void MouseDown(Circuit.Coord At)
         {
-            if (Movable(At))
-            {
-                Target.Tool = new MoveProbeTool(Simulation, At);
-            }
-            else
-            {
-                a = b = At;
-                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a), ToPoint(b));
-                path.Visibility = Visibility.Visible;
-            }
+            a = b = At;
         }
 
         public override void MouseMove(Circuit.Coord At)
         {
             b = At;
-            if (path.Visibility != Visibility.Visible)
-            {
-                a = b;
-                Target.Cursor = Movable(At) ? Cursors.SizeAll : Cursors.Cross;
-            }
-            else
-            {
-                Vector dx = new Vector(-0.5, -0.5);
-                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a) + dx, ToPoint(b) + dx);
-            }
-            Target.Highlight(ProbesOf(a == b ? Target.AtPoint(a) : Target.InRect(a, b)));
+            Target.Highlight(ProbesOf(Target.AtPoint(b)));
         }
 
         protected static Circuit.EdgeType[] Colors =
@@ -91,28 +59,20 @@ namespace LiveSPICE
         public override void MouseUp(Circuit.Coord At)
         {
             b = At;
-            if (path.Visibility == Visibility.Visible)
+            Target.Select();
+            if (a == b)
             {
-                if (a == b)
+                IEnumerable<Circuit.Element> at = Target.AtPoint(a);
+                IEnumerable<Circuit.Symbol> probes = ProbesOf(at);
+                if (!probes.Any() && at.Any(i => i is Circuit.Wire))
                 {
-                    IEnumerable<Circuit.Element> at = Target.AtPoint(a);
-                    IEnumerable<Circuit.Symbol> probes = ProbesOf(at);
-                    if (probes.Any())
-                    {
-                        Target.ToggleSelect(ProbesOf(Target.AtPoint(a)));
-                    }
-                    else if (at.Any(i => i is Circuit.Wire))
-                    {
-                        Probe p = new Probe(Colors.ArgMin(i => Simulation.Probes.Count(j => j.Color == i)));
-                        Target.Schematic.Add(new Circuit.Symbol(p) { Position = a });
-                    }
+                    Probe p = new Probe(Colors.ArgMin(i => Simulation.Probes.Count(j => j.Color == i)));
+                    Target.Schematic.Add(new Circuit.Symbol(p) { Position = a });
                 }
-                else
+                else if (probes.Any())
                 {
-                    Target.Select(ProbesOf(Target.InRect(a, b)));
+                    Target.Select(ProbesOf(Target.AtPoint(a)));
                 }
-                path.Visibility = Visibility.Hidden;
-                Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross;
             }
         }
 
