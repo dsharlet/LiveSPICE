@@ -55,7 +55,14 @@ namespace Circuit
             solutions = Solutions.ToList();
             parameters = Parameters.ToList();
         }
-        
+
+        /// <summary>
+        /// Check if any of the SolutionSets in this solution depend on x.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public bool DependsOn(Expression x) { return solutions.Any(i => i.DependsOn(x)); }
+
         /// <summary>
         /// Solve the circuit for transient simulation.
         /// </summary>
