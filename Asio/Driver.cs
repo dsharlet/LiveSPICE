@@ -28,24 +28,17 @@ namespace Asio
 
                 foreach (string i in names)
                 {
-                    RegistryKey driver = asio.OpenSubKey(i);
-
-                    string name = null;
-                    object instance = null;
+                    Device d = null;
                     try
                     {
-                        name = (string)driver.GetValue("Description");
-                        if (name == null)
-                            name = i;
-                        Type T = Type.GetTypeFromCLSID(new Guid((string)driver.GetValue("CLSID")));
-                        instance = Activator.CreateInstance(T);
+                        using (RegistryKey driver = asio.OpenSubKey(i))
+                        {
+                            d = new Device(new AsioWrapper.Asio(new Guid((string)driver.GetValue("CLSID"))));
+                        }
                     }
                     catch (System.Exception) { }
-
-                    driver.Close();
-
-                    if (instance != null)
-                        yield return new Device(name, new AsioWrapper(instance));
+                    if (d != null)
+                        yield return d;
                 }
                 asio.Close();
                 lm.Close();

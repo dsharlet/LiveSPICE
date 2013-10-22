@@ -10,26 +10,34 @@ namespace AsioTests
     {
         private static void WriteChannel(Audio.Channel C)
         {
-            System.Console.WriteLine(C.Name);
+            System.Console.WriteLine(C.ToString());
         }
 
+        [STAThread]
         static void Main(string[] args)
         {
             Asio.Driver driver = new Asio.Driver();
             
             foreach (Audio.Device i in driver.Devices)
             {
-                System.Console.WriteLine("----");
-                System.Console.WriteLine(i.Name);
+                try
+                {
+                    System.Console.WriteLine("----");
+                    System.Console.WriteLine(i.Name);
 
-                System.Console.Write("{0} input channels:", i.InputChannels.Count());
-                foreach (Audio.Channel j in i.InputChannels)
-                    WriteChannel(j);
+                    System.Console.WriteLine("{0} input channels:", i.InputChannels.Count());
+                    foreach (Audio.Channel j in i.InputChannels)
+                        WriteChannel(j);
 
-                System.Console.WriteLine();
-                System.Console.WriteLine("{0} output channels:", i.OutputChannels.Count());
-                foreach (Audio.Channel j in i.InputChannels)
-                    WriteChannel(j);
+                    System.Console.WriteLine();
+                    System.Console.WriteLine("{0} output channels:", i.OutputChannels.Count());
+                    foreach (Audio.Channel j in i.OutputChannels)
+                        WriteChannel(j);
+                }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine(ex.Message);
+                }
             }
         }
     }
