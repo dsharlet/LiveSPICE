@@ -215,9 +215,9 @@ namespace Circuit
                             LinearCombination[] eqs = S.Equations.ToArray();
                             Expression[] deltas = S.Updates.ToArray();
 
-                            // y[t] = y[t0] in the map for newton's method updates.
-                            foreach (Expression i in S.Unknowns)
-                                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i), map[i.Evaluate(t_t0)]));
+                            // Start with the initial guesses from the solution.
+                            foreach (Arrow i in S.Guesses)
+                                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
 
                             // int it
                             ParamExpr it = Redeclare<int>(locals, "it");

@@ -155,7 +155,7 @@ namespace Circuit
                 // Solutions for each linear update equation.
                 List<Arrow> solved = SolveAndRemove(J, ly);
 
-                solutions.Add(new NewtonIteration(solved, J, dy));
+                solutions.Add(new NewtonIteration(solved, J, dy, y.Select(i => Arrow.New(i, i.Evaluate(t, t0)))));
                 LogExpressions(Log, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
                 LogExpressions(Log, "Linear Newton's method updates:", solved);
             }

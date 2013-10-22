@@ -71,21 +71,30 @@ namespace Circuit
         /// Enumerate the Newton update deltas in this solution set.
         /// </summary>
         public IEnumerable<Expression> Deltas { get { return solved != null ? solved.Select(i => i.Left).Concat(updates) : updates; } }
-        
+
+        private List<Arrow> guesses;
+        /// <summary>
+        /// Initial guesses for the first iteration.
+        /// </summary>
+        public IEnumerable<Arrow> Guesses { get { return guesses; } }
+
         public override IEnumerable<Expression> Unknowns { get { return Deltas.Select(i => DeltaOf(i)); } }
 
-        public NewtonIteration(IEnumerable<Arrow> Solved, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Updates)
+        public NewtonIteration(IEnumerable<Arrow> Solved, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Updates, IEnumerable<Arrow> Guesses)
         {
             solved = Solved.ToList();
             equations = Equations.ToList();
             updates = Updates.ToList();
+            guesses = Guesses.ToList();
         }
 
         public override bool DependsOn(Expression x) 
         {
             if (solved != null && solved.Any(i => i.Right.DependsOn(x)))
                 return true;
-            return equations.Any(i => i.ToExpression().DependsOn(x)); 
+            if (guesses != null && guesses.Any(i => i.Right.DependsOn(x)))
+                return true;
+            return equations.Any(i => i.DependsOn(x)); 
         }
 
         private static Function d = ExprFunction.New("d", Variable.New("x"));

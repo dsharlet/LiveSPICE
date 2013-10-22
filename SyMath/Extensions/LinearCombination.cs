@@ -95,7 +95,10 @@ namespace SyMath
         /// Create an Expression equal to this linear combination.
         /// </summary>
         public Expression ToExpression() { return Add.New(terms.Select(i => i.Ab).Except(Constant.Zero)); }
-        
+
+        public bool DependsOn(IEnumerable<Expression> x) { return ToExpression().DependsOn(x); }
+        public bool DependsOn(params Expression[] x) { return DependsOn(x.AsEnumerable()); }
+
         /// <summary>
         /// The pivot is the first term in this expression.
         /// </summary>
