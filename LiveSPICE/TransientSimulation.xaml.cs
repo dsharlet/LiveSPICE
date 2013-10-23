@@ -70,14 +70,7 @@ namespace LiveSPICE
             get { return outputGain; }
             set { outputGain.Set(value); NotifyChanged("OutputGain"); }
         }
-
-        protected bool autoRestart = true;
-        public bool AutoRestart
-        {
-            get { return autoRestart; }
-            set { autoRestart = value; NotifyChanged("AutoRestart"); }
-        }
-
+        
         protected Circuit.Circuit circuit = null;
         protected Circuit.Simulation simulation = null;
         protected Circuit.TransientSolution solution = null;
@@ -241,9 +234,9 @@ namespace LiveSPICE
             }
             catch (Circuit.SimulationDiverged Ex)
             {
-                // If the simulation diverged, reset it and hope it doesn't happen again.
+                // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 log.WriteLine(Circuit.MessageType.Error, Ex.Message);
-                if (autoRestart)
+                if ((double)Ex.At > (double)sampleRate.Value)
                     simulation.Reset();
                 else
                     simulation = null;

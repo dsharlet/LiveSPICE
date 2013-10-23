@@ -52,8 +52,6 @@
 
                 <TextBlock Text="Output: " HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <TextBox Text="{Binding ElementName=_this, Path=Output}" />
-
-                <CheckBox Content="Auto Restart" IsChecked="{Binding ElementName=_this, Path=AutoRestart}" />
                 
                 <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
             </ToolBar>
