@@ -79,6 +79,7 @@ namespace AsioWrapper
 
 	public ref class Channel
 	{
+		long index;
 		System::String^ name;
 		SampleType type;
 		bool active;
@@ -87,12 +88,14 @@ namespace AsioWrapper
 	public:
 		Channel(ASIOChannelInfo Info)
 		{
+			index = Info.channel;
 			name = gcnew System::String(Info.name);
 			type = (SampleType)Info.type;
 			active = Info.isActive != ASIOFalse;
 			group = Info.channelGroup;
 		}
 		
+		property long Index { long get() { return index; } }
 		property System::String^ Name { System::String^ get() { return name; } }
 		property SampleType Type { SampleType get() { return type; } }
 		property bool IsActive { bool get() { return active; } }
@@ -109,9 +112,29 @@ namespace AsioWrapper
 		Buffers(int Channel) : channel(Channel) { }
 
 		property long Channel { long get() { return channel; } }
-		property void * Buffer[int] { void * get(int i) { return buffers[0]; } }
+		property System::IntPtr Buffer[int] { System::IntPtr get(int i) { return System::IntPtr(buffers[0]); } }
 
 		void SetBuffers(array<void *>^ Buffers) { buffers = Buffers; }
+	};
+
+	public ref class BufferSizeInfo
+	{
+	protected:
+		long min, max, preferred, granularity;
+
+	public:
+		BufferSizeInfo(long Min, long Max, long Preferred, long Granularity)
+		{
+			min = Min;
+			max = Max;
+			preferred = Preferred;
+			granularity = Granularity;
+		}
+
+		property long Min { long get() { return min; } }
+		property long Max { long get() { return max; } }
+		property long Preferred { long get() { return preferred; } }
+		property long Granularity { long get() { return granularity; } }
 	};
 
 	// Handles 
@@ -259,11 +282,15 @@ namespace AsioWrapper
 			{
 				at->isInput = ASIOTrue;
 				at->channelNum = Inputs[i]->Channel;
+				at->buffers[0] = NULL;
+				at->buffers[1] = NULL;
 			}
 			for (int i = 0; i < Outputs->Length; ++i, ++at)
 			{
 				at->isInput = ASIOFalse;
 				at->channelNum = Outputs[i]->Channel;
+				at->buffers[0] = NULL;
+				at->buffers[1] = NULL;
 			}
 
 			Check(m_asio->createBuffers(infos, Inputs->Length + Outputs->Length, Size, &RouterCallbacks));
@@ -285,7 +312,16 @@ namespace AsioWrapper
 		
 		bool OutputReady() { return m_asio->outputReady() == ASE_OK; }
 
-		ASIOError getBufferSize(long *minSize, long *maxSize, long *preferredSize, long *granularity) { return m_asio->getBufferSize(minSize, maxSize, preferredSize, granularity); }
+		property BufferSizeInfo^ BufferSize 
+		{ 
+			BufferSizeInfo^ get()
+			{
+				long min, max, preferred, granularity;
+				m_asio->getBufferSize(&min, &max, &preferred, &granularity);
+				return gcnew BufferSizeInfo(min, max, preferred, granularity);
+			}
+		}
+		
 		ASIOError getClockSources(ASIOClockSource *clocks, long *numSources) { return m_asio->getClockSources(clocks, numSources); }
 		ASIOError setClockSource(long reference) { return m_asio->setClockSource(reference); }
 		ASIOError getSamplePosition(ASIOSamples *sPos, ASIOTimeStamp *tStamp) { return m_asio->getSamplePosition(sPos, tStamp); }
@@ -293,7 +329,10 @@ namespace AsioWrapper
 	};
 }
 
-void BufferSwitchRouter(long Index, ASIOBool Direct) { AsioWrapper::Asio::OnBufferSwitch(Index, Direct != ASIOFalse); }
+void BufferSwitchRouter(long Index, ASIOBool Direct) 
+{ 
+	AsioWrapper::Asio::OnBufferSwitch(Index, Direct != ASIOFalse); 
+}
 void SampleRateChangeRouter(double SampleRate) { AsioWrapper::Asio::OnSampleRateChange(SampleRate); }
 //long MessageRouter(long selector, long value, void* message, double* opt) { }
 //ASIOTime* BufferSwitchTimeInfoRouter(ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess) { }

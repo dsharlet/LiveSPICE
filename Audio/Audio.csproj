@@ -42,6 +42,7 @@
     <Compile Include="Device.cs" />
     <Compile Include="Driver.cs" />
     <Compile Include="Stream.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="Wave\Winmm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Wave\WaveBuffer.cs" />

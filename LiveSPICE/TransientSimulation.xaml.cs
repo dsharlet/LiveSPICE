@@ -116,8 +116,6 @@ namespace LiveSPICE
                 ProcessSamples, 
                 Audio.InputChannel, 
                 Audio.OutputChannel, 
-                (double)Audio.SampleRate, 
-                Audio.BitsPerSample,
                 (double)Audio.Latency);
         }
 
@@ -202,13 +200,13 @@ namespace LiveSPICE
             }
         }
         
-        private void ProcessSamples(double[] Samples)
+        private void ProcessSamples(double[] In, double[] Out)
         {
             // If there is no simulation, just zero the samples and return.
             if (simulation == null)
             {
-                for (int i = 0; i < Samples.Length; ++i)
-                    Samples[i] = 0.0;
+                for (int i = 0; i < Out.Length; ++i)
+                    Out[i] = 0.0;
                 return;
             }
 
@@ -217,29 +215,29 @@ namespace LiveSPICE
                 // Apply input gain.
                 double inputGain = (double)InputGain;
                 if (System.Math.Abs(inputGain - 1.0) > 1e-2)
-                    for (int i = 0; i < Samples.Length; ++i)
-                        Samples[i] *= inputGain;
+                    for (int i = 0; i < In.Length; ++i)
+                        In[i] *= inputGain;
 
                 lock (probes)
                 {
                     // Build the signal list.
-                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(Samples.Length));
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(Out.Length));
 
                     if (Output.Value != null)
-                        signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(circuit.Evaluate(Output.Value), Samples));
+                        signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(circuit.Evaluate(Output.Value), Out));
 
                     // Process the samples!
-                    simulation.Run(Input, Samples, signals, arguments, Iterations);
+                    simulation.Run(Input, In, signals, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
-                    oscilloscope.ProcessSignals(Samples.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)));
+                    oscilloscope.ProcessSignals(Out.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)));
                 }
 
                 // Apply output gain.
                 double outputGain = (double)OutputGain;
                 if (System.Math.Abs(outputGain - 1.0) > 1e-2)
-                    for (int i = 0; i < Samples.Length; ++i)
-                        Samples[i] *= outputGain;
+                    for (int i = 0; i < Out.Length; ++i)
+                        Out[i] *= outputGain;
             }
             catch (Circuit.SimulationDiverged Ex)
             {

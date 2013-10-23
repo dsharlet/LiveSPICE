@@ -21,9 +21,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audio", "Audio\Audio.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asio", "Asio\Asio.csproj", "{CF21310E-204B-4E9D-A6DE-AD511B3F3013}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsioTests", "AsioTests\AsioTests.csproj", "{7FCC7811-2393-4750-9C29-0EDC930C8F2C}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsioWrapper", "AsioWrapper\AsioWrapper.vcxproj", "{670EF0BE-D0D8-424A-94F3-B1E485E48613}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioTests", "Tests\AudioTests\AudioTests.csproj", "{7FCC7811-2393-4750-9C29-0EDC930C8F2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -151,18 +151,6 @@ Global
 		{CF21310E-204B-4E9D-A6DE-AD511B3F3013}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{CF21310E-204B-4E9D-A6DE-AD511B3F3013}.Release|Win32.ActiveCfg = Release|Any CPU
 		{CF21310E-204B-4E9D-A6DE-AD511B3F3013}.Release|x86.ActiveCfg = Release|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Win32.ActiveCfg = Release|Any CPU
-		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|x86.ActiveCfg = Release|Any CPU
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Debug|Mixed Platforms.Build.0 = Debug|Win32
@@ -177,6 +165,18 @@ Global
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Release|Win32.Build.0 = Release|Win32
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Release|x86.ActiveCfg = Release|Win32
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Release|x86.Build.0 = Release|Win32
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|Win32.ActiveCfg = Release|Any CPU
+		{7FCC7811-2393-4750-9C29-0EDC930C8F2C}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

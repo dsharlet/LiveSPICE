@@ -16,6 +16,11 @@ namespace Audio
         public override string Name { get { return name; } }
 
         public WaveChannel(string Name, int Device) { name = Name; device = Device; }
+
+        public override string ToString()
+        {
+            return name;
+        }
     }
 
     class WaveDevice : Device
@@ -60,13 +65,13 @@ namespace Audio
 
         public WaveDevice() : base("Windows Audio") { }
 
-        public override Stream Open(Stream.SampleHandler Callback, Channel InputChannel, Channel OutputChannel, double SampleRate, int BitsPerSample, double Latency)
+        public override Stream Open(Stream.SampleHandler Callback, Channel Input, Channel Output, double Latency)
         {
             return new WaveStream(
                 Callback,
-                ((WaveChannel)InputChannel).Device,
-                ((WaveChannel)OutputChannel).Device,
-                (int)SampleRate, 1, BitsPerSample, Latency);
+                ((WaveChannel)Input).Device,
+                ((WaveChannel)Output).Device,
+                Latency);
         }
     }
 }

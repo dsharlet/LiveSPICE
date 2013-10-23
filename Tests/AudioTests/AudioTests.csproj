@@ -48,11 +48,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Asio\Asio.csproj">
+    <ProjectReference Include="..\..\Asio\Asio.csproj">
       <Project>{cf21310e-204b-4e9d-a6de-ad511b3f3013}</Project>
       <Name>Asio</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Audio\Audio.csproj">
+    <ProjectReference Include="..\..\Audio\Audio.csproj">
       <Project>{f53399e8-b038-4111-b89d-f5c4ab0ccb14}</Project>
       <Name>Audio</Name>
     </ProjectReference>
