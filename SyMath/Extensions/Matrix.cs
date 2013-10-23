@@ -51,14 +51,6 @@ namespace SyMath
         public int M { get { return m.GetLength(0); } }
         public int N { get { return m.GetLength(1); } }
 
-        public Matrix Evaluate(IEnumerable<Expression> x, IEnumerable<Expression> x0)
-        {
-            Matrix E = new Matrix(M, N);
-            for (int i = 0; i < M; ++i)
-                for (int j = 0; j < N; ++j)
-                    E[i, j] = this[i, j].Evaluate(x, x0);
-            return E;
-        }
         public Matrix Evaluate(IEnumerable<Arrow> x)
         {
             Matrix E = new Matrix(M, N);

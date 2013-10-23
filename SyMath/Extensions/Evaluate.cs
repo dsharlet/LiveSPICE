@@ -279,12 +279,13 @@ namespace SyMath
         /// <param name="x0">Value to evaluate for.</param>
         /// <returns>The evaluated expression.</returns>
         public static Expression Evaluate(this Expression f, Expression x, Expression x0) { return f.Evaluate(new Dictionary<Expression, Expression> { { x, x0 } }); }
-        public static Expression Evaluate(this Expression f, IEnumerable<Expression> x, IEnumerable<Expression> x0) { return f.Evaluate(x.Zip(x0, (i, j) => Arrow.New(i, j))); }
 
-        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, IDictionary<Expression, Expression> x0) { return f.Select(i => i.Evaluate(x0)); }
-        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, IEnumerable<Arrow> x) { return f.Select(i => i.Evaluate(x)); }
-        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, params Arrow[] x) { return f.Select(i => i.Evaluate(x)); }
-        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, Expression x, Expression x0) { return f.Select(i => i.Evaluate(x, x0)); }
-        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, IEnumerable<Expression> x, IEnumerable<Expression> x0) { return f.Select(i => i.Evaluate(x, x0)); }
+        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, IDictionary<Expression, Expression> x0) 
+        {
+            EvaluateVisitor V = new EvaluateVisitor();
+            return f.Select(i => V.Visit(i.Substitute(x0)));
+        }
+        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, IEnumerable<Arrow> x) { return f.Evaluate(x.ToDictionary(i => i.Left, i => i.Right)); }
+        public static IEnumerable<Expression> Evaluate(this IEnumerable<Expression> f, params Arrow[] x) { return f.Evaluate(x.AsEnumerable()); }
     }
 }
