@@ -62,7 +62,6 @@ namespace LiveSPICE
             {
                 if (highlighted == value) return;
                 highlighted = value;
-                if (highlighted) UpdateToolTip();
                 InvalidateVisual();
             }
         }
@@ -83,9 +82,7 @@ namespace LiveSPICE
             foreach (Circuit.Terminal i in E.Terminals)
                 i.ConnectionChanged += (x, y) => InvalidateVisual();
         }
-
-        protected virtual void UpdateToolTip() { }
-        
+                
         public static ElementControl New(Circuit.Element E)
         {
             if (E is Circuit.Wire)

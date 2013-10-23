@@ -58,12 +58,7 @@ namespace LiveSPICE
 
             // Create controls for all the elements already in the schematic.
             foreach (Circuit.Element i in schematic.Elements)
-            {
-                ElementControl control = ElementControl.New(i);
-                components.Children.Add(control);
-                control.Element.LayoutChanged += ElementLayoutChanged;
-                ElementLayoutChanged(control.Element, null);
-            }
+                ElementAdded(null, new Circuit.ElementEventArgs(i));
         }
         
         // Schematic tools.
@@ -118,7 +113,12 @@ namespace LiveSPICE
         private void ElementAdded(object sender, Circuit.ElementEventArgs e)
         {
             ElementControl control = ElementControl.New(e.Element);
-            components.Children.Add(control);
+            if (control is WireControl)
+                wires.Children.Add(control);
+            else if (control is SymbolControl)
+                symbols.Children.Add(control);
+            else
+                throw new InvalidOperationException("Unknown element type");
             control.Element.LayoutChanged += ElementLayoutChanged;
             ElementLayoutChanged(control.Element, null);
         }
@@ -126,7 +126,8 @@ namespace LiveSPICE
         {
             ElementControl control = (ElementControl)e.Element.Tag;
             control.Element.LayoutChanged -= ElementLayoutChanged;
-            components.Children.Remove(control);
+            wires.Children.Remove(control);
+            symbols.Children.Remove(control);
         }
         private void ElementLayoutChanged(object sender, EventArgs e)
         {

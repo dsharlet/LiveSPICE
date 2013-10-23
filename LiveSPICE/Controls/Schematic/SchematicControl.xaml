@@ -62,10 +62,13 @@
                     </DrawingBrush.Drawing>
                 </DrawingBrush>
             </Grid.Background>
-        
-            <!-- Canvas for the schematic components -->
-            <Canvas x:Name="components" />
-        
+
+            <!-- Canvas for the schematic wires -->
+            <Canvas x:Name="wires" />
+            
+            <!-- Canvas for the schematic symbols -->
+            <Canvas x:Name="symbols" />
+
             <!-- Canvas for temporary overlay objects -->
             <Canvas x:Name="overlays" />
         </Grid>

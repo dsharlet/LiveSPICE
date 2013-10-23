@@ -36,6 +36,8 @@ namespace LiveSPICE
             Component.LayoutSymbol(layout);
 
             S.Component.PropertyChanged += (o, e) => InvalidateVisual();
+
+            MouseMove += OnMouseMove;
         }
         public SymbolControl(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
 
@@ -43,10 +45,25 @@ namespace LiveSPICE
         public Circuit.Component Component { get { return Symbol.Component; } }
         public Vector Size { get { return new Vector(Symbol.Size.x, Symbol.Size.y); } }
 
-        protected override void UpdateToolTip()
+        protected void OnMouseMove(object sender, MouseEventArgs e)
         {
-            Circuit.Component component = Symbol.Component;
-            ToolTip = component.ToString();
+            Point x = e.GetPosition(this);
+
+            Matrix transform = Transform;
+
+            foreach (Circuit.Terminal i in Symbol.Terminals)
+            {
+                Circuit.Coord tx = layout.MapTerminal(i);
+                Point tp = new Point(tx.x, tx.y);
+                tp = transform.Transform(tp);
+                if ((tp - x).Length < 5.0)
+                {
+                    ToolTip = "Terminal '" + i.ToString() + "'";
+                    return;
+                }
+            }
+
+            ToolTip = Symbol.Component.ToString();
 
             //StringBuilder sb = new StringBuilder();
 
@@ -76,26 +93,34 @@ namespace LiveSPICE
                 Math.Min(Math.Abs(b2.X - b1.X), constraint.Width),
                 Math.Min(Math.Abs(b2.Y - b1.Y), constraint.Height));
         }
-        
+
+        protected Matrix Transform
+        {
+            get
+            {
+                layout = new Circuit.SymbolLayout();
+                Symbol.Component.LayoutSymbol(layout);
+
+                Circuit.Coord center = (layout.LowerBound + layout.UpperBound) / 2;
+                double scale = Math.Min(Math.Min(ActualWidth / Symbol.Width, ActualHeight / Symbol.Height), 1.0);
+
+                Matrix transform = new Matrix();
+                transform.Translate(-center.x, -center.y);
+                transform.Scale(scale, Symbol.Flip ? scale : -scale);
+                transform.Rotate(Symbol.Rotation * -90);
+                transform.Translate(ActualWidth / 2, ActualHeight / 2);
+                return transform;
+            }
+        }
+
         protected DrawingContext dc;
         protected override void OnRender(DrawingContext drawingContext)
         {
-            Circuit.Symbol sym = Symbol;
-            layout = new Circuit.SymbolLayout();
-            sym.Component.LayoutSymbol(layout);
+            Matrix transform = Transform;
 
             dc = drawingContext;
             dc.PushGuidelineSet(SymbolControl.Guidelines);
-
-            Circuit.Coord center = (layout.LowerBound + layout.UpperBound) / 2;
-            double scale = Math.Min(Math.Min(ActualWidth / sym.Width, ActualHeight / sym.Height), 1.0);
-
-            Matrix transform = new Matrix();
-            transform.Translate(-center.x, -center.y);
-            transform.Scale(scale, sym.Flip ? scale : -scale);
-            transform.Rotate(sym.Rotation * -90);
-            transform.Translate(ActualWidth / 2, ActualHeight / 2);
-
+            
             Rect bounds = new Rect(T(transform, layout.LowerBound), T(transform, layout.UpperBound));
             if (Selected)
                 dc.DrawRectangle(null, SelectedPen, bounds);

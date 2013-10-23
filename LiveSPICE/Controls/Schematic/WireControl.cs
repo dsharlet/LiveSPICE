@@ -26,19 +26,18 @@ namespace LiveSPICE
         }
 
         protected Circuit.Wire wire;
-        public WireControl(Circuit.Wire W) : base(W) { wire = W; }
-
-        protected override void UpdateToolTip()
-        {
-            ToolTip = wire.Node != null ? wire.Node.ToString() : null;
+        public WireControl(Circuit.Wire W) : base(W) 
+        { 
+            wire = W;
+            MouseMove += (s, e) => ToolTip = wire.Node != null ? wire.Node.ToString() : null;
         }
-
+        
         protected override void OnRender(DrawingContext dc)
         {
             dc.PushGuidelineSet(Guidelines);
 
             // This isn't pointless, it makes WPF mouse hit tests succeed near the wire instead of exactly on it.
-            dc.DrawRectangle(Brushes.Transparent, null, new Rect(-5, -5, ActualWidth + 10, ActualHeight + 10));
+            dc.DrawRectangle(Brushes.Transparent, null, new Rect(-2, -2, ActualWidth + 4, ActualHeight + 4));
 
             if (Selected)
                 dc.DrawLine(SelectedWirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
