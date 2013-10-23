@@ -10,9 +10,14 @@ namespace SyMath
     /// <summary>
     /// Exception for bad function/variable lookups.
     /// </summary>
-    class UnresolvedName : Exception
+    public class UnresolvedName : Exception
     {
         public UnresolvedName(string Message) : base(Message) { }
+    }
+
+    public class UnresolvedCall : UnresolvedName
+    {
+        public UnresolvedCall(string Message) : base(Message) { }
     }
 
     /// <summary>

@@ -71,7 +71,7 @@ namespace SyMath
             if (method != null)
                 return LinqExpression.Call(method, Args);
             else
-                throw new InvalidOperationException("Could not find method for function '" + Name + "'");
+                throw new UnresolvedCall("Could not find method for function '" + Name + "'");
         }
 
         /// <summary>
