@@ -8,7 +8,7 @@ using SyMath;
 namespace Circuit
 {
     public class SchematicPersistent : Attribute { };
-
+    
     /// <summary>
     /// Components are capable of performing MNA to produce a set of equations and unknowns describing their behavior.
     /// </summary>
@@ -63,7 +63,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Mna"></param>
         /// <param name="Unknowns"></param>
-        public virtual void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns) { }
+        public virtual void Analyze(ModifiedNodalAnalysis Mna) { }
         
         /// <summary>
         /// Define the schematic layout of this component.

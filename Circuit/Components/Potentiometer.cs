@@ -56,7 +56,7 @@ namespace Circuit
             Wiper.ConnectTo(W);
         }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             Expression P = Wipe; // RangeParameter.New(Name, wipe, false);
 

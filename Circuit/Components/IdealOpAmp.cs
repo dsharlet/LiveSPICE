@@ -38,18 +38,15 @@ namespace Circuit
             o = new Terminal(this, "Out");
         }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // Infinite input impedance.
-            Positive.i = Constant.Zero;
-            Negative.i = Constant.Zero;
-
+            Positive.i = Negative.i = Constant.Zero;
             // Unknown output current.
-            Out.i = DependentVariable("i" + Name, t);
-            Unknowns.Add(Out.i);
+            Out.i = Mna.AddNewUnknown("i" + Name);
 
             // The voltage between the positive and negative terminals is 0.
-            Mna.Add(Equal.New(Positive.V, Negative.V));
+            Mna.AddEquation(Positive.V, Negative.V);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

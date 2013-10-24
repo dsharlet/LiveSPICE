@@ -56,35 +56,42 @@ namespace Circuit
             return x;
         }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             foreach (Component c in Components)
             {
-                c.Analyze(Mna, Unknowns);
+                c.Analyze(Mna);
                 // Make a fake node for the unconnected terminals.
                 foreach (Terminal t in c.Terminals.Where(i => i.ConnectedTo == null))
                 {
-                    Unknowns.Add(t.V);
+                    Mna.AddUnknowns(t.V);
                     Expression i = t.i;
                     if (i != null && !i.IsZero())
-                        Mna.Add(Equal.New(i, Constant.Zero));
+                        Mna.AddEquation(i, Constant.Zero);
                 }
             }
             foreach (Node n in Nodes)
             {
-                Unknowns.Add(n.V);
+                Mna.AddUnknowns(n.V);
                 Expression i = n.Kcl();
                 if (i != null && !i.IsZero())
-                    Mna.Add(Equal.New(i, Constant.Zero));
+                    Mna.AddEquation(i, Constant.Zero);
             }
 
             // Add equations for any depenent expressions.
-            foreach (MatchContext v in Mna.SelectMany(i => i.FindMatches(MatchV)).Distinct().ToArray())
+            foreach (MatchContext v in Mna.Equations.SelectMany(i => i.FindMatches(MatchV)).Distinct().ToArray())
             {
                 string name = v[MatchName].ToString();
-                Mna.Add(Equal.New(v.Matched, Evaluate(v.Matched)));
-                Unknowns.Add(v.Matched);
+                Mna.AddEquation(v.Matched, Evaluate(v.Matched));
+                Mna.AddUnknowns(v.Matched);
             }
+        }
+
+        public ModifiedNodalAnalysis Analyze()
+        {
+            ModifiedNodalAnalysis mna = new ModifiedNodalAnalysis();
+            Analyze(mna);
+            return mna;
         }
         
         /// <summary>

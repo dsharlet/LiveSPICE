@@ -29,23 +29,20 @@ namespace Circuit
         [SchematicPersistent]
         public decimal Gain { get { return gain; } set { gain = value; NotifyChanged("Gain"); } }
         
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // The input terminals are connected by a resistor Rin.
             Expression Vin = Positive.V - Negative.V;
-            Expression iin = DependentVariable("in" + Name, t);
+            Expression iin = Mna.AddNewUnknown("in" + Name);
 
-            Mna.Add(Equal.New(Vin / (Expression)Rin, iin));
+            Mna.AddEquation(Vin / (Expression)Rin, iin);
             Positive.i = iin;
             Negative.i = -iin;
-            Unknowns.Add(iin);
 
             // Vo = (G*Vin - Out.V) / Rout
-            Expression iout = DependentVariable("out" + Name, t);
-            Unknowns.Add(iout);
-            Out.i = iout;
+            Out.i = Mna.AddNewUnknown("out" + Name);
 
-            Mna.Add(Equal.New(Gain * Vin - Out.V, iout * (Expression)Rout));
+            Mna.AddEquation(Gain * Vin - Out.V, Out.i * (Expression)Rout);
         }
     }
 }

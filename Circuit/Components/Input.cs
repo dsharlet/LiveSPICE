@@ -16,14 +16,13 @@ namespace Circuit
             Name = "V1";
         }
         
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            Expression i = DependentVariable("i" + Name, t);
+            Expression i = Mna.AddNewUnknown("i" + Name);
             Anode.i = i;
             Cathode.i = -i;
-            Unknowns.Add(i);
 
-            Mna.Add(Equal.New(Anode.V - Cathode.V, DependentVariable(Name, t)));
+            Mna.AddEquation(DependentVariable(Name, t), Anode.V - Cathode.V);
         }
         
         protected override void DrawSymbol(SymbolLayout Sym)

@@ -16,12 +16,11 @@ namespace Circuit
     {
         public Ground() { Name = "GND1"; }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // Nodes connected to ground have V = 0.
-            Equal V_0 = Equal.New(Terminal.V, Constant.Zero);
-            if (!Mna.Contains(V_0))
-                Mna.Add(V_0);
+            Mna.AddEquation(Terminal.V, Constant.Zero);
+            // Ground doesn't care about current.
             Terminal.i = null;
         }
 

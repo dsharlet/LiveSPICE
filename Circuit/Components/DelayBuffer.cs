@@ -14,17 +14,16 @@ namespace Circuit
     [DisplayName("Delay Buffer")]
     public class DelayBuffer : TwoTerminal
     {
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // Infinite input impedance.
             Anode.i = Constant.Zero;
 
             // Unknown output current.
-            Cathode.i = DependentVariable("i" + Name, t);
-            Unknowns.Add(Cathode.i);
+            Cathode.i = Mna.AddNewUnknown("i" + Name);
 
             // -V[t] = +V[t0], i.e. the voltage at the previous timestep.
-            Mna.Add(Equal.New(Anode.V.Evaluate(t, t0), Cathode.V));
+            Mna.AddEquation(Anode.V.Evaluate(t, t0), Cathode.V);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

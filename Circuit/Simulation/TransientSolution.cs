@@ -82,9 +82,9 @@ namespace Circuit
             Log.WriteLine(MessageType.Info, "[{0} ms] Performing MNA on circuit...", time.ElapsedMilliseconds);
 
             // Analyze the circuit to get the MNA system and unknowns.
-            List<Expression> y = new List<Expression>();
-            List<Equal> mna = new List<Equal>();
-            Circuit.Analyze(mna, y);
+            ModifiedNodalAnalysis Mna = Circuit.Analyze();
+            List<Equal> mna = Mna.Equations.ToList();
+            List<Expression> y = Mna.Unknowns.ToList();
             LogExpressions(Log, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
             
             // Find and replace the parameters of the simulation.

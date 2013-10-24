@@ -58,16 +58,12 @@ namespace Circuit
 
         public Diode() { Name = "D1"; }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            // Make a new unknown for Va - Vc to reduce the number of non-linear variables.
-
             // Vac = Va - Vc
-            Expression Vac = DependentVariable("V" + Name, t);
-            Mna.Add(Equal.New(Vac, V));
-            Unknowns.Add(Vac);
+            Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
 
-            Expression i = model.Evaluate(Vac);
+            Expression i = Mna.AddNewUnknownEqualTo("i" + Name, model.Evaluate(Vac));
             Anode.i = i;
             Cathode.i = -i;
         }

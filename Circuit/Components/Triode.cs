@@ -41,16 +41,15 @@ namespace Circuit
         }
 
         public KorenTriode(KorenTriode T) : this(T.Mu, T.Ex, T.Kg, T.Kp, T.Kvb, T.Rgk, T.Vg) { }
-
+        
         public override void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik)
         {
-            Expression ex = Kp * (1 / Mu + Vgk / Call.Sqrt(Kvb + Vpk * Vpk));
+            Expression ex = Kp * (1.0 / Mu + Vgk * (Kvb + Vpk * Vpk) ^ (-0.5));
 
             // ln(1+e^x) = x for large x, and large x causes numerical issues.
             Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + Call.Exp(ex))) * Vpk / Kp;
 
             Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, Constant.Zero);
-            // TODO: Use Max instead?
             Ig = Call.If(Vgk > Vg, (Vgk - Vg) / Rgk, Constant.Zero);
             Ik = -(Ip + Ig);
         }
@@ -91,6 +90,7 @@ namespace Circuit
         }
 
         public static ChildLangmuirTriode _12AX7 { get { return new ChildLangmuirTriode(83.5, 1.73e-6); } }
+        //public static ChildLangmuirTriode _12AX7 { get { return new ChildLangmuirTriode(100, 1.73e-3); } }
     }
 
 
@@ -118,7 +118,8 @@ namespace Circuit
         [Browsable(false)]
         public Terminal K { get { return k; } }
 
-        protected TriodeModel model = new KorenTriode(KorenTriode._12AX7);
+        protected TriodeModel model = new ChildLangmuirTriode(ChildLangmuirTriode._12AX7);
+        //protected TriodeModel model = new KorenTriode(KorenTriode._12AX7);
         public TriodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
         
         public Triode()
@@ -129,20 +130,15 @@ namespace Circuit
             Name = "V1";
         }
 
-
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            Expression Vpk = DependentVariable(Name + "pk", t);
-            Expression Vgk = DependentVariable(Name + "gk", t);
-            Mna.Add(Equal.New(Vpk, p.V - k.V));
-            Mna.Add(Equal.New(Vgk, g.V - k.V));
-            Unknowns.Add(Vpk);
-            Unknowns.Add(Vgk);
+            Expression Vpk = Mna.AddNewUnknownEqualTo(Name + "pk", p.V - k.V);
+            Expression Vgk = Mna.AddNewUnknownEqualTo(Name + "gk", g.V - k.V);
 
-            Expression Ip, Ig, Ik;
-            model.Evaluate(Vpk, Vgk, out Ip, out Ig, out Ik);
-            p.i = Ip;
-            g.i = Ig;
+            Expression ip, ig, ik;
+            model.Evaluate(Vpk, Vgk, out ip, out ig, out ik);
+            p.i = Mna.AddNewUnknownEqualTo("i" + Name + "p", ip);
+            g.i = Mna.AddNewUnknownEqualTo("i" + Name + "g", ig);
             k.i = -(p.i + g.i);
         }
 

@@ -17,16 +17,24 @@ namespace Circuit
     {
         public Conductor() { Name = "_1"; }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns) 
+        public override void Analyze(ModifiedNodalAnalysis Mna) 
         {
-            Expression i = DependentVariable("i" + Name, t);
+            Expression i = Mna.AddNewUnknown("i" + Name);
             Anode.i = i;
             Cathode.i = -i;
-            Unknowns.Add(i);
 
-            Mna.Add(Equal.New(Anode.V, Cathode.V));
+            Mna.AddEquation(Anode.V, Cathode.V);
         }
 
+        public static void Analyze(ModifiedNodalAnalysis Mna, Terminal A, Terminal B)
+        {
+            Expression i = Mna.AddNewUnknown("i" + A.Name + B.Name);
+            A.i = i;
+            B.i = -i;
+
+            Mna.AddEquation(A.V, B.V);
+        }
+        
         protected override void DrawSymbol(SymbolLayout Sym) { Sym.AddWire(Anode, Cathode); }
     }
 }

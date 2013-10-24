@@ -72,6 +72,7 @@
     <Compile Include="Components\NamedWire.cs" />
     <Compile Include="Components\VariableResistor.cs" />
     <Compile Include="Components\Conductor.cs" />
+    <Compile Include="ModifiedNodalAnalysis.cs" />
     <Compile Include="Simulation\Parameter.cs" />
     <Compile Include="Simulation\SolutionSet.cs" />
     <Compile Include="Simulation\ReferenceSimulation.cs" />

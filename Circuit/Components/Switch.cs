@@ -22,21 +22,12 @@ namespace Circuit
         public Switch() { Name = "S1"; }
         public Switch(bool Closed) : this() { closed = Closed; }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             if (closed)
-            {
-                Expression i = DependentVariable("i" + Name, t);
-                Anode.i = i;
-                Cathode.i = -i;
-                Unknowns.Add(i);
-
-                Mna.Add(Equal.New(Anode.V, Cathode.V));
-            }
+                Conductor.Analyze(Mna, Anode, Cathode);
             else
-            {
                 Anode.i = Cathode.i = 0;
-            }
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

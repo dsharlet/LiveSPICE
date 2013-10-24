@@ -21,12 +21,10 @@ namespace Circuit
 
         public Capacitor() { Name = "C1"; }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // Vac = Va - Vc
-            Expression Vac = DependentVariable("V" + Name, t);
-            Mna.Add(Equal.New(Vac, V));
-            Unknowns.Add(Vac);
+            Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
             
             // i = C*dV/dt.
             Expression i = capacitance.Value * D(Vac, t);

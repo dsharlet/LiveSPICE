@@ -86,19 +86,15 @@ namespace Circuit
             Name = "Q1";
         }
 
-        public override void Analyze(ICollection<Equal> Mna, ICollection<Expression> Unknowns)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            Expression Vbc = DependentVariable(Name + "bc", t);
-            Expression Vbe = DependentVariable(Name + "be", t);
-            Mna.Add(Equal.New(Vbc, b.V - c.V));
-            Mna.Add(Equal.New(Vbe, b.V - e.V));
-            Unknowns.Add(Vbc);
-            Unknowns.Add(Vbe);
+            Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", b.V - c.V);
+            Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", b.V - e.V);
 
             Expression ic, ib, ie;
             model.Evaluate(Vbc, Vbe, out ic, out ib, out ie);
-            c.i = ic;
-            b.i = ib;
+            c.i = Mna.AddNewUnknownEqualTo("i" + Name + "c", ic);
+            b.i = Mna.AddNewUnknownEqualTo("i" + Name + "b", ib);
             e.i = -(ic + ib);
         }
 
