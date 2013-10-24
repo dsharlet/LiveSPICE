@@ -43,6 +43,8 @@
                 <MenuItem Command="{x:Static ls:CustomCommands.SaveAll}" />
                 <MenuItem Command="ApplicationCommands.Close" />
                 <Separator />
+                <ls:MruMenuItem Header="Recent Files" MruClick="OnMruClick" />
+                <Separator />
                 <MenuItem Command="{x:Static ls:CustomCommands.Exit}" />
             </MenuItem>
             <MenuItem Header="_Edit">

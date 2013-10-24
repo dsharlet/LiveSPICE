@@ -221,5 +221,10 @@ namespace LiveSPICE
                 PropertyChanged(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnMruClick(object sender, RoutedEventArgs e)
+        {
+            New(SchematicEditor.Open((string)((MenuItem)e.Source).Tag));
+        }
     }
 }

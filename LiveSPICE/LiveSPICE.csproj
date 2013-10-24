@@ -127,7 +127,9 @@
     </Compile>
     <Compile Include="Utils\DockingManagerExtensions.cs" />
     <Compile Include="Controls\Simulation\Probe.cs" />
+    <Compile Include="Utils\MruMenuItem.cs" />
     <Compile Include="Utils\RootExtension.cs" />
+    <Compile Include="Utils\Settings.cs" />
     <Compile Include="Windows\ClosingDialog.xaml.cs">
       <DependentUpon>ClosingDialog.xaml</DependentUpon>
     </Compile>
