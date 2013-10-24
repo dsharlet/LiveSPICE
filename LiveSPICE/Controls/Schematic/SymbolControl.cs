@@ -177,10 +177,17 @@ namespace LiveSPICE
 
                 foreach (Circuit.SymbolLayout.Text i in Layout.Texts)
                 {
+                    double size;
+                    switch (i.Size)
+                    {
+                        case Circuit.Size.Small: size = 0.75; break;
+                        case Circuit.Size.Large: size = 1.5; break;
+                        default: size = 1.0; break;
+                    }
                     FormattedText text = new FormattedText(
                         i.String,
                         CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
-                        new Typeface(FontFamily, FontStyles.Normal, FontWeight, FontStretches.Normal), FontSize * scale,
+                        new Typeface(FontFamily, FontStyles.Normal, FontWeight, FontStretches.Normal), FontSize * scale * size,
                         Brushes.Black);
 
                     Point p = T(Tx, i.x);

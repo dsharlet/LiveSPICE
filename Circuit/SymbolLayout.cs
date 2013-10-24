@@ -25,6 +25,13 @@ namespace Circuit
         Center,
         Far,
     }
+
+    public enum Size
+    {
+        Small,
+        Normal,
+        Large,
+    }
     
     /// <summary>
     /// 
@@ -138,18 +145,21 @@ namespace Circuit
             private string s;
             private Point _x;
             private Alignment halign, valign;
+            private Size size;
 
             public string String { get { return s; } }
             public Point x { get { return _x; } }
             public Alignment HorizontalAlign { get { return halign; } }
             public Alignment VerticalAlign { get { return valign; } }
+            public Size Size { get { return size; } set { size = value; } }
 
-            public Text(string String, Point x, Alignment HorizontalAlign, Alignment VerticalAlign) 
+            public Text(string String, Point x, Alignment HorizontalAlign, Alignment VerticalAlign, Size Size) 
             {
                 s = String;
                 _x = x; 
                 halign = HorizontalAlign; 
-                valign = VerticalAlign; 
+                valign = VerticalAlign;
+                size = Size;
             }
         }
 
@@ -186,7 +196,8 @@ namespace Circuit
         public void DrawLine(EdgeType Type, Point x1, Point x2) { lines.Add(new Shape(Type, x1, x2)); }
         public void DrawRectangle(EdgeType Type, Point x1, Point x2) { rectangles.Add(new Shape(Type, x1, x2)); }
         public void DrawEllipse(EdgeType Type, Point x1, Point x2) { ellipses.Add(new Shape(Type, x1, x2)); }
-        public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical) { texts.Add(new Text(S, x, Horizontal, Vertical)); }
+        public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical, Size Size) { texts.Add(new Text(S, x, Horizontal, Vertical, Size)); }
+        public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical) { DrawText(S, x, Horizontal, Vertical, global::Circuit.Size.Normal); }
         public void DrawText(string S, Point x) { DrawText(S, x, Alignment.Near, Alignment.Near); }
         public void DrawCurve(EdgeType Type, IEnumerable<Point> x) { curves.Add(new Curve(Type, x.ToArray())); }
 
