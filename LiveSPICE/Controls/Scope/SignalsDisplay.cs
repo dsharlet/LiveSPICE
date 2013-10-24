@@ -20,13 +20,13 @@ using System.Numerics;
 using SyMath;
 
 namespace LiveSPICE
-{   
-    public class OscilloscopeControl : Control, INotifyPropertyChanged
+{
+    public class SignalsDisplay : Control, INotifyPropertyChanged
     {
         protected const double MinFrequency = 20.0;
         protected const double MaxPeriod = 1.0 / MinFrequency;
 
-        static OscilloscopeControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(OscilloscopeControl), new FrameworkPropertyMetadata(typeof(OscilloscopeControl))); }
+        static SignalsDisplay() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SignalsDisplay), new FrameworkPropertyMetadata(typeof(SignalsDisplay))); }
 
         private Circuit.Quantity sampleRate = new Circuit.Quantity(0, Circuit.Units.Hz);
         public Circuit.Quantity SampleRate 
@@ -76,6 +76,18 @@ namespace LiveSPICE
             }
         }
 
+        protected ScopeMode mode;
+        public ScopeMode Mode
+        {
+            get { return mode; }
+            set
+            {
+                mode = value;
+                InvalidateVisual();
+                NotifyChanged("Mode");
+            }
+        }
+
         public Pen GridPen = new Pen(Brushes.Gray, 0.25);
         public Pen AxisPen = new Pen(Brushes.Gray, 0.5);
         public Pen TracePen = new Pen(Brushes.White, 0.5);
@@ -110,7 +122,7 @@ namespace LiveSPICE
         protected double Vmax, Vmean;
         protected Point? tracePoint;
         
-        public OscilloscopeControl()
+        public SignalsDisplay()
         {
             Background = Brushes.DimGray;
             Cursor = Cursors.Cross;
@@ -194,7 +206,7 @@ namespace LiveSPICE
 
                         // Estimate the fundamental frequency of the signal.
                         double phase;
-                        double f = EstimateFrequency(data, Decimate, out phase);
+                        double f = Frequency.Estimate(data, Decimate, out phase);
 
                         // Convert phase from (-pi, pi] to (0, 1]
                         phase = ((phase + Math.PI) / (2 * Math.PI));
@@ -342,7 +354,7 @@ namespace LiveSPICE
                 }
             }
 
-            points = DouglasPeuckerReduction(points, 0.5);
+            points = DouglasPeuckerReduction.Reduce(points, 0.5);
             for (int i = 0; i + 1 < points.Count; ++i)
                 DC.DrawLine(S.Pen, points[i], points[i + 1]);
         }
@@ -404,13 +416,6 @@ namespace LiveSPICE
         private double MapToSignal(Rect Bounds, double y) { return Vmax - (y - Bounds.Top) * 2 * Vmax / Bounds.Height + Vmean; }
         private double MapFromSignal(Rect Bounds, double v) { return Bounds.Top + ((Vmax - (v - Vmean)) / (2 * Vmax) * Bounds.Height); }
 
-        private string FrequencyToString(double f)
-        {
-            if (ShowNotes)
-                return FrequencyToNote(f, (double)A4);
-            else
-                return Circuit.Quantity.ToString(f, Circuit.Units.Hz);
-        }
 
         private static double Partition(double P)
         {
@@ -423,59 +428,14 @@ namespace LiveSPICE
 	        return p;
         }
 
-        private static string[] Notes = { "C", "C\u266f", "D", "D\u266f", "E", "F", "F\u266f", "G", "G\u266f", "A", "A\u266f", "B" };
-        
-        private static string FrequencyToNote(double f, double A4)
+        private string FrequencyToString(double f)
         {
-            // Halfsteps above C0
-            double halfsteps = (Math.Log(f / A4, 2.0) + 5.0) * 12.0 - 3.0;
-            if (halfsteps < 0 || double.IsNaN(halfsteps) || double.IsInfinity(halfsteps))
-                return "";
-
-            int note = (int)Math.Round(halfsteps) % 12;
-            int octave = (int)Math.Round(halfsteps) / 12;
-            int cents = (int)Math.Round((halfsteps - Math.Round(halfsteps)) * 100);
-
-            StringBuilder sb = new StringBuilder(Notes[note]);
-            sb.Append(IntToSubscript(octave));
-            sb.Append(' ');
-            if (cents >= 0)
-                sb.Append('+');
-            sb.Append(cents);
-            sb.Append('\u00A2');
-            return sb.ToString();
+            if (ShowNotes)
+                return Frequency.ToNote(f, (double)A4);
+            else
+                return Circuit.Quantity.ToString(f, Circuit.Units.Hz);
         }
-
-        private static string IntToSubscript(int x)
-        {
-            string chars = x.ToString();
-
-            StringBuilder ret = new StringBuilder();
-            foreach (char i in chars)
-            {
-                if (i == '-')
-                    ret.Append((char)0x208B);
-                else
-                    ret.Append((char)(0x2080 + i - '0'));
-            }
-            return ret.ToString();
-        }
-        
-        // INotifyPropertyChanged interface.
-        private void NotifyChanged(string p)
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private static double SignMag(ref double x)
-        {
-            double sign = Math.Sign(x);
-            x = Math.Abs(x);
-            return sign;
-        }
-        
+                
         private static double TimeFilter(double Prev, double Cur, double t)
         {   
             if (double.IsNaN(Prev) || double.IsNaN(Cur))
@@ -483,228 +443,13 @@ namespace LiveSPICE
 
             return Prev + (Cur - Prev) * t;
         }
-
-        private static double Hann(int i, int N) { return 0.5 * (1.0 - Math.Cos((2.0 * 3.14159265 * i) / (N - 1))); }
-
-        // Fit parabola to 3 bins and find the maximum.
-        private static Complex LogParabolaMax(Complex A, Complex B, Complex C, out double x)
+                
+        // INotifyPropertyChanged interface.
+        private void NotifyChanged(string p)
         {
-            double a = A.Magnitude;
-            double b = B.Magnitude;
-            double c = C.Magnitude;
-
-            if (b > a && b > c)
-            {
-                // Parabola fitting is more accurate in log magnitude.
-                a = Math.Log(a);
-                b = Math.Log(b);
-                c = Math.Log(c);
-
-                // Maximum location.
-                x = (a - c) / (2.0 * (a - 2.0 * b + c));
-
-                // Maximum value.
-                return B - x * (A - C) / 4.0;
-            }
-            else
-            {
-                x = 0.0;
-                return B;
-            }
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
         }
-
-        private static Complex[] DecimateSignal(double[] Block, int Decimate)
-        {
-            int N = Block.Length / Decimate;
-            Complex[] data = new Complex[N];
-
-            // Decimate input audio with low pass filter.
-            for (int i = 0; i < N; ++i)
-            {
-                double v = 0.0;
-                for (int j = 0; j < Decimate; ++j)
-                    v += Block[i * Decimate + j];
-                data[i] = new Complex(v * Hann(i, N), 0.0);
-            }
-            return data;
-        }
-
-        private static double EstimateFrequency(double[] Samples, int Decimate, out double Phase)
-        {
-            Complex[] data = DecimateSignal(Samples, Decimate);
-            int N = data.Length;
-            MathNet.Numerics.IntegralTransforms.Transform.FourierForward(data);
-            // Zero the DC bin.
-            data[0] = 0.0;
-
-            double f = 0.0;
-            double max = 0.0;
-            Phase = 0.0;
-
-            // Find largest frequency in FFT.
-            for (int i = 1; i < N / 2 - 1; ++i)
-            {
-                double x;
-                Complex m = LogParabolaMax(data[i - 1], data[i], data[i + 1], out x);
-
-                if (m.Magnitude > max)
-                {
-                    max = m.Magnitude;
-                    f = i + x;
-                    Phase = m.Phase;
-                }
-            }
-
-            // Check if this is a harmonic of another frequency (the fundamental frequency).
-            double f0 = f;
-            for (int h = 2; h < 5; ++h)
-            {
-                int i = (int)Math.Round(f / h);
-                if (i >= 1)
-                {
-                    double x;
-                    Complex m = LogParabolaMax(data[i - 1], data[i], data[i + 1], out x);
-
-                    if (m.Magnitude * 5.0 > max)
-                    {
-                        f0 = f / h;
-                        Phase = m.Phase;
-                    }
-                }
-            }
-
-            return f0;
-        }
-
-        // http://www.codeproject.com/Articles/18936/A-C-Implementation-of-Douglas-Peucker-Line-Approxi
-        private static List<Point> DouglasPeuckerReduction(List<Point> Points, Double Tolerance)
-        {
-            if (Points == null || Points.Count < 3)
-                return Points;
-
-            Int32 firstPoint = 0;
-            Int32 lastPoint = Points.Count - 1;
-            List<Int32> pointIndexsToKeep = new List<Int32>();
-
-            //Add the first and last index to the keepers
-            pointIndexsToKeep.Add(firstPoint);
-            pointIndexsToKeep.Add(lastPoint);
-
-            //The first and the last point cannot be the same
-            while (Points[firstPoint].Equals(Points[lastPoint]))
-            {
-                lastPoint--;
-            }
-
-            DouglasPeuckerReduction(Points, firstPoint, lastPoint,
-            Tolerance, ref pointIndexsToKeep);
-
-            List<Point> returnPoints = new List<Point>();
-            pointIndexsToKeep.Sort();
-            foreach (Int32 index in pointIndexsToKeep)
-            {
-                returnPoints.Add(Points[index]);
-            }
-
-            return returnPoints;
-        }
-
-        /// <span class="code-SummaryComment"><summary></span>
-        /// Douglases the peucker reduction.
-        /// <span class="code-SummaryComment"></summary></span>
-        /// <span class="code-SummaryComment"><param name="points">The points.</param></span>
-        /// <span class="code-SummaryComment"><param name="firstPoint">The first point.</param></span>
-        /// <span class="code-SummaryComment"><param name="lastPoint">The last point.</param></span>
-        /// <span class="code-SummaryComment"><param name="tolerance">The tolerance.</param></span>
-        /// <span class="code-SummaryComment"><param name="pointIndexsToKeep">The point index to keep.</param></span>
-        private static void DouglasPeuckerReduction(List<Point>
-            points, Int32 firstPoint, Int32 lastPoint, Double tolerance,
-            ref List<Int32> pointIndexsToKeep)
-        {
-            Double maxDistance = 0;
-            Int32 indexFarthest = 0;
-
-            for (Int32 index = firstPoint; index < lastPoint; index++)
-            {
-                Double distance = PerpendicularDistance
-                    (points[firstPoint], points[lastPoint], points[index]);
-                if (distance > maxDistance)
-                {
-                    maxDistance = distance;
-                    indexFarthest = index;
-                }
-            }
-
-            if (maxDistance > tolerance && indexFarthest != 0)
-            {
-                //Add the largest point that exceeds the tolerance
-                pointIndexsToKeep.Add(indexFarthest);
-
-                DouglasPeuckerReduction(points, firstPoint,
-                indexFarthest, tolerance, ref pointIndexsToKeep);
-                DouglasPeuckerReduction(points, indexFarthest,
-                lastPoint, tolerance, ref pointIndexsToKeep);
-            }
-        }
-
-        /// <span class="code-SummaryComment"><summary></span>
-        /// The distance of a point from a line made from point1 and point2.
-        /// <span class="code-SummaryComment"></summary></span>
-        /// <span class="code-SummaryComment"><param name="pt1">The PT1.</param></span>
-        /// <span class="code-SummaryComment"><param name="pt2">The PT2.</param></span>
-        /// <span class="code-SummaryComment"><param name="p">The p.</param></span>
-        /// <span class="code-SummaryComment"><returns></returns></span>
-        public static Double PerpendicularDistance
-            (Point Point1, Point Point2, Point Point)
-        {
-            //Vector n = Point2 - Point1;
-
-            //Vector ap = Point1 - Point;
-
-            //return (ap - (Vector.Multiply(ap, n) * n)).LengthSquared;
-            
-            //Area = |(1/2)(x1y2 + x2y3 + x3y1 - x2y1 - x3y2 - x1y3)|   *Area of triangle
-            //Base = v((x1-x2)²+(x1-x2)²)                               *Base of Triangle*
-            //Area = .5*Base*H                                          *Solve for height
-            //Height = Area/.5/Base
-
-            Double area = Math.Abs(.5 * (Point1.X * Point2.Y + Point2.X *
-                Point.Y + Point.X * Point1.Y - Point2.X * Point1.Y - Point.X *
-                Point2.Y - Point1.X * Point.Y));
-            Double bottom = Math.Sqrt(Math.Pow(Point1.X - Point2.X, 2) + Math.Pow(Point1.Y - Point2.Y, 2));
-            Double height = area / bottom * 2;
-
-            return height;
-
-            //Another option
-            //Double A = Point.X - Point1.X;
-            //Double B = Point.Y - Point1.Y;
-            //Double C = Point2.X - Point1.X;
-            //Double D = Point2.Y - Point1.Y;
-
-            //Double dot = A * C + B * D;
-            //Double len_sq = C * C + D * D;
-            //Double param = dot / len_sq;
-
-            //Double xx, yy;
-
-            //if (param < 0)
-            //{
-            //    xx = Point1.X;
-            //    yy = Point1.Y;
-            //}
-            //else if (param > 1)
-            //{
-            //    xx = Point2.X;
-            //    yy = Point2.Y;
-            //}
-            //else
-            //{
-            //    xx = Point1.X + param * C;
-            //    yy = Point1.Y + param * D;
-            //}
-
-            //Double d = DistanceBetweenOn2DPlane(Point, new Point(xx, yy));
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

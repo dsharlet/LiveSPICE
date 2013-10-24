@@ -17,27 +17,33 @@ using SyMath;
 
 namespace LiveSPICE
 {
+    public enum ScopeMode
+    {
+        Oscilloscope,
+        Spectrogram,
+    }
+
     /// <summary>
     /// Interaction logic for Oscilloscope.xaml
     /// </summary>
-    public partial class Oscilloscope : UserControl, INotifyPropertyChanged
+    public partial class Scope : UserControl, INotifyPropertyChanged
     {
         //public IEnumerable<string> Signals { get { return scope.Signals.Select(i => i.Name).ToString(); } }
 
-        public Oscilloscope() 
+        public Scope() 
         { 
             InitializeComponent();
-            scope.Signals.ItemAdded += Signals_ItemAdded;
-            scope.Signals.ItemRemoved += Signals_ItemRemoved;
+            Display.Signals.ItemAdded += Signals_ItemAdded;
+            Display.Signals.ItemRemoved += Signals_ItemRemoved;
         }
 
-        public OscilloscopeControl Scope { get { return scope; } }
+        public SignalsDisplay Display { get { return display; } }
 
         void Signals_ItemAdded(object sender, SignalEventArgs e)
         {
             ComboBoxItem item = new ComboBoxItem()
             {
-                Background = scope.Background,
+                Background = Display.Background,
                 Foreground = e.Signal.Pen.Brush,
                 Content = e.Signal.Name,
                 Tag = e.Signal
@@ -47,18 +53,18 @@ namespace LiveSPICE
 
             // Add item to the combo box.
             signals.Items.Add(item);
-            scope.SelectedSignal = e.Signal;
+            Display.SelectedSignal = e.Signal;
         }
 
         void Signals_ItemRemoved(object sender, SignalEventArgs e)
         {
             signals.Items.Remove(e.Signal.Tag);
-            signals.SelectedValue = scope.SelectedSignal;
+            signals.SelectedValue = Display.SelectedSignal;
         }
         
         public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals)
         {
-            scope.ProcessSignals(SampleCount, Signals);
+            Display.ProcessSignals(SampleCount, Signals);
         }
 
         // INotifyPropertyChanged.

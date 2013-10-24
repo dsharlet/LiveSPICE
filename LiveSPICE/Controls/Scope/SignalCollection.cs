@@ -17,7 +17,7 @@ namespace LiveSPICE
     }
 
     /// <summary>
-    /// Collection of circuit elements.
+    /// Collection of Signals.
     /// </summary>
     public class SignalCollection : IEnumerable<Signal>, IEnumerable
     {

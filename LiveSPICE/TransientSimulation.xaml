@@ -98,7 +98,7 @@
                         <!-- Oscilloscope -->
                         <xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorable Title="Oscilloscope">
-                                <ls:Oscilloscope x:Name="oscilloscope" />
+                                <ls:Scope x:Name="oscilloscope" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>

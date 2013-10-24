@@ -87,7 +87,7 @@ namespace LiveSPICE
             Closed += OnClosed;
 
             sampleRate = Audio.SampleRate;
-            oscilloscope.Scope.SampleRate = sampleRate;
+            oscilloscope.Display.SampleRate = sampleRate;
 
             // Make a clone of the schematic so we can mess with it.
             Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), log);
@@ -127,7 +127,7 @@ namespace LiveSPICE
                     default: p = ElementControl.MapToPen(probe.Color); break;
                 }
                 probe.Signal = new Signal() { Name = probe.V.ToString(), Pen = p };
-                oscilloscope.Scope.Signals.Add(probe.Signal);
+                oscilloscope.Display.Signals.Add(probe.Signal);
 
                 e.Element.LayoutChanged += (x, y) => ConnectProbes();
             }
@@ -140,7 +140,7 @@ namespace LiveSPICE
             {
                 Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
 
-                oscilloscope.Scope.Signals.Remove(probe.Signal);
+                oscilloscope.Display.Signals.Remove(probe.Signal);
             }
         }
 
@@ -148,7 +148,7 @@ namespace LiveSPICE
         {
             IEnumerable<Circuit.Symbol> selected = SimulationSchematic.ProbesOf(schematic.Schematic.Selected);
             if (selected.Any())
-                oscilloscope.Scope.SelectedSignal = ((Probe)selected.First().Component).Signal;
+                oscilloscope.Display.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
 
         public void ConnectProbes()
