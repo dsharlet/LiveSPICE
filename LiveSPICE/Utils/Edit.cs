@@ -58,21 +58,22 @@ namespace LiveSPICE
     {
         object target;
         PropertyInfo property;
-        object undo;
-        object value;
+        object set;
+        object unset;
 
-        public PropertyEdit(object Target, PropertyInfo Property, object Value)
+        public PropertyEdit(object Target, PropertyInfo Property, object Do) : this(Target, Property, Do, Property.GetValue(Target)) { }
+        public PropertyEdit(object Target, PropertyInfo Property, object Do, object Undo)
         {
             target = Target;
             property = Property;
-            value = Value;
-            undo = property.GetValue(target);
+            set = Do;
+            unset = Undo;
         }
 
-        public override void Do() { property.SetValue(target, value); }
-        public override void Undo() { property.SetValue(target, undo); }
+        public override void Do() { property.SetValue(target, set); }
+        public override void Undo() { property.SetValue(target, unset); }
 
-        public override string ToString() { return property.Name; }
+        public override string ToString() { return "Set " + property.Name; }
     }
 
     /// <summary>
@@ -107,6 +108,22 @@ namespace LiveSPICE
         {
             Edit edit = EditList.New(Edits);
             edit.Do();
+            Dirty = true;
+
+            if (tentative.Any())
+            {
+                tentative.Peek().Add(edit);
+            }
+            else
+            {
+                undo.Add(edit);
+                redo.Clear();
+            }
+        }
+
+        public void Did(params Edit[] Edits)
+        {
+            Edit edit = EditList.New(Edits);
             Dirty = true;
 
             if (tentative.Any())
