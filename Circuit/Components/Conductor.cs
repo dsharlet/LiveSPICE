@@ -13,16 +13,13 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Wire")]
-    public class Conductor : TwoTerminal
+    public class Conductor : PassiveTwoTerminal
     {
         public Conductor() { Name = "_1"; }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) 
         {
-            Expression i = Mna.AddNewUnknown("i" + Name);
-            Anode.i = i;
-            Cathode.i = -i;
-
+            i = Mna.AddNewUnknown("i" + Name);
             Mna.AddEquation(Anode.V, Cathode.V);
         }
 

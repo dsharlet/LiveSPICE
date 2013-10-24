@@ -9,14 +9,13 @@ namespace Circuit
 {
     [CategoryAttribute("IO")]
     [DisplayName("Output")]
-    public class Output : TwoTerminal
+    public class Output : PassiveTwoTerminal
     {
         public Output() { Name = "O1"; }
 
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            Anode.i = 0;
-            Cathode.i = 0;
+            i = Constant.Zero;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

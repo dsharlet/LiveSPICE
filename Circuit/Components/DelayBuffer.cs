@@ -18,7 +18,6 @@ namespace Circuit
         {
             // Infinite input impedance.
             Anode.i = Constant.Zero;
-
             // Unknown output current.
             Cathode.i = Mna.AddNewUnknown("i" + Name);
 

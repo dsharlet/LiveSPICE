@@ -16,11 +16,11 @@ namespace Circuit
 
         public VariableResistor() { }
 
-        public override Expression i(Expression V)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            return V / (Resistance.Value * wipe);
+            i = V / (Resistance.Value + 1e-32m);
         }
-
+        
         protected override void DrawSymbol(SymbolLayout Sym)
         {
             Sym.AddWire(Anode, new Coord(0, 16));

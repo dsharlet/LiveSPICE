@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Capacitor")]
-    public class Capacitor : TwoTerminal
+    public class Capacitor : PassiveTwoTerminal
     {
         private Quantity capacitance = new Quantity(100e-6m, Units.F);
         [Description("Capacitance of this capacitor.")]
@@ -25,11 +25,8 @@ namespace Circuit
         {
             // Vac = Va - Vc
             Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
-            
             // i = C*dV/dt.
-            Expression i = capacitance.Value * D(Vac, t);
-            Anode.i = i;
-            Cathode.i = -i;
+            i = capacitance.Value * D(Vac, t);
         }
                 
         protected override void DrawSymbol(SymbolLayout Sym)

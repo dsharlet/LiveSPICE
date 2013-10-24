@@ -90,7 +90,7 @@ namespace Circuit
         /// </summary>
         [Browsable(false)]
         public Expression V { get { return Anode.V - Cathode.V; } }
-
+        
         /// <summary>
         /// Connect the terminals of this component to the given nodes.
         /// </summary>
@@ -114,22 +114,22 @@ namespace Circuit
     }
 
     /// <summary>
-    /// Two terminal component with i = f(V).
+    /// Passive two terminal component.
     /// </summary>
     public abstract class PassiveTwoTerminal : TwoTerminal
     {
         /// <summary>
-        /// Current from the Anode to the Cathode.
+        /// Current through this two terminal component.
         /// </summary>
         [Browsable(false)]
-        public abstract Expression i(Expression V);
-
-        public override sealed void Analyze(ModifiedNodalAnalysis Mna)
+        public Expression i
         {
-            Expression i = this.i(V);  
-
-            Anode.i = i;
-            Cathode.i = Multiply.New(Constant.New(-1), i);
+            get { return Anode.i; }
+            set
+            {
+                Anode.i = value;
+                Cathode.i = Multiply.New(Constant.New(-1), value);
+            }
         }
     }
 }

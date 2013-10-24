@@ -21,11 +21,11 @@ namespace Circuit
 
         public Resistor() { Name = "R1"; }
 
-        public override Expression i(Expression V)
+        public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            return V / (Resistance.Value + 1e-32m);
+            i = V / (Resistance.Value + 1e-32m);
         }
-
+        
         protected override void DrawSymbol(SymbolLayout Sym)
         {
             Sym.AddWire(Anode, new Coord(0, 16));

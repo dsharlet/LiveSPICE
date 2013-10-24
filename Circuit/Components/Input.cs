@@ -9,7 +9,7 @@ namespace Circuit
 {
     [CategoryAttribute("IO")]
     [DisplayName("Input")]
-    public class Input : TwoTerminal
+    public class Input : PassiveTwoTerminal
     {
         public Input() 
         {
@@ -18,11 +18,9 @@ namespace Circuit
         
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            Expression i = Mna.AddNewUnknown("i" + Name);
-            Anode.i = i;
-            Cathode.i = -i;
+            i = Mna.AddNewUnknown("i" + Name);
 
-            Mna.AddEquation(DependentVariable(Name, t), Anode.V - Cathode.V);
+            Mna.AddEquation(DependentVariable(Name, t), V);
         }
         
         protected override void DrawSymbol(SymbolLayout Sym)

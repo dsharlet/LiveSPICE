@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Controls")]
     [DisplayName("Switch")]
-    public class Switch : TwoTerminal
+    public class Switch : PassiveTwoTerminal
     {
         protected bool closed = false;
         [Description("Closed = true corresponds to a closed circuit.")]
@@ -27,7 +27,7 @@ namespace Circuit
             if (closed)
                 Conductor.Analyze(Mna, Anode, Cathode);
             else
-                Anode.i = Cathode.i = 0;
+                i = Constant.Zero;
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

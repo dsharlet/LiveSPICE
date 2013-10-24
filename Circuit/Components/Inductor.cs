@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Inductor")]
-    public class Inductor : TwoTerminal
+    public class Inductor : PassiveTwoTerminal
     {
         protected Quantity inductance = new Quantity(100e-6m, Units.H);
         [Description("Inductance of this inductor.")]
@@ -25,12 +25,9 @@ namespace Circuit
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // Define a new unknown for the current through this inductor.
-            Expression i = Mna.AddNewUnknown("i" + Name);
-            Anode.i = i;
-            Cathode.i = -i;
-
+            i = Mna.AddNewUnknown("i" + Name);
             // V = L*di/dt
-            Mna.AddEquation(Anode.V - Cathode.V, inductance.Value * D(i, t));
+            Mna.AddEquation(V, inductance.Value * D(i, t));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

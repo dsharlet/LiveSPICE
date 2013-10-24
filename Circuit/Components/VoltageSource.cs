@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Voltage Source")]
-    public class VoltageSource : TwoTerminal
+    public class VoltageSource : PassiveTwoTerminal
     {
         /// <summary>
         /// Expression for voltage V.
@@ -26,11 +26,9 @@ namespace Circuit
         
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            Expression i = Mna.AddNewUnknown("i" + Name);
-            Anode.i = i;
-            Cathode.i = -i;
+            i = Mna.AddNewUnknown("i" + Name);
 
-            Mna.AddEquation(Anode.V - Cathode.V, Voltage.Value);
+            Mna.AddEquation(V, Voltage.Value);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

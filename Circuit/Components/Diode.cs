@@ -51,7 +51,7 @@ namespace Circuit
 
     [CategoryAttribute("Standard")]
     [DisplayName("Diode")]
-    public class Diode : TwoTerminal
+    public class Diode : PassiveTwoTerminal
     {
         protected DiodeModel model = new ShockleyDiodeModel();
         public DiodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
@@ -62,10 +62,8 @@ namespace Circuit
         {
             // Vac = Va - Vc
             Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
-
-            Expression i = Mna.AddNewUnknownEqualTo("i" + Name, model.Evaluate(Vac));
-            Anode.i = i;
-            Cathode.i = -i;
+            // Evaluate the model.
+            i = Mna.AddNewUnknownEqualTo("i" + Name, model.Evaluate(Vac));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)
