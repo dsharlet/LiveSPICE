@@ -168,7 +168,7 @@ namespace LiveSPICE
 
                 List<Circuit.Element> copied = X.Elements("Element").Select(i => Circuit.Element.Deserialize(i)).ToList();
                 Add(copied);
-                Select(copied, false, true);
+                Select(copied, true, false);
             }
             catch (System.Exception) { }
         }
