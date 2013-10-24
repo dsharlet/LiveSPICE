@@ -110,7 +110,7 @@ namespace SyMath
         /// <returns></returns>
         public virtual Expression Substitute(Call C, IDictionary<Expression, Expression> x0, bool IsTransform)
         {
-            return SyMath.Call.New(C.Target, C.Arguments.Select(i => i.Substitute(x0)));
+            return SyMath.Call.New(C.Target, C.Arguments.Select(i => i.Substitute(x0, IsTransform)));
         }
     }
 }
