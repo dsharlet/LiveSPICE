@@ -60,6 +60,8 @@ namespace LiveSPICE
 
             Width = 1600;
             Height = 1600;
+
+            Origin = SnapToGrid(new Circuit.Coord((int)Width / 2, (int)Height / 2));
         }
         
         private EditStack edits;

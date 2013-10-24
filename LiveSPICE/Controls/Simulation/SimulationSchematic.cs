@@ -48,7 +48,7 @@ namespace LiveSPICE
 
             Width = ub.x - lb.x;
             Height = ub.y - lb.y;
-            Origin = lb;
+            Origin = -lb;
         }
 
         private void Delete_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = !ProbesOf(Selected).Empty(); }

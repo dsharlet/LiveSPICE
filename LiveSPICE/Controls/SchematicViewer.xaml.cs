@@ -114,15 +114,13 @@ namespace LiveSPICE
             Point a, b;
             if (Schematic.Elements.Any())
             {
-                Circuit.Coord lb = Schematic.LowerBound();
-                Circuit.Coord ub = Schematic.UpperBound();
-                a = new Point(lb.x, lb.y);
-                b = new Point(ub.x, ub.y);
+                a = Schematic.ToPoint(Schematic.LowerBound());
+                b = Schematic.ToPoint(Schematic.UpperBound());
             }
             else
             {
-                a = new Point(Schematic.ActualWidth / 2 - 100, Schematic.ActualHeight / 2 - 100);
-                b = new Point(Schematic.ActualWidth / 2 + 100, Schematic.ActualHeight / 2 + 100);
+                a = Schematic.ToPoint(new Circuit.Coord(-100, -100));
+                b = Schematic.ToPoint(new Circuit.Coord(100, 100));
             }
             FocusRect(a, b, true);
         }

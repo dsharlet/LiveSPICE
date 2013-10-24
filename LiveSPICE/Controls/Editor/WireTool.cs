@@ -46,7 +46,6 @@ namespace LiveSPICE
         }
 
 
-        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
         public override void MouseMove(Circuit.Coord At)
         {
             if (mouse == null)
@@ -58,8 +57,8 @@ namespace LiveSPICE
             {
                 LineGeometry line = new LineGeometry()
                 {
-                    StartPoint = ToPoint(points[i]) + new Vector(0.5, -0.5),
-                    EndPoint = ToPoint(points[i + 1]) + new Vector(0.5, -0.5)
+                    StartPoint = Target.ToPoint(points[i]) + new Vector(0.5, -0.5),
+                    EndPoint = Target.ToPoint(points[i + 1]) + new Vector(0.5, -0.5)
                 };
                 ((PathGeometry)path.Data).AddGeometry(line);
             }

@@ -64,7 +64,7 @@ namespace LiveSPICE
             else
             {
                 a = b = At;
-                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a), ToPoint(b));
+                ((RectangleGeometry)path.Data).Rect = new Rect(Target.ToPoint(a), Target.ToPoint(b));
                 path.Visibility = Visibility.Visible;
             }
         }
@@ -80,7 +80,7 @@ namespace LiveSPICE
             else
             {
                 Vector dx = new Vector(-0.5, -0.5);
-                ((RectangleGeometry)path.Data).Rect = new Rect(ToPoint(a) + dx, ToPoint(b) + dx);
+                ((RectangleGeometry)path.Data).Rect = new Rect(Target.ToPoint(a) + dx, Target.ToPoint(b) + dx);
             }
             Target.Highlight(a == b ? Target.AtPoint(a) : Target.InRect(a, b));
         }
@@ -126,7 +126,5 @@ namespace LiveSPICE
             Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross; 
             return base.KeyUp(Key);
         }
-
-        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
     }
 }

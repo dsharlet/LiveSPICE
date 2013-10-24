@@ -109,7 +109,9 @@ namespace LiveSPICE
         protected static Circuit.Coord Round(Circuit.Coord x, int p) { return new Circuit.Coord(Round(x.x, p), Round(x.y, p)); }
         public Circuit.Coord SnapToGrid(Circuit.Coord x) { return new Circuit.Coord(Round(x.x, Grid), Round(x.y, Grid)); }
         public Circuit.Coord SnapToGrid(Point x) { return new Circuit.Coord(Round(x.X, Grid), Round(x.Y, Grid)); }
-        
+
+        public Point ToPoint(Circuit.Coord x) { return new Point(x.x + origin.x, x.y + origin.y); }
+
         private void ElementAdded(object sender, Circuit.ElementEventArgs e)
         {
             ElementControl control = ElementControl.New(e.Element);
@@ -137,8 +139,8 @@ namespace LiveSPICE
 
             ElementControl control = (ElementControl)element.Tag;
 
-            Canvas.SetLeft(control, lb.x - origin.x);
-            Canvas.SetTop(control, lb.y - origin.y);
+            Canvas.SetLeft(control, lb.x + origin.x);
+            Canvas.SetTop(control, lb.y + origin.y);
 
             control.Width = ub.x - lb.x;
             control.Height = ub.y - lb.y;
@@ -228,7 +230,7 @@ namespace LiveSPICE
         protected virtual void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
             Focus();
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) + origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
             if (e.ChangedButton == MouseButton.Left)
             {
                 CaptureMouse();
@@ -245,7 +247,7 @@ namespace LiveSPICE
         }
         protected virtual void OnMouseUp(object sender, MouseButtonEventArgs e)
         {
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) + origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
             if (e.ChangedButton == MouseButton.Left)
             {
                 ReleaseMouseCapture();
@@ -260,7 +262,7 @@ namespace LiveSPICE
             Point x = e.GetPosition(root);
             if (IsMouseCaptured)
                 BringIntoView(new Rect(x - AutoScrollBorder, x + AutoScrollBorder));
-            Circuit.Coord at = SnapToGrid(x) + origin;
+            Circuit.Coord at = SnapToGrid(x) - origin;
             if (!mouse.HasValue || mouse.Value != at)
             {
                 mouse = at;
@@ -272,7 +274,7 @@ namespace LiveSPICE
 
         protected virtual void OnMouseEnter(object sender, MouseEventArgs e)
         {
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) + origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
             mouse = at;
             if (Tool != null) 
                 Tool.MouseEnter(at);
@@ -280,7 +282,7 @@ namespace LiveSPICE
         }
         protected virtual void OnMouseLeave(object sender, MouseEventArgs e)
         {
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) + origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
             mouse = null;
             if (Tool != null) 
                 Tool.MouseLeave(at);
