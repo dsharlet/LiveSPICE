@@ -94,6 +94,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
+    <Compile Include="Controls\PropertyGrid.xaml.cs">
+      <DependentUpon>PropertyGrid.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Scope\Frequency.cs" />
     <Compile Include="Controls\Scope\DouglasPeuckerReduction.cs" />
     <Compile Include="Controls\Scope\SignalCollection.cs" />
@@ -149,6 +152,10 @@
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Scope\SignalsDisplay.cs" />
     <Page Include="Controls\Parameters.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\PropertyGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
