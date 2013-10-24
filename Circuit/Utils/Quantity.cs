@@ -10,9 +10,9 @@ using SyMath;
 
 namespace Circuit
 {
-    public class UnitsException : ArgumentException
+    public class UnitCastException : InvalidCastException
     {
-        public UnitsException(Units From, Units To) 
+        public UnitCastException(Units From, Units To) 
             : base("Cannot convert quantity from " + From.ToString() + " to " + To.ToString())
         { }
     }
@@ -34,7 +34,7 @@ namespace Circuit
         public bool Set(Quantity x)
         {
             if (x.Units != units && x.Units != Units.None)
-                throw new UnitsException(x.Units, units);
+                throw new UnitCastException(x.Units, units);
             if (Value != x.Value)
             {
                 Value = x.Value;
@@ -75,7 +75,7 @@ namespace Circuit
             if (m.Units == Units.None)
                 m.Units = ExpectedUnits;
             else if (m.Units != ExpectedUnits)
-                throw new UnitsException(m.Units, ExpectedUnits);
+                throw new UnitCastException(m.Units, ExpectedUnits);
             return m;
         }
                 
@@ -83,13 +83,13 @@ namespace Circuit
         public static Quantity operator +(Quantity L, Quantity R)
         { 
             if (L.units != R.units)
-                throw new UnitsException(L.Units, R.Units); 
+                throw new UnitCastException(L.Units, R.Units); 
             return new Quantity(L.x + R.x, L.units); 
         }
         public static Quantity operator -(Quantity L, Quantity R)
         {
             if (L.units != R.units)
-                throw new UnitsException(L.Units, R.Units);
+                throw new UnitCastException(L.Units, R.Units);
             return new Quantity(L.x - R.x, L.units);
         }
         public static Quantity operator *(Quantity L, Quantity R) { return new Quantity(L.x * R.x, L.units * R.units); }
