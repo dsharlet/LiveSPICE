@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using System.Xml;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml;
 using Xceed.Wpf.AvalonDock.Layout;
 using Microsoft.Win32;
 
@@ -24,21 +25,14 @@ namespace LiveSPICE
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private System.Windows.Forms.PropertyGrid Properties;
-
         public MainWindow()
         {
             InitializeComponent();
 
-            Properties = new System.Windows.Forms.PropertyGrid();
             components.Init(this, toolbox_Click);
-
-            properties.Content = new System.Windows.Forms.Integration.WindowsFormsHost() 
-            { 
-                Child = Properties 
-            };
+            properties.PropertyValueChanged += properties_PropertyValueChanged;
         }
-
+        
         public LayoutContent ActiveContent { get { return schematics.SelectedContent; } }
         public SchematicViewer ActiveViewer 
         { 
@@ -163,7 +157,20 @@ namespace LiveSPICE
 
         private void schematic_SelectionChanged(object Sender, EventArgs Args)
         {
-            Properties.SelectedObjects = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
+            properties.SelectedObjects = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
+            properties.Tag = (SchematicEditor)Sender;
+        }
+
+        void properties_PropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
+        {
+            SchematicEditor editor = (SchematicEditor)properties.Tag;
+
+            PropertyInfo property = properties.SelectedObjects.First().GetType().GetProperty(e.ChangedItem.PropertyDescriptor.Name);
+
+            List<Edit> edits = new List<Edit>();
+            foreach (object i in properties.SelectedObjects)
+                edits.Add(new PropertyEdit(i, property, property.GetValue(i), e.OldValues[i]));
+            editor.Edits.Did(EditList.New(edits));
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

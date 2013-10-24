@@ -117,7 +117,9 @@
                         </xcad:LayoutAnchorablePane>
                         <xcad:LayoutAnchorablePane DockHeight="300">
                             <!-- Properties -->
-                            <xcad:LayoutAnchorable x:Name="properties" Title="Properties" AutoHideWidth="240" />
+                            <xcad:LayoutAnchorable Title="Properties" AutoHideWidth="240">
+                                <ls:PropertyGrid x:Name="properties" />
+                            </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
                     
