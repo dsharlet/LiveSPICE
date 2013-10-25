@@ -21,13 +21,14 @@ namespace LiveSPICE
     /// </summary>
     public partial class AudioStream : UserControl, INotifyPropertyChanged
     {
-        protected Circuit.Quantity latency = new Circuit.Quantity(50e-3m, Circuit.Units.s);
-        public Circuit.Quantity Latency
+        protected double latency = 50.0;//App.Current.Settings.Latency;
+        public double Latency
         {
             get { return latency; }
             set 
-            { 
-                latency.Set(value);
+            {
+                latency = value;
+                App.Current.Settings.Latency = value;
                 OpenStream(); 
                 NotifyChanged("Latency"); 
             }
@@ -157,7 +158,7 @@ namespace LiveSPICE
             {
                 if (Device != null && Input != null && Output != null)
                 {
-                    stream = Device.Open(SampleCallback, Input, Output, (double)Latency);
+                    stream = Device.Open(SampleCallback, Input, Output, Latency / 1000.0);
 
                     Settings settings = App.Current.Settings;
                     settings.AudioDriver = Driver.Name;

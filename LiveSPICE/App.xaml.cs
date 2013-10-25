@@ -23,6 +23,9 @@ namespace LiveSPICE
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            if (e.Args.Contains("clearsettings"))
+                settings.Reset();
+
             base.OnStartup(e);
             EventManager.RegisterClassHandler(typeof(TextBox), TextBox.KeyDownEvent, new KeyEventHandler(TextBox_KeyDown));
         }

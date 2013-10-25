@@ -29,25 +29,28 @@
         <ComboBox Grid.Row="2" Grid.Column="1" x:Name="inputs" Margin="4" SelectedValue="{Binding ElementName=_this, Path=Input}" SelectedValuePath="Tag" />
 
         <TextBlock Grid.Row="3" Grid.Column="0" Text="Input Gain:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
-            <Slider Width="150" Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=InputGain}" />
-            <Border BorderThickness="1" BorderBrush="Gray" Margin="4">
-                <TextBlock x:Name="inputLevel" Width="50" Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0} dB}" TextAlignment="Center" />
+        <DockPanel Grid.Row="3" Grid.Column="1" LastChildFill="True">
+            <Border DockPanel.Dock="Left" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
+                <TextBlock x:Name="inputLevel" Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0} dB}" TextAlignment="Center" />
             </Border>
-        </StackPanel>
+            <Slider Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=InputGain}" />
+        </DockPanel>
         
         <TextBlock Grid.Row="4" Grid.Column="0" Text="Output: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <ComboBox Grid.Row="4" Grid.Column="1" x:Name="outputs" Margin="4" SelectedValue="{Binding ElementName=_this, Path=Output}" SelectedValuePath="Tag" />
 
         <TextBlock Grid.Row="5" Grid.Column="0" Text="Output Gain:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal">
-            <Slider Width="150" Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=OutputGain}" />
-            <Border BorderThickness="1" BorderBrush="Gray" Margin="4">
-                <TextBlock x:Name="outputLevel" Width="50" Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0} dB}" TextAlignment="Center" />
+        <DockPanel Grid.Row="5" Grid.Column="1" LastChildFill="True">
+            <Border DockPanel.Dock="Left" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
+                <TextBlock x:Name="outputLevel" Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0} dB}" TextAlignment="Center" />
             </Border>
-        </StackPanel>
-        
-        <TextBlock Grid.Row="6" Grid.Column="0" Text="Latency: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-        <TextBox Grid.Row="6" Grid.Column="1" Margin="4" Text="{Binding ElementName=_this, Path=Latency}" />
+            <Slider Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=OutputGain}" />
+        </DockPanel>
+
+        <TextBlock Grid.Row="6" Grid.Column="0" Text="Latency:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
+        <DockPanel Grid.Row="6" Grid.Column="1" LastChildFill="True">
+            <TextBlock DockPanel.Dock="Left" Width="50" Margin="4" Text="{Binding ElementName=_this, Path=Latency, StringFormat={}{0} ms}" TextAlignment="Center" />
+            <Slider Minimum="1" Maximum="1000" Value="{Binding ElementName=_this, Path=Latency}" />
+        </DockPanel>
     </Grid>
 </UserControl>

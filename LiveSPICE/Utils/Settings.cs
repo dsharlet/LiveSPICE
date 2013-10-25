@@ -84,5 +84,22 @@ namespace LiveSPICE
             } 
             set { this["OutputGain"] = value; } 
         }
+
+        [UserScopedSetting]
+        public double Latency
+        {
+            get
+            {
+                try
+                {
+                    return (double)this["Latency"];
+                }
+                catch (Exception)
+                {
+                    return 50.0;
+                }
+            }
+            set { this["Latency"] = value; }
+        }
     }
 }
