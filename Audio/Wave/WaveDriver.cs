@@ -8,11 +8,15 @@ namespace Audio
 {
     class WaveDriver : Driver
     {
+        private static List<Device> devices = new List<Device>()
+        {
+            new WaveDevice()
+        };
+        public override IEnumerable<Device> Devices { get { return devices; } }
+
         public override string Name
         {
             get { return "Windows Audio"; }
         }
-
-        public override IEnumerable<Device> Devices { get { yield return new WaveDevice(); } }
     }
 }

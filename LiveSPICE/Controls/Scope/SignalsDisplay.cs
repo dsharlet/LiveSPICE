@@ -28,18 +28,6 @@ namespace LiveSPICE
 
         static SignalsDisplay() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SignalsDisplay), new FrameworkPropertyMetadata(typeof(SignalsDisplay))); }
 
-        private Circuit.Quantity sampleRate = new Circuit.Quantity(0, Circuit.Units.Hz);
-        public Circuit.Quantity SampleRate 
-        { 
-            get { return sampleRate; } 
-            set 
-            { 
-                sampleRate.Set(value); 
-                InvalidateVisual(); 
-                NotifyChanged("SampleRate"); 
-            } 
-        }
-
         private Circuit.Quantity a4 = new Circuit.Quantity(440, Circuit.Units.Hz);
         public Circuit.Quantity A4
         {
@@ -143,8 +131,10 @@ namespace LiveSPICE
             InvalidateVisual();
         }
 
-        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals)
+        private double sampleRate;
+        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals, double SampleRate)
         {
+            sampleRate = SampleRate;
             clock += SampleCount;
 
             int truncate = (int)(4 * (double)sampleRate * MaxPeriod);

@@ -39,7 +39,7 @@ namespace Audio
             int Buffer = (int)Math.Ceiling(Latency * Rate * Bits * Channels / 8);
 
             int BufferCount = 6;
-            int BufferSize = Buffer / 4;
+            int BufferSize = Buffer / 2;
             BufferSize = BufferSize - (format.nBlockAlign - (Buffer % format.nBlockAlign)) % format.nBlockAlign;
 
             input = new double[BufferSize * 8 / Bits];
@@ -102,7 +102,7 @@ namespace Audio
                     if ((i.RecordHeader.dwFlags & WaveHdrFlags.WHDR_DONE) != 0)
                     {
                         Util.LEi16ToLEf64(i.Buffer, input, input.Length);
-                        callback(input, output);
+                        callback(input, output, format.nSamplesPerSec);
                         Util.LEf64ToLEi16(output, i.Buffer, output.Length);
 
                         i.PlayHeader.dwBufferLength = (uint)i.Size;

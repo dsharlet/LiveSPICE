@@ -88,8 +88,11 @@
                     </xcad:LayoutPanel>
 
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
-                        <!-- Properties -->
+                        <!-- Parameters -->
                         <xcad:LayoutAnchorablePane>
+                            <xcad:LayoutAnchorable Title="Audio" AutoHideWidth="240">
+                                <ls:AudioStream x:Name="audio" />
+                            </xcad:LayoutAnchorable>
                             <xcad:LayoutAnchorable Title="Parameters" AutoHideWidth="240">
                                 <ls:Parameters x:Name="parameters" />
                             </xcad:LayoutAnchorable>

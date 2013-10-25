@@ -111,7 +111,7 @@ namespace LiveSPICE
             Schematic.Save(FileName);
             SetFileName(FileName);
             Edits.Dirty = false;
-            App.Current.Used(filename);
+            App.Current.Settings.Used(filename);
             return true;
         }
 
@@ -143,12 +143,12 @@ namespace LiveSPICE
             try
             {
                 SchematicEditor editor = new SchematicEditor(FileName);
-                App.Current.Used(FileName);
+                App.Current.Settings.Used(FileName);
                 return editor;
             }
             catch (System.Exception)
             {
-                App.Current.RemoveFromMru(FileName);
+                App.Current.Settings.RemoveFromMru(FileName);
                 throw;
             }
         }

@@ -11,10 +11,12 @@ namespace Audio
     /// </summary>
     public abstract class Driver
     {
-        public static IEnumerable<Driver> Drivers
-        {
-            get { return new Driver[] { new WaveDriver() }; }
-        }
+        protected static List<Driver> drivers = new List<Driver>() 
+        { 
+            new WaveDriver(),
+        };
+
+        public static IEnumerable<Driver> Drivers { get { return drivers; } }
 
         public abstract string Name { get; }
         public abstract IEnumerable<Device> Devices { get; }

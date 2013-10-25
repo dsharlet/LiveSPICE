@@ -19,6 +19,7 @@ namespace LiveSPICE
         public static new App Current { get { return (App)Application.Current; } }
 
         private Settings settings = new Settings();
+        public Settings Settings { get { return settings; } }
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -31,25 +32,7 @@ namespace LiveSPICE
             settings.Save();
             base.OnExit(e);
         }
-
-        public List<string> Mru { get { return settings.Mru.ToList(); } set { settings.Mru = value.ToArray(); } }
-        public void Used(string Filename)
-        {
-            List<string> mru = Mru;
-            mru.Remove(Filename);
-            mru.Insert(0, Filename);
-            if (mru.Count > 20)
-                mru.RemoveRange(20, mru.Count - 20);
-            Mru = mru;
-        }
-        public void RemoveFromMru(string Filename)
-        {
-            List<string> mru = Mru;
-            mru.Remove(Filename);
-            Mru = mru;
-        }
-
-
+        
         void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
             TextBox textbox = (TextBox)sender;

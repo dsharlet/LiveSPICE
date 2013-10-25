@@ -133,8 +133,8 @@
     <Compile Include="Windows\ClosingDialog.xaml.cs">
       <DependentUpon>ClosingDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\AudioConfiguration.xaml.cs">
-      <DependentUpon>AudioConfiguration.xaml</DependentUpon>
+    <Compile Include="Controls\AudioStream.xaml.cs">
+      <DependentUpon>AudioStream.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Editor\WireTool.cs" />
     <Compile Include="Controls\Editor\MoveTool.cs" />
@@ -181,7 +181,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\AudioConfiguration.xaml">
+    <Page Include="Controls\AudioStream.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

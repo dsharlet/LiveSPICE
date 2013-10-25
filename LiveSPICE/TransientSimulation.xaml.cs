@@ -49,52 +49,26 @@ namespace LiveSPICE
             get { return output; }
             set { output = value; NotifyChanged("Output"); }
         }
-
-        protected Circuit.Quantity sampleRate = new Circuit.Quantity(48e3m, Circuit.Units.Hz);
-        public Circuit.Quantity SampleRate
-        {
-            get { return sampleRate; }
-            set { sampleRate.Set(value); NotifyChanged("SampleRate"); }
-        }
-
-        protected Circuit.Quantity inputGain = new Circuit.Quantity(1, Circuit.Units.None);
-        public Circuit.Quantity InputGain
-        {
-            get { return inputGain; }
-            set { inputGain.Set(value); NotifyChanged("InputGain"); }
-        }
-
-        protected Circuit.Quantity outputGain = new Circuit.Quantity(1, Circuit.Units.None);
-        public Circuit.Quantity OutputGain
-        {
-            get { return outputGain; }
-            set { outputGain.Set(value); NotifyChanged("OutputGain"); }
-        }
         
         protected Circuit.Circuit circuit = null;
         protected Circuit.Simulation simulation = null;
         protected Circuit.TransientSolution solution = null;
-        protected Audio.Stream waveIo = null;
 
         protected Dictionary<SyMath.Expression, SyMath.Expression> componentVoltages;
         protected List<Probe> probes = new List<Probe>();
         protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
 
-        public TransientSimulation(Circuit.Schematic Simulate, AudioConfiguration Audio)
+        public TransientSimulation(Circuit.Schematic Simulate)
         {
             InitializeComponent();
-
-            Closed += OnClosed;
-
-            sampleRate = Audio.SampleRate;
-            oscilloscope.Display.SampleRate = sampleRate;
-
+                        
             // Make a clone of the schematic so we can mess with it.
             Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), log);
             clone.Elements.ItemAdded += OnElementAdded;
             clone.Elements.ItemRemoved += OnElementRemoved;
             schematic.Schematic = new SimulationSchematic(clone);
             schematic.Schematic.SelectionChanged += OnProbeSelected;
+            circuit = schematic.Schematic.Schematic.Build(log);
 
             // Find inputs and outputs to use as the default.
             IEnumerable<Circuit.Component> components = clone.Symbols.Select(i => i.Component);
@@ -102,14 +76,10 @@ namespace LiveSPICE
             Output = components.OfType<Circuit.Output>().Select(i => Circuit.Component.DependentVariable("V", i.Name)).FirstOrDefault();
             
             parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
-            
-            Build();
 
-            waveIo = Audio.Device.Open(
-                ProcessSamples, 
-                Audio.InputChannel, 
-                Audio.OutputChannel, 
-                (double)Audio.Latency);
+            audio.Callback = ProcessSamples;
+
+            Unloaded += (s, e) => audio.Stop();
         }
 
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
@@ -164,20 +134,21 @@ namespace LiveSPICE
         private BackgroundWorker builder;
         protected void Build()
         {
-            circuit = null;
-            solution = null;
             simulation = null;
             try
             {
-                circuit = schematic.Schematic.Schematic.Build(log);
                 builder = new BackgroundWorker();
                 builder.DoWork += (o, e) =>
                 {
                     try
                     {
-                        solution = Circuit.TransientSolution.SolveCircuit(circuit, 1 / (sampleRate * Oversample), log);
-                        arguments = solution.Parameters.ToDictionary(i => i.Name, i => 0.5);
-                        Dispatcher.Invoke(() => parameters.UpdateControls(solution.Parameters));
+                        Circuit.Quantity h = new Circuit.Quantity(1 / (sampleRate * Oversample), Circuit.Units.s);
+                        if (solution == null || solution.TimeStep != h)
+                        {
+                            solution = Circuit.TransientSolution.SolveCircuit(circuit, h, log);
+                            arguments = solution.Parameters.ToDictionary(i => i.Name, i => 0.5);
+                            Dispatcher.Invoke(() => parameters.UpdateControls(solution.Parameters));
+                        }
                         simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, log);
                     }
                     catch (System.Exception ex)
@@ -192,9 +163,17 @@ namespace LiveSPICE
                 log.WriteLine(Circuit.MessageType.Error, ex.Message);
             }
         }
-        
-        private void ProcessSamples(double[] In, double[] Out)
+
+        private double sampleRate;
+        private void ProcessSamples(double[] In, double[] Out, double SampleRate)
         {
+            // If the sample rate changes, we need to rebuild the simulation.
+            if (sampleRate != SampleRate)
+            {
+                sampleRate = SampleRate;
+                Build();
+            }
+
             // If there is no simulation, just zero the samples and return.
             if (simulation == null)
             {
@@ -205,12 +184,6 @@ namespace LiveSPICE
 
             try
             {
-                // Apply input gain.
-                double inputGain = (double)InputGain;
-                if (System.Math.Abs(inputGain - 1.0) > 1e-2)
-                    for (int i = 0; i < In.Length; ++i)
-                        In[i] *= inputGain;
-
                 lock (probes)
                 {
                     // Build the signal list.
@@ -223,20 +196,14 @@ namespace LiveSPICE
                     simulation.Run(Input, In, signals, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
-                    oscilloscope.ProcessSignals(Out.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)));
+                    oscilloscope.ProcessSignals(Out.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)), SampleRate);
                 }
-
-                // Apply output gain.
-                double outputGain = (double)OutputGain;
-                if (System.Math.Abs(outputGain - 1.0) > 1e-2)
-                    for (int i = 0; i < Out.Length; ++i)
-                        Out[i] *= outputGain;
             }
             catch (Circuit.SimulationDiverged Ex)
             {
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 log.WriteLine(Circuit.MessageType.Error, Ex.Message);
-                if ((double)Ex.At > (double)sampleRate.Value)
+                if ((double)Ex.At > SampleRate)
                     simulation.Reset();
                 else
                     simulation = null;
@@ -247,12 +214,6 @@ namespace LiveSPICE
                 log.WriteLine(Circuit.MessageType.Error, ex.Message);
                 simulation = null;
             }
-        }
-
-        private void OnClosed(object sender, EventArgs e)
-        {
-            waveIo.Stop();
-            waveIo = null;
         }
 
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) { Build(); }

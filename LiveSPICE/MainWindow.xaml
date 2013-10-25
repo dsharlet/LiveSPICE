@@ -6,7 +6,7 @@
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
         Title="LiveSPICE" Width="1200" Height="800" Background="{StaticResource ResourceKey=Background}"
-        Closing="OnClosing" Loaded="OnLoaded">
+        Closing="OnClosing" Loaded="OnLoaded" >
     <Window.Resources>
         <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
@@ -59,11 +59,8 @@
                 <MenuItem Command="ApplicationCommands.SelectAll" />
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="Oscilloscope" IsChecked="True" />
                 <MenuItem Header="Properties" IsChecked="True" />
                 <MenuItem Header="Components" IsChecked="True" />
-                <MenuItem Header="Log" IsChecked="True" />
-                <MenuItem Header="Speaker" IsChecked="True" />
             </MenuItem>
         </Menu>
 

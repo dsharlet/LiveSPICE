@@ -35,15 +35,15 @@ namespace LiveSPICE
         protected override void OnSubmenuOpened(RoutedEventArgs e)
         {
             Items.Clear();
-            List<string> mru = App.Current.Mru;
+            string[] mru = App.Current.Settings.Mru;
 
-            if (mru.Count == 0)
+            if (mru.Length == 0)
             {
                 Items.Add(new MenuItem() { Header = "Empty" });
                 return;
             }
-            
-            for (int i = 0; i < mru.Count && i < 10; ++i)
+
+            for (int i = 0; i < mru.Length && i < 10; ++i)
             {
                 MenuItem item = new MenuItem()
                 {

@@ -14,7 +14,7 @@ namespace AsioTests
             System.Console.WriteLine(C.ToString());
         }
 
-        private static void Callback(double[] In, double[] Out)
+        private static void Callback(double[] In, double[] Out, double SampleRate)
         {
             for (int i = 0; i < In.Length; ++i)
                 Out[i] = In[i];

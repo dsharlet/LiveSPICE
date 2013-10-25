@@ -88,6 +88,7 @@ namespace LiveSPICE
         }
 
         private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(new SchematicEditor()); }
+        private void OnMruClick(object sender, RoutedEventArgs e) { New(SchematicEditor.Open((string)((MenuItem)e.Source).Tag)); }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             try
@@ -118,7 +119,7 @@ namespace LiveSPICE
         }
 
         private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveViewer != null; }
-        private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { dock.SaveLayout("EditConfig.xml"); ActiveContent.Close(); }
+        private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { App.Current.Settings.MainWindowLayout = dock.SaveLayout(); ActiveContent.Close(); }
         
         private void Exit_Executed(object sender, ExecutedRoutedEventArgs e) { Close(); }
 
@@ -175,7 +176,13 @@ namespace LiveSPICE
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            //dock.LoadLayout("EditConfig.xml");
+            try
+            {
+                dock.LoadLayout(App.Current.Settings.MainWindowLayout);
+            }
+            catch (System.Exception)
+            {
+            }
         }
 
         private void toolbox_Click(object s, RoutedEventArgs e) 
@@ -195,21 +202,13 @@ namespace LiveSPICE
             active.Focus();
             Keyboard.Focus(active);
         }
-
-        private AudioConfiguration ConfigAudio()
-        {
-            AudioConfiguration audio = new AudioConfiguration() { Owner = this };
-            bool? result = audio.ShowDialog();
-            return result ?? false ? audio : null;
-        }
-
+        
         private void Simulate_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveEditor != null; }
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            AudioConfiguration audio = ConfigAudio();
-            if (audio != null)
+            if (ActiveEditor != null)
             {
-                TransientSimulation simulation = new TransientSimulation(ActiveEditor.Schematic, audio) { Owner = this };
+                TransientSimulation simulation = new TransientSimulation(ActiveEditor.Schematic) { Owner = this };
                 simulation.Show();
             }
         }
@@ -221,10 +220,5 @@ namespace LiveSPICE
                 PropertyChanged(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnMruClick(object sender, RoutedEventArgs e)
-        {
-            New(SchematicEditor.Open((string)((MenuItem)e.Source).Tag));
-        }
     }
 }

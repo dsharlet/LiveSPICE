@@ -62,9 +62,9 @@ namespace LiveSPICE
             signals.SelectedValue = Display.SelectedSignal;
         }
         
-        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals)
+        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals, double SampleRate)
         {
-            Display.ProcessSignals(SampleCount, Signals);
+            Display.ProcessSignals(SampleCount, Signals, SampleRate);
         }
 
         // INotifyPropertyChanged.
