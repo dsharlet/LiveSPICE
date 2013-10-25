@@ -31,7 +31,7 @@
         <TextBlock Grid.Row="3" Grid.Column="0" Text="Input Gain:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <DockPanel Grid.Row="3" Grid.Column="1" LastChildFill="True">
             <Border DockPanel.Dock="Left" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
-                <TextBlock x:Name="inputLevel" Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0} dB}" TextAlignment="Center" />
+                <TextBlock x:Name="inputLevel" Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
             </Border>
             <Slider Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=InputGain}" />
         </DockPanel>
@@ -41,8 +41,8 @@
 
         <TextBlock Grid.Row="5" Grid.Column="0" Text="Output Gain:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <DockPanel Grid.Row="5" Grid.Column="1" LastChildFill="True">
-            <Border DockPanel.Dock="Left" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
-                <TextBlock x:Name="outputLevel" Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0} dB}" TextAlignment="Center" />
+            <Border DockPanel.Dock="Right" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
+                <TextBlock x:Name="outputLevel" Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
             </Border>
             <Slider Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=OutputGain}" />
         </DockPanel>
