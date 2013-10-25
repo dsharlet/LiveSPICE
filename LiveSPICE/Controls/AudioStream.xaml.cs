@@ -95,7 +95,7 @@ namespace LiveSPICE
                     App.Current.Settings.AudioInput = input.Name;
                     OpenStream();
                 }
-                NotifyChanged("InputChannel"); 
+                NotifyChanged("Input"); 
             }
         }
 
@@ -111,7 +111,7 @@ namespace LiveSPICE
                     App.Current.Settings.AudioOutput = output.Name;
                     OpenStream();
                 }
-                NotifyChanged("OutputChannel"); 
+                NotifyChanged("Output"); 
             }
         }
 
