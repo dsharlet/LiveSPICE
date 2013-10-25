@@ -40,7 +40,7 @@ namespace Audio
 
             int BufferCount = 6;
             int BufferSize = Buffer / 2;
-            BufferSize = BufferSize - (format.nBlockAlign - (Buffer % format.nBlockAlign)) % format.nBlockAlign;
+            BufferSize = BufferSize + (format.nBlockAlign - (Buffer % format.nBlockAlign)) % format.nBlockAlign;
 
             input = new double[BufferSize * 8 / Bits];
             output = new double[BufferSize * 8 / Bits];
