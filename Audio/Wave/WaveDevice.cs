@@ -25,45 +25,28 @@ namespace Audio
 
     class WaveDevice : Device
     {
-        public override Channel[] InputChannels
+        public WaveDevice() : base("Windows Audio")
         {
-            get
+            List<WaveChannel> channels = new List<WaveChannel>();
+            int count = Winmm.waveOutGetNumDevs();
+            for (int i = 0; i < count; ++i)
             {
-                List<WaveChannel> channels = new List<WaveChannel>();
-
-                int count = Winmm.waveInGetNumDevs();
-                for (int i = 0; i < count; ++i)
-                {
-                    WAVEINCAPS caps = new WAVEINCAPS();
-                    MmException.CheckThrow(Winmm.waveInGetDevCaps(new IntPtr(i), ref caps, (uint)Marshal.SizeOf(caps)));
-
-                    channels.Add(new WaveChannel(caps.szPname, i));
-                }
-
-                return channels.ToArray();
+                WAVEOUTCAPS caps = new WAVEOUTCAPS();
+                MmException.CheckThrow(Winmm.waveOutGetDevCaps(new IntPtr(i), ref caps, (uint)Marshal.SizeOf(caps)));
+                channels.Add(new WaveChannel(caps.szPname, i));
             }
-        }
+            outputs = channels.ToArray();
 
-        public override Channel[] OutputChannels
-        {
-            get
+            channels = new List<WaveChannel>();
+            count = Winmm.waveInGetNumDevs();
+            for (int i = 0; i < count; ++i)
             {
-                List<WaveChannel> channels = new List<WaveChannel>();
-
-                int count = Winmm.waveOutGetNumDevs();
-                for (int i = 0; i < count; ++i)
-                {
-                    WAVEOUTCAPS caps = new WAVEOUTCAPS();
-                    MmException.CheckThrow(Winmm.waveOutGetDevCaps(new IntPtr(i), ref caps, (uint)Marshal.SizeOf(caps)));
-
-                    channels.Add(new WaveChannel(caps.szPname, i));
-                }
-
-                return channels.ToArray();
+                WAVEINCAPS caps = new WAVEINCAPS();
+                MmException.CheckThrow(Winmm.waveInGetDevCaps(new IntPtr(i), ref caps, (uint)Marshal.SizeOf(caps)));
+                channels.Add(new WaveChannel(caps.szPname, i));
             }
+            inputs = channels.ToArray();
         }
-
-        public WaveDevice() : base("Windows Audio") { }
 
         public override Stream Open(Stream.SampleHandler Callback, Channel Input, Channel Output, double Latency)
         {

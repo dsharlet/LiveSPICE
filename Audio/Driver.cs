@@ -19,6 +19,8 @@ namespace Audio
         public static IEnumerable<Driver> Drivers { get { return drivers; } }
 
         public abstract string Name { get; }
-        public abstract IEnumerable<Device> Devices { get; }
+
+        protected List<Device> devices;
+        public IEnumerable<Device> Devices { get { return devices; } }
     }
 }

@@ -19,8 +19,10 @@ namespace Audio
         private string name;
         public string Name { get { return name; } }
 
-        public abstract Channel[] InputChannels { get; }
-        public abstract Channel[] OutputChannels { get; }
+        protected Channel[] inputs;
+        public Channel[] InputChannels { get { return inputs; } }
+        protected Channel[] outputs;
+        public Channel[] OutputChannels { get { return outputs; } }
 
         protected Device(string Name) { name = Name; }
 

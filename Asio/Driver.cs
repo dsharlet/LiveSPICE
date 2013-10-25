@@ -9,21 +9,23 @@ namespace Asio
 {
     public class Driver : Audio.Driver
     {
+        static Driver()
+        {
+            drivers.Add(new Driver());
+        }
+
         public override string Name
         {
             get { return "ASIO"; }
         }
 
-        public override IEnumerable<Audio.Device> Devices
+        public Driver()
         {
-            get 
+            // our settings are in the local machine
+            using (RegistryKey lm = Registry.LocalMachine)
+            // in the software/asio folder
+            using (RegistryKey asio = lm.OpenSubKey("SOFTWARE\\ASIO"))
             {
-                // our settings are in the local machine
-                RegistryKey lm = Registry.LocalMachine;
-
-                // in the software/asio folder
-                RegistryKey asio = lm.OpenSubKey("SOFTWARE\\ASIO");
-
                 string[] names = asio.GetSubKeyNames();
 
                 foreach (string i in names)
@@ -38,10 +40,8 @@ namespace Asio
                     }
                     catch (System.Exception) { }
                     if (d != null)
-                        yield return d;
+                        devices.Add(d);
                 }
-                asio.Close();
-                lm.Close();
             }
         }
     }

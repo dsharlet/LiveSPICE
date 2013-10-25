@@ -32,10 +32,12 @@ namespace Asio
     {
         private AsioWrapper.Asio instance;
 
-        public override Audio.Channel[] InputChannels { get { return instance.InputChannels.Select(i => new Asio.Channel(i)).ToArray(); } }
-        public override Audio.Channel[] OutputChannels { get { return instance.OutputChannels.Select(i => new Asio.Channel(i)).ToArray(); } }
-
-        public Device(AsioWrapper.Asio Instance) : base(Instance.DriverName) { instance = Instance; }
+        public Device(AsioWrapper.Asio Instance) : base(Instance.DriverName) 
+        { 
+            instance = Instance;
+            inputs = instance.InputChannels.Select(i => new Asio.Channel(i)).ToArray();
+            outputs = instance.OutputChannels.Select(i => new Asio.Channel(i)).ToArray();
+        }
 
         public override Audio.Stream Open(Audio.Stream.SampleHandler Callback, Audio.Channel Input, Audio.Channel Output, double Latency)
         {
