@@ -32,9 +32,10 @@
             <MenuItem Header="_Edit">
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="Oscilloscope" IsChecked="True" />
-                <MenuItem Header="Log" IsChecked="True" />
-                <MenuItem Header="Speaker" IsChecked="True" />
+                <MenuItem Header="Scope" IsChecked="{Binding ElementName=scope, Path=IsVisible}" Click="ViewScope_Click" />
+                <MenuItem Header="Parameters" IsChecked="{Binding ElementName=parameters, Path=IsVisible}" Click="ViewParameters_Click" />
+                <MenuItem Header="Audio" IsChecked="{Binding ElementName=audio, Path=IsVisible}" Click="ViewAudio_Click" />
+                <MenuItem Header="Log" IsChecked="{Binding ElementName=log, Path=IsVisible}" Click="ViewLog_Click" />
             </MenuItem>
         </Menu>
 
@@ -81,8 +82,8 @@
 
                         <!-- Log -->
                         <xcad:LayoutAnchorablePane DockHeight="200">
-                            <xcad:LayoutAnchorable Title="Log">
-                                <ls:Log x:Name="log" />
+                            <xcad:LayoutAnchorable x:Name="log" Title="Log">
+                                <ls:Log />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
@@ -90,18 +91,18 @@
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
                         <!-- Parameters -->
                         <xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorable Title="Audio" AutoHideWidth="240">
-                                <ls:AudioStream x:Name="audio" />
+                            <xcad:LayoutAnchorable x:Name="audio" Title="Audio" AutoHideWidth="240">
+                                <ls:AudioStream />
                             </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable Title="Parameters" AutoHideWidth="240">
-                                <ls:Parameters x:Name="parameters" />
+                            <xcad:LayoutAnchorable x:Name="parameters" Title="Parameters" AutoHideWidth="240">
+                                <ls:Parameters />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
 
                         <!-- Oscilloscope -->
                         <xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorable Title="Oscilloscope">
-                                <ls:Scope x:Name="oscilloscope" />
+                            <xcad:LayoutAnchorable x:Name="scope" Title="Scope">
+                                <ls:Scope />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>

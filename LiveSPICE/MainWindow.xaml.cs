@@ -25,12 +25,15 @@ namespace LiveSPICE
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        public ComponentLibrary Components { get { return (ComponentLibrary)components.Content; } }
+        public PropertyGrid Properties { get { return (PropertyGrid)properties.Content; } }
+
         public MainWindow()
         {
             InitializeComponent();
 
-            components.Init(this, toolbox_Click);
-            properties.PropertyValueChanged += properties_PropertyValueChanged;
+            Components.Init(toolbox_Click, CommandBindings);
+            Properties.PropertyValueChanged += properties_PropertyValueChanged;
         }
         
         public LayoutContent ActiveContent { get { return schematics.SelectedContent; } }
@@ -158,18 +161,18 @@ namespace LiveSPICE
 
         private void schematic_SelectionChanged(object Sender, EventArgs Args)
         {
-            properties.SelectedObjects = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
-            properties.Tag = (SchematicEditor)Sender;
+            Properties.SelectedObjects = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
+            Properties.Tag = (SchematicEditor)Sender;
         }
 
         void properties_PropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
         {
-            SchematicEditor editor = (SchematicEditor)properties.Tag;
+            SchematicEditor editor = (SchematicEditor)Properties.Tag;
 
-            PropertyInfo property = properties.SelectedObjects.First().GetType().GetProperty(e.ChangedItem.PropertyDescriptor.Name);
+            PropertyInfo property = Properties.SelectedObjects.First().GetType().GetProperty(e.ChangedItem.PropertyDescriptor.Name);
 
             List<Edit> edits = new List<Edit>();
-            foreach (object i in properties.SelectedObjects)
+            foreach (object i in Properties.SelectedObjects)
                 edits.Add(new PropertyEdit(i, property, property.GetValue(i), e.OldValues[i]));
             editor.Edits.Did(EditList.New(edits));
         }
@@ -212,7 +215,18 @@ namespace LiveSPICE
                 simulation.Show();
             }
         }
-        
+
+        private void ViewProperties_Click(object sender, RoutedEventArgs e) { ToggleVisible(properties); }
+        private void ViewComponents_Click(object sender, RoutedEventArgs e) { ToggleVisible(components); }
+
+        private static void ToggleVisible(LayoutAnchorable Anchorable)
+        {
+            if (Anchorable.IsVisible)
+                Anchorable.Hide();
+            else
+                Anchorable.Show();
+        }
+
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {

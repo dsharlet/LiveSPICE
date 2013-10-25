@@ -59,8 +59,8 @@
                 <MenuItem Command="ApplicationCommands.SelectAll" />
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="Properties" IsChecked="True" />
-                <MenuItem Header="Components" IsChecked="True" />
+                <MenuItem Header="Properties" IsChecked="{Binding ElementName=properties, Path=IsVisible}" Click="ViewProperties_Click" />
+                <MenuItem Header="Components" IsChecked="{Binding ElementName=components, Path=IsVisible}" Click="ViewComponents_Click" />
             </MenuItem>
         </Menu>
 
@@ -110,14 +110,14 @@
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="265">
                         <xcad:LayoutAnchorablePane>
                             <!-- Components -->
-                            <xcad:LayoutAnchorable Title="Components" AutoHideWidth="240">
-                                <ls:ComponentLibrary x:Name="components" />
+                            <xcad:LayoutAnchorable x:Name="components" Title="Components" AutoHideWidth="240">
+                                <ls:ComponentLibrary />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                         <xcad:LayoutAnchorablePane DockHeight="300">
                             <!-- Properties -->
-                            <xcad:LayoutAnchorable Title="Properties" AutoHideWidth="240">
-                                <ls:PropertyGrid x:Name="properties" />
+                            <xcad:LayoutAnchorable x:Name="properties" Title="Properties" AutoHideWidth="240">
+                                <ls:PropertyGrid />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
