@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,16 +24,28 @@ namespace LiveSPICE
     /// </summary>
     public partial class ComponentLibrary : UserControl
     {
-        private static Tuple<Type, Key[]>[] CommonTypes = 
+        private static List<Type> CommonTypes = new List<Type>()
         {
-            new Tuple<Type, Key[]> (typeof(Circuit.Conductor), new Key[] { Key.W }),
-            new Tuple<Type, Key[]> (typeof(Circuit.Ground), new Key[] { Key.G }),
-            new Tuple<Type, Key[]> (typeof(Circuit.Resistor), new Key[] { Key.R }),
-            new Tuple<Type, Key[]> (typeof(Circuit.Capacitor), new Key[] { Key.F }),
-            new Tuple<Type, Key[]> (typeof(Circuit.Inductor), new Key[] { Key.L, Key.H }),
-            new Tuple<Type, Key[]> (typeof(Circuit.VoltageSource), null),
-            new Tuple<Type, Key[]> (typeof(Circuit.NamedWire), null),
+            typeof(Circuit.Conductor),
+            typeof(Circuit.Ground),
+            typeof(Circuit.Resistor),
+            typeof(Circuit.Capacitor),
+            typeof(Circuit.Inductor),
+            typeof(Circuit.VoltageSource),
+            typeof(Circuit.NamedWire),
+            typeof(Circuit.Label)
         };
+
+        private static Dictionary<Type, KeyGesture[]> ShortcutKeys = new Dictionary<Type, KeyGesture[]>()
+        {
+            { typeof(Circuit.Conductor), new[] { new KeyGesture(Key.W, ModifierKeys.Control) } },
+            { typeof(Circuit.Ground), new[] { new KeyGesture(Key.G, ModifierKeys.Control) } },
+            { typeof(Circuit.Resistor), new[] { new KeyGesture(Key.R, ModifierKeys.Control) } },
+            { typeof(Circuit.Capacitor), new[] { new KeyGesture(Key.F, ModifierKeys.Control) } },
+            { typeof(Circuit.Inductor), new[] { new KeyGesture(Key.L, ModifierKeys.Control), new KeyGesture(Key.H, ModifierKeys.Control) } },
+            { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
+        };
+
                 
         public ComponentLibrary()
         {
@@ -45,31 +58,19 @@ namespace LiveSPICE
             return Assembly.GetAssembly(root).GetTypes().Where(t => !t.IsAbstract && root.IsAssignableFrom(t));
         }
 
-        public void Init(Window ShortcutKeys, RoutedEventHandler OnClick)
+        public void Init(RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
         {
             Expander common = GetCategory("Common");
-            foreach (Tuple<Type, Key[]> i in CommonTypes)
-            {
-                Button item = AddItem(common, i.Item1, OnClick);
-
-                if (i.Item2 != null)
-                {
-                    RoutedCommand command = new RoutedCommand();
-                    foreach (Key j in i.Item2)
-                        command.InputGestures.Add(new KeyGesture(j, ModifierKeys.Control));
-
-                    CommandBinding binding = new CommandBinding(command, (o, e) => item.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
-                    ShortcutKeys.CommandBindings.Add(binding);
-                }
-            }
+            foreach (Type i in CommonTypes)
+                AddItem(common, i, OnClick, CommandBindings);
             common.IsExpanded = true;
 
             foreach (Type i in GetComponentTypes())
                 foreach (CategoryAttribute j in i.GetCustomAttributes(typeof(CategoryAttribute), false).Cast<CategoryAttribute>())
-                    AddItem(GetCategory(j.Category), i, OnClick);
+                    AddItem(GetCategory(j.Category), i, OnClick, CommandBindings);
         }
         
-        private Button AddItem(Expander Group, Type T, RoutedEventHandler OnClick)
+        private Button AddItem(Expander Group, Type T, RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
         {
             try
             {
@@ -104,6 +105,18 @@ namespace LiveSPICE
                 button.Click += OnClick;
                 
                 ((Panel)Group.Content).Children.Add(button);
+
+                // Bind input gestures to a command and add it to the command bindings.
+                if (ShortcutKeys.ContainsKey(T))
+                {
+                    RoutedCommand command = new RoutedCommand();
+                    command.InputGestures.AddRange(ShortcutKeys[T]);
+
+                    button.ToolTip = (string)button.ToolTip + " (" + ShortcutKeys[T].Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
+
+                    CommandBinding binding = new CommandBinding(command, (o, e) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
+                    CommandBindings.Add(binding);
+                }
 
                 return button;
             }
