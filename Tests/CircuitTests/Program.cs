@@ -18,12 +18,12 @@ namespace CircuitTests
 
         static Quantity SampleRate = new Quantity(48000, Units.Hz);
         static int Samples = 48000;
-        static int Oversample = 8;
+        static int Oversample = 4;
         static int Iterations = 8;
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
-        static Expression V1 = Harmonics(t, 1.0, 328, 1);
+        static Expression V1 = Harmonics(t, 1.0, 82, 4);
         
         static void Main(string[] args)
         {
@@ -31,12 +31,7 @@ namespace CircuitTests
 
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
-
-            //Run(@"..\..\..\..\Circuits\FilterDiode.xml", Vin);
-            //Run(@"..\..\..\..\Circuits\CommonCathodeTriodeAmplifier.xml", Vin);
-            //Run(@"..\..\..\..\Circuits\TransistorAmp.xml", Vin);
-            //return;
-            
+                        
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
             {
                 try
@@ -85,7 +80,7 @@ namespace CircuitTests
                 vs[n] = Vin(n * S.TimeStep);
             input.Add("V1[t]", vs);
 
-            //Dictionary<Expression, double[]> output = S.Transient.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
+            //Dictionary<Expression, double[]> output = S.Solution.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
             Dictionary<Expression, double[]> output = new Expression[] { C.Evaluate("V[O1]") }.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is cached before benchmarking.
@@ -93,15 +88,27 @@ namespace CircuitTests
             S.Reset();
 
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-            timer.Start();
-            S.Run(vs.Length, input, output, Arguments, Iterations);
-            timer.Stop();
+            try
+            {
+                timer.Start();
+                S.Run(vs.Length, input, output, Arguments, Iterations);
+                timer.Stop();
+            }
+            catch (SimulationDiverged Ex)
+            {
+                N = (int)Ex.At;
+            }
 
             int t1 = Math.Min(N, 2000);
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
-                plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
+                plots.Add(i.Key, i.Value.Skip(30000).Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
+
+            double max = 0.0;
+            for (int i = 0; i < vs.Length; ++i)
+                max = Math.Max(max, Math.Abs(vs[i] - output.First().Value[i]));
+            System.Console.WriteLine("Max error {0}", max);
 
             IEnumerable<double[]> series = input.Concat(output).Select(i => i.Value);
             Plot p = new Plot(
@@ -111,7 +118,9 @@ namespace CircuitTests
                 S.TimeStep * t1, 0, 
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
 
-            return (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0);
+            double rate = (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0);
+            System.Console.WriteLine("Ran at {0}x real time", rate);
+            return rate;
         }
 
         // Generate a function with the first N harmonics of f0.
