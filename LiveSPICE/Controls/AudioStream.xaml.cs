@@ -187,8 +187,8 @@ namespace LiveSPICE
             for (int i = 0; i < In.Length; ++i)
             {
                 double v = In[i];
-                v *= inputGain;
                 peak = Math.Max(peak, Math.Abs(v));
+                v *= inputGain;
                 In[i] = v;
             }
             Dispatcher.InvokeAsync(() => inputLevel.Background = StatusBrush(peak));
