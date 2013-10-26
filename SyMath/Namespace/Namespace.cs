@@ -12,12 +12,7 @@ namespace SyMath
     /// </summary>
     public class UnresolvedName : Exception
     {
-        public UnresolvedName(string Message) : base(Message) { }
-    }
-
-    public class UnresolvedCall : UnresolvedName
-    {
-        public UnresolvedCall(string Message) : base(Message) { }
+        public UnresolvedName(string Name) : base("Unresolved name '" + Name + "'.") { }
     }
 
     /// <summary>
@@ -42,14 +37,11 @@ namespace SyMath
         /// <returns></returns>
         public Expression Resolve(string Name) 
         {
-            try
-            {
-                return LookupName(Name).Single();
-            }
-            catch (Exception)
-            {
+            IEnumerable<Expression> lookup = LookupName(Name);
+            if (lookup.Count() == 1)
+                return lookup.First();
+            else
                 throw new UnresolvedName(Name);
-            }
         }
         /// <summary>
         /// Resolve a name with arguments to a function.
@@ -59,15 +51,11 @@ namespace SyMath
         /// <returns></returns>
         public Function Resolve(string Name, IEnumerable<Expression> Params)
         {
-            try
-            {
-                IEnumerable<Function> candidates = LookupName(Name).OfType<Function>();
-                return candidates.Single(i => i.CanCall(Params));
-            }
-            catch (Exception)
-            {
+            IEnumerable<Function> candidates = LookupName(Name).OfType<Function>().Where(i => i.CanCall(Params));
+            if (candidates.Count() == 1)
+                return candidates.First();
+            else
                 throw new UnresolvedName(Name);
-            }
         }
 
         /// <summary>
