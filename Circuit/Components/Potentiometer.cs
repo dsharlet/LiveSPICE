@@ -60,15 +60,12 @@ namespace Circuit
         {
             Expression P = Wipe; // RangeParameter.New(Name, wipe, false);
 
-            Expression R1 = resistance.Value * (1 - P);
-            Expression R2 = resistance.Value * P;
+            Expression R1 = resistance.Value * P;
+            Expression R2 = resistance.Value * (1 - P);
 
-            Expression VR1 = Anode.V - Wiper.V;
-            Expression VR2 = Wiper.V - Cathode.V;
-
-            Cathode.i = -VR1 / (R1 + 1e-32m);
-            Anode.i = VR2 / (R2 + 1e-32m);
-            Wiper.i = Cathode.i + Anode.i;
+            Cathode.i = Resistor.Analyze(Mna, Cathode.V - Wiper.V, R1);
+            Anode.i = Resistor.Analyze(Mna, Anode.V - Wiper.V, R2);
+            Wiper.i = -(Cathode.i + Anode.i);
         }
         
         public override sealed void LayoutSymbol(SymbolLayout Sym)
