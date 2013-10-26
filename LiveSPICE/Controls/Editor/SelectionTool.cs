@@ -40,13 +40,11 @@ namespace LiveSPICE
         public override void End() { Target.overlays.Children.Remove(path); base.End(); }
         public override void Cancel() { path.Visibility = Visibility.Hidden; }
 
-        //public override void MouseDoubleClick(Point At, Symbol On)
-        //{
-        //    if (On != null)
-        //        Target.Select(Target.Symbols.Where(i => i.Component.GetType() == On.Component.GetType()));
-        //    else
-        //        Target.Select();
-        //}
+        public override void MouseDoubleClick(Circuit.Coord At)
+        {
+            Type type = Target.AtPoint(a).OfType<Circuit.Symbol>().Select(i => i.Component.GetType()).FirstOrDefault();
+            Target.Select(Target.Symbols.Where(i => i.Component.GetType() == type), false, false);
+        }
 
         private bool Movable(Circuit.Coord At)
         {
@@ -91,7 +89,7 @@ namespace LiveSPICE
             if (path.Visibility == Visibility.Visible)
             {
                 if (a == b)
-                    Target.ToggleSelect(Target.AtPoint(a));
+                    Target.ToggleSelect(Target.AtPoint(a).FirstOrDefault());
                 else
                     Target.Select(Target.InRect(a, b));
                 path.Visibility = Visibility.Hidden;

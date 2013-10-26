@@ -254,21 +254,7 @@ namespace LiveSPICE
                 return d;
             });
         }
-
-        private void BreakWiresAtTerminal(Circuit.Coord x)
-        {
-            List<Circuit.Wire> wires = Wires.Where(i =>
-                x != i.A && x != i.B &&
-                Circuit.Wire.PointOnSegment(x, i.A, i.B)).ToList();
-            // Find the wires at x and split them.
-            foreach (Circuit.Wire i in wires)
-            {
-                Remove(i);
-                AddWire(i.A, x);
-                AddWire(x, i.B);
-            }
-        }
-
+        
         private IEnumerable<Circuit.Wire> CoincidentWires(Circuit.Coord A, Circuit.Coord B)
         {
             return Wires.Where(i =>
@@ -331,7 +317,8 @@ namespace LiveSPICE
             // Remove the original wires, and add new ones between each terminal between a and b.
             Remove(overlapping);
             for (int i = 0; i < terminals.Count - 1; ++i)
-                Add(new Circuit.Wire(terminals[i], terminals[i + 1]));
+                if (terminals[i] != terminals[i + 1])
+                    Add(new Circuit.Wire(terminals[i], terminals[i + 1]));
 
             Edits.EndEditGroup();
         }

@@ -42,9 +42,9 @@ namespace LiveSPICE
         {
             InitializeComponent();
 
-            PreviewMouseDown += OnMouseDown;
-            PreviewMouseUp += OnMouseUp;
-            PreviewMouseMove += OnMouseMove;
+            MouseDown += OnMouseDown;
+            MouseUp += OnMouseUp;
+            MouseMove += OnMouseMove;
             MouseLeave += OnMouseLeave;
             MouseEnter += OnMouseEnter;
 
@@ -234,8 +234,13 @@ namespace LiveSPICE
             if (e.ChangedButton == MouseButton.Left)
             {
                 CaptureMouse();
-                if (Tool != null) 
-                    Tool.MouseDown(at);
+                if (Tool != null)
+                {
+                    if (e.ClickCount == 2)
+                        Tool.MouseDoubleClick(at);
+                    else
+                        Tool.MouseDown(at);
+                }
             }
             else
             {
@@ -243,6 +248,7 @@ namespace LiveSPICE
                 if (Tool != null) 
                     Tool.Cancel();
             }
+
             e.Handled = true;
         }
         protected virtual void OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -250,9 +256,9 @@ namespace LiveSPICE
             Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
             if (e.ChangedButton == MouseButton.Left)
             {
+                if (Tool != null)
+                    Tool.MouseUp(at); 
                 ReleaseMouseCapture();
-                if (Tool != null) 
-                    Tool.MouseUp(at);
             }
             e.Handled = true;
         }

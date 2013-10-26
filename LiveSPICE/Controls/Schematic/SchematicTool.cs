@@ -27,7 +27,8 @@ namespace LiveSPICE
         public virtual void Begin() { cursor = Target.Cursor; Target.Cursor = Cursors.Cross; }
         public virtual void End() { Target.Cursor = cursor; }
         public virtual void Cancel() { }
-                
+
+        public virtual void MouseDoubleClick(Circuit.Coord At) { }
         public virtual void MouseDown(Circuit.Coord At) { }
         public virtual void MouseMove(Circuit.Coord At) { }
         public virtual void MouseUp(Circuit.Coord At) { }
