@@ -146,7 +146,7 @@ namespace LiveSPICE
             {
                 try
                 {
-                    Circuit.Quantity h = new Circuit.Quantity(1 / (sampleRate * Oversample), Circuit.Units.s);
+                    Circuit.Quantity h = new Circuit.Quantity(Constant.One / (sampleRate * Oversample), Circuit.Units.s);
                     if (solution == null || solution.TimeStep != h)
                     {
                         solution = Circuit.TransientSolution.SolveCircuit(circuit, h, Log);
