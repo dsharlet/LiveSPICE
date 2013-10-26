@@ -124,11 +124,13 @@ namespace Circuit
             return X;
         }
 
-        public new static Wire Deserialize(XElement X)
+        public new static Element Deserialize(XElement X)
         {
-            return new Wire(
-                Coord.Parse(X.Attribute("A").Value),
-                Coord.Parse(X.Attribute("B").Value));
+            Coord a = Coord.Parse(X.Attribute("A").Value);
+            Coord b = Coord.Parse(X.Attribute("B").Value);
+            if (a == b)
+                return new Symbol(new Error(X, "Zero length wire.")) { Position = a };
+            return new Wire(a, b);
         }
 
         public override string ToString()

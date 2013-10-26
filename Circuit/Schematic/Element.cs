@@ -86,8 +86,15 @@ namespace Circuit
         
         public static Element Deserialize(XElement X)
         {
-            Type T = Type.GetType(X.Attribute("ElementType").Value);
-            return (Element)T.GetMethod("Deserialize").Invoke(null, new object[] { X });
+            try
+            {
+                Type T = Type.GetType(X.Attribute("ElementType").Value);
+                return (Element)T.GetMethod("Deserialize").Invoke(null, new object[] { X });
+            }
+            catch (System.Reflection.TargetInvocationException Ex)
+            {
+                throw Ex.InnerException;
+            }
         }
 
         protected static Point RotateAround(Point x, int dt, Point at)

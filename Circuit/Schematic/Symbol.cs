@@ -158,7 +158,7 @@ namespace Circuit
         {
             string type = X.Attribute("Type").Value;
             Type T = Type.GetType(type);
-            Component C = T != null ? (Component)Activator.CreateInstance(T) : new Error(X);
+            Component C = T != null ? (Component)Activator.CreateInstance(T) : new Error(X, "Type '" + type + "' not found.");
             Symbol S = new Symbol(C);
             S.Position = Coord.Parse(X.Attribute("Position").Value);
             if (T == null) return S;

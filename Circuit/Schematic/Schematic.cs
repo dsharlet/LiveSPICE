@@ -173,7 +173,7 @@ namespace Circuit
             Element of = (Element)sender;
 
             if (of is Wire)
-                RebuildNodes(true);
+                RebuildNodes((Wire)of, true);
             else if (of is Symbol)
                 UpdateTerminals((Symbol)of);
         }
@@ -251,7 +251,7 @@ namespace Circuit
             return n;
         }
 
-        private void RebuildNodes(bool MovedWire)
+        private void RebuildNodes(Wire At, bool MovedWire)
         {
             IEnumerable<Wire> wires = Wires;
 
@@ -275,6 +275,8 @@ namespace Circuit
                 foreach (Symbol i in Symbols)
                     UpdateTerminals(i);
         }
+
+        private void RebuildNodes(bool MovedWire) { RebuildNodes(null, MovedWire); }
 
         private void UpdateTerminals(Symbol Of)
         {

@@ -19,13 +19,18 @@ namespace Circuit
         [SchematicPersistent]
         public XElement Data { get { return data; } }
 
+        private string message;
+        [SchematicPersistent]
+        public string Message { get { return message; } }
+
         public Error() { }
-        public Error(XElement Data) { data = Data; }
+        public Error(XElement Data, string Message) { data = Data; message = Message; }
         
         public override void Analyze(ModifiedNodalAnalysis Mna) { throw new NotImplementedException("Cannot analyze a circuit with an Error component"); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
+            Sym.InBounds(new Coord(-20, 20), new Coord(20, -20));
             Sym.AddLoop(EdgeType.Red,
                 new Coord(-18, -20),
                 new Coord(-19, -19),
