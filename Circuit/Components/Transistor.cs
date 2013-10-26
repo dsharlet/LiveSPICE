@@ -100,9 +100,9 @@ namespace Circuit
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
-            Sym.AddTerminal(c, new Coord(10, 30));
-            Sym.AddTerminal(b, new Coord(-30, 0));
-            Sym.AddTerminal(e, new Coord(10, -30));
+            Sym.AddTerminal(c, new Coord(10, 20));
+            Sym.AddTerminal(b, new Coord(-20, 0));
+            Sym.AddTerminal(e, new Coord(10, -20));
 
             int bx = -5;
             Sym.AddWire(c, new Coord(10, 17));
