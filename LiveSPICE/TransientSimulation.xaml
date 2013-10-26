@@ -69,37 +69,38 @@
         <xcad:DockingManager x:Name="dock" Grid.Row="3" AllowMixedOrientation="True" Margin="0, 0, 0, 0">
             <xcad:LayoutRoot>
                 <xcad:LayoutPanel Orientation="Horizontal">
-                    <xcad:LayoutPanel Orientation="Vertical">
-                        <!-- Schematics -->
-                        <xcad:LayoutAnchorablePane>
-                            <xcad:LayoutAnchorable Title="Schematic" CanHide="False" CanFloat="False" CanClose="False" CanAutoHide="False">
-                                <ls:SchematicViewer x:Name="schematic" />
-                            </xcad:LayoutAnchorable>
-                        </xcad:LayoutAnchorablePane>
-
-                        <!-- Log -->
-                        <xcad:LayoutAnchorablePane DockHeight="200">
-                            <xcad:LayoutAnchorable x:Name="log" Title="Log">
-                                <ls:Log />
-                            </xcad:LayoutAnchorable>
-                        </xcad:LayoutAnchorablePane>
-                    </xcad:LayoutPanel>
-
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="300">
-                        <!-- Parameters -->
                         <xcad:LayoutAnchorablePane>
+                            <!-- Audio -->
                             <xcad:LayoutAnchorable x:Name="audio" Title="Audio" AutoHideWidth="240">
                                 <ls:AudioStream />
                             </xcad:LayoutAnchorable>
+                            <!-- Parameters -->
                             <xcad:LayoutAnchorable x:Name="parameters" Title="Parameters" AutoHideWidth="240">
                                 <ls:Parameters />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
 
-                        <!-- Oscilloscope -->
                         <xcad:LayoutAnchorablePane>
+                            <!-- Scope -->
                             <xcad:LayoutAnchorable x:Name="scope" Title="Scope">
                                 <ls:Scope />
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorablePane>
+                    </xcad:LayoutPanel>
+                    
+                    <xcad:LayoutPanel Orientation="Vertical" DockWidth="*">
+                        <xcad:LayoutDocumentPane DockHeight="*">
+                            <!-- Schematic -->
+                            <xcad:LayoutAnchorable Title="Schematic" CanHide="False" CanFloat="False" CanClose="False" CanAutoHide="False">
+                                <ls:SchematicViewer x:Name="schematic" />
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutDocumentPane>
+
+                        <xcad:LayoutAnchorablePane DockHeight="200">
+                            <!-- Log -->
+                            <xcad:LayoutAnchorable x:Name="log" Title="Log">
+                                <ls:Log />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>

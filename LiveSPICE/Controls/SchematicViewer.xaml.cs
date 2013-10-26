@@ -20,7 +20,7 @@ namespace LiveSPICE
     /// </summary>
     public partial class SchematicViewer : UserControl
     {
-        protected double ZoomMax = 4;
+        protected double MaxZoom = 4;
         protected Point? mouse;
 
         protected ScaleTransform scale = new ScaleTransform();
@@ -35,13 +35,19 @@ namespace LiveSPICE
                 {
                     value.LayoutTransform = scale;
                     value.UpdateLayout();
-                    Zoom = Zoom;
+                    Zoom = Math.Max(Zoom, MinZoom(ViewportSize));
                     FocusCenter();
                 }
             }
         }
 
-        private double LogFloor(double x, double b) { return Math.Pow(b, Math.Floor(Math.Log(x, b))); }
+        private double LogFloor(double x) { return Math.Pow(2, Math.Floor(Math.Log(x, 2))); }
+
+        private Size ViewportSize { get { return new Size(scroll.ViewportWidth, scroll.ViewportHeight); } }
+
+        private double MinZoom(Size Size) { return LogFloor(Math.Min(
+            Size.Width / (Schematic.ActualWidth + 1e-6), 
+            Size.Height / (Schematic.ActualHeight + 1e-6))); }
 
         public double Zoom
         {
@@ -51,11 +57,9 @@ namespace LiveSPICE
                 Point focus = mouse.HasValue ? mouse.Value : new Point(scroll.ViewportWidth / 2, scroll.ViewportHeight / 2);
                 Point at = TranslatePoint(focus, Schematic);
 
-                double zoom = LogFloor(value, 2);
+                double zoom = LogFloor(value);
 
-                double minZoom = LogFloor(Math.Min(scroll.ViewportWidth / (Schematic.ActualWidth + 1e-6), scroll.ViewportHeight / (Schematic.ActualHeight + 1e-6)), 2);
-
-                scale.ScaleX = scale.ScaleY = Math.Max(Math.Min(zoom, ZoomMax), minZoom);
+                scale.ScaleX = scale.ScaleY = Math.Max(Math.Min(zoom, MaxZoom), MinZoom(ViewportSize));
                 Schematic.UpdateLayout();
 
                 at = Schematic.TranslatePoint(at, this);
@@ -73,7 +77,7 @@ namespace LiveSPICE
 
             scroll.PreviewMouseWheel += (o, e) =>
             {
-                Zoom = LogFloor(Zoom * (e.Delta > 0 ? 2 : 0.5), 2);
+                Zoom = LogFloor(Zoom * (e.Delta > 0 ? 2 : 0.5));
                 e.Handled = true;
             };
             scroll.PreviewMouseMove += (o, e) => mouse = e.GetPosition(this);
@@ -94,7 +98,7 @@ namespace LiveSPICE
             if (Schematic == null)
                 return;
 
-            Zoom = Zoom;
+            Zoom = Math.Max(Zoom, MinZoom(e.NewSize));
             if (e.PreviousSize.Width * e.PreviousSize.Height < 1)
             {
                 FocusCenter();
