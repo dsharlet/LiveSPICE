@@ -54,7 +54,6 @@ namespace LiveSPICE
             Cursor = Cursors.Cross;
 
             edits = new EditStack();
-            edits.Dirtied += OnDirtied;
 
             Tool = new SelectionTool(this);
 
@@ -66,7 +65,6 @@ namespace LiveSPICE
         
         private EditStack edits;
         public EditStack Edits { get { return edits; } }
-        private void OnDirtied(object sender, EventArgs e) { }
 
         // File.
         private string filename = null;
@@ -110,7 +108,7 @@ namespace LiveSPICE
         {
             Schematic.Save(FileName);
             SetFileName(FileName);
-            Edits.Dirty = false;
+            Edits.Clean();
             App.Current.Settings.Used(filename);
             return true;
         }

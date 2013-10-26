@@ -85,31 +85,25 @@ namespace LiveSPICE
         private List<Edit> redo = new List<Edit>();
         private Stack<List<Edit>> tentative = new Stack<List<Edit>>();
 
-        private List<EventHandler> dirtied = new List<EventHandler>();
-        public event EventHandler Dirtied { add { dirtied.Add(value); } remove { dirtied.Remove(value); } }
+        //private List<EventHandler> dirtied = new List<EventHandler>();
+        //protected void RaiseDirtied()
+        //{
+        //    EventArgs args = new EventArgs();
+        //    foreach (EventHandler i in dirtied)
+        //        i(this, args);
+        //}
+        //public event EventHandler Dirtied { add { dirtied.Add(value); } remove { dirtied.Remove(value); } }
 
-        private bool dirty = false;
-        public bool Dirty 
-        { 
-            get { return dirty; } 
-            set 
-            { 
-                if (value && value != dirty)
-                {
-                    EventArgs args = new EventArgs();
-                    foreach (EventHandler i in dirtied)
-                        i(this, args);
-                }
-                dirty = value;
-            } 
-        }
+        private int clean = 0;
+        public bool Dirty { get { return undo.Count != clean; } }
+
+        public void Clean() { clean = undo.Count; }
         
         public void Do(params Edit[] Edits)
         {
             Edit edit = EditList.New(Edits);
             edit.Do();
-            Dirty = true;
-
+            
             if (tentative.Any())
             {
                 tentative.Peek().Add(edit);
@@ -124,7 +118,6 @@ namespace LiveSPICE
         public void Did(params Edit[] Edits)
         {
             Edit edit = EditList.New(Edits);
-            Dirty = true;
 
             if (tentative.Any())
             {
@@ -169,7 +162,6 @@ namespace LiveSPICE
                 undo.Last().Undo();
                 redo.Add(undo.Last());
                 undo.Remove(undo.Last());
-                Dirty = true;
             }
         }
         public void Redo()
@@ -179,7 +171,6 @@ namespace LiveSPICE
                 redo.Last().Do();
                 undo.Add(redo.Last());
                 redo.Remove(redo.Last());
-                Dirty = true;
             }
         }
 
