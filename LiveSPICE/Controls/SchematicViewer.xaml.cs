@@ -31,7 +31,13 @@ namespace LiveSPICE
             set 
             { 
                 scroll.Content = value;
-                value.LayoutTransform = scale;
+                if (value != null)
+                {
+                    value.LayoutTransform = scale;
+                    value.UpdateLayout();
+                    Zoom = Zoom;
+                    FocusCenter();
+                }
             }
         }
 

@@ -59,7 +59,7 @@ namespace LiveSPICE
             }
         }
 
-        static string CompactPath(string path, int length)
+        public static string CompactPath(string path, int length)
         {
             List<string> paths = path.Split('\\').ToList();
             for (int i = 1; i < paths.Count - 1 && paths.Sum(j => j.Length) > length; ++i)

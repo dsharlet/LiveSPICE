@@ -70,19 +70,22 @@ namespace LiveSPICE
             LayoutDocument doc = new LayoutDocument()
             {
                 Content = sv,
-                Title = Schematic.FileName,
-                ToolTip = Schematic.FileName,
+                Title = Schematic.Title,
+                ToolTip = Schematic.FilePath,
                 IsActive = true
             };
             doc.Closing += (o, e) => e.Cancel = !Schematic.CanClose();
 
             Schematic.PropertyChanged += (o, e) => 
             {
-                if (e.PropertyName != "FileName") return;
-                
-                doc.Title = Schematic.FileName;
-                doc.ToolTip = Schematic.FileName;
+                if (e.PropertyName == "FilePath")
+                {
+                    doc.Title = Schematic.Title;
+                    doc.ToolTip = Schematic.FilePath;
+                }
             };
+
+            sv.Tag = doc;
 
             schematics.Children.Add(doc);
             dock.UpdateLayout();
@@ -90,8 +93,37 @@ namespace LiveSPICE
             return sv;
         }
 
+        public SchematicViewer FindViewer(string FileName)
+        {
+            FileName = System.IO.Path.GetFullPath(FileName);
+            foreach (SchematicViewer i in schematics.Children.Select(i => i.Content).OfType<SchematicViewer>())
+            {
+                SchematicEditor ed = (SchematicEditor)i.Schematic;
+                if (System.IO.Path.GetFullPath(ed.FilePath) == FileName)
+                    return i;
+            }
+            return null;
+        }
+
+        private void Open(string FileName)
+        {
+            SchematicViewer open = FindViewer(FileName);
+            if (open != null)
+            {
+                ((LayoutDocument)open.Tag).IsSelected = true;
+                // If this schematic is already open, prompt for re-open if necessary.
+                if (((SchematicEditor)open.Schematic).CanClose(true))
+                    open.Schematic = SchematicEditor.Open(FileName);
+            }
+            else
+            {
+                // Just make a new one.
+                New(SchematicEditor.Open(FileName));
+            }
+        }
+
         private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(new SchematicEditor()); }
-        private void OnMruClick(object sender, RoutedEventArgs e) { New(SchematicEditor.Open((string)((MenuItem)e.Source).Tag)); }
+        private void OnMruClick(object sender, RoutedEventArgs e) { Open((string)((MenuItem)e.Source).Tag); }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             try
@@ -105,7 +137,7 @@ namespace LiveSPICE
                 if (d.ShowDialog(this) ?? false)
                 {
                     foreach (string i in d.FileNames)
-                        New(SchematicEditor.Open(i));
+                        Open(i);
                 }
             }
             catch (Exception ex)
@@ -133,7 +165,11 @@ namespace LiveSPICE
 
             foreach (SchematicViewer i in schematics.Children.Select(i => i.Content).OfType<SchematicViewer>())
                 if (((SchematicEditor)i.Schematic).Edits.Dirty)
-                    dlg.files.Items.Add(new TextBlock() { Text = ((SchematicEditor)i.Schematic).FileName, Tag = i.Schematic });
+                    dlg.files.Items.Add(new TextBlock() 
+                    { 
+                        Text = MruMenuItem.CompactPath(((SchematicEditor)i.Schematic).FilePath, 120), 
+                        Tag = i.Schematic 
+                    });
 
             if (dlg.files.Items.Count == 0)
                 return;

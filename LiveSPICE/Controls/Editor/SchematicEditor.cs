@@ -31,7 +31,7 @@ namespace LiveSPICE
         public SchematicEditor() : this(new Circuit.Schematic()) { }
         public SchematicEditor(string FileName) : this(Circuit.Schematic.Load(FileName))
         {
-            SetFileName(FileName);
+            SetFilePath(FileName);
         }
 
         public SchematicEditor(Circuit.Schematic Schematic) : base(Schematic)
@@ -67,21 +67,23 @@ namespace LiveSPICE
         public EditStack Edits { get { return edits; } }
 
         // File.
-        private string filename = null;
-        private void SetFileName(string FileName) { filename = FileName; NotifyChanged(FileName); }
-        public string FileName { get { return filename == null ? "Untitled" : System.IO.Path.GetFileNameWithoutExtension(filename); } }
+        private string filepath = null;
+        private void SetFilePath(string FilePath) { filepath = FilePath; NotifyChanged("FilePath"); NotifyChanged("Title"); }
+        public string FilePath { get { return filepath == null ? "Untitled" : filepath; } }
+        public string Title { get { return filepath == null ? "<Untitled>" : System.IO.Path.GetFileNameWithoutExtension(filepath); } }
         public bool Save()
         {
-            if (filename == null)
+            if (filepath == null)
                 return SaveAs();
             else
-                return Save(filename);
+                return Save(filepath);
         }
         public bool SaveAs()
         {
             SaveFileDialog dlg = new SaveFileDialog()
             {
-                FileName = FileName,
+                InitialDirectory = System.IO.Path.GetDirectoryName(filepath),
+                FileName = Title,
                 Filter = "Circuit Schematics|*" + FileExtension,
                 DefaultExt = FileExtension
             };
@@ -90,11 +92,22 @@ namespace LiveSPICE
             else
                 return false;
         }
-        public bool CanClose()
+        public bool CanClose(bool Reverting)
         {
-            if (Edits != null && Edits.Dirty)
+            if (Edits == null || !Edits.Dirty)
+                return true;
+
+            if (Reverting)
             {
-                switch (MessageBox.Show(Application.Current.MainWindow, "Save changes to schematic '" + FileName + "'?", Application.Current.MainWindow.Title, MessageBoxButton.YesNoCancel))
+                switch (MessageBox.Show(Application.Current.MainWindow, "Revert changes to '" + Title + "'?", Application.Current.MainWindow.Title, MessageBoxButton.OKCancel))
+                {
+                    case MessageBoxResult.OK: return true;
+                    case MessageBoxResult.Cancel: return false;
+                }
+            }
+            else
+            {
+                switch (MessageBox.Show(Application.Current.MainWindow, "Save changes to schematic '" + Title + "'?", Application.Current.MainWindow.Title, MessageBoxButton.YesNoCancel))
                 {
                     case MessageBoxResult.Yes: return Save();
                     case MessageBoxResult.No: return true;
@@ -104,12 +117,14 @@ namespace LiveSPICE
             return true;
         }
 
+        public bool CanClose() { return CanClose(false); }
+
         private bool Save(string FileName)
         {
             Schematic.Save(FileName);
-            SetFileName(FileName);
+            SetFilePath(FileName);
             Edits.Clean();
-            App.Current.Settings.Used(filename);
+            App.Current.Settings.Used(filepath);
             return true;
         }
 
