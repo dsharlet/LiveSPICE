@@ -33,16 +33,12 @@ namespace Circuit
         {
             // The input terminals are connected by a resistor Rin.
             Expression Vin = Positive.V - Negative.V;
-            Expression iin = Mna.AddNewUnknown("in" + Name);
-
-            Mna.AddEquation(Vin / (Expression)InputResistance, iin);
+            Expression iin = Resistor.Analyze(Mna, Vin, InputResistance);
             Positive.i = iin;
             Negative.i = -iin;
 
             // Vo = (G*Vin - Out.V) / Rout
-            Out.i = Mna.AddNewUnknown("out" + Name);
-
-            Mna.AddEquation(Gain * Vin - Out.V, Out.i * (Expression)OutputResistance);
+            Out.i = Resistor.Analyze(Mna, Gain * Vin - Out.V, OutputResistance);
         }
     }
 }
