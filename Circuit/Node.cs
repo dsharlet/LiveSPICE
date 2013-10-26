@@ -39,7 +39,7 @@ namespace Circuit
         [Browsable(false)]
         public object Tag { get { return tag; } set { tag = value; } }
 
-        public Node() { Name = "v1"; }
+        public Node() { Name = "_v1"; }
 
         protected List<Terminal> connected = new List<Terminal>();
         public void Disconnect(Terminal T) { connected.Remove(T); }
