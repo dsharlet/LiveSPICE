@@ -101,11 +101,11 @@ namespace LiveSPICE
                 layout = new Circuit.SymbolLayout();
                 Symbol.Component.LayoutSymbol(layout);
 
-                Circuit.Coord center = (layout.LowerBound + layout.UpperBound) / 2;
+                Circuit.Coord offset = layout.LowerBound + layout.UpperBound;
                 double scale = Math.Min(Math.Min(ActualWidth / Symbol.Width, ActualHeight / Symbol.Height), 1.0);
 
                 Matrix transform = new Matrix();
-                transform.Translate(-center.x, -center.y);
+                transform.Translate(-offset.x * 0.5, -offset.y * 0.5);
                 transform.Scale(scale, Symbol.Flip ? scale : -scale);
                 transform.Rotate(Symbol.Rotation * -90);
                 transform.Translate(ActualWidth / 2, ActualHeight / 2);
