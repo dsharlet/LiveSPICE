@@ -21,10 +21,19 @@ namespace Circuit
 
         public Resistor() { Name = "R1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V, Expression R)
         {
-            i = V / (Resistance.Value + 1e-32m);
+            // i = V/R
+            if (R.Equals(Real.Infinity))
+                return 0;
+            else if (R.IsZero())
+                return Conductor.Analyze(Mna, V);
+
+            return V / R;
         }
+
+        public override void Analyze(ModifiedNodalAnalysis Mna) { i = Analyze(Mna, V, Resistance); }
+
         
         protected override void DrawSymbol(SymbolLayout Sym)
         {

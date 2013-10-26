@@ -21,13 +21,15 @@ namespace Circuit
 
         public Capacitor() { Name = "C1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V, Expression C)
         {
-            // Vac = Va - Vc
-            Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
-            // i = C*dV/dt.
-            i = capacitance.Value * D(Vac, t);
+            // Ensure that V is not multiple variables.
+            V = Mna.AddNewUnknownEqualTo(V);
+            // i = C*dV/dt
+            return C * D(V, t);
         }
+
+        public override void Analyze(ModifiedNodalAnalysis Mna) { i = Analyze(Mna, V, Capacitance); }
                 
         protected override void DrawSymbol(SymbolLayout Sym)
         {

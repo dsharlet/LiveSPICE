@@ -25,7 +25,7 @@ namespace Circuit
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             if (closed)
-                Conductor.Analyze(Mna, Anode, Cathode);
+                i = Conductor.Analyze(Mna, V);
             else
                 i = Constant.Zero;
         }

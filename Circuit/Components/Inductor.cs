@@ -21,14 +21,17 @@ namespace Circuit
 
         public Inductor() { Name = "L1"; }
 
-        // Inductor is modeled as a voltage source where V = L*di/dt.
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V, Expression L)
         {
-            // Define a new unknown for the current through this inductor.
-            i = Mna.AddNewUnknown("i" + Name);
+            // Define a new unknown for the current through the inductor.
+            Expression i = Mna.AddNewUnknown();
             // V = L*di/dt
-            Mna.AddEquation(V, inductance.Value * D(i, t));
+            Mna.AddEquation(V, L * D(i, t));
+
+            return i;
         }
+
+        public override void Analyze(ModifiedNodalAnalysis Mna) { i = Analyze(Mna, V, Inductance); }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {

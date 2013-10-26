@@ -23,13 +23,11 @@ namespace Circuit
             Mna.AddEquation(Anode.V, Cathode.V);
         }
 
-        public static void Analyze(ModifiedNodalAnalysis Mna, Terminal A, Terminal B)
+        public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V)
         {
-            Expression i = Mna.AddNewUnknown("i" + A.Name + B.Name);
-            A.i = i;
-            B.i = -i;
-
-            Mna.AddEquation(A.V, B.V);
+            Expression i = Mna.AddNewUnknown();
+            Mna.AddEquation(V, Constant.Zero);
+            return i;
         }
         
         protected override void DrawSymbol(SymbolLayout Sym) { Sym.AddWire(Anode, Cathode); }
