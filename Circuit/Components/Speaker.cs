@@ -44,7 +44,7 @@ namespace Circuit
                 new Coord(5, -10),
                 new Coord(-10, -10));
 
-            Sym.DrawText(Name, new Coord(15, 0), Alignment.Near, Alignment.Center);
+            Sym.DrawText(Name, new Coord(17, 0), Alignment.Near, Alignment.Center);
         }
 
         public override string ToString() { return Name; }
