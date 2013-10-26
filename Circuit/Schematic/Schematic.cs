@@ -98,9 +98,10 @@ namespace Circuit
                 }
             }
 
+            // Check for error symbols.
             foreach (Error i in circuit.Components.OfType<Error>())
             {
-                log.WriteLine(MessageType.Error, "Error component '{0}'", i.Name);
+                log.WriteLine(MessageType.Error, "Error component '{0}': {1}", i.Name, i.Message);
                 errors++;
             }
 
