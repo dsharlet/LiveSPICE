@@ -132,7 +132,21 @@ namespace Circuit
 
             n += N;
         }
-        
+
+        public void Run(
+            int N,
+            IEnumerable<KeyValuePair<Expression, double[]>> Output,
+            IEnumerable<KeyValuePair<Expression, double>> Arguments,
+            int Iterations)
+        {
+            Run(
+                N,
+                new KeyValuePair<Expression, double[]>[0],
+                Output,
+                Arguments,
+                Iterations);
+        }
+
         public void Run(
             Expression InputNode, double[] InputSamples,
             IEnumerable<KeyValuePair<Expression, double[]>> Output,

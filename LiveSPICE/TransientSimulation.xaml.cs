@@ -201,7 +201,10 @@ namespace LiveSPICE
                         signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(output, Out));
 
                     // Process the samples!
-                    simulation.Run(Input, In, signals, arguments, Iterations);
+                    if (!ReferenceEquals(Input, null))
+                        simulation.Run(Input, In, signals, arguments, Iterations);
+                    else
+                        simulation.Run(In.Length, signals, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
                     Scope.ProcessSignals(Out.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)), SampleRate);
