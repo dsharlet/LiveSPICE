@@ -63,5 +63,6 @@ namespace SyMath
         public static readonly Expression Zero = Constant.New(0);
         public static readonly Expression One = Constant.New(1);
         public static readonly Expression NegativeOne = Constant.New(-1);
+        public static readonly Expression Infinity = Constant.New(Real.Infinity);
     }
 }

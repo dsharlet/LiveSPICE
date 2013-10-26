@@ -32,6 +32,8 @@ namespace SyMath
             }
         }
 
+        public static readonly Real Infinity = new Real(double.PositiveInfinity);
+
         public static explicit operator int(Real x)
         {
             if (x.rational != null) return (int)x.rational.Value;
@@ -201,6 +203,9 @@ namespace SyMath
 
         public string ToLaTeX()
         {
+            if (Equals(Infinity)) return @"\infty";
+            if (Equals(-Infinity)) return @"-\infty";
+
             if (rational != null)
                 return rational.Value.ToLaTeX();
             
@@ -216,6 +221,9 @@ namespace SyMath
         // IFormattable interface.
         public string ToString(string format, IFormatProvider formatProvider)
         {
+            if (Equals(Infinity)) return "\u221E";
+            if (Equals(-Infinity)) return "-\u221E";
+
             return rational != null ? rational.Value.ToString(format, formatProvider) : real.Value.ToString(format);
         }
         public string ToString(string format) { return ToString(format, null); }

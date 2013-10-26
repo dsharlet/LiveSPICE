@@ -14,6 +14,9 @@ namespace MetricTests
         {
             Tuple<double, string>[] tests = 
             {
+                new Tuple<double, string>(double.PositiveInfinity, "\u221E V"),
+                new Tuple<double, string>(double.NegativeInfinity, "-\u221E V"),
+
                 new Tuple<double, string>(1e-12, "+1 pV"),
                 new Tuple<double, string>(1e-11, "+10 pV"),
                 new Tuple<double, string>(1e-10, "+100 pV"),

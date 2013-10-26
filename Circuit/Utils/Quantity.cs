@@ -157,7 +157,7 @@ namespace Circuit
                 
                 // Find the order of magnitude of the value.
                 Real order = Real.Log10(Real.Abs(constant.Value) * round);
-                int prefix = order < -20 ? 0 : (int)Real.Floor(order / 3);
+                int prefix = order == Real.Infinity ? 0 : (order < -20 ? 0 : (int)Real.Floor(order / 3));
                 prefix = Math.Max(Math.Min(prefix + 5, prefixes.Length - 1), 0) - 5;
 
                 Value = Value / (((Real)10) ^ (prefix * 3));

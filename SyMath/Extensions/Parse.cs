@@ -39,7 +39,7 @@ namespace SyMath
             Escape("==", "=", "!=", ">=", ">", "<=", "<", "~=", "->",
             "+", "-", "*", "/", "^", "'",
             "!", "&", "|", ":",
-            ",", "[", "]", "(", ")", "{", "}"));
+            ",", "[", "]", "(", ")", "{", "}", "\u221E"));
 
         List<string> tokens = new List<string>();
 
@@ -281,6 +281,8 @@ namespace SyMath
                     return Constant.New(true);
                 else if (tok == "False")
                     return Constant.New(false);
+                else if (tok == "\u221E" || tok == "oo")
+                    return Constant.New(Real.Infinity);
                 else if (tok == "{")
                     return Set.New(L(",", "}"));
                 else if (tokens.Tok == "[")
