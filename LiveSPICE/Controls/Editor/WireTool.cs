@@ -26,7 +26,7 @@ namespace LiveSPICE
             path = new Path()
             {
                 Fill = null,
-                Stroke = Brushes.Black,
+                Stroke = ElementControl.HighlightPen.Brush,
                 StrokeThickness = 1,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,

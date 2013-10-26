@@ -27,8 +27,8 @@ namespace LiveSPICE
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ElementControl), new FrameworkPropertyMetadata(typeof(ElementControl)));
         }
 
-        protected static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash };
-        protected static Pen SelectedPen = new Pen(Brushes.Blue, 0.5f) { DashStyle = DashStyles.Dash };
+        public static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash };
+        public static Pen SelectedPen = new Pen(Brushes.Blue, 0.5f) { DashStyle = DashStyles.Dash };
         
         private Pen pen = null;
         public Pen Pen { get { return pen; } set { pen = value; InvalidateVisual(); } }
