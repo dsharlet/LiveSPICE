@@ -13,7 +13,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Wire")]
-    public class Conductor : PassiveTwoTerminal
+    public class Conductor : TwoTerminal
     {
         public Conductor() { Name = "_1"; }
 

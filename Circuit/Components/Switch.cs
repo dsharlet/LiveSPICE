@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Controls")]
     [DisplayName("Switch")]
-    public class Switch : PassiveTwoTerminal
+    public class Switch : TwoTerminal
     {
         protected bool closed = false;
         [Description("Closed = true corresponds to a closed circuit.")]

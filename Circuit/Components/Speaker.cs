@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("IO")]
     [DisplayName("Speaker")]
-    public class Speaker : PassiveTwoTerminal
+    public class Speaker : TwoTerminal
     {
         private Quantity impedance = new Quantity(Constant.Infinity, Units.Ohm);
 

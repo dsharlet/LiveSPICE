@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Resistor")]
-    public class Resistor : PassiveTwoTerminal
+    public class Resistor : TwoTerminal
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Description("Resistance of this resistor.")]

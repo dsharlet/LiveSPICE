@@ -9,7 +9,7 @@ namespace Circuit
 {
     [CategoryAttribute("IO")]
     [DisplayName("Output")]
-    public class Output : PassiveTwoTerminal
+    public class Output : TwoTerminal
     {
         public Output() { Name = "O1"; }
 

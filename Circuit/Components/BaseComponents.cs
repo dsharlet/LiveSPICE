@@ -90,7 +90,21 @@ namespace Circuit
         /// </summary>
         [Browsable(false)]
         public Expression V { get { return Anode.V - Cathode.V; } }
-        
+
+        /// <summary>
+        /// Current through this two terminal component.
+        /// </summary>
+        [Browsable(false)]
+        public Expression i
+        {
+            get { return Anode.i; }
+            set
+            {
+                Anode.i = value;
+                Cathode.i = Multiply.New(Constant.New(-1), value);
+            }
+        }
+
         /// <summary>
         /// Connect the terminals of this component to the given nodes.
         /// </summary>
@@ -111,25 +125,5 @@ namespace Circuit
         }
 
         protected abstract void DrawSymbol(SymbolLayout Sym);
-    }
-
-    /// <summary>
-    /// Passive two terminal component.
-    /// </summary>
-    public abstract class PassiveTwoTerminal : TwoTerminal
-    {
-        /// <summary>
-        /// Current through this two terminal component.
-        /// </summary>
-        [Browsable(false)]
-        public Expression i
-        {
-            get { return Anode.i; }
-            set
-            {
-                Anode.i = value;
-                Cathode.i = Multiply.New(Constant.New(-1), value);
-            }
-        }
     }
 }

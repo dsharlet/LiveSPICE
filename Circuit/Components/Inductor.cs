@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Inductor")]
-    public class Inductor : PassiveTwoTerminal
+    public class Inductor : TwoTerminal
     {
         protected Quantity inductance = new Quantity(100e-6m, Units.H);
         [Description("Inductance of this inductor.")]

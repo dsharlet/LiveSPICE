@@ -12,7 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Voltage Source")]
-    public class VoltageSource : PassiveTwoTerminal
+    public class VoltageSource : TwoTerminal
     {
         /// <summary>
         /// Expression for voltage V.

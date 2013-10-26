@@ -51,7 +51,7 @@ namespace Circuit
 
     [CategoryAttribute("Standard")]
     [DisplayName("Diode")]
-    public class Diode : PassiveTwoTerminal
+    public class Diode : TwoTerminal
     {
         protected DiodeModel model = new ShockleyDiodeModel();
         public DiodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
