@@ -44,7 +44,7 @@ namespace Circuit
         public Expression Evaluate(Expression x)
         {
             MatchContext m = MatchV.Matches(x);
-            if (m != null)
+            if (m != null && m[MatchName] != Component.t)
             {
                 string name = m[MatchName].ToString();
                 Component of = Components.Single(i => i.Name == name);
@@ -81,9 +81,12 @@ namespace Circuit
             // Add equations for any depenent expressions.
             foreach (MatchContext v in Mna.Equations.SelectMany(i => i.FindMatches(MatchV)).Distinct().ToArray())
             {
-                string name = v[MatchName].ToString();
-                Mna.AddEquation(v.Matched, Evaluate(v.Matched));
-                Mna.AddUnknowns(v.Matched);
+                if (v[MatchName] != Component.t)
+                {
+                    string name = v[MatchName].ToString();
+                    Mna.AddEquation(v.Matched, Evaluate(v.Matched));
+                    Mna.AddUnknowns(v.Matched);
+                }
             }
         }
 
