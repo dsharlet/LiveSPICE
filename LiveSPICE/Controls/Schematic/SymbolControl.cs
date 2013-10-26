@@ -180,7 +180,7 @@ namespace LiveSPICE
                     double size;
                     switch (i.Size)
                     {
-                        case Circuit.Size.Small: size = 0.75; break;
+                        case Circuit.Size.Small: size = 0.5; break;
                         case Circuit.Size.Large: size = 1.5; break;
                         default: size = 1.0; break;
                     }

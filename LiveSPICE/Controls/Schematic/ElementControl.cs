@@ -95,7 +95,7 @@ namespace LiveSPICE
 
         protected static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
 
-        public static double TerminalSize = 3.0;
+        public static double TerminalSize = 2.0;
         public static double EdgeThickness = 1.0;
         public static GuidelineSet Guidelines = new GuidelineSet(new double[] { EdgeThickness / 2 }, new double[] { EdgeThickness / 2 });
 
