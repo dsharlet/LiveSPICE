@@ -135,6 +135,9 @@ namespace Circuit
 
         public override XElement Serialize()
         {
+            if (component is Error)
+                return ((Error)component).Data;
+
             XElement X = base.Serialize();
 
             Type T = component.GetType();
@@ -153,13 +156,15 @@ namespace Circuit
 
         public new static Symbol Deserialize(XElement X)
         {
-            Type T = Type.GetType(X.Attribute("Type").Value);
-            Symbol S = new Symbol((Component)Activator.CreateInstance(T));
+            string type = X.Attribute("Type").Value;
+            Type T = Type.GetType(type);
+            Component C = T != null ? (Component)Activator.CreateInstance(T) : new Error(X);
+            Symbol S = new Symbol(C);
+            S.Position = Coord.Parse(X.Attribute("Position").Value);
+            if (T == null) return S;
 
             S.Rotation = int.Parse(X.Attribute("Rotation").Value);
             S.Flip = bool.Parse(X.Attribute("Flip").Value);
-            S.Position = Coord.Parse(X.Attribute("Position").Value);
-            
             foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<SchematicPersistent>() != null))
             {
                 XAttribute attr = X.Attribute(i.Name);

@@ -37,25 +37,18 @@ namespace LiveSPICE
             set { iterations = value; NotifyChanged("Iterations"); }
         }
 
-        protected Circuit.Quantity input = new Circuit.Quantity("V1[t]", Circuit.Units.V);
-        public Circuit.Quantity Input
+        protected SyMath.Expression input;
+        public SyMath.Expression Input
         {
             get { return input; }
             set { input = value; NotifyChanged("Input"); }
         }
 
-        protected Circuit.Quantity output = new Circuit.Quantity("V[O1]", Circuit.Units.V);
-        public Circuit.Quantity Output
-        {
-            get { return output; }
-            set { output = value; NotifyChanged("Output"); }
-        }
-        
         protected Circuit.Circuit circuit = null;
         protected Circuit.Simulation simulation = null;
         protected Circuit.TransientSolution solution = null;
 
-        protected Dictionary<SyMath.Expression, SyMath.Expression> componentVoltages;
+        private SyMath.Expression output;
         protected List<Probe> probes = new List<Probe>();
         protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
 
@@ -74,17 +67,34 @@ namespace LiveSPICE
             clone.Elements.ItemRemoved += OnElementRemoved;
             schematic.Schematic = new SimulationSchematic(clone);
             schematic.Schematic.SelectionChanged += OnProbeSelected;
-            circuit = schematic.Schematic.Schematic.Build(Log);
 
-            // Find inputs and outputs to use as the default.
-            IEnumerable<Circuit.Component> components = clone.Symbols.Select(i => i.Component);
-            Input = components.OfType<Circuit.Input>().Select(i => Circuit.Component.DependentVariable(i.Name, Circuit.Component.t)).FirstOrDefault();
-            Output = components.OfType<Circuit.Output>().Select(i => Circuit.Component.DependentVariable("V", i.Name)).FirstOrDefault();
-            
-            Parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
+            // Build the circuit from the schematic.
+            try
+            {
+                circuit = schematic.Schematic.Schematic.Build(Log);
+                IEnumerable<Circuit.Component> components = circuit.Components;
 
-            Audio.Callback = ProcessSamples;
-            Unloaded += (s, e) => Audio.Stop();
+                // Find the input expression, the first voltage source that does not evaluate to a constant.
+                foreach (Circuit.VoltageSource i in components.OfType<Circuit.VoltageSource>().Where(i => i.IsInput))
+                    inputs.Items.Add(new ComboBoxItem()
+                    {
+                        Content = i.Name,
+                        Tag = i.Voltage.Value,
+                    });
+                inputs.SelectedIndex = 0;
+
+                // Build the output expression from the speakers in the circuit.
+                output = SyMath.Add.New(components.OfType<Circuit.Speaker>().Select(i => i.Sound)).Evaluate();
+                if (output.IsZero())
+                    output = null;
+
+                Parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
+                Audio.Callback = ProcessSamples;
+                Unloaded += (s, e) => Audio.Stop();
+            }
+            catch (System.Exception)
+            {
+            }
         }
 
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
@@ -187,9 +197,8 @@ namespace LiveSPICE
                 {
                     // Build the signal list.
                     IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(Out.Length));
-
-                    if (Output.Value != null)
-                        signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(circuit.Evaluate(Output.Value), Out));
+                    if (!ReferenceEquals(output, null))
+                        signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(output, Out));
 
                     // Process the samples!
                     simulation.Run(Input, In, signals, arguments, Iterations);

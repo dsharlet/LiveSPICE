@@ -98,6 +98,12 @@ namespace Circuit
                 }
             }
 
+            foreach (Error i in circuit.Components.OfType<Error>())
+            {
+                log.WriteLine(MessageType.Error, "Error component '{0}'", i.Name);
+                errors++;
+            }
+
             log.WriteLine(MessageType.Info, "Build: {0} errors, {1} warnings", errors, warnings);
 
             if (errors != 0)
@@ -202,7 +208,7 @@ namespace Circuit
             foreach (Ground i in Symbols.Select(j => j.Component).OfType<Ground>())
             {
                 if (Wires.Any(j => j.IsConnectedTo(((Symbol)i.Tag).MapTerminal(i.Terminal))))
-                    n = circuit.Nodes["v0"];
+                    n = circuit.Nodes["_v0"];
             }
 
             // If this set of wires is connected to a NamedWire, use that as the node.

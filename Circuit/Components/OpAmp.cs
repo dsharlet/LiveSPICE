@@ -8,41 +8,66 @@ using System.ComponentModel;
 namespace Circuit
 {
     /// <summary>
-    /// Implements a model operational amplifier (op-amp). This model will not saturate.
+    /// Implements an ideal operational amplifier (op-amp). An ideal op-amp will not saturate.
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Op-Amp")]
-    public class OpAmp : IdealOpAmp
+    public class OpAmp : Component
     {
-        protected Quantity rin = new Quantity(1e6m, Units.Ohm);
-        [Description("Input resistance.")]
-        [SchematicPersistent]
-        public Quantity Rin { get { return rin; } set { if (rin.Set(value)) NotifyChanged("Rin"); } }
+        protected Terminal p, n, o;
+        public override IEnumerable<Terminal> Terminals 
+        { 
+            get 
+            {
+                yield return p;
+                yield return n;
+                yield return o;
+            } 
+        }
+        [Browsable(false)]
+        public Terminal Positive { get { return p; } }
+        [Browsable(false)]
+        public Terminal Negative { get { return n; } }
+        [Browsable(false)]
+        public Terminal Out { get { return o; } }
 
-        protected Quantity rout = new Quantity(1e2m, Units.Ohm);
-        [Description("Output resistance.")]
-        [SchematicPersistent]
-        public Quantity Rout { get { return rout; } set { if (rout.Set(value)) NotifyChanged("Rout"); } }
+        public OpAmp()
+        {
+            p = new Terminal(this, "+");
+            n = new Terminal(this, "-");
+            o = new Terminal(this, "Out");
+        }
 
-        protected decimal gain = 1e6m;
-        [Description("Gain.")]
-        [SchematicPersistent]
-        public decimal Gain { get { return gain; } set { gain = value; NotifyChanged("Gain"); } }
-        
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            // The input terminals are connected by a resistor Rin.
-            Expression Vin = Positive.V - Negative.V;
-            Expression iin = Mna.AddNewUnknown("in" + Name);
+            // Infinite input impedance.
+            Positive.i = Negative.i = Constant.Zero;
+            // Unknown output current.
+            Out.i = Mna.AddNewUnknown("i" + Name);
 
-            Mna.AddEquation(Vin / (Expression)Rin, iin);
-            Positive.i = iin;
-            Negative.i = -iin;
+            // The voltage between the positive and negative terminals is 0.
+            Mna.AddEquation(Positive.V, Negative.V);
+        }
 
-            // Vo = (G*Vin - Out.V) / Rout
-            Out.i = Mna.AddNewUnknown("out" + Name);
+        public override void LayoutSymbol(SymbolLayout Sym)
+        {
+            Sym.AddTerminal(Positive, new Coord(-20, 10));
+            Sym.AddTerminal(Negative, new Coord(-20, -10));
+            Sym.AddTerminal(Out, new Coord(20, 0));
 
-            Mna.AddEquation(Gain * Vin - Out.V, Out.i * (Expression)Rout);
+            Sym.AddWire(Positive, new Coord(-20, 10));
+            Sym.AddWire(Negative, new Coord(-20, -10));
+            Sym.AddWire(Out, new Coord(20, 0));
+
+            Sym.DrawPositive(EdgeType.Black, new Coord(-15, 10));
+            Sym.DrawNegative(EdgeType.Black, new Coord(-15, -10));
+
+            Sym.AddLoop(EdgeType.Black,
+                new Coord(-20, 20),
+                new Coord(-20, -20),
+                new Coord(20, 0));
+
+            Sym.DrawText(Name, new Coord(0, -10), Alignment.Near, Alignment.Far);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace CircuitTests
 
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
-                        
+            
             foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
             {
                 try
@@ -78,10 +78,9 @@ namespace CircuitTests
             double[] vs = new double[N];
             for (int n = 0; n < vs.Length; ++n)
                 vs[n] = Vin(n * S.TimeStep);
-            input.Add("V1[t]", vs);
+            input.Add("V[t]", vs);
 
-            //Dictionary<Expression, double[]> output = S.Solution.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
-            Dictionary<Expression, double[]> output = new Expression[] { C.Evaluate("V[O1]") }.ToDictionary(i => i, i => new double[vs.Length]);
+            Dictionary<Expression, double[]> output = S.Solution.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is cached before benchmarking.
             S.Run(1, input, output, Arguments, Iterations);

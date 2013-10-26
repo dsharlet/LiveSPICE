@@ -49,10 +49,7 @@
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" />
 
                 <TextBlock Text="Input: " HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <TextBox Text="{Binding ElementName=_this, Path=Input}" />
-
-                <TextBlock Text="Output: " HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <TextBox Text="{Binding ElementName=_this, Path=Output}" />
+                <ComboBox x:Name="inputs" SelectedValue="{Binding ElementName=_this, Path=Input}" SelectedValuePath="Tag" />
                 
                 <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
             </ToolBar>
