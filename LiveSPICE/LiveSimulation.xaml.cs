@@ -27,7 +27,7 @@ namespace LiveSPICE
         public int Oversample
         {
             get { return oversample; }
-            set { oversample = value; Build(); NotifyChanged("Oversample"); }
+            set { oversample = value; NotifyChanged("Oversample"); }
         }
 
         protected int iterations = 8;
@@ -148,17 +148,14 @@ namespace LiveSPICE
             }
         }
 
-        private BackgroundWorker builder;
-        protected void Build()
+        private bool rebuild = true;
+        private void ProcessSamples(double[] In, double[] Out, double SampleRate)
         {
-            simulation = null;
-            builder = new BackgroundWorker();
-
-            builder.DoWork += (o, e) =>
+            if (rebuild || (simulation != null && (Oversample != simulation.Oversample || SampleRate != (double)simulation.SampleRate)))
             {
                 try
                 {
-                    Circuit.Quantity h = new Circuit.Quantity(Constant.One / (sampleRate * Oversample), Circuit.Units.s);
+                    Circuit.Quantity h = new Circuit.Quantity(Constant.One / (SampleRate * Oversample), Circuit.Units.s);
                     if (solution == null || solution.TimeStep != h)
                     {
                         solution = Circuit.TransientSolution.SolveCircuit(circuit, h, Log);
@@ -170,19 +167,9 @@ namespace LiveSPICE
                 catch (System.Exception ex)
                 {
                     Log.WriteLine(Circuit.MessageType.Error, ex.Message);
+                    simulation = null;
                 }
-            };
-            builder.RunWorkerAsync();
-        }
-
-        private double sampleRate;
-        private void ProcessSamples(double[] In, double[] Out, double SampleRate)
-        {
-            // If the sample rate changes, we need to rebuild the simulation.
-            if (sampleRate != SampleRate)
-            {
-                sampleRate = SampleRate;
-                Build();
+                rebuild = false;
             }
 
             // If there is no simulation, just zero the samples and return.
@@ -229,7 +216,7 @@ namespace LiveSPICE
             }
         }
 
-        private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) { Build(); }
+        private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) { rebuild = true; }
 
         private void Exit_Executed(object sender, ExecutedRoutedEventArgs e) { Close(); }
 
