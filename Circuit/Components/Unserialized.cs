@@ -25,6 +25,8 @@ namespace Circuit
 
         public UnserializedComponent() { }
         public UnserializedComponent(XElement Data, string Message) { data = Data; message = Message; }
+
+        public override string ToString() { return Message; }
     }
 
     /// <summary>
