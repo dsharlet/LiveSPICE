@@ -97,8 +97,8 @@
     <Compile Include="Controls\PropertyGrid.xaml.cs">
       <DependentUpon>PropertyGrid.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Scope\Frequency.cs" />
-    <Compile Include="Controls\Scope\DouglasPeuckerReduction.cs" />
+    <Compile Include="Utils\Frequency.cs" />
+    <Compile Include="Utils\DouglasPeuckerReduction.cs" />
     <Compile Include="Controls\Scope\SignalCollection.cs" />
     <Compile Include="Controls\Scope\Signal.cs" />
     <Compile Include="Controls\Simulation\ProbeTool.cs" />
