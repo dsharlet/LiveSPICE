@@ -131,16 +131,7 @@
         </xcad:DockingManager>
 
         <StatusBar Grid.Row="4" Background="{StaticResource ResourceKey=Background}">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="4*"/>
-                        </Grid.ColumnDefinitions>
-                    </Grid>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
-            <StatusBarItem Grid.Column="0">
+            <StatusBarItem>
                 <TextBlock Text="{Binding ElementName=_this, Path=Status}" />
             </StatusBarItem>
         </StatusBar>

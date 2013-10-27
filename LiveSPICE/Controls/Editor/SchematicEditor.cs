@@ -71,6 +71,7 @@ namespace LiveSPICE
         private void SetFilePath(string FilePath) { filepath = FilePath; NotifyChanged("FilePath"); NotifyChanged("Title"); }
         public string FilePath { get { return filepath == null ? "Untitled" : filepath; } }
         public string Title { get { return filepath == null ? "<Untitled>" : System.IO.Path.GetFileNameWithoutExtension(filepath); } }
+
         public bool Save()
         {
             if (filepath == null)
@@ -107,49 +108,31 @@ namespace LiveSPICE
             }
             else
             {
-                switch (MessageBox.Show(Application.Current.MainWindow, "Save changes to schematic '" + Title + "'?", Application.Current.MainWindow.Title, MessageBoxButton.YesNoCancel))
-                {
-                    case MessageBoxResult.Yes: return Save();
-                    case MessageBoxResult.No: return true;
-                    case MessageBoxResult.Cancel: return false;
-                }
+                return ClosingDialog.Show(App.Current.MainWindow, this);
             }
             return true;
         }
-
         public bool CanClose() { return CanClose(false); }
 
         private bool Save(string FileName)
         {
-            Schematic.Save(FileName);
-            SetFilePath(FileName);
-            Edits.Clean();
-            App.Current.Settings.Used(filepath);
-            return true;
+            try
+            {
+                Schematic.Save(FileName);
+                SetFilePath(FileName);
+                Edits.Clean();
+                App.Current.Settings.Used(filepath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(Application.Current.MainWindow, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
 
-        private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            try
-            {
-                Save();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(Application.Current.MainWindow, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            try
-            {
-                SaveAs();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(Application.Current.MainWindow, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+        private void Save_Executed(object sender, ExecutedRoutedEventArgs e) { Save(); }
+        private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e) { SaveAs(); }
 
         public static SchematicEditor Open(string FileName)
         {

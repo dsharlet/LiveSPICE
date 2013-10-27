@@ -35,7 +35,10 @@ namespace LiveSPICE
             Components.Init(toolbox_Click, CommandBindings);
             Properties.PropertyValueChanged += properties_PropertyValueChanged;
         }
-        
+
+        public IEnumerable<SchematicViewer> Viewers { get { return schematics.Children.Select(i => i.Content).OfType<SchematicViewer>(); } }
+        public IEnumerable<SchematicEditor> Editors { get { return Viewers.Select(i => i.Schematic).OfType<SchematicEditor>(); } }
+
         public LayoutContent ActiveContent { get { return schematics.SelectedContent; } }
         public SchematicViewer ActiveViewer 
         { 
@@ -96,12 +99,9 @@ namespace LiveSPICE
         public SchematicViewer FindViewer(string FileName)
         {
             FileName = System.IO.Path.GetFullPath(FileName);
-            foreach (SchematicViewer i in schematics.Children.Select(i => i.Content).OfType<SchematicViewer>())
-            {
-                SchematicEditor ed = (SchematicEditor)i.Schematic;
-                if (System.IO.Path.GetFullPath(ed.FilePath) == FileName)
+            foreach (SchematicViewer i in Viewers)
+                if (System.IO.Path.GetFullPath(((SchematicEditor)i.Schematic).FilePath) == FileName)
                     return i;
-            }
             return null;
         }
 
@@ -150,7 +150,6 @@ namespace LiveSPICE
             foreach (SchematicViewer i in schematics.Children.Select(i => i.Content).OfType<SchematicViewer>())
                 if (!((SchematicEditor)i.Schematic).Save())
                     break;
-
         }
 
         private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveViewer != null; }
@@ -160,39 +159,13 @@ namespace LiveSPICE
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
-            ClosingDialog dlg = new ClosingDialog();
-            dlg.Owner = this;
-
-            foreach (SchematicViewer i in schematics.Children.Select(i => i.Content).OfType<SchematicViewer>())
-                if (((SchematicEditor)i.Schematic).Edits.Dirty)
-                    dlg.files.Items.Add(new TextBlock() 
-                    { 
-                        Text = MruMenuItem.CompactPath(((SchematicEditor)i.Schematic).FilePath, 120), 
-                        Tag = i.Schematic 
-                    });
-
-            if (dlg.files.Items.Count == 0)
+            // Find the schematics that have pending edits.
+            IEnumerable<SchematicEditor> dirty = Editors.Where(i => i.Edits.Dirty);
+            if (!dirty.Any()) 
                 return;
 
-            dlg.files.SelectAll();
-
-            dlg.ShowDialog();
-            if (!dlg.Result.HasValue)
-            {
+            if (!ClosingDialog.Show(this, dirty))
                 e.Cancel = true;
-                return;
-            }
-            else if (dlg.Result.Value)
-            {
-                foreach (TextBlock i in dlg.files.SelectedItems)
-                {
-                    if (!((SchematicEditor)i.Tag).Save())
-                    {
-                        e.Cancel = true;
-                        return;
-                    }
-                }
-            }
         }
 
         private void schematic_SelectionChanged(object Sender, EventArgs Args)
@@ -247,7 +220,7 @@ namespace LiveSPICE
         {
             if (ActiveEditor != null)
             {
-                TransientSimulation simulation = new TransientSimulation(ActiveEditor.Schematic) { Owner = this };
+                LiveSimulation simulation = new LiveSimulation(ActiveEditor.Schematic) { Owner = this };
                 simulation.Show();
             }
         }

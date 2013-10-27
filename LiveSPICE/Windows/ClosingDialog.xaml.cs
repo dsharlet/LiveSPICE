@@ -19,17 +19,50 @@ namespace LiveSPICE
     /// </summary>
     public partial class ClosingDialog : Window
     {
-        public ClosingDialog()
+        private ClosingDialog(IEnumerable<SchematicEditor> Editors)
         {
             InitializeComponent();
 
+            foreach (SchematicEditor i in Editors)
+                files.Items.Add(new TextBlock()
+                {
+                    Text = MruMenuItem.CompactPath(i.FilePath, 50),
+                    ToolTip = i.FilePath,
+                    Tag = i
+                });
+
+            files.SelectAll();
             files.Focus();
         }
 
-        private bool? result = null;
-        public bool? Result { get { return result; } }
+        private MessageBoxResult result = MessageBoxResult.Cancel;
 
-        private void Yes_Click(object sender, RoutedEventArgs e) { result = true; Close(); }
-        private void No_Click(object sender, RoutedEventArgs e) { result = false; Close(); }
+        /// <summary>
+        /// Show a dialog asking the user to save any unsaved schematics.
+        /// </summary>
+        /// <param name="Owner"></param>
+        /// <param name="Editors"></param>
+        /// <returns>false if closing should be cancelled.</returns>
+        public static bool Show(Window Owner, IEnumerable<SchematicEditor> Editors)
+        {
+            ClosingDialog dlg = new ClosingDialog(Editors) { Owner = Owner };
+            dlg.ShowDialog();
+            switch (dlg.result)
+            {
+                case MessageBoxResult.Yes:
+                    foreach (FrameworkElement i in dlg.files.SelectedItems)
+                        if (!((SchematicEditor)i.Tag).Save())
+                            return false;
+                    return true;
+                case MessageBoxResult.No:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        public static bool Show(Window Owner, params SchematicEditor[] Editors) { return Show(Owner, Editors.AsEnumerable()); }
+
+        private void Yes_Click(object sender, RoutedEventArgs e) { result = MessageBoxResult.Yes; Close(); }
+        private void No_Click(object sender, RoutedEventArgs e) { result = MessageBoxResult.No; Close(); }
     }
 }

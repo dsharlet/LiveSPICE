@@ -122,8 +122,8 @@
     <Compile Include="Controls\Scope\Scope.xaml.cs">
       <DependentUpon>Scope.xaml</DependentUpon>
     </Compile>
-    <Compile Include="TransientSimulation.xaml.cs">
-      <DependentUpon>TransientSimulation.xaml</DependentUpon>
+    <Compile Include="LiveSimulation.xaml.cs">
+      <DependentUpon>LiveSimulation.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utils\DockingManagerExtensions.cs" />
     <Compile Include="Controls\Simulation\Probe.cs" />
@@ -173,7 +173,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="TransientSimulation.xaml">
+    <Page Include="LiveSimulation.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

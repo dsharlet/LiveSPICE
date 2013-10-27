@@ -1,11 +1,11 @@
-﻿<Window x:Class="LiveSPICE.TransientSimulation" x:Name="_this"
+﻿<Window x:Class="LiveSPICE.LiveSimulation" x:Name="_this"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="Transient Simulation" Width="1000" Height="700" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
+        Title="Live Simulation" Width="1000" Height="700" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
     <Window.Resources>
         <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
@@ -41,7 +41,7 @@
 
         <!-- Toolbars -->
         <ToolBarTray Grid.Row="2" Background="{StaticResource ResourceKey=Background}">
-            <ToolBar Band="1" BandIndex="1" FocusManager.IsFocusScope="False">
+            <ToolBar Band="1" BandIndex="1">
                 <TextBlock Text="Oversample: " HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Oversample}" />
 
@@ -54,7 +54,7 @@
                 <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
             </ToolBar>
             <!-- View -->
-            <ToolBar Band="1" BandIndex="2" FocusManager.IsFocusScope="False">
+            <ToolBar Band="1" BandIndex="2">
                 <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
                 <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
                 <ComboBox Width="40" SelectedValue="{Binding ElementName=ActiveViewer, Path=Zoom}">

@@ -19,9 +19,9 @@ using SyMath;
 namespace LiveSPICE
 {
     /// <summary>
-    /// Interaction logic for Simulation.xaml
+    /// Interaction logic for LiveSimulation.xaml
     /// </summary>
-    public partial class TransientSimulation : Window, INotifyPropertyChanged
+    public partial class LiveSimulation : Window, INotifyPropertyChanged
     {
         protected int oversample = 4;
         public int Oversample
@@ -57,7 +57,7 @@ namespace LiveSPICE
         public AudioStream Audio { get { return (AudioStream)audio.Content; } }
         public Scope Scope { get { return (Scope)scope.Content; } }
 
-        public TransientSimulation(Circuit.Schematic Simulate)
+        public LiveSimulation(Circuit.Schematic Simulate)
         {
             InitializeComponent();
                         
@@ -127,6 +127,7 @@ namespace LiveSPICE
 
                 Scope.Display.Signals.Remove(probe.Signal);
             }
+            ConnectProbes();
         }
 
         private void OnProbeSelected(object sender, EventArgs e)
