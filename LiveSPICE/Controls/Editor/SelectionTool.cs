@@ -97,7 +97,7 @@ namespace LiveSPICE
                 Vector dx = new Vector(-0.5, -0.5);
                 ((RectangleGeometry)path.Data).Rect = new Rect(Target.ToPoint(a) + dx, Target.ToPoint(b) + dx);
             }
-            Target.Highlight(a == b ? Target.AtPoint(a) : Target.InRect(a, b));
+            Target.Highlight(a == b ? Target.AtPoint(a).Take(1) : Target.InRect(a, b));
         }
 
         public override void MouseUp(Circuit.Coord At)
