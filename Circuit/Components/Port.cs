@@ -22,7 +22,10 @@ namespace Circuit
         [Browsable(false)]
         public Terminal External { get { return external; } }
 
-        public Port() { external = new Terminal(this); }
+        // Use the name of the external terminal as the name of this port.
+        public override string Name { get { return external.Name; } set { external.Name = value; } }
+
+        public Port() { external = new Terminal(this, "X1"); }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) 
         {
