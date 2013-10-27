@@ -24,12 +24,10 @@ namespace Circuit
         public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V, Expression R)
         {
             // i = V/R
-            if (R.Equals(Real.Infinity))
-                return 0;
-            else if (R.IsZero())
+            if (R.IsZero())
                 return Conductor.Analyze(Mna, V);
-
-            return V / R;
+            else
+                return V / R;
         }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { i = Analyze(Mna, V, Resistance); }
