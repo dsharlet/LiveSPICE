@@ -38,7 +38,9 @@ namespace LiveSPICE
 
         public override ContextMenu BuildContextMenu(Circuit.Coord At)
         {
-            Target.ToggleSelect(Target.AtPoint(At).FirstOrDefault());
+            Circuit.Element at = Target.AtPoint(At).FirstOrDefault();
+            if (at != null && !((ElementControl)at.Tag).Selected)
+                Target.ToggleSelect(at);
 
             ContextMenu menu = new ContextMenu();
             menu.Items.Add(new MenuItem() { Command = ApplicationCommands.SelectAll, CommandTarget = Target });
