@@ -36,6 +36,21 @@ namespace LiveSPICE
             };
         }
 
+        public override ContextMenu BuildContextMenu()
+        {
+            ContextMenu menu = new ContextMenu();
+            menu.Items.Add(new MenuItem() { Command = ApplicationCommands.SelectAll, CommandTarget = Target });
+            menu.Items.Add(new Separator());
+            menu.Items.Add(new MenuItem() { Command = ApplicationCommands.Cut, CommandTarget = Target });
+            menu.Items.Add(new MenuItem() { Command = ApplicationCommands.Copy, CommandTarget = Target });
+            menu.Items.Add(new MenuItem() { Command = ApplicationCommands.Paste, CommandTarget = Target });
+            menu.Items.Add(new MenuItem() { Command = ApplicationCommands.Delete, CommandTarget = Target });
+            menu.Items.Add(new Separator());
+            menu.Items.Add(new MenuItem() { Command = ApplicationCommands.Undo, CommandTarget = Target });
+            menu.Items.Add(new MenuItem() { Command = ApplicationCommands.Redo, CommandTarget = Target });
+            return menu;
+        }
+
         public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Cross; }
         public override void End() { Target.overlays.Children.Remove(path); base.End(); }
         public override void Cancel() { path.Visibility = Visibility.Hidden; }
