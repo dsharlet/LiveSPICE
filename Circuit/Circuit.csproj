@@ -67,7 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\Rail.cs" />
-    <Compile Include="Components\Error.cs" />
+    <Compile Include="Components\Unserialized.cs" />
     <Compile Include="Components\Speaker.cs" />
     <Compile Include="Components\Label.cs" />
     <Compile Include="Components\DelayBuffer.cs" />

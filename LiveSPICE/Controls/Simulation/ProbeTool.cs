@@ -54,6 +54,7 @@ namespace LiveSPICE
             Circuit.EdgeType.Yellow,
             Circuit.EdgeType.Cyan,
             Circuit.EdgeType.Magenta,
+            Circuit.EdgeType.Orange,
         };
 
         public override void MouseUp(Circuit.Coord At)

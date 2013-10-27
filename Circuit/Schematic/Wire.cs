@@ -129,7 +129,7 @@ namespace Circuit
             Coord a = Coord.Parse(X.Attribute("A").Value);
             Coord b = Coord.Parse(X.Attribute("B").Value);
             if (a == b)
-                return new Symbol(new Error(X, "Zero length wire.")) { Position = a };
+                return new Symbol(new Warning(X, "Zero length wire.")) { Position = a };
             return new Wire(a, b);
         }
 

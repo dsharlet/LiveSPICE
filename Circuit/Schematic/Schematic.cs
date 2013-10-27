@@ -101,8 +101,15 @@ namespace Circuit
             // Check for error symbols.
             foreach (Error i in circuit.Components.OfType<Error>())
             {
-                log.WriteLine(MessageType.Error, "Error component '{0}': {1}", i.Name, i.Message);
+                log.WriteLine(MessageType.Error, "{0}", i.Message);
                 errors++;
+            }
+
+            // Check for warning symbols.
+            foreach (Warning i in circuit.Components.OfType<Warning>())
+            {
+                log.WriteLine(MessageType.Warning, "{0}", i.Message);
+                warnings++;
             }
 
             log.WriteLine(MessageType.Info, "Build: {0} errors, {1} warnings", errors, warnings);

@@ -16,7 +16,8 @@ namespace Circuit
         Blue,
         Yellow,
         Cyan,
-        Magenta
+        Magenta,
+        Orange,
     };
 
     public enum Alignment
@@ -126,15 +127,18 @@ namespace Circuit
         public class Shape
         {
             private EdgeType edge;
+            private bool fill;
             private Point _x1, _x2;
 
             public EdgeType Edge { get { return edge; } }
+            public bool Fill { get { return fill; } }
             public Point x1 { get { return _x1; } }
             public Point x2 { get { return _x2; } }
 
-            public Shape(EdgeType Edge, Point x1, Point x2) 
+            public Shape(EdgeType Edge, Point x1, Point x2, bool Fill) 
             { 
-                edge = Edge; 
+                edge = Edge;
+                fill = Fill;
                 _x1 = x1; 
                 _x2 = x2; 
             }
@@ -193,9 +197,11 @@ namespace Circuit
         public IEnumerable<Curve> Curves { get { return curves; } }
 
         // Raw drawing functions. These functions don't update the bounds.
-        public void DrawLine(EdgeType Type, Point x1, Point x2) { lines.Add(new Shape(Type, x1, x2)); }
-        public void DrawRectangle(EdgeType Type, Point x1, Point x2) { rectangles.Add(new Shape(Type, x1, x2)); }
-        public void DrawEllipse(EdgeType Type, Point x1, Point x2) { ellipses.Add(new Shape(Type, x1, x2)); }
+        public void DrawLine(EdgeType Type, Point x1, Point x2) { lines.Add(new Shape(Type, x1, x2, false)); }
+        public void DrawRectangle(EdgeType Type, Point x1, Point x2, bool Fill) { rectangles.Add(new Shape(Type, x1, x2, Fill)); }
+        public void DrawRectangle(EdgeType Type, Point x1, Point x2) { DrawRectangle(Type, x1, x2, false); }
+        public void DrawEllipse(EdgeType Type, Point x1, Point x2, bool Fill) { ellipses.Add(new Shape(Type, x1, x2, Fill)); }
+        public void DrawEllipse(EdgeType Type, Point x1, Point x2) { DrawEllipse(Type, x1, x2, false); }
         public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical, Size Size) { texts.Add(new Text(S, x, Horizontal, Vertical, Size)); }
         public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical) { DrawText(S, x, Horizontal, Vertical, global::Circuit.Size.Normal); }
         public void DrawText(string S, Point x) { DrawText(S, x, Alignment.Near, Alignment.Near); }

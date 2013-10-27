@@ -111,6 +111,7 @@ namespace LiveSPICE
         public static Pen YellowPen = new Pen(Brushes.Yellow, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen CyanPen = new Pen(Brushes.Cyan, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen MagentaPen = new Pen(Brushes.Magenta, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen OrangePen = new Pen(Brushes.Orange, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
 
         public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
         {
@@ -132,9 +133,12 @@ namespace LiveSPICE
                 case Circuit.EdgeType.Yellow: return YellowPen;
                 case Circuit.EdgeType.Cyan: return CyanPen;
                 case Circuit.EdgeType.Magenta: return MagentaPen;
+                case Circuit.EdgeType.Orange: return OrangePen;
                 default: throw new ArgumentException();
             }
         }
+
+        public static Brush MapToBrush(Circuit.EdgeType Edge) { return MapToPen(Edge).Brush; }
 
         public static double MapAlignment(Circuit.Alignment Align)
         {

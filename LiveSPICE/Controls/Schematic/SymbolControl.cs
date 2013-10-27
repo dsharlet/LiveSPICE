@@ -143,16 +143,25 @@ namespace LiveSPICE
             Context.PushGuidelineSet(Guidelines);
 
             foreach (Circuit.SymbolLayout.Shape i in Layout.Lines)
-                Context.DrawLine(Pen != null ? Pen : MapToPen(i.Edge), T(Tx, i.x1), T(Tx, i.x2));
+                Context.DrawLine(
+                    Pen != null ? Pen : MapToPen(i.Edge), 
+                    T(Tx, i.x1), 
+                    T(Tx, i.x2));
             foreach (Circuit.SymbolLayout.Shape i in Layout.Rectangles)
-                Context.DrawRectangle(null, Pen != null ? Pen : MapToPen(i.Edge), new Rect(T(Tx, i.x1), T(Tx, i.x2)));
+                Context.DrawRectangle(
+                    (i.Fill && Pen == null) ? MapToBrush(i.Edge) : null, 
+                    Pen != null ? Pen : MapToPen(i.Edge), 
+                    new Rect(T(Tx, i.x1), T(Tx, i.x2)));
             foreach (Circuit.SymbolLayout.Shape i in Layout.Ellipses)
             {
+                Brush brush = (i.Fill && Pen == null) ? MapToBrush(i.Edge) : null;
                 Pen pen = Pen != null ? Pen : MapToPen(i.Edge);
                 Point p1 = T(Tx, i.x1);
                 Point p2 = T(Tx, i.x2);
 
-                Context.DrawEllipse(null, pen, new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2), (p2.X - p1.X) / 2, (p2.Y - p1.Y) / 2);
+                Context.DrawEllipse(
+                    brush, pen, 
+                    new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2), (p2.X - p1.X) / 2, (p2.Y - p1.Y) / 2);
             }
             foreach (Circuit.SymbolLayout.Curve i in Layout.Curves)
             {
