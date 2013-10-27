@@ -8,54 +8,20 @@ using System.ComponentModel;
 namespace Circuit
 {
     /// <summary>
-    /// Circuit port component. Connections between circuit ports form a buffer.
-    /// </summary>
-    public abstract class Port : OneTerminal { }
-
-    /// <summary>
-    /// Output ports have infinite output impedance, i.e. they do not accept any current.
+    /// Circuit port component.
     /// </summary>
     [CategoryAttribute("IO")]
-    [DisplayName("Output Port")]
-    public class OutputPort : Port
+    [DisplayName("Port")]
+    [Description("Represents a terminal when the schematic is used as a subcircuit.")]
+    public class Port : OneTerminal
     {
-        public override void Analyze(ModifiedNodalAnalysis Mna) { i = Constant.Zero; }
+        public override void Analyze(ModifiedNodalAnalysis Mna) { }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {
-            Sym.AddLoop(EdgeType.Black,
-                new Coord(-10, 0),
-                new Coord(10, 0),
-                new Coord(10, -10),
-                new Coord(0, -20),
-                new Coord(-10, -10));
+            Sym.AddRectangle(EdgeType.Black, new Coord(-5, -5), new Coord(5, 5));
 
-            Sym.DrawText(Name, new Coord(12, -10), Alignment.Near, Alignment.Center);
-        }
-    }
-
-    /// <summary>
-    /// Input ports have zero input impedance, i.e. they can supply infinite current to maintain the input voltage.
-    /// </summary>
-    [CategoryAttribute("IO")]
-    [DisplayName("Input Port")]
-    public class InputPort : Port
-    {
-        public override void Analyze(ModifiedNodalAnalysis Mna)
-        { 
-            i = null; 
-        }
-
-        protected override void DrawSymbol(SymbolLayout Sym)
-        {
-            Sym.AddLoop(EdgeType.Black,
-                new Coord(-10, 20),
-                new Coord(10, 20),
-                new Coord(10, 10),
-                new Coord(0, 0),
-                new Coord(-10, 10));
-
-            Sym.DrawText(Name, new Coord(12, 10), Alignment.Near, Alignment.Center);
+            Sym.DrawText(Name, new Coord(0, 7), Alignment.Center, Alignment.Near);
         }
     }
 }
