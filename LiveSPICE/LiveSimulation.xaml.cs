@@ -60,7 +60,9 @@ namespace LiveSPICE
         public LiveSimulation(Circuit.Schematic Simulate)
         {
             InitializeComponent();
-                        
+
+            Unloaded += (s, e) => Audio.Stop();
+
             // Make a clone of the schematic so we can mess with it.
             Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
             clone.Elements.ItemAdded += OnElementAdded;
@@ -90,7 +92,6 @@ namespace LiveSPICE
 
                 Parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
                 Audio.Callback = ProcessSamples;
-                Unloaded += (s, e) => Audio.Stop();
             }
             catch (System.Exception)
             {
