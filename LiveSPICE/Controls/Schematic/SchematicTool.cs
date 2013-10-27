@@ -24,7 +24,7 @@ namespace LiveSPICE
 
         public SchematicTool(SchematicControl Target) { target = Target; }
 
-        public virtual ContextMenu BuildContextMenu() { return null; }
+        public virtual ContextMenu BuildContextMenu(Circuit.Coord At) { return null; }
 
         public virtual void Begin() { cursor = Target.Cursor; Target.Cursor = Cursors.Cross; }
         public virtual void End() { Target.Cursor = cursor; }

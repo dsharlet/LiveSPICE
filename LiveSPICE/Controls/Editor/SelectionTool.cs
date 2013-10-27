@@ -36,8 +36,10 @@ namespace LiveSPICE
             };
         }
 
-        public override ContextMenu BuildContextMenu()
+        public override ContextMenu BuildContextMenu(Circuit.Coord At)
         {
+            Target.ToggleSelect(Target.AtPoint(At).FirstOrDefault());
+
             ContextMenu menu = new ContextMenu();
             menu.Items.Add(new MenuItem() { Command = ApplicationCommands.SelectAll, CommandTarget = Target });
             menu.Items.Add(new Separator());

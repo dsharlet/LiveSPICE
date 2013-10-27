@@ -246,15 +246,7 @@ namespace LiveSPICE
             {
                 ReleaseMouseCapture();
                 if (Tool != null) 
-                {
                     Tool.Cancel();
-                    if (e.ChangedButton == MouseButton.Right)
-                    {
-                        ContextMenu = Tool.BuildContextMenu();
-                        if (ContextMenu != null)
-                            ContextMenu.IsOpen = true;
-                    }
-                }
             }
 
             e.Handled = true;
@@ -267,6 +259,15 @@ namespace LiveSPICE
                 if (Tool != null)
                     Tool.MouseUp(at); 
                 ReleaseMouseCapture();
+            }
+            else if (e.ChangedButton == MouseButton.Right && e.ClickCount == 1)
+            {
+                if (Tool != null)
+                {
+                    ContextMenu = Tool.BuildContextMenu(at);
+                    if (ContextMenu != null)
+                        ContextMenu.IsOpen = true;
+                }
             }
             e.Handled = true;
         }
