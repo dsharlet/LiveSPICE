@@ -28,7 +28,6 @@ namespace Circuit
         /// <summary>
         /// Node this terminal is connected to.
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
         [Browsable(false)]
         public Node ConnectedTo
         {
@@ -39,7 +38,6 @@ namespace Circuit
         /// <summary>
         /// Current flowing to this component.
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
         [Browsable(false)]
         public Expression i 
         { 
@@ -50,7 +48,6 @@ namespace Circuit
         /// <summary>
         /// Voltage at this component.
         /// </summary>
-        [System.Xml.Serialization.XmlIgnore]
         [Browsable(false)]
         public Expression V { get { return Terminal.V; } }
 
