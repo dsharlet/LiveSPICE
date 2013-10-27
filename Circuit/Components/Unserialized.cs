@@ -25,8 +25,17 @@ namespace Circuit
 
         public UnserializedComponent() { }
         public UnserializedComponent(XElement Data, string Message) { data = Data; message = Message; }
+    }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { }
+    /// <summary>
+    /// Component that prevent analysis.
+    /// </summary>
+    public class Error : UnserializedComponent
+    {
+        public Error() { }
+        public Error(XElement Data, string Message) : base(Data, Message) { }
+
+        public override void Analyze(ModifiedNodalAnalysis Mna) { throw new NotImplementedException("Cannot analyze a circuit with Error component."); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
@@ -46,21 +55,12 @@ namespace Circuit
     /// <summary>
     /// Component that prevent analysis.
     /// </summary>
-    public class Error : UnserializedComponent
-    {
-        public Error() { }
-        public Error(XElement Data, string Message) : base(Data, Message) { }
-
-        public override void Analyze(ModifiedNodalAnalysis Mna) { throw new NotImplementedException("Cannot analyze a circuit with Error component."); }
-    }
-
-    /// <summary>
-    /// Component that prevent analysis.
-    /// </summary>
     public class Warning : UnserializedComponent
     {
         public Warning() { }
         public Warning(XElement Data, string Message) : base(Data, Message) { }
+
+        public override void Analyze(ModifiedNodalAnalysis Mna) { }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {

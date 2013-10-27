@@ -135,8 +135,8 @@ namespace Circuit
 
         public override XElement Serialize()
         {
-            if (component is Error)
-                return ((Error)component).Data;
+            if (component is UnserializedComponent)
+                return ((UnserializedComponent)component).Data;
 
             XElement X = base.Serialize();
 
@@ -156,25 +156,37 @@ namespace Circuit
 
         public new static Symbol Deserialize(XElement X)
         {
-            string type = X.Attribute("Type").Value;
-            Type T = Type.GetType(type);
-            Component C = T != null ? (Component)Activator.CreateInstance(T) : new Error(X, "Type '" + type + "' not found.");
-            Symbol S = new Symbol(C);
-            S.Position = Coord.Parse(X.Attribute("Position").Value);
-            if (T == null) return S;
-
-            S.Rotation = int.Parse(X.Attribute("Rotation").Value);
-            S.Flip = bool.Parse(X.Attribute("Flip").Value);
-            foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<SchematicPersistent>() != null))
+            Coord position = new Coord(0, 0);
+            try
             {
-                XAttribute attr = X.Attribute(i.Name);
-                if (attr != null)
+                position = Coord.Parse(X.Attribute("Position").Value);
+                
+                string type = X.Attribute("Type").Value;
+                Type T = Type.GetType(type);
+                if (T == null)
+                    throw new System.Exception("Type '" + type + "' not found.");
+
+                Symbol S = new Symbol((Component)Activator.CreateInstance(T));
+                S.Position = position;
+                if (T == null) return S;
+
+                S.Rotation = int.Parse(X.Attribute("Rotation").Value);
+                S.Flip = bool.Parse(X.Attribute("Flip").Value);
+                foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<SchematicPersistent>() != null))
                 {
-                    System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
-                    i.SetValue(S.Component, tc.ConvertFromString(attr.Value));
+                    XAttribute attr = X.Attribute(i.Name);
+                    if (attr != null)
+                    {
+                        System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
+                        i.SetValue(S.Component, tc.ConvertFromString(attr.Value));
+                    }
                 }
+                return S;
             }
-            return S;
+            catch (System.Exception Ex)
+            {
+                return new Symbol(new Error(X, Ex.Message)) { Position = position };
+            }
         }
 
         public override string ToString()
