@@ -25,7 +25,7 @@ namespace Circuit
         {
             get 
             { 
-                return Components.OfType<Port>().Select(i => i.Terminal);
+                return Components.OfType<Port>().Select(i => i.External);
             }
         }
         

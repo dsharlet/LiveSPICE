@@ -15,7 +15,20 @@ namespace Circuit
     [Description("Represents a terminal when the schematic is used as a subcircuit.")]
     public class Port : OneTerminal
     {
-        public override void Analyze(ModifiedNodalAnalysis Mna) { }
+        private Terminal external;
+        /// <summary>
+        /// The external terminal of this port.
+        /// </summary>
+        [Browsable(false)]
+        public Terminal External { get { return external; } }
+
+        public Port() { external = new Terminal(this); }
+
+        public override void Analyze(ModifiedNodalAnalysis Mna) 
+        {
+            Mna.AddEquation(V, external.V);
+            Mna.AddEquation(i, -external.i);
+        }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {
