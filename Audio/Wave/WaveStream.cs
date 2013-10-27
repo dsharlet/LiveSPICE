@@ -19,8 +19,6 @@ namespace Audio
         private volatile bool disposed = false;
         private Thread proc;
         
-        private double[] input, output;
-
         private GCHandle handle;
 
         public WaveStream(SampleHandler SampleCallback, int Input, int Output, double Latency)
@@ -35,28 +33,21 @@ namespace Audio
             format = new WAVEFORMATEX(Rate, Bits, Channels);
 
             callback = SampleCallback;
-
-            int Buffer = (int)Math.Ceiling(Latency * Rate * Bits * Channels / 8);
-
-            int BufferCount = 6;
-            int BufferSize = Buffer / 2;
-            BufferSize = BufferSize + (format.nBlockAlign - (Buffer % format.nBlockAlign)) % format.nBlockAlign;
-
-            input = new double[BufferSize * 8 / Bits];
-            output = new double[BufferSize * 8 / Bits];
-
+            
             // Construct waveOut
             MmException.CheckThrow(Winmm.waveOutOpen(out hWaveOut, Output, ref format, null, (IntPtr)handle, WaveOutOpenFlags.CALLBACK_NULL));
 
             // Construct waveIn
             MmException.CheckThrow(Winmm.waveInOpen(out hWaveIn, Input, ref format, null, (IntPtr)handle, WaveInOpenFlags.CALLBACK_NULL));
-            buffers = new List<WaveBuffer>(BufferCount);
-            for (int i = 0; i < BufferCount; ++i)
-            {
-                WaveBuffer buffer = new WaveBuffer(hWaveIn, hWaveOut, BufferSize);
-                buffer.Record();
 
-                buffers.Add(buffer);
+            // Create buffers.
+            int buffer = (int)Math.Ceiling(Latency / 2 * Rate * Channels);
+            buffers = new List<WaveBuffer>();
+            for (int i = 0; i < 6; ++i)
+            {
+                WaveBuffer b = new WaveBuffer(hWaveIn, hWaveOut, FormatSampleType(format), buffer, BlockAlignedSize(format, buffer));
+                b.Record();
+                buffers.Add(b);
             }
 
             proc = new Thread(new ThreadStart(Proc));
@@ -101,11 +92,11 @@ namespace Audio
                 {
                     if ((i.RecordHeader.dwFlags & WaveHdrFlags.WHDR_DONE) != 0)
                     {
-                        Util.LEi16ToLEf64(i.Buffer, input, input.Length);
-                        callback(input, output, format.nSamplesPerSec);
-                        Util.LEf64ToLEi16(output, i.Buffer, output.Length);
+                        callback(i.Buffer, i.Buffer, format.nSamplesPerSec);
 
-                        i.PlayHeader.dwBufferLength = (uint)i.Size;
+                        i.Buffer.ToBuffer();
+
+                        i.PlayHeader.dwBufferLength = (uint)i.Buffer.Size;
                         i.RecordHeader.dwFlags = i.RecordHeader.dwFlags & ~WaveHdrFlags.WHDR_DONE;
                         i.Play();
                     }
@@ -116,6 +107,24 @@ namespace Audio
                     }
                 }
             }
+        }
+
+        private static SampleType FormatSampleType(WAVEFORMATEX Format)
+        {
+            switch (Format.wBitsPerSample)
+            {
+                case 16: return SampleType.i16;
+                case 32: return SampleType.i32;
+                default: throw new NotImplementedException("Unsupported sample type.");
+            }
+        }
+
+        private static int BlockAlignedSize(WAVEFORMATEX Format, int Count)
+        {
+            int align = Format.nBlockAlign;
+            int size = Count * Format.wBitsPerSample / 8;
+
+            return size + (align - (size % align)) % align;
         }
     }
 }

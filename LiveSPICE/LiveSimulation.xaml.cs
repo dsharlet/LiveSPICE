@@ -149,7 +149,7 @@ namespace LiveSPICE
         }
 
         private bool rebuild = true;
-        private void ProcessSamples(double[] In, double[] Out, double SampleRate)
+        private void ProcessSamples(Audio.SampleBuffer In, Audio.SampleBuffer Out, double SampleRate)
         {
             if (rebuild || (simulation != null && (Oversample != simulation.Oversample || SampleRate != (double)simulation.SampleRate)))
             {
@@ -175,7 +175,7 @@ namespace LiveSPICE
             // If there is no simulation, just zero the samples and return.
             if (simulation == null)
             {
-                for (int i = 0; i < Out.Length; ++i)
+                for (int i = 0; i < Out.Count; ++i)
                     Out[i] = 0.0;
                 return;
             }
@@ -185,7 +185,7 @@ namespace LiveSPICE
                 lock (probes)
                 {
                     // Build the signal list.
-                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(Out.Length));
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(Out.Count));
                     if (!ReferenceEquals(output, null))
                         signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(output, Out));
 
@@ -193,10 +193,10 @@ namespace LiveSPICE
                     if (!ReferenceEquals(Input, null))
                         simulation.Run(Input, In, signals, arguments, Iterations);
                     else
-                        simulation.Run(In.Length, signals, arguments, Iterations);
+                        simulation.Run(In.Count, signals, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
-                    Scope.ProcessSignals(Out.Length, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)), SampleRate);
+                    Scope.ProcessSignals(Out.Count, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)), SampleRate);
                 }
             }
             catch (Circuit.SimulationDiverged Ex)

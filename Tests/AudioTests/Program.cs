@@ -14,10 +14,10 @@ namespace AsioTests
             System.Console.WriteLine(C.ToString());
         }
 
-        private static void Callback(double[] In, double[] Out, double SampleRate)
+        private static void Callback(Audio.SampleBuffer In, Audio.SampleBuffer Out, double SampleRate)
         {
-            for (int i = 0; i < In.Length; ++i)
-                Out[i] = In[i];
+            for (int i = 0; i < In.Count; ++i)
+                Out.Samples[i] = In.Samples[i];
         }
 
         [STAThread]

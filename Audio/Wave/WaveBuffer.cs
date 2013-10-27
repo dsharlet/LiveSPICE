@@ -16,22 +16,22 @@ namespace Audio
         private IntPtr hWaveIn, hWaveOut;
         public WAVEHDR RecordHeader, PlayHeader;
         private GCHandle pinHdrIn, pinHdrOut;
-        private IntPtr buffer;
+        private SampleBuffer buffer;
         private int size;
+
         private bool disposed = false;
 
-        public IntPtr Buffer { get { return buffer; } }
-        public int Size { get { return size; } }
+        public SampleBuffer Buffer { get { return buffer; } }
 
-        public WaveBuffer(IntPtr hWaveIn, IntPtr hWaveOut, int Size)
+        public WaveBuffer(IntPtr hWaveIn, IntPtr hWaveOut, SampleType Type, int Count, int Size)
         {
             handle = GCHandle.Alloc(this);
 
             this.hWaveIn = hWaveIn;
             this.hWaveOut = hWaveOut;
 
-            buffer = Marshal.AllocHGlobal(Size);
             size = Size;
+            buffer = new SampleBuffer(Marshal.AllocHGlobal(Size), Type, Count);
 
             RecordHeader = new WAVEHDR();
             RecordHeader.lpData = buffer;
@@ -62,11 +62,7 @@ namespace Audio
             Winmm.waveInUnprepareHeader(hWaveIn, ref RecordHeader, Marshal.SizeOf(RecordHeader));
             Winmm.waveOutUnprepareHeader(hWaveOut, ref PlayHeader, Marshal.SizeOf(PlayHeader));
 
-            if (buffer != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(buffer);
-                buffer = IntPtr.Zero;
-            }
+            buffer.Dispose();
 
             if (handle.IsAllocated)
                 handle.Free();

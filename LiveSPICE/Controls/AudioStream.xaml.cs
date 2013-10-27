@@ -180,11 +180,11 @@ namespace LiveSPICE
             stream = null;
         }
 
-        private void SampleCallback(double[] In, double[] Out, double SampleRate)
+        private void SampleCallback(Audio.SampleBuffer In, Audio.SampleBuffer Out, double SampleRate)
         {
             // Apply input gain.
             double peak = 0.0;
-            for (int i = 0; i < In.Length; ++i)
+            for (int i = 0; i < In.Count; ++i)
             {
                 double v = In[i];
                 peak = Math.Max(peak, Math.Abs(v));
@@ -199,7 +199,7 @@ namespace LiveSPICE
 
             // Apply output gain.
             peak = 0.0;
-            for (int i = 0; i < Out.Length; ++i)
+            for (int i = 0; i < Out.Count; ++i)
             {
                 double v = Out[i];
                 v *= outputGain;
