@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal transformer.
     /// </summary>
-    [CategoryAttribute("Standard")]
+    [CategoryAttribute("Transformers")]
     [DisplayName("Transformer")]
     public class Transformer : Component
     {
@@ -69,27 +69,10 @@ namespace Circuit
             Sym.AddWire(sc, new Coord(10, -16));
             Sym.InBounds(new Coord(-20, 0), new Coord(20, 0));
 
-            float t1 = -3.0f * 3.141592f;
-            float t2 = 4.0f * 3.141592f;
-            float coil = 1.5f;
-
-            float y1 = t1 + coil * (float)Math.Cos(t1);
-            float y2 = t2 + coil * (float)Math.Cos(t2);
-
-            Sym.DrawFunction(
-                EdgeType.Black,
-                (t) => -10.0f - (float)Math.Sin(t) * 4.0f,
-                (t) => ((t + coil * (float)Math.Cos(t)) - y1) / (y2 - y1) * 32.0f - 16.0f,
-                t1, t2, 64);
-
+            Inductor.DrawCoil(Sym, -10, -16.0, 16.0, 4, true);
             Sym.DrawLine(EdgeType.Black, new Coord(-2, 16), new Coord(-2, -16));
             Sym.DrawLine(EdgeType.Black, new Coord(2, 16), new Coord(2, -16));
-
-            Sym.DrawFunction(
-                EdgeType.Black,
-                (t) => 10.0f + (float)Math.Sin(t) * 4.0f,
-                (t) => ((t + coil * (float)Math.Cos(t)) - y1) / (y2 - y1) * 32.0f - 16.0f,
-                t1, t2, 64);
+            Inductor.DrawCoil(Sym, 10, -16.0, 16.0, 4, false);
 
             Sym.DrawText(Name, new Coord(-16, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(Turns.ToString(), new Coord(16, 0), Alignment.Near, Alignment.Center);

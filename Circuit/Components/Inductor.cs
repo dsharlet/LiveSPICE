@@ -33,25 +33,33 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { i = Analyze(Mna, V, Inductance); }
 
+        public static void DrawCoil(SymbolLayout Sym, double x, double y1, double y2, int Turns, bool Mirror)
+        {
+            double t1 = -3.141592;
+            double t2 = 2 * (Turns - 1) * 3.141592;
+            double coil = 1.5;
+
+            double min = t1 + coil * Math.Cos(t1);
+            double max = t2 + coil * Math.Cos(t2);
+            double length = max - min;
+
+            double sign = Mirror ? -1.0 : 1.0;
+
+            Sym.DrawFunction(
+                EdgeType.Black,
+                (t) => x + sign * Math.Sin(t) * 4.0,
+                (t) => (t + coil * Math.Cos(t) - min) / length * (y2 - y1) + y1,
+                t1, t2, Turns * 16);
+        }
+
         protected override void DrawSymbol(SymbolLayout Sym)
         {
             Sym.AddWire(Anode, new Coord(0, 16));
             Sym.AddWire(Cathode, new Coord(0, -16));
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
-            float t1 = -3.0f * 3.141592f;
-            float t2 = 4.0f * 3.141592f;
-            float coil = 1.5f;
-
-            float y1 = t1 + coil * (float)Math.Cos(t1);
-            float y2 = t2 + coil * (float)Math.Cos(t2);
-
-            Sym.DrawFunction(
-                EdgeType.Black,
-                (t) => (float)Math.Sin(t) * 4.0f, 
-                (t) => ((t + coil * (float)Math.Cos(t)) - y1) / (y2 - y1) * 32.0f - 16.0f, 
-                t1, t2, 64);
-
+            DrawCoil(Sym, 0.0, -16.0, 16.0, 4, false);
+            
             Sym.DrawText(Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(inductance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
         }
