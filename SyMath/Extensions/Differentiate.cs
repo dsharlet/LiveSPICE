@@ -21,7 +21,9 @@ namespace SyMath
             new SubstituteTransform("D[Exp[u], x]", "Exp[u]*D[u, x]"),
             new SubstituteTransform("D[Ln[u], x]", "D[u, x]/u"),
             new SubstituteTransform("D[I[u, x], x]", "u"),
-            new SubstituteTransform("D[If[c, t, f], x]", "If[c, D[t, x], D[f, x]]")
+            new SubstituteTransform("D[If[c, t, f], x]", "If[c, D[t, x], D[f, x]]"),
+            new SubstituteTransform("D[Max[a, b], x]", "If[a > b, D[a, x], D[b, x]]"),
+            new SubstituteTransform("D[Min[a, b], x]", "If[a < b, D[a, x], D[b, x]]")
         };
 
         // Differentation variable.
