@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Transformer.cs" />
     <Compile Include="Components\Rail.cs" />
     <Compile Include="Components\Unserialized.cs" />
     <Compile Include="Components\Speaker.cs" />
@@ -100,12 +101,14 @@
     <Compile Include="Components\OpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
+    <Compile Include="Utils\RatioConverter.cs" />
     <Compile Include="Utils\Log.cs" />
     <Compile Include="Utils\Matrix.cs" />
     <Compile Include="Utils\Point.cs" />
     <Compile Include="Utils\GlobalExpr.cs" />
     <Compile Include="Utils\Netlist.cs" />
     <Compile Include="Utils\NodeCollection.cs" />
+    <Compile Include="Utils\Ratio.cs" />
     <Compile Include="Utils\Units.cs" />
     <Compile Include="Utils\QuantityConverter.cs" />
     <Compile Include="Utils\Coord.cs" />
