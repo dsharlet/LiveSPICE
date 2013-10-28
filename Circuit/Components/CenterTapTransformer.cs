@@ -58,8 +58,8 @@ namespace Circuit
             Expression Vp = pa.V - pc.V;
             Expression Vs1 = sa.V - st.V;
             Expression Vs2 = st.V - sc.V;
-            Mna.AddEquation(Vp, Vs1 * turns);
-            Mna.AddEquation(Vp, Vs2 * turns);
+            Mna.AddEquation(Vp, Vs1 * turns / 2);
+            Mna.AddEquation(Vp, Vs2 * turns / 2);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
@@ -81,7 +81,6 @@ namespace Circuit
             Sym.DrawLine(EdgeType.Black, new Coord(2, 36), new Coord(2, -36));
             Inductor.DrawCoil(Sym, 10, -36.0, 0.0, 4, false);
             Inductor.DrawCoil(Sym, 10, 36.0, 0.0, 4, false);
-
 
             Sym.DrawText(Name, new Coord(16, -20), Alignment.Near, Alignment.Center);
             Sym.DrawText(Turns.ToString(), new Coord(16, 20), Alignment.Near, Alignment.Center);
