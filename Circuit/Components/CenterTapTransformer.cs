@@ -58,8 +58,8 @@ namespace Circuit
             Expression Vp = pa.V - pc.V;
             Expression Vs1 = sa.V - st.V;
             Expression Vs2 = st.V - sc.V;
-            Mna.AddEquation(Vp, Vs1 * turns / 2);
-            Mna.AddEquation(Vp, Vs2 * turns / 2);
+            Mna.AddEquation(Vp, Vs1 * turns * 2);
+            Mna.AddEquation(Vp, Vs2 * turns * 2);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
