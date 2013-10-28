@@ -95,6 +95,7 @@ namespace CircuitTests
             }
             catch (SimulationDiverged Ex)
             {
+                if (Ex.At == 0) throw;
                 N = (int)Ex.At;
             }
 
@@ -102,7 +103,7 @@ namespace CircuitTests
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
-                plots.Add(i.Key, i.Value.Skip(30000).Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
+                plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
 
             double max = 0.0;
             for (int i = 0; i < vs.Length; ++i)
