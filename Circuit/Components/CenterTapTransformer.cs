@@ -64,26 +64,30 @@ namespace Circuit
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
-            Sym.AddTerminal(pa, new Coord(-10, 40));
-            Sym.AddTerminal(pc, new Coord(-10, -40));
-            Sym.AddTerminal(sa, new Coord(10, 40));
-            Sym.AddTerminal(st, new Coord(10, 0));
-            Sym.AddTerminal(sc, new Coord(10, -40));
+            int h = 20;
 
-            Sym.AddWire(pa, new Coord(-10, 36));
-            Sym.AddWire(pc, new Coord(-10, -36));
-            Sym.AddWire(sa, new Coord(10, 36));
-            Sym.AddWire(sc, new Coord(10, -36));
+            Sym.AddTerminal(pa, new Coord(-10, h));
+            Sym.AddTerminal(pc, new Coord(-10, -h));
+            Sym.AddTerminal(sa, new Coord(10, h));
+            Sym.AddTerminal(st, new Coord(10, 0));
+            Sym.AddTerminal(sc, new Coord(10, -h));
+
+            Sym.DrawText(Name, new Coord(-16, -h / 2), Alignment.Far, Alignment.Center);
+            Sym.DrawText(Turns.ToString(), new Coord(-16, h / 2), Alignment.Far, Alignment.Center);
+
+            h -= 4;
+
+            Sym.AddWire(pa, new Coord(-10, h));
+            Sym.AddWire(pc, new Coord(-10, -h));
+            Sym.AddWire(sa, new Coord(10, h));
+            Sym.AddWire(sc, new Coord(10, -h));
             Sym.InBounds(new Coord(-20, 0), new Coord(20, 0));
 
-            Inductor.DrawCoil(Sym, -10, -36.0, 36.0, 8, true);
-            Sym.DrawLine(EdgeType.Black, new Coord(-2, 36), new Coord(-2, -36));
-            Sym.DrawLine(EdgeType.Black, new Coord(2, 36), new Coord(2, -36));
-            Inductor.DrawCoil(Sym, 10, -36.0, 0.0, 4, false);
-            Inductor.DrawCoil(Sym, 10, 36.0, 0.0, 4, false);
-
-            Sym.DrawText(Name, new Coord(16, -20), Alignment.Near, Alignment.Center);
-            Sym.DrawText(Turns.ToString(), new Coord(16, 20), Alignment.Near, Alignment.Center);
+            Inductor.DrawCoil(Sym, -10, -h, h, 4, true);
+            Sym.DrawLine(EdgeType.Black, new Coord(-2, h), new Coord(-2, -h));
+            Sym.DrawLine(EdgeType.Black, new Coord(2, h), new Coord(2, -h));
+            Inductor.DrawCoil(Sym, 10, -h, 0.0, 2, false);
+            Inductor.DrawCoil(Sym, 10, h, 0.0, 2, false);
         }
 
         public override string ToString() { return Name + " = " + Turns.ToString(); }
