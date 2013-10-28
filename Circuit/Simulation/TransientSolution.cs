@@ -89,7 +89,7 @@ namespace Circuit
             
             // Find and replace the parameters of the simulation.
             List<Parameter> parameters = new List<Parameter>();
-            mna = FindParameters(mna, parameters);
+            mna = FindParameters(mna, y, parameters);
             Log.WriteLine(MessageType.Info, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
 
             // Solve the MNA system.
@@ -204,10 +204,10 @@ namespace Circuit
         private static readonly Variable MatchDefault = Variable.New("def");
         private static readonly Variable MatchLog = Variable.New("log");
         private static readonly IEnumerable<Expression> MatchP = new Expression[] { "P[name]", "P[name, def]", "P[name, def, log]" };
-        private static List<Equal> FindParameters(List<Equal> Mna, List<Parameter> Parameters)
+        private static List<Equal> FindParameters(List<Equal> Mna, List<Expression> y, List<Parameter> Parameters)
         {
             Dictionary<Expression, Expression> substitutions = new Dictionary<Expression, Expression>();
-            foreach (MatchContext match in Mna.SelectMany(i => i.FindMatches(MatchP)))
+            foreach (MatchContext match in Mna.SelectMany(i => i.FindMatches(MatchP)).Where(i => !y.Contains(i.Matched)))
             {
                 // Build the parameter description.
                 Expression param = match[MatchName];

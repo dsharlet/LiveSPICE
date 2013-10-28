@@ -75,19 +75,6 @@ namespace Circuit
                 }
             }
 
-            // Check for conflicting named wires.
-            foreach (Node i in circuit.Nodes)
-            {
-                IEnumerable<NamedWire> named = i.Connected.Select(j => j.Owner).OfType<NamedWire>();
-                if (named.Count() > 1)
-                {
-                    log.WriteLine(MessageType.Error, "Node '{0}' is named more than once.", i.Name);
-                    foreach (NamedWire j in named)
-                        log.WriteLine(MessageType.Info, "  " + j.ToString());
-                    errors++;
-                }
-            }
-
             // Check for unconnected terminals.
             foreach (Component i in circuit.Components)
             {
