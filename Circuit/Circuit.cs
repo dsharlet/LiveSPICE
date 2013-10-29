@@ -32,7 +32,22 @@ namespace Circuit
         
         public override void LayoutSymbol(SymbolLayout Sym)
         {
-            throw new NotImplementedException();
+            // The default circuit layout is a box with the terminals alternating up the sides.
+            List<Terminal> terminals = Terminals.ToList();
+
+            int w = 40;
+            int h = Math.Max(20, (terminals.Count / 2 + 1) * 10);
+
+            Sym.AddRectangle(EdgeType.Black, new Coord(-w, -h), new Coord(w, h));
+
+            for (int i = 0; i < terminals.Count; ++i)
+            {
+                int dx = (i % 2) * 2 - 1;
+                int x = w * dx;
+                int y = h - (i / 2 + 1) * 20;
+                Sym.AddTerminal(terminals[i], new Coord(x, y));
+                Sym.DrawText(terminals[i].Name, new Coord(x - dx * 3, y), x < 0 ? Alignment.Near : Alignment.Far, Alignment.Center);
+            }
         }
 
         private static readonly Expression MatchName = Variable.New("name");
@@ -101,7 +116,44 @@ namespace Circuit
         public override XElement Serialize()
         {
             XElement X = base.Serialize();
+            // Serialize nodes.
+            foreach (Node i in Nodes)
+            {
+                XElement node = new XElement("Node");
+                node.SetAttributeValue("Name", i.Name);
+                X.Add(node);
+            }
+            // Serialize child components.
+            foreach (Component i in Components)
+            {
+                XElement component = i.Serialize();
+                // Store connected terminals.
+                foreach (Terminal j in i.Terminals.Where(x => x.IsConnected))
+                {
+                    XElement terminal = new XElement("Terminal");
+                    terminal.SetAttributeValue("Name", j.Name);
+                    terminal.SetAttributeValue("ConnectedTo", j.ConnectedTo.Name);
+                    component.Add(terminal);
+                }
+                X.Add(component);
+            }
             return X;
+        }
+
+        protected override void DeserializeImpl(XElement X)
+        {
+            base.DeserializeImpl(X);
+
+            // Deserialize nodes.
+            Nodes.AddRange(X.Elements("Node").Select(i => new Node() { Name = i.Attribute("Name").Value }));
+
+            foreach (XElement i in X.Elements("Component"))
+            {
+                Component component = Deserialize(i);
+                foreach (XElement j in i.Elements("Terminal"))
+                    component.Terminals.Single(x => x.Name == j.Attribute("Name").Value).ConnectTo(Nodes[j.Attribute("ConnectedTo").Value]);
+                Components.Add(component);
+            }
         }
 
         /// <summary>

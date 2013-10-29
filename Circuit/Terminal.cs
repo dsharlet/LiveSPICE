@@ -38,6 +38,8 @@ namespace Circuit
             set { ConnectTo(value); }
         }
 
+        public bool IsConnected { get { return connectedTo != null; } }
+
         public Component Owner { get { return owner; } }
 
         /// <summary>
