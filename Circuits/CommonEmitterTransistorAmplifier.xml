@@ -13,7 +13,7 @@
     <Component _Type="Circuit.Resistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="22 Ω" Name="Re" />
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-10,100">
-    <Component _Type="Circuit.BJT, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Q1" />
+    <Component _Type="Circuit.BJT, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Model="2SC2240 (Ebers-Moll)" Name="Q1" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,100" B="-200,130" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,100" B="-170,100" />

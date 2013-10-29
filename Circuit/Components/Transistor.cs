@@ -7,32 +7,38 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    [TypeConverter(typeof(ExpandableObjectConverter))]
-    public abstract class BJTModel
+    [TypeConverter(typeof(ModelConverter<BJTModel>))]
+    public abstract class BJTModel : Model
     {
+        public BJTModel(string Name) : base(Name) { }
+
         public abstract void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie);
+
+        public static List<BJTModel> Models { get { return Model.GetModels<BJTModel>(); } }
+
+        static BJTModel()
+        {
+            Models.Add(new EbersMollModel("2SC2240", 1e-12, 200, 0.1));
+        }
     }
 
     // http://people.seas.harvard.edu/~jones/es154/lectures/lecture_3/bjt_models/ebers_moll/ebers_moll.html
-    [TypeConverter(typeof(ExpandableObjectConverter))]
     public class EbersMollModel : BJTModel
     {
-        private double bf = 100;
-        private double br = 1.0;
-        private double _is = 6.734e-15; // A
+        private double bf;
+        private double br;
+        private double _is;
 
         public double BF { get { return bf; } set { bf = value; } }
         public double BR { get { return br; } set { br = value; } }
         public double IS { get { return _is; } set { _is = value; } }
         
-        public EbersMollModel(double BF, double BR, double IS)
+        public EbersMollModel(string Name, double IS, double BF, double BR) : base(Name)
         {
             bf = BF;
             br = BR;
             _is = IS;
         }
-
-        public EbersMollModel() { }
 
         public override void Evaluate(Expression Vbc, Expression Vbe, out Expression ic, out Expression ib, out Expression ie)
         {
@@ -46,6 +52,8 @@ namespace Circuit
             ic = -iDC + aF * iDE;
             ib = (1 - aF) * iDE + (1 - aR) * iDC;
         }
+
+        public override string ToString() { return base.ToString() + " (Ebers-Moll)"; }
     };
     
     /// <summary>
@@ -72,7 +80,8 @@ namespace Circuit
         [Browsable(false)]
         public Terminal Base { get { return b; } }
 
-        protected BJTModel model = new EbersMollModel();
+        protected BJTModel model = BJTModel.Models.First();
+        [Serialize]
         public BJTModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
 
         public BJT()
@@ -112,7 +121,9 @@ namespace Circuit
             Sym.DrawLine(EdgeType.Black, new Coord(10, 17), new Coord(bx, 8));
             Sym.DrawArrow(EdgeType.Black, new Coord(bx, -8), new Coord(10, -17), 0.2, 0.3);
 
-            Sym.DrawText(Name, new Point(0, -20), Alignment.Far, Alignment.Far);
+            Sym.DrawText(Model.Name, new Coord(8, 20), Alignment.Far, Alignment.Near);
+            Sym.DrawText(Name, new Point(8, -20), Alignment.Far, Alignment.Far);
+
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
         }
     }

@@ -102,6 +102,8 @@
     <Compile Include="Components\OpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
+    <Compile Include="Utils\ModelConverter.cs" />
+    <Compile Include="Utils\Model.cs" />
     <Compile Include="Utils\RatioConverter.cs" />
     <Compile Include="Utils\Log.cs" />
     <Compile Include="Utils\Matrix.cs" />

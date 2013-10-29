@@ -88,7 +88,7 @@ namespace Circuit
             {
                 foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
                 {
-                    System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
+                    TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
                     X.SetAttributeValue(i.Name, tc.ConvertToString(i.GetValue(this)));
                 }
                 T = T.BaseType;
@@ -106,7 +106,7 @@ namespace Circuit
                     XAttribute attr = X.Attribute(i.Name);
                     if (attr != null)
                     {
-                        System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
+                        TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
                         i.SetValue(this, tc.ConvertFromString(attr.Value));
                     }
                 }
