@@ -23,7 +23,9 @@ namespace LiveSPICE
     /// Element for a symbol.
     /// </summary>
     public class SymbolControl : ElementControl
-    {       
+    {
+        private static Pen TextOutline = new Pen(new SolidColorBrush(Color.FromArgb(32, 0, 0, 0)), 0.2);    
+
         static SymbolControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SymbolControl), new FrameworkPropertyMetadata(typeof(SymbolControl))); }
 
         private bool showText = true;
@@ -206,7 +208,15 @@ namespace LiveSPICE
                     p1.X *= text.Width; p2.X *= text.Width;
                     p1.Y *= text.Height; p2.Y *= text.Height;
 
-                    Context.DrawText(text, new Point(Math.Min(p.X + p1.X, p.X - p2.X), Math.Min(p.Y + p1.Y, p.Y - p2.Y)));
+                    Rect rc = new Rect(
+                        Math.Min(p.X + p1.X, p.X - p2.X), 
+                        Math.Min(p.Y + p1.Y, p.Y - p2.Y),
+                        text.Width, 
+                        text.Height);
+                    if (TextOutline != null)
+                        Context.DrawRectangle(null, TextOutline, rc);
+
+                    Context.DrawText(text, rc.TopLeft);
                 }
             }
 
