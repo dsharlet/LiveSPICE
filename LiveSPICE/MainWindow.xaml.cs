@@ -142,7 +142,7 @@ namespace LiveSPICE
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void SaveAll_Executed(object sender, ExecutedRoutedEventArgs e)
