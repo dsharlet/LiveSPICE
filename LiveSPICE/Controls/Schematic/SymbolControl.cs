@@ -121,13 +121,13 @@ namespace LiveSPICE
             dc = drawingContext;
             dc.PushGuidelineSet(SymbolControl.Guidelines);
             
+            DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
+
             Rect bounds = new Rect(T(transform, layout.LowerBound), T(transform, layout.UpperBound));
             if (Selected)
                 dc.DrawRectangle(null, SelectedPen, bounds);
             else if (Highlighted)
                 dc.DrawRectangle(null, HighlightPen, bounds);
-
-            DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
 
             dc.Pop();
             dc = null;
