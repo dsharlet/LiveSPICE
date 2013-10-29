@@ -3,11 +3,13 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
+using System.Reflection;
 using SyMath;
 
 namespace Circuit
 {
-    public class SchematicPersistent : Attribute { };
+    public class Serialize : Attribute { };
     
     /// <summary>
     /// Components are capable of performing MNA to produce a set of equations and unknowns describing their behavior.
@@ -28,9 +30,14 @@ namespace Circuit
         /// </summary>
         public static readonly Variable T = Variable.New("T");
 
+        /// <summary>
+        /// Thermal voltage.
+        /// </summary>
+        public const double VT = 25.35e-3;
+
         private string name = "X1";
         [Description("Unique name of this component.")]
-        [SchematicPersistent]
+        [Serialize]
         public virtual string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
 
         private object tag = null;
@@ -70,6 +77,62 @@ namespace Circuit
         /// </summary>
         /// <param name="S"></param>
         public abstract void LayoutSymbol(SymbolLayout Sym);
+
+        public virtual XElement Serialize()
+        {
+            XElement X = new XElement("Component");
+            Type T = GetType();
+            X.SetAttributeValue("_Type", T.AssemblyQualifiedName);
+
+            while (T != null)
+            {
+                foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
+                {
+                    System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
+                    X.SetAttributeValue(i.Name, tc.ConvertToString(i.GetValue(this)));
+                }
+                T = T.BaseType;
+            }
+            return X;
+        }
+
+        protected virtual void DeserializeImpl(XElement X)
+        {
+            Type T = GetType();
+            while (T != null)
+            {
+                foreach (PropertyInfo i in GetType().GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
+                {
+                    XAttribute attr = X.Attribute(i.Name);
+                    if (attr != null)
+                    {
+                        System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
+                        i.SetValue(this, tc.ConvertFromString(attr.Value));
+                    }
+                }
+                T = T.BaseType;
+            }
+        }
+
+        public static Component Deserialize(XElement X)
+        {
+            try
+            {
+                XAttribute type = X.Attribute("_Type");
+                if (type == null)
+                    throw new Exception("Component type not defined.");
+                Type T = Type.GetType(type.Value);
+                if (T == null)
+                    throw new Exception("Type '" + type.Value + "' not found.");
+                Component c = (Component)T.GetConstructor(new Type[0]).Invoke(new object[0]);
+                c.DeserializeImpl(X);
+                return c;
+            }
+            catch (TargetInvocationException Ex)
+            {
+                throw Ex.InnerException;
+            }
+        }
 
         // This is too useful not to have.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }

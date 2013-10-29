@@ -20,19 +20,16 @@ namespace Circuit
         private double bf = 100;
         private double br = 1.0;
         private double _is = 6.734e-15; // A
-        private double vt = 25.85e-3; // V
 
         public double BF { get { return bf; } set { bf = value; } }
         public double BR { get { return br; } set { br = value; } }
         public double IS { get { return _is; } set { _is = value; } }
-        public double VT { get { return vt; } set { vt = value; } }
         
-        public EbersMollModel(double BF, double BR, double IS, double VT)
+        public EbersMollModel(double BF, double BR, double IS)
         {
             bf = BF;
             br = BR;
             _is = IS;
-            vt = VT;
         }
 
         public EbersMollModel() { }
@@ -42,8 +39,8 @@ namespace Circuit
             double aR = BR / (1 + BR);
             double aF = BF / (1 + BF);
 
-            Expression iDE = IS * (Call.Exp(Vbe / VT) - 1);
-            Expression iDC = IS * (Call.Exp(Vbc / VT) - 1);
+            Expression iDE = IS * (Call.Exp(Vbe / Component.VT) - 1);
+            Expression iDC = IS * (Call.Exp(Vbc / Component.VT) - 1);
 
             ie = iDE - aR * iDC;
             ic = -iDC + aF * iDE;

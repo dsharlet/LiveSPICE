@@ -80,7 +80,7 @@ namespace Circuit
         public virtual XElement Serialize()
         {
             XElement X = new XElement("Element");
-            X.SetAttributeValue("ElementType", GetType().AssemblyQualifiedName);
+            X.SetAttributeValue("Type", GetType().AssemblyQualifiedName);
             return X;
         }
         
@@ -88,7 +88,7 @@ namespace Circuit
         {
             try
             {
-                Type T = Type.GetType(X.Attribute("ElementType").Value);
+                Type T = Type.GetType(X.Attribute("Type").Value);
                 return (Element)T.GetMethod("Deserialize").Invoke(null, new object[] { X });
             }
             catch (System.Reflection.TargetInvocationException Ex)

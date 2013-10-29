@@ -30,7 +30,7 @@ namespace Circuit
 
         protected Ratio turns = new Ratio(1, 1);
         [Description("Turns ratio.")]
-        [SchematicPersistent]
+        [Serialize]
         public Ratio Turns { get { return turns; } set { turns = value; NotifyChanged("Turns"); } }
 
         public CenterTapTransformer()

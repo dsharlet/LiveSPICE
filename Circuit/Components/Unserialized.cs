@@ -16,15 +16,21 @@ namespace Circuit
         public override IEnumerable<Terminal> Terminals { get { return new Terminal[0]; } }
 
         private XElement data;
-        [SchematicPersistent]
+        [Serialize]
         public XElement Data { get { return data; } }
 
         private string message;
-        [SchematicPersistent]
+        [Serialize]
         public string Message { get { return message; } }
 
         public UnserializedComponent() { }
         public UnserializedComponent(XElement Data, string Message) { data = Data; message = Message; }
+
+        /// <summary>
+        /// Serializing an unserialized component replaces the data that could not be serialized.
+        /// </summary>
+        /// <returns></returns>
+        public override XElement Serialize() { return Data; }
 
         public override string ToString() { return Message; }
     }

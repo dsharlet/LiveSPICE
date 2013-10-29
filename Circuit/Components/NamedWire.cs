@@ -17,7 +17,7 @@ namespace Circuit
         public NamedWire() { }
 
         private string wire = "Name";
-        [SchematicPersistent]
+        [Serialize]
         public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire");  } }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) 

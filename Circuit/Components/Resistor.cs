@@ -16,7 +16,7 @@ namespace Circuit
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Description("Resistance of this resistor.")]
-        [SchematicPersistent]
+        [Serialize]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
         public Resistor() { Name = "R1"; }

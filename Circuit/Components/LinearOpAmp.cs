@@ -16,17 +16,17 @@ namespace Circuit
     {
         protected Quantity rin = new Quantity(1e6m, Units.Ohm);
         [Description("Input resistance.")]
-        [SchematicPersistent]
+        [Serialize]
         public Quantity InputResistance { get { return rin; } set { if (rin.Set(value)) NotifyChanged("InputResistance"); } }
 
         protected Quantity rout = new Quantity(1e2m, Units.Ohm);
         [Description("Output resistance.")]
-        [SchematicPersistent]
+        [Serialize]
         public Quantity OutputResistance { get { return rout; } set { if (rout.Set(value)) NotifyChanged("OutputResistance"); } }
 
         protected decimal gain = 1e6m;
         [Description("Gain.")]
-        [SchematicPersistent]
+        [Serialize]
         public decimal Gain { get { return gain; } set { gain = value; NotifyChanged("Gain"); } }
         
         public override void Analyze(ModifiedNodalAnalysis Mna)

@@ -41,12 +41,12 @@ namespace Circuit
 
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Description("Total resistance of this potentiometer.")]
-        [SchematicPersistent]
+        [Serialize]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
         protected double wipe = 0.5;
         [Description("Default position of the wiper as a ratio from 0 to 1. 1 corresponds to all the resistance between the wiper and the cathode.")]
-        [SchematicPersistent]
+        [Serialize]
         public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
         
         public void ConnectTo(Node A, Node C, Node W)

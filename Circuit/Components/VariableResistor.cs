@@ -11,7 +11,7 @@ namespace Circuit
     public class VariableResistor : Resistor
     {
         protected Expression wipe = 0.5m;
-        [SchematicPersistent]
+        [Serialize]
         public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
         public VariableResistor() { }

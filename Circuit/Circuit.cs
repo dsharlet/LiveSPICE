@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using SyMath;
 
 namespace Circuit
@@ -96,7 +97,13 @@ namespace Circuit
             Analyze(mna);
             return mna;
         }
-        
+
+        public override XElement Serialize()
+        {
+            XElement X = base.Serialize();
+            return X;
+        }
+
         /// <summary>
         /// Create a circuit from a SPICE netlist.
         /// </summary>

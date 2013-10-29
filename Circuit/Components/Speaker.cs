@@ -16,7 +16,7 @@ namespace Circuit
     {
         private Quantity impedance = new Quantity(Constant.Infinity, Units.Ohm);
 
-        [SchematicPersistent]
+        [Serialize]
         public Quantity Impedance { get { return impedance; } set { impedance = value; NotifyChanged("Impedance"); } }
 
         public Speaker() { Name = "S1"; }

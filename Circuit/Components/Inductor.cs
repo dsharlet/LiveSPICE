@@ -16,7 +16,7 @@ namespace Circuit
     {
         protected Quantity inductance = new Quantity(100e-6m, Units.H);
         [Description("Inductance of this inductor.")]
-        [SchematicPersistent]
+        [Serialize]
         public Quantity Inductance { get { return inductance; } set { if (inductance.Set(value)) NotifyChanged("Inductance"); } }
 
         public Inductor() { Name = "L1"; }

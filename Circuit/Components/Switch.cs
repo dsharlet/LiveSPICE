@@ -16,7 +16,7 @@ namespace Circuit
     {
         protected bool closed = false;
         [Description("Closed = true corresponds to a closed circuit.")]
-        [SchematicPersistent]
+        [Serialize]
         public bool Closed { get { return closed; } set { closed = value; NotifyChanged("Closed"); } }
 
         public Switch() { Name = "S1"; }

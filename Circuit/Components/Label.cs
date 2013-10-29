@@ -19,9 +19,9 @@ namespace Circuit
 
         private string text = "Label";
         private string subtext = "";
-        [SchematicPersistent]
+        [Serialize]
         public string Text { get { return text; } set { text = value; NotifyChanged("Text"); } }
-        [SchematicPersistent]
+        [Serialize]
         public string Subtext { get { return subtext; } set { subtext = value; NotifyChanged("Subtext"); } }
 
         public Label() { Name = "_1"; }

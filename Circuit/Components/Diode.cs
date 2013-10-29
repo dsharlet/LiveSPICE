@@ -22,38 +22,36 @@ namespace Circuit
     public class ShockleyDiodeModel : DiodeModel
     {
         // Shockley diode model parameters.
-        protected double _is = 6.734e-15; // A
-        protected double vt = 25.85e-3; // V
-        protected double _n = 1.0;
+        protected double _is; // A
+        protected double _n;
         protected bool led = false;
 
         public double IS { get { return _is; } set { _is = value; } }
-        public double VT { get { return vt; } set { vt = value; } }
         public double n { get { return _n; } set { _n = value; } }
         public bool Led { get { return led; } set { led = value; } }
 
-        public ShockleyDiodeModel(double IS, double VT, double n)
+        public ShockleyDiodeModel(double IS, double n)
         {
             _is = IS;
-            vt = VT;
             _n = n;
         }
-
-        public ShockleyDiodeModel() { }
-
+        
         public override bool IsLed() { return Led; }
         
         public override Expression Evaluate(Expression V)
         {
-            return IS * (Call.Exp(V / (n * VT)) - 1);
+            return IS * (Call.Exp(V / (n * Component.VT)) - 1);
         }
+
+        public static readonly ShockleyDiodeModel _1N270 = new ShockleyDiodeModel(1e-6, 1.0);
+        public static readonly ShockleyDiodeModel _1N4001 = new ShockleyDiodeModel(6.734e-15, 1.0);
     };
 
     [CategoryAttribute("Standard")]
     [DisplayName("Diode")]
     public class Diode : TwoTerminal
     {
-        protected DiodeModel model = new ShockleyDiodeModel();
+        protected DiodeModel model = ShockleyDiodeModel._1N270;
         public DiodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
 
         public Diode() { Name = "D1"; }
