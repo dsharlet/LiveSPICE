@@ -21,16 +21,22 @@ namespace Circuit
 
         public Resistor() { Name = "R1"; }
 
-        public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V, Expression R)
+        public static Expression Analyze(ModifiedNodalAnalysis Mna, Terminal Anode, Terminal Cathode, Expression R)
         {
             // i = V/R
             if (R.IsZero())
-                return Conductor.Analyze(Mna, V);
+            {
+                return Conductor.Analyze(Mna, Anode, Cathode);
+            }
             else
-                return V / R;
+            {
+                Expression i = (Anode.V - Cathode.V) / R;
+                Mna.AddPassiveComponent(Anode, Cathode, i);
+                return i;
+            }
         }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { i = Analyze(Mna, V, Resistance); }
+        public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode, Resistance); }
 
         
         protected override void DrawSymbol(SymbolLayout Sym)

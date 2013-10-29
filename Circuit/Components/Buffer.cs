@@ -16,11 +16,8 @@ namespace Circuit
     {
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            // Infinite input impedance.
-            Anode.i = Constant.Zero;
             // Unknown output current.
-            Cathode.i = Mna.AddNewUnknown("i" + Name);
-
+            Mna.AddTerminal(Cathode, Mna.AddNewUnknown("i" + Name));
             // Follow voltage.
             Mna.AddEquation(Anode.V, Cathode.V);
         }

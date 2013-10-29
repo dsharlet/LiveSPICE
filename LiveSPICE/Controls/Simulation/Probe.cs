@@ -34,11 +34,7 @@ namespace LiveSPICE
         public Probe() : this(EdgeType.Red) { }
         public Probe(EdgeType Color) { color = Color; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
-        {
-            // Probes don't affect the circuit.
-            i = 0;
-        }
+        public override void Analyze(ModifiedNodalAnalysis Mna) { }
 
         protected override void DrawSymbol(Circuit.SymbolLayout Sym)
         {

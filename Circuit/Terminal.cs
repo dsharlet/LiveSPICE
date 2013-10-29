@@ -67,7 +67,6 @@ namespace Circuit
             remove { connectionChanged.Remove(value); }
         }
 
-        public Expression i = null;
         public Expression V { get { return ConnectedTo != null ? ConnectedTo.V : unconnected; } }
 
         public override string ToString() { return Description; }

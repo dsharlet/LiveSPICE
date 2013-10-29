@@ -21,17 +21,18 @@ namespace Circuit
 
         public Inductor() { Name = "L1"; }
 
-        public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V, Expression L)
+        public static Expression Analyze(ModifiedNodalAnalysis Mna, Terminal Anode, Terminal Cathode, Expression L)
         {
             // Define a new unknown for the current through the inductor.
             Expression i = Mna.AddNewUnknown();
+            Mna.AddPassiveComponent(Anode, Cathode, i);
             // V = L*di/dt
-            Mna.AddEquation(V, L * D(i, t));
+            Mna.AddEquation(Anode.V - Cathode.V, L * D(i, t));
 
             return i;
         }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { i = Analyze(Mna, V, Inductance); }
+        public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode, Inductance); }
 
         public static void DrawCoil(SymbolLayout Sym, double x, double y1, double y2, int Turns, bool Mirror)
         {

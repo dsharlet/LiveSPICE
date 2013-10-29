@@ -61,7 +61,7 @@ namespace Circuit
             // Vac = Va - Vc
             Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
             // Evaluate the model.
-            i = Mna.AddNewUnknownEqualTo("i" + Name, model.Evaluate(Vac));
+            Mna.AddPassiveComponent(Anode, Cathode, Mna.AddNewUnknownEqualTo("i" + Name, model.Evaluate(Vac)));
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

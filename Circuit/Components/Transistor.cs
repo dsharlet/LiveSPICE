@@ -90,9 +90,11 @@ namespace Circuit
 
             Expression ic, ib, ie;
             model.Evaluate(Vbc, Vbe, out ic, out ib, out ie);
-            c.i = Mna.AddNewUnknownEqualTo("i" + Name + "c", ic);
-            b.i = Mna.AddNewUnknownEqualTo("i" + Name + "b", ib);
-            e.i = -(ic + ib);
+            ic = Mna.AddNewUnknownEqualTo("i" + Name + "c", ic);
+            ib = Mna.AddNewUnknownEqualTo("i" + Name + "b", ib);
+            Mna.AddTerminal(c, ic);
+            Mna.AddTerminal(b, ib);
+            Mna.AddTerminal(e, -(ic + ib));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

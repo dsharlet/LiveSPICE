@@ -34,17 +34,7 @@ namespace Circuit
             get { return Terminal.ConnectedTo; }
             set { Terminal.ConnectedTo = value; }
         }
-
-        /// <summary>
-        /// Current flowing to this component.
-        /// </summary>
-        [Browsable(false)]
-        public Expression i 
-        { 
-            get { return Terminal.i; } 
-            set { Terminal.i = value; } 
-        }
-
+        
         /// <summary>
         /// Voltage at this component.
         /// </summary>
@@ -87,21 +77,7 @@ namespace Circuit
         /// </summary>
         [Browsable(false)]
         public Expression V { get { return Anode.V - Cathode.V; } }
-
-        /// <summary>
-        /// Current through this two terminal component.
-        /// </summary>
-        [Browsable(false)]
-        public Expression i
-        {
-            get { return Anode.i; }
-            set
-            {
-                Anode.i = value;
-                Cathode.i = Multiply.New(Constant.New(-1), value);
-            }
-        }
-
+        
         /// <summary>
         /// Connect the terminals of this component to the given nodes.
         /// </summary>

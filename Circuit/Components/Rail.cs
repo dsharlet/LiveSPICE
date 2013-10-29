@@ -26,7 +26,7 @@ namespace Circuit
         
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            i = Mna.AddNewUnknown("i" + Name);
+            Mna.AddTerminal(Terminal, Mna.AddNewUnknown("i" + Name));
 
             Mna.AddEquation(V, Voltage.Value);
         }

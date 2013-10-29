@@ -16,11 +16,8 @@ namespace Circuit
     {
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            // Infinite input impedance.
-            Anode.i = Constant.Zero;
             // Unknown output current.
-            Cathode.i = Mna.AddNewUnknown("i" + Name);
-
+            Mna.AddTerminal(Cathode, Mna.AddNewUnknown("i" + Name));
             // -V[t] = +V[t0], i.e. the voltage at the previous timestep.
             Mna.AddEquation(Anode.V.Evaluate(t, t0), Cathode.V);
         }

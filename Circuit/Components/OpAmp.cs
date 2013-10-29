@@ -41,10 +41,9 @@ namespace Circuit
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // Infinite input impedance.
-            Positive.i = Negative.i = Constant.Zero;
+            Mna.AddPassiveComponent(Positive, Negative, Constant.Zero);
             // Unknown output current.
-            Out.i = Mna.AddNewUnknown("i" + Name);
-
+            Mna.AddTerminal(Out, Mna.AddNewUnknown("i" + Name));
             // The voltage between the positive and negative terminals is 0.
             Mna.AddEquation(Positive.V, Negative.V);
         }

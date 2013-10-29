@@ -21,7 +21,7 @@ namespace Circuit
             // Nodes connected to ground have V = 0.
             Mna.AddEquation(Terminal.V, Constant.Zero);
             // Ground doesn't care about current.
-            Terminal.i = null;
+            Mna.AddTerminal(Terminal, null);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

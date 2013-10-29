@@ -32,8 +32,9 @@ namespace Circuit
         
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            i = Mna.AddNewUnknown("i" + Name);
-
+            // Unknown current.
+            Mna.AddPassiveComponent(Anode, Cathode, Mna.AddNewUnknown("i" + Name));
+            // Set the voltage.
             Mna.AddEquation(V, Voltage.Value);
         }
 

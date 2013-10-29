@@ -44,11 +44,9 @@ namespace Circuit
         public override void Analyze(ModifiedNodalAnalysis Mna) 
         {
             Expression Ip = Mna.AddNewUnknown("i" + Name + "p");
-            pa.i = Ip;
-            pc.i = -Ip;
+            Mna.AddPassiveComponent(pa, pc, Ip);
             Expression Is = Mna.AddNewUnknown("i" + Name + "s");
-            sa.i = -Is;
-            sc.i = Is;
+            Mna.AddPassiveComponent(sc, sa, Is);
             Mna.AddEquation(Ip * turns, Is);
 
             Expression Vp = pa.V - pc.V;

@@ -18,7 +18,7 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            i = Resistor.Analyze(Mna, V, Resistance.Value * Wipe);
+            Resistor.Analyze(Mna, Anode, Cathode, Resistance.Value * Wipe);
         }
         
         protected override void DrawSymbol(SymbolLayout Sym)

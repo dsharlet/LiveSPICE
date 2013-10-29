@@ -17,19 +17,16 @@ namespace Circuit
     {
         public Conductor() { Name = "_1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) 
-        {
-            i = Mna.AddNewUnknown("i" + Name);
-            Mna.AddEquation(Anode.V, Cathode.V);
-        }
-
-        public static Expression Analyze(ModifiedNodalAnalysis Mna, Expression V)
+        public static Expression Analyze(ModifiedNodalAnalysis Mna, Terminal Anode, Terminal Cathode)
         {
             Expression i = Mna.AddNewUnknown();
-            Mna.AddEquation(V, Constant.Zero);
+            Mna.AddPassiveComponent(Anode, Cathode, i);
+            Mna.AddEquation(Anode.V, Cathode.V);
             return i;
         }
-        
+
+        public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode); }
+
         protected override void DrawSymbol(SymbolLayout Sym) { Sym.AddWire(Anode, Cathode); }
     }
 }

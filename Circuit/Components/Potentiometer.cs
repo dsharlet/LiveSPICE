@@ -63,9 +63,8 @@ namespace Circuit
             Expression R1 = resistance.Value * P;
             Expression R2 = resistance.Value * (1 - P);
 
-            Cathode.i = Resistor.Analyze(Mna, Cathode.V - Wiper.V, R1);
-            Anode.i = Resistor.Analyze(Mna, Anode.V - Wiper.V, R2);
-            Wiper.i = -(Cathode.i + Anode.i);
+            Resistor.Analyze(Mna, Cathode, Wiper, R1);
+            Resistor.Analyze(Mna, Anode, Wiper, R2);
         }
         
         public override sealed void LayoutSymbol(SymbolLayout Sym)

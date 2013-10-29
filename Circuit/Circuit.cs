@@ -75,24 +75,15 @@ namespace Circuit
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             foreach (Component c in Components)
-            {
                 c.Analyze(Mna);
-                // Make a fake node for the unconnected terminals.
-                foreach (Terminal t in c.Terminals.Where(i => i.ConnectedTo == null))
-                {
-                    Mna.AddUnknowns(t.V);
-                    Expression i = t.i;
-                    if (i != null && !i.IsZero())
-                        Mna.AddEquation(i, Constant.Zero);
-                }
-            }
-            foreach (Node n in Nodes)
-            {
-                Mna.AddUnknowns(n.V);
-                Expression i = n.Kcl();
-                if (i != null && !i.IsZero())
-                    Mna.AddEquation(i, Constant.Zero);
-            }
+
+            //foreach (Node n in Nodes)
+            //{
+            //    Mna.AddUnknowns(n.V);
+            //    Expression i = n.Kcl();
+            //    if (i != null && !i.IsZero())
+            //        Mna.AddEquation(i, Constant.Zero);
+            //}
 
             // Add equations for any depenent expressions.
             foreach (MatchContext v in Mna.Equations.SelectMany(i => i.FindMatches(MatchV)).Distinct().ToArray())

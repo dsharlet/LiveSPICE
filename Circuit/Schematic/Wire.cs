@@ -50,7 +50,6 @@ namespace Circuit
         { 
             conductor = new Conductor();
             conductor.Tag = this;
-            Anode.i = Cathode.i = 0;
         }
         public Wire(Coord A, Coord B) : this()
         {

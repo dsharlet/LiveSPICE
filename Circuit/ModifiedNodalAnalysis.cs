@@ -14,22 +14,58 @@ namespace Circuit
     {
         private HashSet<Equal> equations = new HashSet<Equal>();
         private List<Expression> unknowns = new List<Expression>();
-        
+        private Dictionary<Expression, Expression> nodes = new Dictionary<Expression, Expression>();
+
+        /// <summary>
+        /// Get the KCL expressions for this analysis.
+        /// </summary>
+        public IEnumerable<KeyValuePair<Expression, Expression>> Kcl { get { return nodes.Where(i => !ReferenceEquals(i.Value, null)); } }
+
         /// <summary>
         /// Enumerates the equations in the system.
         /// </summary>
-        public IEnumerable<Equal> Equations { get { return equations; } }
+        public IEnumerable<Equal> Equations { get { return equations.Concat(Kcl.Select(i => Equal.New(Add.New(i.Value), Constant.Zero))); } }
         /// <summary>
         /// Enumerates the unknowns in the system.
         /// </summary>
         public IEnumerable<Expression> Unknowns { get { return unknowns; } }
 
         /// <summary>
-        /// Adds a new node equation to the system.
+        /// Add a current to the given node.
         /// </summary>
+        /// <param name="Node"></param>
         /// <param name="i"></param>
-        public void AddNode(Expression i) { equations.Add(Equal.New(i, Constant.Zero)); }
+        public void AddTerminal(Terminal Terminal, Expression i)
+        {
+            Expression v = Terminal.V;
+            Expression kcl;
+            if (nodes.TryGetValue(v, out kcl))
+            {
+                // null represents a node with undefined current.
+                if (ReferenceEquals(i, null))
+                    nodes[v] = null;
+                else if (!ReferenceEquals(kcl, null))
+                    nodes[v] = kcl + i;
+            }
+            else
+            {
+                nodes[v] = i;
+                AddUnknowns(v);
+            }
+        }
 
+        /// <summary>
+        /// Add the current for a passive component with the given terminals.
+        /// </summary>
+        /// <param name="Anode"></param>
+        /// <param name="Cathode"></param>
+        /// <param name="i"></param>
+        public void AddPassiveComponent(Terminal Anode, Terminal Cathode, Expression i)
+        {
+            AddTerminal(Anode, i);
+            AddTerminal(Cathode, -i);
+        }
+        
         /// <summary>
         /// Add equations to the system.
         /// </summary>

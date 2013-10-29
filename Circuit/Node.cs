@@ -53,25 +53,7 @@ namespace Circuit
         /// Voltage at this node.
         /// </summary>
         public Expression V { get { return v; } }
-
-        /// <summary>
-        /// Sum of currents at this node.
-        /// </summary>
-        public Expression Kcl()
-        {
-            List<Expression> sum = new List<Expression>();
-            foreach (Terminal t in connected)
-            {
-                // If there is a component with undefined current, this node does not have a useful KCL expression.
-                if (t.i == null)
-                    return null;
-
-                if (!t.i.IsZero())
-                    sum.Add(t.i);
-            }
-            return Add.New(sum);
-        }
-
+        
         public override string ToString() { return Name; }
     }
 }

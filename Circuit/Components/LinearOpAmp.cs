@@ -32,13 +32,9 @@ namespace Circuit
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // The input terminals are connected by a resistor Rin.
-            Expression Vin = Positive.V - Negative.V;
-            Expression iin = Resistor.Analyze(Mna, Vin, InputResistance);
-            Positive.i = iin;
-            Negative.i = -iin;
-
+            Resistor.Analyze(Mna, Positive, Negative, InputResistance);
             // Vo = (G*Vin - Out.V) / Rout
-            Out.i = Resistor.Analyze(Mna, Gain * Vin - Out.V, OutputResistance);
+            Mna.AddTerminal(Out, (Gain * (Positive.V - Negative.V) - Out.V) / (Expression)OutputResistance);
         }
     }
 }

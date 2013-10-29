@@ -137,9 +137,11 @@ namespace Circuit
 
             Expression ip, ig, ik;
             model.Evaluate(Vpk, Vgk, out ip, out ig, out ik);
-            p.i = Mna.AddNewUnknownEqualTo("i" + Name + "p", ip);
-            g.i = Mna.AddNewUnknownEqualTo("i" + Name + "g", ig);
-            k.i = -(p.i + g.i);
+            ip = Mna.AddNewUnknownEqualTo("i" + Name + "p", ip); ;
+            ig = Mna.AddNewUnknownEqualTo("i" + Name + "g", ig); ;
+            Mna.AddTerminal(p, ip);
+            Mna.AddTerminal(g, ig);
+            Mna.AddTerminal(k, -(ip + ig));
         }
 
         public void ConnectTo(Node A, Node G, Node C)

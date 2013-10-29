@@ -29,8 +29,8 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna) 
         {
-            Mna.AddEquation(V, external.V);
-            Mna.AddEquation(i, -external.i);
+            // Port acts like a perfect conductor.
+            Conductor.Analyze(Mna, Terminal, External);
         }
 
         protected override void DrawSymbol(SymbolLayout Sym)

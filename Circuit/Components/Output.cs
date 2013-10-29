@@ -13,10 +13,7 @@ namespace Circuit
     {
         public Output() { Name = "O1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
-        {
-            i = Constant.Zero;
-        }
+        public override void Analyze(ModifiedNodalAnalysis Mna) { }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {

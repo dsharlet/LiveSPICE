@@ -20,10 +20,7 @@ namespace Circuit
         [Serialize]
         public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire");  } }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) 
-        {
-            Terminal.i = 0;
-        }
+        public override void Analyze(ModifiedNodalAnalysis Mna) { }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {

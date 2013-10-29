@@ -93,7 +93,7 @@
     <Component _Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="GND7" />
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="200,50">
-    <Component _Type="Circuit.CenterTapTransformer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Turns="2:20" Name="TX1" />
+    <Component _Type="Circuit.CenterTapTransformer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Turns="2:10" Name="TX1" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,170" B="-100,200" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,200" B="-100,230" />
