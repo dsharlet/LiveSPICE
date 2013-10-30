@@ -140,16 +140,16 @@ namespace SyMath
         public static bool Any(this IEnumerable<bool> This) { return This.Any(i => i); }
 
         /// <summary>
-        /// Append an element to an IEnumerable.
+        /// Append elements to an IEnumerable.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="This"></param>
         /// <param name="x"></param>
         /// <returns></returns>
         [DebuggerStepThrough]
-        public static IEnumerable<T> Append<T>(this IEnumerable<T> This, T x)
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> This, params T[] x)
         {
-            return This.Concat(new T[] { x });
+            return This.Concat(x);
         }
 
         /// <summary>
