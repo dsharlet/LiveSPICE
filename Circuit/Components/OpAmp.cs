@@ -12,6 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Op-Amp")]
+    [Description("Op-amp with model for input resistance Rin, output resistance Rout, and open-loop gain Aol. If the power supply terminals are connected, the op-amp will saturate.")]
     public class OpAmp : IdealOpAmp
     {
         protected Terminal vpp, vnn;
@@ -33,32 +34,48 @@ namespace Circuit
         protected Quantity rin = new Quantity(500e6, Units.Ohm);
         [Description("Input resistance.")]
         [Serialize]
-        public Quantity InputResistance { get { return rin; } set { if (rin.Set(value)) NotifyChanged("InputResistance"); } }
+        public Quantity Rin { get { return rin; } set { if (rin.Set(value)) NotifyChanged("Rin"); } }
 
         protected Quantity rout = new Quantity(1e2m, Units.Ohm);
         [Description("Output resistance.")]
         [Serialize]
-        public Quantity OutputResistance { get { return rout; } set { if (rout.Set(value)) NotifyChanged("OutputResistance"); } }
+        public Quantity Rout { get { return rout; } set { if (rout.Set(value)) NotifyChanged("Rout"); } }
 
-        protected decimal gain = 1e6m;
-        [Description("Gain.")]
+        protected Quantity gain = new Quantity(1e5m, Units.None);
+        [Description("Open-loop gain.")]
         [Serialize]
-        public decimal Gain { get { return gain; } set { gain = value; NotifyChanged("Gain"); } }
+        public Quantity Aol { get { return gain; } set { if (gain.Set(value)) NotifyChanged("Aol"); } }
 
         private static readonly Constant Pi = Constant.New(Math.PI);
+        private static readonly Constant Epsilon = Constant.New(1e-6);
 
+        private static Expression Clamp(Expression x, Expression a, Expression b)
+        {
+            return Call.Max(Call.Min(x, b), a);
+        }
+                        
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             // The input terminals are connected by a resistor Rin.
-            Resistor.Analyze(Mna, Positive, Negative, InputResistance);
+            Resistor.Analyze(Mna, Positive, Negative, Rin);
 
-            Expression Vmax = vpp.V - vnn.V;
+            // Compute Vout using Vout = A*Vin
+            Expression Vout = (Expression)Aol * (Positive.V - Negative.V);
+            if (vpp.IsConnected && vnn.IsConnected)
+            {
+                // Saturate the output if the power supply terminals are connected.
+                Expression Vmax = vpp.V - vnn.V;
+                Expression Vmid = (vpp.V + vnn.V) / 2;
 
-            Expression Vout = Gain * (Positive.V - Negative.V);
-            // Vo = (G*Vin - Out.V) / Rout
-            Mna.AddEquation((Vmax / Pi) * Call.ArcTan(Pi / Vmax * Vout) + (vpp.V + vnn.V) / 2, Out.V);
-
-            Mna.AddTerminal(Out, Mna.AddNewUnknown("i" + Name));
+                Vout = Vmax * Call.ArcTan(Pi * Vout / Vmax) / Pi + Vmid;
+                Mna.AddTerminal(Out, (Vout - Out.V) / (Expression)Rout);
+                //Mna.AddEquation(Call.ArcTan(Vout / Vmax), (Out.V - Vmid) * Pi / Vmax);
+                //Mna.AddTerminal(Out, Mna.AddNewUnknown("i" + Name));
+            }
+            else
+            {
+                Mna.AddTerminal(Out, (Vout - Out.V) / (Expression)Rout);
+            }
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
