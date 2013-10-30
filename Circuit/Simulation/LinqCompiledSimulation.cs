@@ -135,6 +135,7 @@ namespace Circuit
                 globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(0.0);
 
             // Define lambda body.
+            LinqExprs.LabelTarget ret = LinqExpr.Label("return");
 
             // double t = t0
             ParamExpr t = Declare<double>(locals, map, Simulation.t);
@@ -360,16 +361,21 @@ namespace Circuit
                     // --ov;
                     body.Add(LinqExpr.PreDecrementAssign(ov));
                 }, LinqExpr.GreaterThan(ov, LinqExpr.Constant(0)));
-
+                
                 // Output[i][n] = Vo / Oversample
                 foreach (KeyValuePair<Expression, LinqExpr> i in outputs)
                     body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], LinqExpr.Constant(1.0 / (double)Oversample))));
+
+                // Every 256 samples, check for divergence.
+                body.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), LinqExpr.Constant(0)),
+                    LinqExpr.Block(Vo.Select(i => LinqExpr.IfThen(IsNotReal(i.Value), LinqExpr.Goto(ret))))));
             });
 
             // Copy the global state variables back to the globals.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 body.Add(LinqExpr.Assign(i.Value, map[i.Key]));
-            
+
+            body.Add(LinqExpr.Label(ret));
             // Put it all together.
             return LinqExpr.Lambda(LinqExpr.Block(locals, body), parameters);
         }
@@ -613,5 +619,10 @@ namespace Circuit
         private static LinqExpr Abs(LinqExpr x) { return LinqExpr.Call(typeof(System.Math).GetMethod("Abs", new Type[] { x.Type }), x); }
         // Returns x*x.
         private static LinqExpr Square(LinqExpr x) { return LinqExpr.Multiply(x, x); }
+        
+        private static MethodInfo IsNaN = typeof(double).GetMethod("IsNaN");
+        private static MethodInfo IsInfinity = typeof(double).GetMethod("IsInfinity");
+        // Returns true if x is not NaN or Inf
+        private static LinqExpr IsNotReal(LinqExpr x) { return LinqExpr.Or(LinqExpr.Call(null, IsNaN, x), LinqExpr.Call(null, IsInfinity, x)); }
     }
 }
