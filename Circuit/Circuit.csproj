@@ -73,7 +73,7 @@
     <Compile Include="Components\Speaker.cs" />
     <Compile Include="Components\Label.cs" />
     <Compile Include="Components\DelayBuffer.cs" />
-    <Compile Include="Components\LinearOpAmp.cs" />
+    <Compile Include="Components\OpAmp.cs" />
     <Compile Include="Components\NamedWire.cs" />
     <Compile Include="Components\VariableResistor.cs" />
     <Compile Include="Components\Conductor.cs" />
@@ -99,7 +99,7 @@
     <Compile Include="Components\Inductor.cs" />
     <Compile Include="Components\Buffer.cs" />
     <Compile Include="Circuit.cs" />
-    <Compile Include="Components\OpAmp.cs" />
+    <Compile Include="Components\IdealOpAmp.cs" />
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
     <Compile Include="Utils\ModelConverter.cs" />
