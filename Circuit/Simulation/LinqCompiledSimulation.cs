@@ -137,6 +137,9 @@ namespace Circuit
             // Define lambda body.
             LinqExprs.LabelTarget ret = LinqExpr.Label("return");
 
+            // int Zero = 0
+            LinqExpr Zero = LinqExpr.Constant(0);
+
             // double t = t0
             ParamExpr t = Declare<double>(locals, map, Simulation.t);
             body.Add(LinqExpr.Assign(t, t0));
@@ -154,7 +157,7 @@ namespace Circuit
             // for (int n = 0; n < SampleCount; ++n)
             ParamExpr n = Declare<int>(locals, "n");
             For(body,
-                () => body.Add(LinqExpr.Assign(n, LinqExpr.Constant(0))),
+                () => body.Add(LinqExpr.Assign(n, Zero)),
                 LinqExpr.LessThan(n, SampleCount),
                 () => body.Add(LinqExpr.PreIncrementAssign(n)),
                 () =>
@@ -244,7 +247,7 @@ namespace Circuit
                                 // For each variable in the system...
                                 LinqExpr j = Redeclare<int>(locals, "j");
                                 For(body,
-                                    () => body.Add(LinqExpr.Assign(j, LinqExpr.Constant(0))),
+                                    () => body.Add(LinqExpr.Assign(j, Zero)),
                                     LinqExpr.LessThan(j, LinqExpr.Constant(deltas.Length)),
                                     () => body.Add(LinqExpr.PreIncrementAssign(j)),
                                     () =>
@@ -335,17 +338,14 @@ namespace Circuit
                                 
                                 // --it;
                                 body.Add(LinqExpr.PreDecrementAssign(it));
-                            }, LinqExpr.GreaterThan(it, LinqExpr.Constant(0)));
+                            }, LinqExpr.GreaterThan(it, Zero));
                         }
                     }
 
                     // Update the previous timestep variables.
                     foreach (SolutionSet S in Solution.Solutions)
-                    {
-                        // Update the old variables.
                         foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
                             body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
-                    }
 
                     // t0 = t
                     body.Add(LinqExpr.Assign(t0, t));
@@ -360,15 +360,17 @@ namespace Circuit
 
                     // --ov;
                     body.Add(LinqExpr.PreDecrementAssign(ov));
-                }, LinqExpr.GreaterThan(ov, LinqExpr.Constant(0)));
+                }, LinqExpr.GreaterThan(ov, Zero));
                 
                 // Output[i][n] = Vo / Oversample
                 foreach (KeyValuePair<Expression, LinqExpr> i in outputs)
                     body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], LinqExpr.Constant(1.0 / (double)Oversample))));
 
                 // Every 256 samples, check for divergence.
-                body.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), LinqExpr.Constant(0)),
-                    LinqExpr.Block(Vo.Select(i => LinqExpr.IfThen(IsNotReal(i.Value), LinqExpr.Goto(ret))))));
+                body.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), Zero),
+                    LinqExpr.Block(Vo.Select(i => LinqExpr.IfThenElse(IsNotReal(i.Value), 
+                        LinqExpr.Goto(ret), 
+                        LinqExpr.Assign(i.Value, RoundDenormToZero(i.Value)))))));
             });
 
             // Copy the global state variables back to the globals.
@@ -387,7 +389,7 @@ namespace Circuit
             {
                 return x.Compile(map);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.WriteLine(MessageType.Warning, "Error compiling output expression '{0}': {1}", x.ToString(), ex.Message);
                 return LinqExpr.Constant(0.0);
@@ -624,5 +626,7 @@ namespace Circuit
         private static MethodInfo IsInfinity = typeof(double).GetMethod("IsInfinity");
         // Returns true if x is not NaN or Inf
         private static LinqExpr IsNotReal(LinqExpr x) { return LinqExpr.Or(LinqExpr.Call(null, IsNaN, x), LinqExpr.Call(null, IsInfinity, x)); }
+        // Round x to zero if it is sub-normal.
+        private static LinqExpr RoundDenormToZero(LinqExpr x) { return x; }
     }
 }
