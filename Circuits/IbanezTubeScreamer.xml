@@ -24,7 +24,7 @@
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-400,-10" B="-400,30" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-300,-10" B="-300,-50" />
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-150,50">
-    <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="51 pF" Name="C2" />
+    <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="51 pF" Name="Cc" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,50" B="-170,50" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-130,50" B="-100,50" />
@@ -35,7 +35,7 @@
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,10" B="-170,10" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-300,10" B="-300,30" />
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-300,50">
-    <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="47 nF" Name="C3" />
+    <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="47 nF" Name="Cz" />
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-300,150">
     <Component _Type="Circuit.Resistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="4.7 kΩ" Name="R2" />
@@ -49,7 +49,7 @@
     <Component _Type="Circuit.Resistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="51 kΩ" Name="R3" />
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-120,100">
-    <Component _Type="Circuit.VariableResistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Wipe="0.5" Resistance="500 kΩ" Name="R4" />
+    <Component _Type="Circuit.VariableResistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="500 kΩ" Wipe="0.5" Name="D" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-160,100" B="-140,100" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,50" B="-200,100" />
@@ -84,7 +84,7 @@
     <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="22 μF" Name="C4" />
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="50,30">
-    <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="20 kΩ" Wipe="0.5" Name="R6" />
+    <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="20 kΩ" Wipe="0.5" Name="T" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="20,20" B="30,20" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="20,0" B="20,20" />
@@ -119,8 +119,8 @@
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="370,10" B="400,10" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="400,-30" B="400,10" />
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="410,-50">
-    <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="100 kΩ" Wipe="0" Name="R10" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="410,-50">
+    <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="100 kΩ" Wipe="1" Name="LEVEL" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="400,-100" B="400,-70" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="100,-30" B="100,0" />
