@@ -156,25 +156,24 @@ namespace Circuit
             k.ConnectTo(C);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        public static void LayoutSymbol(SymbolLayout Sym, Terminal P, Terminal G, Terminal K, Func<string> Name, Func<string> Part)
         {
-            Sym.AddTerminal(p, new Coord(0, 20));
-            Sym.AddTerminal(g, new Coord(-20, 0));
-            Sym.AddTerminal(k, new Coord(-10, -20));
+            Sym.AddTerminal(P, new Coord(0, 20), new Coord(0, 4));
+            Sym.AddWire(new Coord(-10, 4), new Coord(10, 4));
+
+            Sym.AddTerminal(G, new Coord(-20, 0), new Coord(-12, 0));
+            for (int i = -8; i < 16; i += 8)
+                Sym.AddWire(new Coord(i, 0), new Coord(i + 4, 0));
+
+            Sym.AddTerminal(K, new Coord(-10, -20), new Coord(-10, -6), new Coord(-8, -4), new Coord(8, -4), new Coord(10, -6));
 
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
 
-            Sym.AddWire(p, new Coord(0, 4));
-            Sym.AddWire(new Coord(-10, 4), new Coord(10, 4));
-
-            Sym.AddWire(g, new Coord(-12, 0));
-            for(int i = -8; i < 16; i += 8)
-                Sym.AddWire(new Coord(i, 0), new Coord(i + 4, 0));
-
-            Sym.AddWire(k, new Coord(-10, -6), new Coord(-8, -4), new Coord(8, -4), new Coord(10, -6));
-
-            Sym.DrawText(() => Model.Name, new Coord(-2, 20), Alignment.Far, Alignment.Near);
-            Sym.DrawText(() => Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
+            if (Part != null)
+                Sym.DrawText(Part, new Coord(-2, 20), Alignment.Far, Alignment.Near);
+            Sym.DrawText(Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
         }
+
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, p, g, k, () => Name, () => Model.Name); }
     }
 }

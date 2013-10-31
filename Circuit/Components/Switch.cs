@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Resistor is a linear component with V = R*i.
     /// </summary>
-    [CategoryAttribute("Controls")]
+    [CategoryAttribute("Standard")]
     [DisplayName("Switch")]
     public class Switch : TwoTerminal
     {
@@ -28,8 +28,10 @@ namespace Circuit
                 Conductor.Analyze(Mna, Anode, Cathode);
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.AddWire(Anode, new Coord(0, 12));
             Sym.AddWire(Cathode, new Coord(0, -12));
             Sym.AddCircle(EdgeType.Black, new Coord(0, 12), 2);

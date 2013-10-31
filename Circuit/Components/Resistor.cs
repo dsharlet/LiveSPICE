@@ -49,9 +49,11 @@ namespace Circuit
                 0, N, N * 2);
         }
         public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int N) { Draw(Sym, x, y1, y2, N, (y2 - y1) / (N + 1)); }
-        
-        protected override void DrawSymbol(SymbolLayout Sym)
+
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.AddWire(Anode, new Coord(0, 16));
             Sym.AddWire(Cathode, new Coord(0, -16));
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));

@@ -32,9 +32,11 @@ namespace Circuit
         }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode, Capacitance); }
-                
-        protected override void DrawSymbol(SymbolLayout Sym)
+
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.AddWire(Anode, new Coord(0, 2));
             Sym.AddWire(Cathode, new Coord(0, -2));
 

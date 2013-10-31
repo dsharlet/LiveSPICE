@@ -48,27 +48,25 @@ namespace Circuit
             Mna.AddEquation(Positive.V, Negative.V);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        public static void LayoutSymbol(SymbolLayout Sym, Terminal p, Terminal n, Terminal o, Func<string> Name)
         {
-            Sym.AddTerminal(Positive, new Coord(-20, -10));
-            Sym.AddWire(Positive, new Coord(-20, -10));
+            Sym.AddTerminal(p, new Coord(-20, -10));
             Sym.DrawPositive(EdgeType.Black, new Coord(-15, -10));
 
-            Sym.AddTerminal(Negative, new Coord(-20, 10));
-            Sym.AddWire(Negative, new Coord(-20, 10));
+            Sym.AddTerminal(n, new Coord(-20, 10));
             Sym.DrawNegative(EdgeType.Black, new Coord(-15, 10));
 
-            Sym.AddTerminal(Out, new Coord(20, 0));
-
-            Sym.AddWire(Out, new Coord(20, 0));
-
+            Sym.AddTerminal(o, new Coord(20, 0));
+            Sym.AddWire(o, new Coord(20, 0));
 
             Sym.AddLoop(EdgeType.Black,
                 new Coord(-20, 20),
                 new Coord(-20, -20),
                 new Coord(20, 0));
 
-            Sym.DrawText(() => Name, new Coord(0, -10), Alignment.Near, Alignment.Far);
+            Sym.DrawText(Name, new Coord(0, -10), Alignment.Near, Alignment.Far);
         }
+
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, () => Name); }
     }
 }

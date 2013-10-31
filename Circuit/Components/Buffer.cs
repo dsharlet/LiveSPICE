@@ -22,8 +22,10 @@ namespace Circuit
             Mna.AddEquation(Anode.V, Cathode.V);
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.AddWire(Anode, new Coord(0, 10));
             Sym.AddWire(Cathode, new Coord(0, -10));
 

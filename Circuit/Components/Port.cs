@@ -33,8 +33,10 @@ namespace Circuit
             Conductor.Analyze(Mna, Terminal, External);
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.AddRectangle(EdgeType.Black, new Coord(-5, -5), new Coord(5, 5));
 
             Sym.DrawText(() => Name, new Coord(0, 7), Alignment.Center, Alignment.Near);

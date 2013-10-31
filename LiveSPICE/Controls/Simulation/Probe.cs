@@ -35,12 +35,12 @@ namespace LiveSPICE
         public Probe(EdgeType Color) { color = Color; }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { }
-
-        protected override void DrawSymbol(Circuit.SymbolLayout Sym)
+        
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
-            base.DrawSymbol(Sym);
+            Coord w = new Coord(0, 0);
+            Sym.AddTerminal(Terminal, w);
 
-            Coord w = Sym.MapTerminal(Terminal);
             Coord dw = new Coord(1, 1);
             Coord pw = new Coord(dw.y, -dw.x);
 

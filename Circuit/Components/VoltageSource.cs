@@ -38,8 +38,10 @@ namespace Circuit
             Mna.AddEquation(V, Voltage.Value);
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             if (IsInput)
             {
                 int w = 10;

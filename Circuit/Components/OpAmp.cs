@@ -78,25 +78,20 @@ namespace Circuit
             }
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        public static void LayoutSymbol(SymbolLayout Sym, Terminal p, Terminal n, Terminal o, Terminal vp, Terminal vn, Func<string> Name, Func<string> Part)
         {
-            Sym.AddTerminal(Positive, new Coord(-20, -10));
-            Sym.AddWire(Positive, new Coord(-20, -10));
+            Sym.AddTerminal(p, new Coord(-20, -10));
             Sym.DrawPositive(EdgeType.Black, new Coord(-15, -10));
 
-            Sym.AddTerminal(Negative, new Coord(-20, 10));
-            Sym.AddWire(Negative, new Coord(-20, 10));
+            Sym.AddTerminal(n, new Coord(-20, 10));
             Sym.DrawNegative(EdgeType.Black, new Coord(-15, 10));
 
-            Sym.AddTerminal(Out, new Coord(20, 0));
-            Sym.AddWire(Out, new Coord(20, 0));
+            Sym.AddTerminal(o, new Coord(20, 0));
 
-            Sym.AddTerminal(vnn, new Coord(0, -20));
-            Sym.AddWire(vnn, new Coord(0, -10));
+            Sym.AddTerminal(vn, new Coord(0, -20), new Coord(0, -10));
             Sym.DrawNegative(EdgeType.Black, new Coord(5, -13));
 
-            Sym.AddTerminal(vpp, new Coord(0, 20));
-            Sym.AddWire(vpp, new Coord(0, 10));
+            Sym.AddTerminal(vp, new Coord(0, 20), new Coord(0, 10));
             Sym.DrawPositive(EdgeType.Black, new Coord(5, 13));
 
             Sym.AddLoop(EdgeType.Black,
@@ -104,7 +99,11 @@ namespace Circuit
                 new Coord(-20, -20),
                 new Coord(20, 0));
 
-            Sym.DrawText(() => Name, new Coord(12, -4), Alignment.Near, Alignment.Far);
+            if (Part != null)
+                Sym.DrawText(Part, new Coord(12, 4), Alignment.Near, Alignment.Near);
+            Sym.DrawText(Name, new Coord(12, -4), Alignment.Near, Alignment.Far);
         }
+
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, vpp, vnn, () => Name, null); }
     }
 }

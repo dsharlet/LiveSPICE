@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal transformer.
     /// </summary>
-    [CategoryAttribute("Transformers")]
+    [CategoryAttribute("Standard")]
     [DisplayName("Transformer")]
     public class Transformer : Component
     {

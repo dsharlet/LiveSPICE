@@ -26,8 +26,10 @@ namespace Circuit
             Mna.AddPassiveComponent(Anode, Cathode, Current);
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             int r = 10;
             Sym.AddWire(Anode, new Coord(0, r));
             Sym.AddWire(Cathode, new Coord(0, -r));

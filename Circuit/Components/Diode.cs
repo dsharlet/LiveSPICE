@@ -73,10 +73,13 @@ namespace Circuit
             Mna.AddPassiveComponent(Anode, Cathode, Mna.AddNewUnknownEqualTo("i" + Name, Model.Evaluate(Vac)));
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public static void LayoutSymbol(SymbolLayout Sym, Terminal A, Terminal C, bool IsLed, Func<string> Name, Func<string> Part)
         {
-            Sym.AddWire(Anode, new Coord(0, 10));
-            Sym.AddWire(Cathode, new Coord(0, -10));
+            Sym.AddTerminal(A, new Coord(0, 20));
+            Sym.AddWire(A, new Coord(0, 10));
+
+            Sym.AddTerminal(C, new Coord(0, -20));
+            Sym.AddWire(C, new Coord(0, -10));
 
             Sym.AddLoop(EdgeType.Black,
                 new Coord(-10, 10),
@@ -84,14 +87,17 @@ namespace Circuit
                 new Coord(0, -10));
             Sym.AddLine(EdgeType.Black, new Coord(-10, -10), new Coord(10, -10));
 
-            if (Model.IsLed)
+            if (IsLed)
             {
                 Sym.DrawArrow(EdgeType.Black, new Coord(-12, 5), new Coord(-20, -3), 0.2);
                 Sym.DrawArrow(EdgeType.Black, new Coord(-8, -2), new Coord(-16, -10), 0.2);
             }
 
-            Sym.DrawText(() => Name, new Coord(10, -4), Alignment.Near, Alignment.Far);
-            Sym.DrawText(() => Model.Name, new Coord(10, 4), Alignment.Near, Alignment.Near);
+            if (Part != null)
+                Sym.DrawText(Part, new Coord(10, 4), Alignment.Near, Alignment.Near);
+            Sym.DrawText(Name, new Coord(10, -4), Alignment.Near, Alignment.Far);
         }
+
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Anode, Cathode, Model.IsLed, () => Name, () => Model.Name); }
     }
 }

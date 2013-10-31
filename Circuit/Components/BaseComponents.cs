@@ -41,16 +41,9 @@ namespace Circuit
         [Browsable(false)]
         public Expression V { get { return Terminal.V; } }
 
-        public override sealed void LayoutSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.AddTerminal(Terminal, new Coord(0, 0));
-
-            DrawSymbol(Sym);
-        }
-
-        protected virtual void DrawSymbol(SymbolLayout Sym)
-        {
-            //Sym.DrawName(Name, new PointF(0.0f, 0.0f));
         }
     }
 
@@ -89,14 +82,10 @@ namespace Circuit
             Cathode.ConnectTo(C);
         }
 
-        public override sealed void LayoutSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.AddTerminal(Anode, new Coord(0, 20));
             Sym.AddTerminal(Cathode, new Coord(0, -20));
-
-            DrawSymbol(Sym);
         }
-
-        protected abstract void DrawSymbol(SymbolLayout Sym);
     }
 }

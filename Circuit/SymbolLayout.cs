@@ -73,11 +73,11 @@ namespace Circuit
         /// <returns></returns>
         public Coord MapTerminal(Terminal T) { return terminals[T]; }
         /// <summary>
-        /// Add a terminal to the schematic.
+        /// Add a terminal followed by a wire to the schematic.
         /// </summary>
         /// <param name="T"></param>
         /// <param name="x"></param>
-        public void AddTerminal(Terminal T, Coord x) { terminals[T] = x; }
+        public void AddTerminal(Terminal T, params Coord[] x) { terminals[T] = x[0]; AddWire(x); }
         
         // Add shapes to the schematic.
         public void AddRectangle(EdgeType Type, Coord x1, Coord x2) 

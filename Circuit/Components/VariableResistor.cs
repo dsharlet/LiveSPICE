@@ -7,9 +7,15 @@ using System.ComponentModel;
 
 namespace Circuit
 { 
-    [CategoryAttribute("Controls")]
-    public class VariableResistor : Resistor
+    [CategoryAttribute("Standard")]
+    [DisplayName("Variable Resistor")]
+    public class VariableResistor : TwoTerminal
     {
+        protected Quantity resistance = new Quantity(100, Units.Ohm);
+        [Description("Resistance of this variable resistor.")]
+        [Serialize]
+        public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
+
         protected Expression wipe = 0.5m;
         [Serialize]
         public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
@@ -20,16 +26,18 @@ namespace Circuit
         {
             Resistor.Analyze(Mna, Anode, Cathode, Resistance.Value * Wipe);
         }
-        
-        protected override void DrawSymbol(SymbolLayout Sym)
+
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.AddWire(Anode, new Coord(0, 16));
             Sym.AddWire(Cathode, new Coord(0, -16));
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
             Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
 
-            Draw(Sym, 0, -16, 16, 7);
+            Resistor.Draw(Sym, 0, -16, 16, 7);
 
             Sym.DrawText(() => resistance.ToString(), new Coord(-7, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => wipe.ToString(), new Coord(9, 3), Alignment.Near, Alignment.Near);

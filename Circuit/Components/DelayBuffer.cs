@@ -22,15 +22,18 @@ namespace Circuit
             Mna.AddEquation(Anode.V.Evaluate(t, t0), Cathode.V);
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
-            Sym.AddWire(Anode, new Coord(0, 10));
-            Sym.AddWire(Cathode, new Coord(0, -10));
+            base.LayoutSymbol(Sym);
 
+            Sym.AddWire(Anode, new Coord(0, 10));
+            Sym.AddWire(Cathode, new Coord(0, -6));
+            
             Sym.AddLoop(EdgeType.Black,
                 new Coord(-10, 10),
                 new Coord(10, 10),
-                new Coord(0, -10));
+                new Coord(2, -6),
+                new Coord(-2, -6));
 
             Sym.DrawText(() => Name, new Coord(10, 0), Alignment.Near, Alignment.Center);
         }

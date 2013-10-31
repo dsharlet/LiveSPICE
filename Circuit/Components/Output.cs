@@ -15,8 +15,10 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             int w = 10;
             Sym.AddLine(EdgeType.Black, new Coord(-w, 20), new Coord(w, 20));
             Sym.DrawPositive(EdgeType.Black, new Coord(0, 15));

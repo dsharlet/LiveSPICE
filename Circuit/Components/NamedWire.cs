@@ -21,9 +21,11 @@ namespace Circuit
         public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire");  } }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { }
-
-        protected override void DrawSymbol(SymbolLayout Sym)
+        
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
             Sym.AddWire(Terminal, new Coord(0, -15));

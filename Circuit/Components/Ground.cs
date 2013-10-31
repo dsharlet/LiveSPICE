@@ -24,8 +24,10 @@ namespace Circuit
             Mna.AddTerminal(Terminal, null);
         }
 
-        protected override void DrawSymbol(SymbolLayout Sym)
+        public override void LayoutSymbol(SymbolLayout Sym)
         {
+            base.LayoutSymbol(Sym);
+
             Sym.AddLoop(EdgeType.Black,
                 new Coord(-10, 0),
                 new Coord(10, 0),
