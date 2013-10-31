@@ -44,6 +44,11 @@ namespace LiveSPICE
             };
         }
 
+        public new void Focus()
+        {
+            properties.Focus();
+        }
+
         public object[] SelectedObjects { get { return properties.SelectedObjects; } set { properties.SelectedObjects = value; } }
 
         private Dictionary<object, object> old;

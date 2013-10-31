@@ -74,18 +74,18 @@ namespace LiveSPICE
             overlay.Visibility = Visibility.Hidden;
         }
         
-        public override bool KeyDown(Key Key)
+        public override bool KeyDown(KeyEventArgs Event)
         {
             Circuit.Symbol symbol = overlay.Symbol;
 
             Circuit.Coord x = symbol.Position;
-            switch (Key)
+            switch (Event.Key)
             {
                 case System.Windows.Input.Key.Left: symbol.Rotation += 1; break;
                 case System.Windows.Input.Key.Right: symbol.Rotation -= 1; break;
                 case System.Windows.Input.Key.Down: symbol.Flip = !symbol.Flip; break;
                 case System.Windows.Input.Key.Up: symbol.Flip = !symbol.Flip; break;
-                default: return base.KeyDown(Key);
+                default: return base.KeyDown(Event);
             }
 
             symbol.Position = x;

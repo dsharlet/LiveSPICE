@@ -68,6 +68,7 @@ namespace LiveSPICE
         private SchematicViewer New(SchematicEditor Schematic)
         {
             Schematic.SelectionChanged += schematic_SelectionChanged;
+            Schematic.EditSelection += schematic_EditSelection;
 
             SchematicViewer sv = new SchematicViewer(Schematic);
             LayoutDocument doc = new LayoutDocument()
@@ -172,6 +173,11 @@ namespace LiveSPICE
         {
             Properties.SelectedObjects = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
             Properties.Tag = (SchematicEditor)Sender;
+        }
+
+        private void schematic_EditSelection(object sender, EventArgs e)
+        {
+            Properties.Focus();
         }
 
         void properties_PropertyValueChanged(object sender, PropertyValueChangedEventArgs e)

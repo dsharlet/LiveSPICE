@@ -126,22 +126,22 @@ namespace LiveSPICE
         protected void Rotate(int Delta) { if (Target.Selected.Any()) Editor.Edits.Do(new RotateElements(Target.Selected, Delta, GetSelectionCenter())); }
         protected void Flip() { if (Target.Selected.Any()) Editor.Edits.Do(new FlipElements(Target.Selected, GetSelectionCenter().y)); }
 
-        public override bool KeyDown(Key Key)
+        public override bool KeyDown(KeyEventArgs Event)
         {
-            switch (Key)
+            switch (Event.Key)
             {
-                case System.Windows.Input.Key.Left: Rotate(1); return true;
-                case System.Windows.Input.Key.Right: Rotate(-1); return true;
-                case System.Windows.Input.Key.Down: Flip(); return true;
-                case System.Windows.Input.Key.Up: Flip(); return true;
-                default: Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross; return base.KeyDown(Key);
+                case System.Windows.Input.Key.Left: Rotate(1); MouseMove(b); return true;
+                case System.Windows.Input.Key.Right: Rotate(-1); MouseMove(b); return true;
+                case System.Windows.Input.Key.Down: Flip(); MouseMove(b); return true;
+                case System.Windows.Input.Key.Up: Flip(); MouseMove(b); return true;
+                default: Target.RaiseEditSelection(Event); return false;
             }
         }
 
-        public override bool KeyUp(Key Key)
+        public override bool KeyUp(KeyEventArgs Event)
         {
             Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross; 
-            return base.KeyUp(Key);
+            return base.KeyUp(Event);
         }
     }
 }

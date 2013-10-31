@@ -176,10 +176,22 @@ namespace LiveSPICE
             add { selectionChanged.Add(value); }
             remove { selectionChanged.Remove(value); }
         }
-        public void OnSelectionChanged()
+        public void RaiseSelectionChanged()
         {
             foreach (EventHandler i in selectionChanged)
                 i(this, new EventArgs());
+        }
+
+        private List<EventHandler> editSelection = new List<EventHandler>();
+        public event EventHandler EditSelection
+        {
+            add { editSelection.Add(value); }
+            remove { editSelection.Remove(value); }
+        }
+        public void RaiseEditSelection(EventArgs e)
+        {
+            foreach (EventHandler i in editSelection)
+                i(this, e);
         }
 
         public void Select(IEnumerable<Circuit.Element> ToSelect, bool Only, bool Toggle)
@@ -206,7 +218,7 @@ namespace LiveSPICE
             }
 
             if (changed)
-                OnSelectionChanged();
+                RaiseSelectionChanged();
         }
 
         public void Select(IEnumerable<Circuit.Element> ToSelect) { Select(ToSelect, (Keyboard.Modifiers & ModifierKeys.Control) == 0, false); }
@@ -223,8 +235,8 @@ namespace LiveSPICE
         public void Highlight(params Circuit.Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
 
         // Keyboard events.
-        protected virtual void OnKeyDown(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyDown(e.Key); }
-        protected virtual void OnKeyUp(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyUp(e.Key); }
+        protected virtual void OnKeyDown(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyDown(e); }
+        protected virtual void OnKeyUp(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyUp(e); }
 
         // Mouse events.
         protected virtual void OnMouseDown(object sender, MouseButtonEventArgs e)
