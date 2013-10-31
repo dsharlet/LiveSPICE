@@ -276,10 +276,10 @@ namespace Circuit
                                     LinqExpr temp = Redeclare<double>(locals, "temp");
                                     body.Add(LinqExpr.IfThen(
                                         LinqExpr.NotEqual(j, pivot),
-                                        LinqExpr.Block(Enumerable.Range(0, deltas.Length + 1).Select(x => LinqExpr.Block(
-                                            LinqExpr.Assign(temp, LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x))),
-                                            LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x)), LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x))),
-                                            LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x)), temp))))));
+                                        LinqExpr.Block(Enumerable.Range(0, deltas.Length + 1).Select(x => Swap(
+                                            LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x)), 
+                                            LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x)), 
+                                            temp)))));
 
                                     LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxF, j, j));
 
@@ -628,5 +628,13 @@ namespace Circuit
         private static LinqExpr IsNotReal(LinqExpr x) { return LinqExpr.Or(LinqExpr.Call(null, IsNaN, x), LinqExpr.Call(null, IsInfinity, x)); }
         // Round x to zero if it is sub-normal.
         private static LinqExpr RoundDenormToZero(LinqExpr x) { return x; }
+        // Generate expression to swap a and b, using t as a temporary.
+        private static LinqExpr Swap(LinqExpr a, LinqExpr b, LinqExpr t)
+        {
+            return LinqExpr.Block(
+                LinqExpr.Assign(t, a),
+                LinqExpr.Assign(a, b),
+                LinqExpr.Assign(b, t));
+        }
     }
 }
