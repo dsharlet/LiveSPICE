@@ -153,7 +153,19 @@ namespace Circuit
 
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
                 body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Key), map[i.Key.Evaluate(t_t0)]));
-            
+
+            // Create arrays for the newton's method systems.
+            Dictionary<NewtonIteration, LinqExpr> JxFs = new Dictionary<NewtonIteration, LinqExpr>();
+            foreach (NewtonIteration i in Solution.Solutions.OfType<NewtonIteration>())
+            {
+                int M = i.Equations.Count();
+                int N = i.Updates.Count() + 1;
+                JxFs[i] = Declare(locals, body, "JxF" + JxFs.Count.ToString(),
+                    LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
+                for (int j = 0; j < M; ++j)
+                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxFs[i], LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(N))));
+            }
+
             // for (int n = 0; n < SampleCount; ++n)
             ParamExpr n = Declare<int>(locals, "n");
             For(body,
@@ -181,13 +193,7 @@ namespace Circuit
                     body.Add(LinqExpr.Assign(
                         Declare<double>(locals, Vo, i, i.ToString().Replace("[t]", "")),
                         LinqExpr.Constant(0.0)));
-
-                // Create arrays for the newton's method systems.
-                Dictionary<NewtonIteration, LinqExpr> JxFs = new Dictionary<NewtonIteration,LinqExpr>();
-                foreach (NewtonIteration i in Solution.Solutions.OfType<NewtonIteration>())
-                    JxFs[i] = Declare(locals, body, "JxF" + JxFs.Count.ToString(), 
-                        LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(i.Equations.Count()), LinqExpr.Constant(i.Updates.Count() + 1)));
-
+                
                 // int ov = Oversample; 
                 // do { -- ov; } while(ov > 0)
                 ParamExpr ov = Declare<int>(locals, "ov");
@@ -233,12 +239,13 @@ namespace Circuit
                                 // Initialize the matrix.
                                 for (int i = 0; i < eqs.Length; ++i)
                                 {
+                                    LinqExpr JxFi = Redeclare(locals, body, "JxFi", LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i)));
                                     for (int x = 0; x < deltas.Length; ++x)
                                         body.Add(LinqExpr.Assign(
-                                            LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i), LinqExpr.Constant(x)),
+                                            LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(x)),
                                             eqs[i][deltas[x]].Compile(map)));
                                     body.Add(LinqExpr.Assign(
-                                        LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i), LinqExpr.Constant(deltas.Length)),
+                                        LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(deltas.Length)),
                                         eqs[i][Constant.One].Compile(map)));
                                 }
                                                                 
@@ -248,15 +255,19 @@ namespace Circuit
                                 for (int j = 0; j < deltas.Length; ++j)
                                 {
                                     LinqExpr _j = LinqExpr.Constant(j);
+                                    LinqExpr JxFj = Redeclare(locals, body, "JxFj", LinqExpr.ArrayAccess(JxF, _j));
+                                    // int pi = j
                                     LinqExpr pi = Redeclare(locals, body, "pi", _j);
-                                    LinqExpr max = Redeclare(locals, body, "max", Abs(LinqExpr.ArrayAccess(JxF, _j, _j)));
+                                    // double max = |JxF[j][j]|
+                                    LinqExpr max = Redeclare(locals, body, "max", Abs(LinqExpr.ArrayAccess(JxFj, _j)));
                                     
                                     // Find a pivot row for this variable.
                                     for (int i = j + 1; i < eqs.Length; ++i)
                                     {
                                         LinqExpr _i = LinqExpr.Constant(i);
-                                        // If this row contains the max pivot column value, store it as the max.
-                                        LinqExpr maxj = Redeclare(locals, body, "maxj", Abs(LinqExpr.ArrayAccess(JxF, _i, _j)));
+
+                                        // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
+                                        LinqExpr maxj = Redeclare(locals, body, "maxj", Abs(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(JxF, _i), _j)));
                                         body.Add(LinqExpr.IfThen(
                                             LinqExpr.GreaterThan(maxj, max),
                                             LinqExpr.Block(
@@ -265,42 +276,52 @@ namespace Circuit
                                     }
                                     
                                     // (Maybe) swap the pivot row with the current row.
-                                    LinqExpr temp = Redeclare<double>(locals, "temp");
+                                    LinqExpr JxFpi = Redeclare<double[]>(locals, "JxFpi");
                                     body.Add(LinqExpr.IfThen(
-                                        LinqExpr.NotEqual(_j, pi),
-                                        LinqExpr.Block(Enumerable.Range(j, deltas.Length + 1 - j).Select(x => Swap(
-                                            LinqExpr.ArrayAccess(JxF, _j, LinqExpr.Constant(x)), 
-                                            LinqExpr.ArrayAccess(JxF, pi, LinqExpr.Constant(x)), 
-                                            temp)))));
+                                        LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
+                                            new[] { LinqExpr.Assign(JxFpi, LinqExpr.ArrayAccess(JxF, pi)) }.Concat(
+                                            Enumerable.Range(j, deltas.Length + 1 - j).Select(x => Swap(
+                                                LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(x)),
+                                                LinqExpr.ArrayAccess(JxFpi, LinqExpr.Constant(x)),
+                                                Redeclare<double>(locals, "swap")))))));
 
-                                    LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxF, _j, _j));
-
+                                    //// It's hard to believe this swap isn't faster than the above...
+                                    //body.Add(LinqExpr.IfThen(LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
+                                    //    Swap(LinqExpr.ArrayAccess(JxF, _j), LinqExpr.ArrayAccess(JxF, pi), Redeclare<double[]>(locals, "temp")),
+                                    //    LinqExpr.Assign(JxFj, LinqExpr.ArrayAccess(JxF, _j)))));
+                                    
                                     // Eliminate the rows after the pivot.
+                                    LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxFj, _j));
                                     for (int i = j + 1; i < eqs.Length; ++i)
                                     {
                                         LinqExpr _i = LinqExpr.Constant(i);
-                                        LinqExpr s = Redeclare(locals, body, "scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxF, _i, _j), p));
+                                        LinqExpr JxFi = Redeclare(locals, body, "JxFi", LinqExpr.ArrayAccess(JxF, _i));
 
+                                        // s = JxF[i][j] / p
+                                        LinqExpr s = Redeclare(locals, body, "scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxFi, _j), p));
+                                        // JxF[i] -= JxF[j] * s
                                         for (int ji = j + 1; ji < deltas.Length + 1; ++ji)
                                         {
                                             LinqExpr _ji = LinqExpr.Constant(ji);
                                             body.Add(LinqExpr.SubtractAssign(
-                                                LinqExpr.ArrayAccess(JxF, _i, _ji),
-                                                LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, _j, _ji), s)));
+                                                LinqExpr.ArrayAccess(JxFi, _ji),
+                                                LinqExpr.Multiply(LinqExpr.ArrayAccess(JxFj, _ji), s)));
                                         }
                                     }
                                 }
 
                                 // JxF is now upper triangular, solve it.
-                                for (int i = deltas.Length - 1; i >= 0; --i)
+                                for (int j = deltas.Length - 1; j >= 0; --j)
                                 {
-                                    LinqExpr _i = LinqExpr.Constant(i);
-                                    LinqExpr r = LinqExpr.ArrayAccess(JxF, _i, LinqExpr.Constant(deltas.Length));
-                                    for (int ji = i + 1; ji < deltas.Length; ++ji)
-                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, _i, LinqExpr.Constant(ji)), map[deltas[ji]]));
+                                    LinqExpr _j = LinqExpr.Constant(j);
+                                    LinqExpr JxFj = Redeclare(locals, body, "JxFj", LinqExpr.ArrayAccess(JxF, _j));
+
+                                    LinqExpr r = LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(deltas.Length));
+                                    for (int ji = j + 1; ji < deltas.Length; ++ji)
+                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(ji)), map[deltas[ji]]));
                                     body.Add(LinqExpr.Assign(
-                                        Declare<double>(locals, map, deltas[i]),
-                                        LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(JxF, _i, _i))));
+                                        Declare<double>(locals, map, deltas[j]),
+                                        LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(JxFj, _j))));
                                 }
 
                                 // Compile the pre-solved solutions.
