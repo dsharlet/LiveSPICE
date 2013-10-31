@@ -12,12 +12,15 @@ namespace Circuit
     /// </summary>
     [DisplayName("Named Wire")]
     [Category("Standard")]
+    [DefaultProperty("WireName")]
+    [Description("Nodes with the same name are connected as if they were connected by a continuous wire.")]
     public class NamedWire : OneTerminal
     {
         public NamedWire() { }
 
         private string wire = "Name";
         [Serialize]
+        [Description("Name of the node connected to this named wire.")]
         public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire");  } }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { }

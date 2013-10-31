@@ -57,6 +57,8 @@ namespace Circuit
 
     [CategoryAttribute("Standard")]
     [DisplayName("Diode")]
+    [DefaultProperty("Model")]
+    [Description("Diode.")]
     public class Diode : TwoTerminal
     {
         protected Model model = DiodeModel.Models.First();

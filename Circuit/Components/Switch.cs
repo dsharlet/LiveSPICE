@@ -12,10 +12,12 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Switch")]
+    [DefaultProperty("Closed")]
+    [Description("Switch.")]
     public class Switch : TwoTerminal
     {
         protected bool closed = false;
-        [Description("Closed = true corresponds to a closed circuit.")]
+        [Description("Switch position.")]
         [Serialize]
         public bool Closed { get { return closed; } set { closed = value; NotifyChanged("Closed"); } }
 

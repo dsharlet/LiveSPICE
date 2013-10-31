@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Current Source")]
+    [DefaultProperty("Current")]
+    [Description("Ideal current source.")]
     public class CurrentSource : TwoTerminal
     {
         private Quantity current = new Quantity(1, Units.A);

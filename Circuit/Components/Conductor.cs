@@ -13,6 +13,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Wire")]
+    [Description("Component with zero impedance between the terminals.")]
     public class Conductor : TwoTerminal
     {
         public Conductor() { Name = "_1"; }

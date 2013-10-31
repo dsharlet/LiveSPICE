@@ -12,6 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("IO")]
     [DisplayName("Port")]
+    [DefaultProperty("Name")]
     [Description("Represents a terminal when the schematic is used as a subcircuit.")]
     public class Port : OneTerminal
     {

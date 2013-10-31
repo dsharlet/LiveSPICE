@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Capacitor")]
+    [DefaultProperty("Capacitance")]
+    [Description("Standard capacitor component")]
     public class Capacitor : TwoTerminal
     {
         private Quantity capacitance = new Quantity(100e-6m, Units.F);

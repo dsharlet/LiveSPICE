@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Transformer")]
+    [DefaultProperty("Turns")]
+    [Description("Ideal transformer.")]
     public class Transformer : Component
     {
         private Terminal pa, pc, sa, sc;
@@ -28,7 +30,7 @@ namespace Circuit
         }
 
         protected Ratio turns = new Ratio(1, 1);
-        [Description("Turns ratio.")]
+        [Description("Primary:secondary turns ratio.")]
         [Serialize]
         public Ratio Turns { get { return turns; } set { turns = value; NotifyChanged("Turns"); } }
 

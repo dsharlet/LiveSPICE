@@ -7,11 +7,9 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    /// <summary>
-    /// Buffer is an ideal voltage follower, i.e. it has infinite input impedance and zero output impedance.
-    /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Buffer")]
+    [Description("Ideal voltage follower.")]
     public class Buffer : TwoTerminal
     {
         public override void Analyze(ModifiedNodalAnalysis Mna)

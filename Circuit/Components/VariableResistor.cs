@@ -9,6 +9,8 @@ namespace Circuit
 { 
     [CategoryAttribute("Standard")]
     [DisplayName("Variable Resistor")]
+    [DefaultProperty("Resistance")]
+    [Description("Variable resistor.")]
     public class VariableResistor : TwoTerminal
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
@@ -18,6 +20,7 @@ namespace Circuit
 
         protected Expression wipe = 0.5m;
         [Serialize]
+        [Description("Position of the wiper on this variable resistor, between 0 and 1.")]
         public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
         public VariableResistor() { }

@@ -61,6 +61,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Transistors")]
     [DisplayName("BJT")]
+    [DefaultProperty("Model")]
+    [Description("BJT transistor.")]
     public class BJT : Component
     {
         protected Terminal c, e, b;
@@ -106,12 +108,12 @@ namespace Circuit
             Mna.AddTerminal(e, -(ic + ib));
         }
 
-        public static void LayoutSymbol(SymbolLayout Sym, Terminal c, Terminal b, Terminal e, Func<string> Name, Func<string> Part)
+        public static void LayoutSymbol(SymbolLayout Sym, Terminal C, Terminal B, Terminal E, Func<string> Name, Func<string> Part)
         {
             int bx = -5;
-            Sym.AddTerminal(c, new Coord(10, 20), new Coord(10, 17));
-            Sym.AddTerminal(b, new Coord(-20, 0), new Coord(bx, 0));
-            Sym.AddTerminal(e, new Coord(10, -20), new Coord(10, -17));
+            Sym.AddTerminal(C, new Coord(10, 20), new Coord(10, 17));
+            Sym.AddTerminal(B, new Coord(-20, 0), new Coord(bx, 0));
+            Sym.AddTerminal(E, new Coord(10, -20), new Coord(10, -17));
 
             Sym.DrawLine(EdgeType.Black, new Coord(bx, 12), new Coord(bx, -12));
             Sym.DrawLine(EdgeType.Black, new Coord(10, 17), new Coord(bx, 8));

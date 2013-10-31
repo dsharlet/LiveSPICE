@@ -104,6 +104,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Vacuum Tubes")]
     [DisplayName("Triode")]
+    [DefaultProperty("Model")]
+    [Description("Triode.")]
     public class Triode : Component
     {
         protected Terminal p, g, k;

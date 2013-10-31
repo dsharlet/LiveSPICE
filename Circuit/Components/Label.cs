@@ -13,6 +13,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Label")]
+    [DefaultProperty("Text")]
+    [Description("Displays a text label on a schematic.")]
     public class Label : Component
     {
         public override IEnumerable<Terminal> Terminals { get { return new Terminal[0]; } }

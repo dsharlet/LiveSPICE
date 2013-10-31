@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Rail")]
+    [DefaultProperty("Voltage")]
+    [Description("Single terminal voltage source with the cathode implicitly connected to ground.")] 
     public class Rail : OneTerminal
     {
         /// <summary>

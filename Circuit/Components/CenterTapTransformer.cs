@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Center Tap Transformer")]
+    [DefaultProperty("Turns")]
+    [Description("Transformer with a center tap in the secondary coil.")]
     public class CenterTapTransformer : Component
     {
         private Terminal pa, pc, sa, st, sc;
@@ -29,7 +31,7 @@ namespace Circuit
         }
 
         protected Ratio turns = new Ratio(1, 1);
-        [Description("Turns ratio.")]
+        [Description("Primary:secondary turns ratio.")]
         [Serialize]
         public Ratio Turns { get { return turns; } set { turns = value; NotifyChanged("Turns"); } }
 

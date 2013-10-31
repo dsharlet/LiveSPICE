@@ -12,11 +12,13 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("IO")]
     [DisplayName("Speaker")]
+    [DefaultProperty("Impedance")]
+    [Description("Ideal speaker.")] 
     public class Speaker : TwoTerminal
     {
         private Quantity impedance = new Quantity(Constant.Infinity, Units.Ohm);
-
         [Serialize]
+        [Description("Impedance of this speaker.")]
         public Quantity Impedance { get { return impedance; } set { impedance = value; NotifyChanged("Impedance"); } }
 
         public Speaker() { Name = "S1"; }

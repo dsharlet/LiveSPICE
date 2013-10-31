@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Voltage Source")]
+    [DefaultProperty("Voltage")]
+    [Description("Ideal voltage source.")]
     public class VoltageSource : TwoTerminal
     {
         /// <summary>

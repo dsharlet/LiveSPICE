@@ -12,6 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Ideal Op-Amp")]
+    [Description("Ideal op-amp.")]
     public class IdealOpAmp : Component
     {
         protected Terminal p, n, o;

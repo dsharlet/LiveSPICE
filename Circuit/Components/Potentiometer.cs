@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Potentiometer")]
+    [DefaultProperty("Resistance")]
+    [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")] 
     public class Potentiometer : Component
     {
         protected Terminal anode, cathode, wiper;
@@ -40,14 +42,14 @@ namespace Circuit
         }
 
         protected Quantity resistance = new Quantity(100, Units.Ohm);
-        [Description("Total resistance of this potentiometer.")]
+        [Description("Resistance of this potentiometer.")]
         [Serialize]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
-        protected double wipe = 0.5;
-        [Description("Default position of the wiper as a ratio from 0 to 1. 1 corresponds to all the resistance between the wiper and the cathode.")]
+        protected Expression wipe = 0.5m; // RangeParameter.New(Name, 0.5m, false);
+        [Description("Position of the wiper, between 0 and 1.")]
         [Serialize]
-        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+        public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
         
         public void ConnectTo(Node A, Node C, Node W)
         {
@@ -58,7 +60,7 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
-            Expression P = Wipe; // RangeParameter.New(Name, wipe, false);
+            Expression P = Wipe;
 
             Expression R1 = resistance.Value * P;
             Expression R2 = resistance.Value * (1 - P);
@@ -69,17 +71,16 @@ namespace Circuit
         
         public override sealed void LayoutSymbol(SymbolLayout Sym)
         {
-            Sym.AddTerminal(Anode, new Coord(-10, 20));
-            Sym.AddTerminal(Cathode, new Coord(-10, -20));
-            Sym.AddTerminal(Wiper, new Coord(10, 0));
-
             Sym.InBounds(new Coord(-20, -20), new Coord(10, 20));
-            
-            Sym.AddWire(Anode, new Coord(-10, 16));
-            Sym.AddWire(Cathode, new Coord(-10, -16));
-            Sym.DrawArrow(EdgeType.Black, new Coord(10, 0), new Coord(-6, 0), 0.2);
+
+            Sym.AddTerminal(Anode, new Coord(-10, 20), new Coord(-10, 16));
             Sym.DrawPositive(EdgeType.Black, new Coord(-16, 16));
+
+            Sym.AddTerminal(Cathode, new Coord(-10, -20), new Coord(-10, -16));
             Sym.DrawNegative(EdgeType.Black, new Coord(-16, -16));
+                        
+            Sym.AddTerminal(Wiper, new Coord(10, 0));
+            Sym.DrawArrow(EdgeType.Black, new Coord(10, 0), new Coord(-6, 0), 0.2);
 
             Resistor.Draw(Sym, -10, -16, 16, 7);
 

@@ -12,6 +12,8 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Inductor")]
+    [DefaultProperty("Inductance")]
+    [Description("Standard inductor.")]
     public class Inductor : TwoTerminal
     {
         protected Quantity inductance = new Quantity(100e-6m, Units.H);

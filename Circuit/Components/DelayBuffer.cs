@@ -12,6 +12,7 @@ namespace Circuit
     /// </summary>
     [CategoryAttribute("Standard")]
     [DisplayName("Delay Buffer")]
+    [Description("Ideal voltage follower with a single sample of delay.")]
     public class DelayBuffer : TwoTerminal
     {
         public override void Analyze(ModifiedNodalAnalysis Mna)
