@@ -245,73 +245,62 @@ namespace Circuit
                                 // Gaussian elimination on this turd.
 
                                 // For each variable in the system...
-                                LinqExpr j = Redeclare<int>(locals, "j");
-                                For(body,
-                                    () => body.Add(LinqExpr.Assign(j, Zero)),
-                                    LinqExpr.LessThan(j, LinqExpr.Constant(deltas.Length)),
-                                    () => body.Add(LinqExpr.PreIncrementAssign(j)),
-                                    () =>
+                                for (int j = 0; j < deltas.Length; ++j)
                                 {
-                                    LinqExpr pivot = Redeclare(locals, body, "pivot", j);
-                                    LinqExpr max = Redeclare(locals, body, "max", LinqExpr.Constant(0.0));
+                                    LinqExpr _j = LinqExpr.Constant(j);
+                                    LinqExpr pi = Redeclare(locals, body, "pi", _j);
+                                    LinqExpr max = Redeclare(locals, body, "max", Abs(LinqExpr.ArrayAccess(JxF, _j, _j)));
                                     
                                     // Find a pivot row for this variable.
-                                    LinqExpr i = Redeclare<int>(locals, "i");
-                                    For(body,
-                                        () => body.Add(LinqExpr.Assign(i, LinqExpr.Increment(j))),
-                                        LinqExpr.LessThan(i, LinqExpr.Constant(eqs.Length)),
-                                        () => body.Add(LinqExpr.PreIncrementAssign(i)),
-                                        () =>
+                                    for (int i = j + 1; i < eqs.Length; ++i)
                                     {
+                                        LinqExpr _i = LinqExpr.Constant(i);
                                         // If this row contains the max pivot column value, store it as the max.
-                                        LinqExpr maxj = Redeclare(locals, body, "maxj", Abs(LinqExpr.ArrayAccess(JxF, i, j)));
+                                        LinqExpr maxj = Redeclare(locals, body, "maxj", Abs(LinqExpr.ArrayAccess(JxF, _i, _j)));
                                         body.Add(LinqExpr.IfThen(
                                             LinqExpr.GreaterThan(maxj, max),
                                             LinqExpr.Block(
-                                                LinqExpr.Assign(pivot, i), 
+                                                LinqExpr.Assign(pi, _i), 
                                                 LinqExpr.Assign(max, maxj))));
-                                    });
+                                    }
                                     
                                     // (Maybe) swap the pivot row with the current row.
                                     LinqExpr temp = Redeclare<double>(locals, "temp");
                                     body.Add(LinqExpr.IfThen(
-                                        LinqExpr.NotEqual(j, pivot),
-                                        LinqExpr.Block(Enumerable.Range(0, deltas.Length + 1).Select(x => Swap(
-                                            LinqExpr.ArrayAccess(JxF, j, LinqExpr.Constant(x)), 
-                                            LinqExpr.ArrayAccess(JxF, pivot, LinqExpr.Constant(x)), 
+                                        LinqExpr.NotEqual(_j, pi),
+                                        LinqExpr.Block(Enumerable.Range(j, deltas.Length + 1 - j).Select(x => Swap(
+                                            LinqExpr.ArrayAccess(JxF, _j, LinqExpr.Constant(x)), 
+                                            LinqExpr.ArrayAccess(JxF, pi, LinqExpr.Constant(x)), 
                                             temp)))));
 
-                                    LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxF, j, j));
+                                    LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxF, _j, _j));
 
                                     // Eliminate the rows after the pivot.
-                                    For(body,
-                                        () => body.Add(LinqExpr.Assign(i, LinqExpr.Increment(j))),
-                                        LinqExpr.LessThan(i, LinqExpr.Constant(eqs.Length)),
-                                        () => body.Add(LinqExpr.PreIncrementAssign(i)),
-                                        () =>
+                                    for (int i = j + 1; i < eqs.Length; ++i)
                                     {
-                                        LinqExpr s = Redeclare(locals, body, "scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxF, i, j), p));
+                                        LinqExpr _i = LinqExpr.Constant(i);
+                                        LinqExpr s = Redeclare(locals, body, "scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxF, _i, _j), p));
 
-                                        LinqExpr jj = Redeclare<int>(locals, "jj");
-                                        For(body,
-                                            () => body.Add(LinqExpr.Assign(jj, LinqExpr.Increment(j))),
-                                            LinqExpr.LessThan(jj, LinqExpr.Constant(deltas.Length + 1)),
-                                            () => body.Add(LinqExpr.PreIncrementAssign(jj)),
-                                            () => body.Add(LinqExpr.SubtractAssign(LinqExpr.ArrayAccess(JxF, i, jj), LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, j, jj), s))));
-                                    });
-                                });
+                                        for (int ji = j + 1; ji < deltas.Length + 1; ++ji)
+                                        {
+                                            LinqExpr _ji = LinqExpr.Constant(ji);
+                                            body.Add(LinqExpr.SubtractAssign(
+                                                LinqExpr.ArrayAccess(JxF, _i, _ji),
+                                                LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, _j, _ji), s)));
+                                        }
+                                    }
+                                }
 
                                 // JxF is now upper triangular, solve it.
-                                for (int v = deltas.Length - 1; v >= 0; --v)
+                                for (int i = deltas.Length - 1; i >= 0; --i)
                                 {
-                                    LinqExpr vx = LinqExpr.Constant(v);
-                                    LinqExpr r = LinqExpr.ArrayAccess(JxF, vx, LinqExpr.Constant(deltas.Length));
-                                    for (int vj = v + 1; vj < deltas.Length; ++vj)
-                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, vx, LinqExpr.Constant(vj)), map[deltas[vj]]));
-                                    r = LinqExpr.Negate(r);
+                                    LinqExpr _i = LinqExpr.Constant(i);
+                                    LinqExpr r = LinqExpr.ArrayAccess(JxF, _i, LinqExpr.Constant(deltas.Length));
+                                    for (int ji = i + 1; ji < deltas.Length; ++ji)
+                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxF, _i, LinqExpr.Constant(ji)), map[deltas[ji]]));
                                     body.Add(LinqExpr.Assign(
-                                        Declare<double>(locals, map, deltas[v]),
-                                        LinqExpr.Divide(r, LinqExpr.ArrayAccess(JxF, vx, vx))));
+                                        Declare<double>(locals, map, deltas[i]),
+                                        LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(JxF, _i, _i))));
                                 }
 
                                 // Compile the pre-solved solutions.
@@ -328,8 +317,8 @@ namespace Circuit
                                     LinqExpr v = map[i];
                                     LinqExpr dv = map[NewtonIteration.Delta(i)];
 
-                                    // done = done && (|dv| < |v|*1e-4)
-                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), LinqExpr.Multiply(Abs(v), LinqExpr.Constant(1e-4)))));
+                                    // done &= (|dv|*10^4 < |v|)
+                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(Abs(dv), LinqExpr.Constant(1e4)), Abs(v))));
                                     // v += dv
                                     body.Add(LinqExpr.AddAssign(v, dv));
                                 }
