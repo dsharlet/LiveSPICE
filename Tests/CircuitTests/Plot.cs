@@ -119,6 +119,7 @@ namespace CircuitTests
             form.Size = new Size(Width, Height);
             form.Text = Name;
             form.Paint += Plot_Paint;
+            form.SizeChanged += Plot_SizeChanged;
 
             thread = new Thread(() => Application.Run(form));
             thread.Start();
@@ -149,6 +150,11 @@ namespace CircuitTests
                 }
                 i.Value.Paint(T, x0.X, x1.X, G);
             }
+        }
+
+        void Plot_SizeChanged(object sender, EventArgs e)
+        {
+            form.Invalidate();
         }
     }
 }
