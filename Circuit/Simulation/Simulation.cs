@@ -12,6 +12,9 @@ namespace Circuit
     public class SimulationDiverged : NotFiniteNumberException
     {
         private long at;
+        /// <summary>
+        /// Sample number at which the simulation diverged.
+        /// </summary>
         public long At { get { return at; } }
 
         public SimulationDiverged(string Message, long At) : base(Message) { at = At; }

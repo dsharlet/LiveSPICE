@@ -34,7 +34,7 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode, Inductance); }
 
-        public static void DrawCoil(SymbolLayout Sym, double x, double y1, double y2, int Turns, bool Mirror)
+        public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int Turns, double Scale)
         {
             double t1 = -3.141592;
             double t2 = 2 * (Turns - 1) * 3.141592;
@@ -43,15 +43,14 @@ namespace Circuit
             double min = t1 + coil * Math.Cos(t1);
             double max = t2 + coil * Math.Cos(t2);
             double length = max - min;
-
-            double sign = Mirror ? -1.0 : 1.0;
-
+            
             Sym.DrawFunction(
                 EdgeType.Black,
-                (t) => x + sign * Math.Sin(t) * 4.0,
+                (t) => x - Scale * Math.Sin(t),
                 (t) => (t + coil * Math.Cos(t) - min) / length * (y2 - y1) + y1,
                 t1, t2, Turns * 16);
         }
+        public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int Turns) { Draw(Sym, x, y1, y2, Turns, (y2 - y1) / (Turns * 2)); }
 
         protected override void DrawSymbol(SymbolLayout Sym)
         {
@@ -59,10 +58,10 @@ namespace Circuit
             Sym.AddWire(Cathode, new Coord(0, -16));
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
-            DrawCoil(Sym, 0.0, -16.0, 16.0, 4, false);
+            Draw(Sym, 0.0, -16.0, 16.0, 4);
             
-            Sym.DrawText(Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
-            Sym.DrawText(inductance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
+            Sym.DrawText(() => inductance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
         }
 
         public override string ToString() { return Name + " = " + inductance.ToString(); }

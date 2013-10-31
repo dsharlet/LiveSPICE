@@ -35,7 +35,7 @@ namespace Circuit
         {
             Sym.InBounds(new Coord(-20, 20), new Coord(20, 0));
             Sym.AddLine(EdgeType.Black, new Coord(-15, 0), new Coord(15, 0));
-            Sym.DrawText(Voltage.ToString(), new Point(0, 2), Alignment.Center, Alignment.Near);
+            Sym.DrawText(() => Voltage.ToString(), new Point(0, 2), Alignment.Center, Alignment.Near);
         }
 
         public override string ToString() { return Name + " = " + Voltage.ToString(); }

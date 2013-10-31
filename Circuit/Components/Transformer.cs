@@ -67,13 +67,13 @@ namespace Circuit
             Sym.AddWire(sc, new Coord(10, -16));
             Sym.InBounds(new Coord(-20, 0), new Coord(20, 0));
 
-            Inductor.DrawCoil(Sym, -10, -16.0, 16.0, 4, true);
+            Inductor.Draw(Sym, -10, -16.0, 16.0, 4, 4.0);
             Sym.DrawLine(EdgeType.Black, new Coord(-2, 16), new Coord(-2, -16));
             Sym.DrawLine(EdgeType.Black, new Coord(2, 16), new Coord(2, -16));
-            Inductor.DrawCoil(Sym, 10, -16.0, 16.0, 4, false);
+            Inductor.Draw(Sym, 10, -16.0, 16.0, 4, -4.0);
 
-            Sym.DrawText(Name, new Coord(-16, 0), Alignment.Far, Alignment.Center);
-            Sym.DrawText(Turns.ToString(), new Coord(16, 0), Alignment.Near, Alignment.Center);
+            Sym.DrawText(() => Name, new Coord(-16, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Turns.ToString(), new Coord(16, 0), Alignment.Near, Alignment.Center);
         }
 
         public override string ToString() { return Name + " = " + Turns.ToString(); }

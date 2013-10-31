@@ -37,7 +37,7 @@ namespace Circuit
         {
             Sym.AddRectangle(EdgeType.Black, new Coord(-5, -5), new Coord(5, 5));
 
-            Sym.DrawText(Name, new Coord(0, 7), Alignment.Center, Alignment.Near);
+            Sym.DrawText(() => Name, new Coord(0, 7), Alignment.Center, Alignment.Near);
         }
     }
 }

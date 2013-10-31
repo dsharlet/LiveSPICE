@@ -90,8 +90,8 @@ namespace Circuit
                 Sym.DrawArrow(EdgeType.Black, new Coord(-8, -2), new Coord(-16, -10), 0.2);
             }
 
-            Sym.DrawText(Name, new Coord(10, -4), Alignment.Near, Alignment.Far);
-            Sym.DrawText(Model.Name, new Coord(10, 4), Alignment.Near, Alignment.Near);
+            Sym.DrawText(() => Name, new Coord(10, -4), Alignment.Near, Alignment.Far);
+            Sym.DrawText(() => Model.Name, new Coord(10, 4), Alignment.Near, Alignment.Near);
         }
     }
 }

@@ -146,18 +146,18 @@ namespace Circuit
 
         public class Text 
         { 
-            private string s;
+            private Func<string> s;
             private Point _x;
             private Alignment halign, valign;
             private Size size;
 
-            public string String { get { return s; } }
+            public string String { get { return s(); } }
             public Point x { get { return _x; } }
             public Alignment HorizontalAlign { get { return halign; } }
             public Alignment VerticalAlign { get { return valign; } }
             public Size Size { get { return size; } set { size = value; } }
 
-            public Text(string String, Point x, Alignment HorizontalAlign, Alignment VerticalAlign, Size Size) 
+            public Text(Func<string> String, Point x, Alignment HorizontalAlign, Alignment VerticalAlign, Size Size) 
             {
                 s = String;
                 _x = x; 
@@ -202,9 +202,9 @@ namespace Circuit
         public void DrawRectangle(EdgeType Type, Point x1, Point x2) { DrawRectangle(Type, x1, x2, false); }
         public void DrawEllipse(EdgeType Type, Point x1, Point x2, bool Fill) { ellipses.Add(new Shape(Type, x1, x2, Fill)); }
         public void DrawEllipse(EdgeType Type, Point x1, Point x2) { DrawEllipse(Type, x1, x2, false); }
-        public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical, Size Size) { texts.Add(new Text(S, x, Horizontal, Vertical, Size)); }
-        public void DrawText(string S, Point x, Alignment Horizontal, Alignment Vertical) { DrawText(S, x, Horizontal, Vertical, global::Circuit.Size.Normal); }
-        public void DrawText(string S, Point x) { DrawText(S, x, Alignment.Near, Alignment.Near); }
+        public void DrawText(Func<string> S, Point x, Alignment Horizontal, Alignment Vertical, Size Size) { texts.Add(new Text(S, x, Horizontal, Vertical, Size)); }
+        public void DrawText(Func<string> S, Point x, Alignment Horizontal, Alignment Vertical) { DrawText(S, x, Horizontal, Vertical, global::Circuit.Size.Normal); }
+        public void DrawText(Func<string> S, Point x) { DrawText(S, x, Alignment.Near, Alignment.Near); }
         public void DrawCurve(EdgeType Type, IEnumerable<Point> x) { curves.Add(new Curve(Type, x.ToArray())); }
 
         // Add common shapes to the schematic.

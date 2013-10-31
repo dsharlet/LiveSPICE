@@ -31,8 +31,8 @@ namespace Circuit
             Sym.DrawLine(EdgeType.Gray, new Point(-20, -10), new Point(20, -10));
             Sym.DrawLine(EdgeType.Gray, new Point(-20, -10), new Point(-20, 10));
             Sym.InBounds(new Coord(-20, -10), new Coord(20, 10));
-            Sym.DrawText(text, new Point(-18, 0), Alignment.Near, Alignment.Center, Size.Large);
-            Sym.DrawText(subtext, new Point(-18, -10), Alignment.Near, Alignment.Far, Size.Normal);
+            Sym.DrawText(() => text, new Point(-18, 0), Alignment.Near, Alignment.Center, Size.Large);
+            Sym.DrawText(() => subtext, new Point(-18, -10), Alignment.Near, Alignment.Far, Size.Normal);
         }
     }
 }

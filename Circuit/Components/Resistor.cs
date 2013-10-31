@@ -38,6 +38,17 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode, Resistance); }
 
+        public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int N, double Scale)
+        {
+            double h = y2 - y1;
+            
+            Sym.DrawFunction(
+                EdgeType.Black,
+                (t) => x - Scale * (Math.Abs((t + 0.5) % 2 - 1) * 2 - 1),
+                (t) => t * h / N + y1,
+                0, N, N * 2);
+        }
+        public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int N) { Draw(Sym, x, y1, y2, N, (y2 - y1) / (N + 1)); }
         
         protected override void DrawSymbol(SymbolLayout Sym)
         {
@@ -45,18 +56,13 @@ namespace Circuit
             Sym.AddWire(Cathode, new Coord(0, -16));
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
-            int N = 7;
-            Sym.DrawFunction(
-                EdgeType.Black,
-                (t) => Math.Abs((t + 0.5) % 2 - 1) * 8 - 4, 
-                (t) => t * 32 / N - 16,
-                0, N, N * 2);
-
+            Draw(Sym, 0, -16, 16, 7);
+            
             if (!(resistance.Value is Constant))
                 Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
 
-            Sym.DrawText(Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
-            Sym.DrawText(resistance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
+            Sym.DrawText(() => resistance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
         }
 
         public override string ToString() { return Name + " = " + resistance.ToString(); }

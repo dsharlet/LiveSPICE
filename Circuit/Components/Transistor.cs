@@ -121,8 +121,8 @@ namespace Circuit
             Sym.DrawLine(EdgeType.Black, new Coord(10, 17), new Coord(bx, 8));
             Sym.DrawArrow(EdgeType.Black, new Coord(bx, -8), new Coord(10, -17), 0.2, 0.3);
 
-            Sym.DrawText(Model.Name, new Coord(8, 20), Alignment.Far, Alignment.Near);
-            Sym.DrawText(Name, new Point(8, -20), Alignment.Far, Alignment.Far);
+            Sym.DrawText(() => Model.Name, new Coord(8, 20), Alignment.Far, Alignment.Near);
+            Sym.DrawText(() => Name, new Point(8, -20), Alignment.Far, Alignment.Far);
 
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
         }

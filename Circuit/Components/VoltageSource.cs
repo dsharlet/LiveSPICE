@@ -48,7 +48,7 @@ namespace Circuit
                 Sym.AddLine(EdgeType.Black, new Coord(-w, -20), new Coord(w, -20));
                 Sym.DrawNegative(EdgeType.Black, new Coord(0, -15));
 
-                Sym.DrawText(Voltage.ToString(), new Point(0, 0), Alignment.Center, Alignment.Center);
+                Sym.DrawText(() => Voltage.ToString(), new Point(0, 0), Alignment.Center, Alignment.Center);
             }
             else
             {
@@ -66,8 +66,8 @@ namespace Circuit
                         (t) => t * r * 0.75,
                         (t) => Math.Sin(t * 3.1415) * r * 0.5, -1, 1);
 
-                Sym.DrawText(Voltage.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near);
-                Sym.DrawText(Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far);
+                Sym.DrawText(() => Voltage.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near);
+                Sym.DrawText(() => Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far);
             }
         }
 

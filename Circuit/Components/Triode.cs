@@ -173,8 +173,8 @@ namespace Circuit
 
             Sym.AddWire(k, new Coord(-10, -6), new Coord(-8, -4), new Coord(8, -4), new Coord(10, -6));
 
-            Sym.DrawText(Model.Name, new Coord(-2, 20), Alignment.Far, Alignment.Near);
-            Sym.DrawText(Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
+            Sym.DrawText(() => Model.Name, new Coord(-2, 20), Alignment.Far, Alignment.Near);
+            Sym.DrawText(() => Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
         }
     }
 }

@@ -46,7 +46,7 @@ namespace Circuit
                 int x = w * dx;
                 int y = h - (i / 2 + 1) * 20;
                 Sym.AddTerminal(terminals[i], new Coord(x, y));
-                Sym.DrawText(terminals[i].Name, new Coord(x - dx * 3, y), x < 0 ? Alignment.Near : Alignment.Far, Alignment.Center);
+                Sym.DrawText(() => terminals[i].Name, new Coord(x - dx * 3, y), x < 0 ? Alignment.Near : Alignment.Far, Alignment.Center);
             }
         }
 

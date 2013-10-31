@@ -41,7 +41,7 @@ namespace Circuit
             else
                 Sym.AddWire(new Coord(0, -12), new Coord(-8, 10));
 
-            Sym.DrawText(Name, new Coord(2, 0), Alignment.Near, Alignment.Center);
+            Sym.DrawText(() => Name, new Coord(2, 0), Alignment.Near, Alignment.Center);
         }
     }
 }

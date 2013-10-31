@@ -71,8 +71,8 @@ namespace Circuit
             Sym.AddTerminal(st, new Coord(10, 0));
             Sym.AddTerminal(sc, new Coord(10, -h));
 
-            Sym.DrawText(Name, new Coord(-16, -h / 2), Alignment.Far, Alignment.Center);
-            Sym.DrawText(Turns.ToString(), new Coord(-16, h / 2), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Name, new Coord(-16, -h / 2), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Turns.ToString(), new Coord(-16, h / 2), Alignment.Far, Alignment.Center);
 
             h -= 4;
 
@@ -82,11 +82,11 @@ namespace Circuit
             Sym.AddWire(sc, new Coord(10, -h));
             Sym.InBounds(new Coord(-20, 0), new Coord(20, 0));
 
-            Inductor.DrawCoil(Sym, -10, -h, h, 4, true);
+            Inductor.Draw(Sym, -10, -h, h, 4, 4.0);
             Sym.DrawLine(EdgeType.Black, new Coord(-2, h), new Coord(-2, -h));
             Sym.DrawLine(EdgeType.Black, new Coord(2, h), new Coord(2, -h));
-            Inductor.DrawCoil(Sym, 10, -h, 0.0, 2, false);
-            Inductor.DrawCoil(Sym, 10, h, 0.0, 2, false);
+            Inductor.Draw(Sym, 10, -h, 0.0, 2, -4.0);
+            Inductor.Draw(Sym, 10, h, 0.0, 2, -4.0);
         }
 
         public override string ToString() { return Name + " = " + Turns.ToString(); }

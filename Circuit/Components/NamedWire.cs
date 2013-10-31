@@ -30,7 +30,7 @@ namespace Circuit
             Sym.AddWire(new Coord(0, -19), new Coord(0, -22));
             Sym.AddWire(new Coord(0, -27), new Coord(0, -30));
 
-            Sym.DrawText(WireName, new Coord(2, -15), Alignment.Near, Alignment.Center);
+            Sym.DrawText(() => WireName, new Coord(2, -15), Alignment.Near, Alignment.Center);
         }
     }
 }

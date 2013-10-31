@@ -104,7 +104,7 @@ namespace Circuit
                 new Coord(-20, -20),
                 new Coord(20, 0));
 
-            Sym.DrawText(Name, new Coord(12, -4), Alignment.Near, Alignment.Far);
+            Sym.DrawText(() => Name, new Coord(12, -4), Alignment.Near, Alignment.Far);
         }
     }
 }

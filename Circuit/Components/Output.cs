@@ -23,7 +23,7 @@ namespace Circuit
             Sym.AddLine(EdgeType.Black, new Coord(-w, -20), new Coord(w, -20));
             Sym.DrawNegative(EdgeType.Black, new Coord(0, -15));
 
-            Sym.DrawText(Name.ToString(), new Point(0, 0), Alignment.Center, Alignment.Center);
+            Sym.DrawText(() => Name.ToString(), new Point(0, 0), Alignment.Center, Alignment.Center);
         }
     }
 }

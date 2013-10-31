@@ -100,9 +100,6 @@ namespace LiveSPICE
         {
             get
             {
-                layout = new Circuit.SymbolLayout();
-                Symbol.Component.LayoutSymbol(layout);
-
                 Circuit.Coord offset = layout.LowerBound + layout.UpperBound;
                 double scale = Math.Min(Math.Min(ActualWidth / Symbol.Width, ActualHeight / Symbol.Height), 1.0);
 

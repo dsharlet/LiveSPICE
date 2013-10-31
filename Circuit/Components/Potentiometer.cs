@@ -81,16 +81,11 @@ namespace Circuit
             Sym.DrawPositive(EdgeType.Black, new Coord(-16, 16));
             Sym.DrawNegative(EdgeType.Black, new Coord(-16, -16));
 
-            int N = 7;
-            Sym.DrawFunction(
-                EdgeType.Black,
-                (t) => Math.Abs((t + 0.5) % 2 - 1) * 8 - 4 - 10,
-                (t) => t * 32 / N - 16,
-                0, N, N * 2);
+            Resistor.Draw(Sym, -10, -16, 16, 7);
 
-            Sym.DrawText(resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
-            Sym.DrawText(wipe.ToString(), new Coord(-4, 4), Alignment.Near, Alignment.Near);
-            Sym.DrawText(Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
+            Sym.DrawText(() => resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => wipe.ToString(), new Coord(-4, 4), Alignment.Near, Alignment.Near);
+            Sym.DrawText(() => Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
         }
 
         public override string ToString() { return Name + " = " + resistance.ToString(); }
