@@ -23,6 +23,11 @@ namespace LiveSPICE
     /// </summary>
     public partial class LiveSimulation : Window, INotifyPropertyChanged
     {
+        public Log Log { get { return (Log)log.Content; } }
+        public Parameters Parameters { get { return (Parameters)parameters.Content; } }
+        public AudioStream Audio { get { return (AudioStream)audio.Content; } }
+        public Scope Scope { get { return (Scope)scope.Content; } }
+
         protected int oversample = 4;
         public int Oversample
         {
@@ -51,12 +56,7 @@ namespace LiveSPICE
         private SyMath.Expression output;
         protected List<Probe> probes = new List<Probe>();
         protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
-
-        public Log Log { get { return (Log)log.Content; } }
-        public Parameters Parameters { get { return (Parameters)parameters.Content; } }
-        public AudioStream Audio { get { return (AudioStream)audio.Content; } }
-        public Scope Scope { get { return (Scope)scope.Content; } }
-
+        
         public LiveSimulation(Circuit.Schematic Simulate)
         {
             InitializeComponent();
@@ -70,9 +70,9 @@ namespace LiveSPICE
             schematic.Schematic = new SimulationSchematic(clone);
             schematic.Schematic.SelectionChanged += OnProbeSelected;
 
-            // Build the circuit from the schematic.
             try
             {
+                // Build the circuit from the schematic.
                 circuit = schematic.Schematic.Schematic.Build(Log);
                 IEnumerable<Circuit.Component> components = circuit.Components;
 
@@ -87,8 +87,6 @@ namespace LiveSPICE
 
                 // Build the output expression from the speakers in the circuit.
                 output = SyMath.Add.New(components.OfType<Circuit.Speaker>().Select(i => i.Sound)).Evaluate();
-                if (output.IsZero())
-                    output = null;
 
                 Parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
                 Audio.Callback = ProcessSamples;
@@ -97,27 +95,20 @@ namespace LiveSPICE
             {
             }
         }
-
+        
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
         {
             if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
             {
                 Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
-                
-                Pen p;
-                switch (probe.Color)
-                {
-                    // These two need to be brighter than the normal colors.
-                    case Circuit.EdgeType.Red: p = new Pen(new SolidColorBrush(Color.FromRgb(255, 50, 50)), 1.0); break;
-                    case Circuit.EdgeType.Blue: p = new Pen(new SolidColorBrush(Color.FromRgb(20, 180, 255)), 1.0); break;
-                    default: p = ElementControl.MapToPen(probe.Color); break;
-                }
-                probe.Signal = new Signal() { Name = probe.V.ToString(), Pen = p };
+                probe.Signal = new Signal() 
+                { 
+                    Name = probe.V.ToString(), 
+                    Pen = MapToSignalPen(probe.Color) 
+                };
                 Scope.Display.Signals.Add(probe.Signal);
-
-                e.Element.LayoutChanged += (x, y) => ConnectProbes();
+                lock (probes) probes.Add(probe);
             }
-            ConnectProbes();
         }
 
         private void OnElementRemoved(object sender, Circuit.ElementEventArgs e)
@@ -125,10 +116,9 @@ namespace LiveSPICE
             if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
             {
                 Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
-
                 Scope.Display.Signals.Remove(probe.Signal);
+                lock(probes) probes.Remove(probe);
             }
-            ConnectProbes();
         }
 
         private void OnProbeSelected(object sender, EventArgs e)
@@ -138,30 +128,33 @@ namespace LiveSPICE
                 Scope.Display.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
 
-        public void ConnectProbes()
+        private bool canclose = false;
+        private bool closing = false;
+        protected override void OnClosing(CancelEventArgs e)
         {
-            lock (probes)
-            {
-                probes.Clear();
-                foreach (Probe i in ((SimulationSchematic)schematic.Schematic).Probes.Where(i => i.ConnectedTo != null))
-                    probes.Add(i);
-            }
+            closing = true;
+            e.Cancel = !canclose;
         }
 
         private bool rebuild = true;
         private void ProcessSamples(Audio.SampleBuffer In, Audio.SampleBuffer Out, double SampleRate)
         {
+            if (closing)
+            {
+                canclose = true;
+                Dispatcher.InvokeAsync(() => Close());
+                return;
+            }
+
             if (rebuild || (simulation != null && (Oversample != simulation.Oversample || SampleRate != (double)simulation.SampleRate)))
             {
                 try
                 {
                     Circuit.Quantity h = new Circuit.Quantity(Constant.One / (SampleRate * Oversample), Circuit.Units.s);
-                    if (solution == null || solution.TimeStep != h)
-                    {
-                        solution = Circuit.TransientSolution.SolveCircuit(circuit, h, Log);
-                        arguments = solution.Parameters.ToDictionary(i => i.Name, i => 0.5);
-                        Dispatcher.Invoke(() => Parameters.UpdateControls(solution.Parameters));
-                    }
+                    solution = Circuit.TransientSolution.SolveCircuit(circuit, h, Log);
+                    arguments = solution.Parameters.ToDictionary(i => i.Name, i => 0.5);
+                    Dispatcher.Invoke(() => Parameters.UpdateControls(solution.Parameters));
+
                     simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, Log);
                 }
                 catch (System.Exception ex)
@@ -231,6 +224,17 @@ namespace LiveSPICE
                 Anchorable.Hide();
             else
                 Anchorable.Show();
+        }
+
+        private static Pen MapToSignalPen(Circuit.EdgeType Color)
+        {
+            switch (Color)
+            {
+                // These two need to be brighter than the normal colors.
+                case Circuit.EdgeType.Red: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 50, 50)), 1.0);
+                case Circuit.EdgeType.Blue: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 180, 255)), 1.0);
+                default: return ElementControl.MapToPen(Color);
+            }
         }
 
         // INotifyPropertyChanged.
