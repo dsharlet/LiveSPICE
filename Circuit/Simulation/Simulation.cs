@@ -115,27 +115,15 @@ namespace Circuit
             int Iterations)
         {
             // Call the implementation of process.
-            Process(n, TimeStep, N, Input, Output, Arguments, Oversample, Iterations);
-
-            // Check the last output samples for infinity/NaN.
-            foreach (KeyValuePair<Expression, double[]> i in Output)
+            try
             {
-                double v = i.Value[i.Value.Length - 1];
-                if (!IsReal(v))
-                {
-                    // If any last sample isn't real, find exactly where this simulation diverged.
-                    int diverged = Output.Min(j =>
-                    {
-                        for (int k = 0; k < j.Value.Length; ++k)
-                            if (!IsReal(j.Value[k]))
-                                return k;
-                        return j.Value.Length;
-                    });
-                    throw new SimulationDiverged("Simulation diverged at t = " + Quantity.ToString(Time, Units.s) + " + " + diverged, n + diverged);
-                }
+                Process(n, TimeStep, N, Input, Output, Arguments, Oversample, Iterations);
+                n += N;
             }
-
-            n += N;
+            catch(SimulationDiverged Ex)
+            {
+                throw new SimulationDiverged("Simulation diverged near t = " + Quantity.ToString(Time, Units.s) + " + " + Ex.At, n + Ex.At);
+            }
         }
 
         public void Run(
