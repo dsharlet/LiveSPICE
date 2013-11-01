@@ -63,16 +63,27 @@ namespace LiveSPICE
             Target.Select();
             if (a == b)
             {
+                Circuit.Node node = Simulation.NodeAt(At);
                 IEnumerable<Circuit.Element> at = Target.AtPoint(a);
                 IEnumerable<Circuit.Symbol> probes = ProbesOf(at);
-                if (!probes.Any() && at.Any(i => i is Circuit.Wire))
+                if (!probes.Any() && node != null)
                 {
-                    Probe p = new Probe(Colors.ArgMin(i => Simulation.Probes.Count(j => j.Color == i)));
-                    Target.Schematic.Add(new Circuit.Symbol(p) { Position = a });
+                    Probe probe = Simulation.Probes.FirstOrDefault(i => i.ConnectedTo == node);
+                    if (probe != null)
+                    {
+                        // There's already a probe on this node, move the probe here.
+                        ((Circuit.Symbol)probe.Tag).Position = a;
+                    }
+                    else
+                    {
+                        // Make a new probe connected to this node.
+                        probe = new Probe(Colors.ArgMin(i => Simulation.Probes.Count(j => j.Color == i)));
+                        Target.Schematic.Add(new Circuit.Symbol(probe) { Position = a });
+                    }
                 }
-                else if (probes.Any())
+                else
                 {
-                    Target.Select(ProbesOf(Target.AtPoint(a)));
+                    Target.Select(probes.FirstOrDefault());
                 }
             }
         }

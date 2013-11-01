@@ -103,6 +103,7 @@ namespace LiveSPICE
             return Elements.Where(i => i.Intersects(a, b));
         }
         public IEnumerable<Circuit.Element> AtPoint(Circuit.Coord At) { return InRect(At - 1, At + 1); }
+        public Circuit.Node NodeAt(Circuit.Coord At) { return schematic.NodeAt(At); }
 
         public static Circuit.Coord LowerBound(IEnumerable<Circuit.Element> Of) { return new Circuit.Coord(Of.Min(i => i.LowerBound.x), Of.Min(i => i.LowerBound.y)); }
         public static Circuit.Coord UpperBound(IEnumerable<Circuit.Element> Of) { return new Circuit.Coord(Of.Max(i => i.UpperBound.x), Of.Max(i => i.UpperBound.y)); }
