@@ -21,6 +21,14 @@ using SyMath;
 
 namespace LiveSPICE
 {
+    public class SelectionEventArgs : EventArgs
+    {
+        private IEnumerable<Circuit.Element> selected;
+        public IEnumerable<Circuit.Element> Selected { get { return selected; } }
+
+        public SelectionEventArgs(IEnumerable<Circuit.Element> Selected) { selected = Selected; }
+    }
+
     /// <summary>
     /// Control for interacting with a Circuit.Schematic.
     /// </summary>
@@ -130,6 +138,8 @@ namespace LiveSPICE
             control.Element.LayoutChanged -= ElementLayoutChanged;
             wires.Children.Remove(control);
             symbols.Children.Remove(control);
+            if (control.Selected)
+                RaiseSelectionChanged();
         }
         private void ElementLayoutChanged(object sender, EventArgs e)
         {
@@ -170,16 +180,19 @@ namespace LiveSPICE
         // Selection.
         public IEnumerable<Circuit.Element> Selected { get { return Elements.Where(i => ((ElementControl)i.Tag).Selected); } }
 
-        private List<EventHandler> selectionChanged = new List<EventHandler>();
-        public event EventHandler SelectionChanged
+        public delegate void SelectionEventHandler(object sender, SelectionEventArgs e);
+
+        private List<SelectionEventHandler> selectionChanged = new List<SelectionEventHandler>();
+        public event SelectionEventHandler SelectionChanged
         {
             add { selectionChanged.Add(value); }
             remove { selectionChanged.Remove(value); }
         }
         public void RaiseSelectionChanged()
         {
-            foreach (EventHandler i in selectionChanged)
-                i(this, new EventArgs());
+            SelectionEventArgs e = new SelectionEventArgs(Selected);
+            foreach (SelectionEventHandler i in selectionChanged)
+                i(this, e);
         }
 
         private List<EventHandler> editSelection = new List<EventHandler>();

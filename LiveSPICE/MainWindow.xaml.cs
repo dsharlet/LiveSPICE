@@ -169,10 +169,10 @@ namespace LiveSPICE
                 e.Cancel = true;
         }
 
-        private void schematic_SelectionChanged(object Sender, EventArgs Args)
+        private void schematic_SelectionChanged(object Sender, SelectionEventArgs Args)
         {
-            Properties.SelectedObjects = ((SchematicEditor)Sender).Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
-            Properties.Tag = (SchematicEditor)Sender;
+            Properties.SelectedObjects = Args.Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
+            Properties.Tag = ((SchematicEditor)Sender).Edits;
         }
 
         private void schematic_EditSelection(object sender, EventArgs e)
@@ -182,14 +182,10 @@ namespace LiveSPICE
 
         void properties_PropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
         {
-            SchematicEditor editor = (SchematicEditor)Properties.Tag;
-
-            PropertyInfo property = Properties.SelectedObjects.First().GetType().GetProperty(e.ChangedItem.PropertyDescriptor.Name);
-
-            List<Edit> edits = new List<Edit>();
-            foreach (object i in Properties.SelectedObjects)
-                edits.Add(new PropertyEdit(i, property, property.GetValue(i), e.OldValues[i]));
-            editor.Edits.Did(EditList.New(edits));
+            IEnumerable<object> selected = Properties.SelectedObjects;
+            PropertyInfo property = selected.First().GetType().GetProperty(e.ChangedItem.PropertyDescriptor.Name);
+            EditStack edits = (EditStack)Properties.Tag;
+            edits.Did(EditList.New(selected.Select(i => new PropertyEdit(i, property, property.GetValue(i), e.OldValues[i]))));
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
