@@ -48,8 +48,8 @@ namespace LiveSPICE
             MouseLeave += OnMouseLeave;
             MouseEnter += OnMouseEnter;
 
-            PreviewKeyDown += OnKeyDown;
-            PreviewKeyUp += OnKeyUp;
+            KeyDown += OnKeyDown;
+            KeyUp += OnKeyUp;
             
             schematic = Schematic;
 
@@ -235,13 +235,26 @@ namespace LiveSPICE
         public void Highlight(params Circuit.Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
 
         // Keyboard events.
-        protected virtual void OnKeyDown(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyDown(e); }
-        protected virtual void OnKeyUp(object sender, KeyEventArgs e) { if (Tool != null) e.Handled = Tool.KeyUp(e); }
+        protected virtual void OnKeyDown(object sender, KeyEventArgs e) 
+        {
+            if ((e.KeyboardDevice.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) != 0)
+                return;
+            if (Tool != null) 
+                e.Handled = Tool.KeyDown(e);
+        }
+        protected virtual void OnKeyUp(object sender, KeyEventArgs e) 
+        {
+            if ((e.KeyboardDevice.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) != 0)
+                return;
+            if (Tool != null)
+                e.Handled = Tool.KeyUp(e); 
+        }
 
         // Mouse events.
         protected virtual void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
             Focus();
+            Keyboard.Focus(this);
             Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
             if (e.ChangedButton == MouseButton.Left)
             {

@@ -130,10 +130,10 @@ namespace LiveSPICE
         {
             switch (Event.Key)
             {
-                case System.Windows.Input.Key.Left: Rotate(1); MouseMove(b); return true;
-                case System.Windows.Input.Key.Right: Rotate(-1); MouseMove(b); return true;
-                case System.Windows.Input.Key.Down: Flip(); MouseMove(b); return true;
-                case System.Windows.Input.Key.Up: Flip(); MouseMove(b); return true;
+                case Key.Left: Rotate(1); MouseMove(b); return true;
+                case Key.Right: Rotate(-1); MouseMove(b); return true;
+                case Key.Down: Flip(); MouseMove(b); return true;
+                case Key.Up: Flip(); MouseMove(b); return true;
                 default: Target.RaiseEditSelection(Event); return false;
             }
         }

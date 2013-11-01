@@ -77,18 +77,14 @@ namespace LiveSPICE
         public override bool KeyDown(KeyEventArgs Event)
         {
             Circuit.Symbol symbol = overlay.Symbol;
-
-            Circuit.Coord x = symbol.Position;
             switch (Event.Key)
             {
-                case System.Windows.Input.Key.Left: symbol.Rotation += 1; break;
-                case System.Windows.Input.Key.Right: symbol.Rotation -= 1; break;
-                case System.Windows.Input.Key.Down: symbol.Flip = !symbol.Flip; break;
-                case System.Windows.Input.Key.Up: symbol.Flip = !symbol.Flip; break;
+                case Key.Left: symbol.Rotation += 1; break;
+                case Key.Right: symbol.Rotation -= 1; break;
+                case Key.Down: symbol.Flip = !symbol.Flip; break;
+                case Key.Up: symbol.Flip = !symbol.Flip; break;
                 default: return base.KeyDown(Event);
             }
-
-            symbol.Position = x;
             return true;
         }
     }
