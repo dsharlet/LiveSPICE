@@ -18,6 +18,8 @@ namespace Circuit
         public long At { get { return at; } }
 
         public SimulationDiverged(string Message, long At) : base(Message) { at = At; }
+
+        public SimulationDiverged(int At) : base("Simulation diverged.") { at = At; }
     }
 
     /// <summary>

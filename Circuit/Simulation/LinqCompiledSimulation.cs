@@ -69,7 +69,14 @@ namespace Circuit
                 foreach (KeyValuePair<Expression, double> i in Arguments)
                     parameters.Add(i.Value);
 
-            processor.DynamicInvoke(parameters.ToArray());
+            try
+            {
+                processor.DynamicInvoke(parameters.ToArray());
+            }
+            catch (TargetInvocationException Ex)
+            {
+                throw Ex.InnerException;
+            }
         }
         
         // Compile and cache delegates for processing various IO configurations for this simulation.
@@ -135,7 +142,6 @@ namespace Circuit
                 globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(0.0);
 
             // Define lambda body.
-            LinqExprs.LabelTarget ret = LinqExpr.Label("return");
 
             // int Zero = 0
             LinqExpr Zero = LinqExpr.Constant(0);
@@ -228,12 +234,10 @@ namespace Circuit
                             // Start with the initial guesses from the solution.
                             foreach (Arrow i in S.Guesses)
                                 body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
-
-                            // int it
-                            ParamExpr it = Redeclare<int>(locals, "it");
-                            // it = Oversample
+                            
+                            // int it = iterations
+                            ParamExpr it = Redeclare(locals, body, "it", LinqExpr.Constant(Iterations));
                             // do { ... --it } while(it > 0)
-                            body.Add(LinqExpr.Assign(it, LinqExpr.Constant(Iterations)));
                             DoWhile(body, (Break) =>
                             {
                                 // Initialize the matrix.
@@ -338,7 +342,7 @@ namespace Circuit
                                     LinqExpr v = map[i];
                                     LinqExpr dv = map[NewtonIteration.Delta(i)];
 
-                                    // done &= (|dv|*10^4 < |v|)
+                                    // done &= (|dv| < |v|*epsilon)
                                     body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(Abs(dv), LinqExpr.Constant(1e4)), Abs(v))));
                                     // v += dv
                                     body.Add(LinqExpr.AddAssign(v, dv));
@@ -349,6 +353,14 @@ namespace Circuit
                                 // --it;
                                 body.Add(LinqExpr.PreDecrementAssign(it));
                             }, LinqExpr.GreaterThan(it, Zero));
+                            
+                            //// bool failed = false
+                            //LinqExpr failed = Declare(locals, body, "failed", LinqExpr.Constant(false));
+                            //for (int i = 0; i < eqs.Length; ++i)
+                            //    // failed |= |JxFi| > epsilon
+                            //    body.Add(LinqExpr.OrAssign(failed, LinqExpr.GreaterThan(Abs(eqs[i].ToExpression().Compile(map)), LinqExpr.Constant(1e-3))));
+
+                            //body.Add(LinqExpr.IfThen(failed, ThrowSimulationDiverged(n)));
                         }
                     }
 
@@ -379,7 +391,7 @@ namespace Circuit
                 // Every 256 samples, check for divergence.
                 body.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), Zero),
                     LinqExpr.Block(Vo.Select(i => LinqExpr.IfThenElse(IsNotReal(i.Value), 
-                        LinqExpr.Goto(ret), 
+                        ThrowSimulationDiverged(n), 
                         LinqExpr.Assign(i.Value, RoundDenormToZero(i.Value)))))));
             });
 
@@ -387,7 +399,6 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 body.Add(LinqExpr.Assign(i.Value, map[i.Key]));
 
-            body.Add(LinqExpr.Label(ret));
             // Put it all together.
             return LinqExpr.Lambda(LinqExpr.Block(locals, body), parameters);
         }
@@ -404,6 +415,12 @@ namespace Circuit
                 Log.WriteLine(MessageType.Warning, "Error compiling output expression '{0}': {1}", x.ToString(), ex.Message);
                 return LinqExpr.Constant(0.0);
             }
+        }
+
+        // Returns a throw SimulationDiverged expression at At.
+        private LinqExpr ThrowSimulationDiverged(LinqExpr At)
+        {
+            return LinqExpr.Throw(LinqExpr.New(typeof(SimulationDiverged).GetConstructor(new Type[] { At.Type }), At));
         }
 
         // Generate a for loop given the header and body expressions.
