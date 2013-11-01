@@ -65,9 +65,8 @@ namespace Circuit
                 parameters.Add(i.Value);
             foreach (KeyValuePair<Expression, double[]> i in Output)
                 parameters.Add(i.Value);
-            if (Arguments != null)
-                foreach (KeyValuePair<Expression, double> i in Arguments)
-                    parameters.Add(i.Value);
+            foreach (KeyValuePair<Expression, double> i in Arguments)
+                parameters.Add(i.Value);
 
             try
             {
@@ -95,17 +94,16 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            Stopwatch time = new Stopwatch();
-            time.Start();
+            Timer time = new Timer();
 
-            Log.WriteLine(MessageType.Info, "[{0} ms] Defining sample processing function...", time.ElapsedMilliseconds);
+            Log.WriteLine(MessageType.Info, "[{0}] Defining sample processing function...", time);
             Log.WriteLine(MessageType.Info, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Info, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Info, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
             LinqExprs.LambdaExpression lambda = DefineProcessFunction(T, Oversample, Iterations, Input, Output, Parameters);
-            Log.WriteLine(MessageType.Info, "[{0} ms] Compiling sample processing function...", time.ElapsedMilliseconds);
+            Log.WriteLine(MessageType.Info, "[{0}] Compiling sample processing function...", time);
             d = lambda.Compile();
-            Log.WriteLine(MessageType.Info, "[{0} ms] Done.", time.ElapsedMilliseconds);
+            Log.WriteLine(MessageType.Info, "[{0}] Done.", time);
 
             return compiled[hash] = d;
         }

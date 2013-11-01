@@ -112,6 +112,7 @@
     <Compile Include="Utils\Netlist.cs" />
     <Compile Include="Utils\NodeCollection.cs" />
     <Compile Include="Utils\Ratio.cs" />
+    <Compile Include="Utils\Timer.cs" />
     <Compile Include="Utils\Units.cs" />
     <Compile Include="Utils\QuantityConverter.cs" />
     <Compile Include="Utils\Coord.cs" />

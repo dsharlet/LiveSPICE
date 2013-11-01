@@ -72,14 +72,13 @@ namespace Circuit
         /// <returns>TransientSolution describing the solution of the circuit.</returns>
         public static TransientSolution SolveCircuit(Circuit Circuit, Quantity TimeStep, ILog Log)
         {
-            Stopwatch time = new Stopwatch();
-            time.Start();
+            Timer time = new Timer();
 
             Expression h = TimeStep;
 
             Log.WriteLine(MessageType.Info, "Building TransientSolution for circuit '{0}', h={1}", Circuit.Name, TimeStep.ToString());
 
-            Log.WriteLine(MessageType.Info, "[{0} ms] Performing MNA on circuit...", time.ElapsedMilliseconds);
+            Log.WriteLine(MessageType.Info, "[{0}] Performing MNA on circuit...", time);
 
             // Analyze the circuit to get the MNA system and unknowns.
             ModifiedNodalAnalysis Mna = Circuit.Analyze();
@@ -93,7 +92,7 @@ namespace Circuit
             Log.WriteLine(MessageType.Info, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
 
             // Solve the MNA system.
-            Log.WriteLine(MessageType.Info, "[{0} ms] Solving system...", time.ElapsedMilliseconds);
+            Log.WriteLine(MessageType.Info, "[{0}] Solving system...", time);
 
             // Separate y into differential and algebraic unknowns.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
@@ -149,6 +148,12 @@ namespace Circuit
                 dy = dy.Except(ly).ToList();
                 foreach (LinearCombination i in J)
                     i.SwapColumns(ly.Concat(dy));
+                // If there is only one variable to be solved for, just do it now.
+                if (dy.Count == 1)
+                {
+                    ly.Add(dy[0]);
+                    dy.Clear();
+                }
 
                 // Compute the row-echelon form of the linear part of the Jacobian.
                 J.RowReduce(ly);
@@ -163,8 +168,8 @@ namespace Circuit
                 LogExpressions(Log, "Linear Newton's method updates:", solved);
             }
 
-            Log.WriteLine(MessageType.Info, "[{0} ms] System solved, {1} solution sets for {2} unknowns", 
-                time.ElapsedMilliseconds, 
+            Log.WriteLine(MessageType.Info, "[{0}] System solved, {1} solution sets for {2} unknowns", 
+                time, 
                 solutions.Count, 
                 solutions.Sum(i => i.Unknowns.Count()));
 

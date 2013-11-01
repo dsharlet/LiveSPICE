@@ -23,7 +23,7 @@ namespace CircuitTests
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
-        static Expression V1 = Harmonics(t, 1.0, 82, 4);
+        static Expression V1 = Harmonics(t, 0.5, 82, 4);
         
         static void Main(string[] args)
         {
@@ -32,16 +32,17 @@ namespace CircuitTests
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
             
-            foreach (string File in System.IO.Directory.EnumerateFiles(@"..\..\..\..\Circuits\"))
+            foreach (string File in System.IO.Directory.EnumerateFiles(@".", "*.xml"))
             {
+                string Name = System.IO.Path.GetFileNameWithoutExtension(File);
                 try
                 {
                     double p = Run(File, Vin);
-                    performance.Add(File + ":\t" + p.ToString());
+                    performance.Add(Name + ":\t" + p.ToString());
                 }
                 catch (Exception ex) 
                 {
-                    errors.Add(File + ":\t" + ex.Message);
+                    errors.Add(Name + ":\t" + ex.Message);
                     System.Console.WriteLine(ex.Message);
                 }
             }
@@ -86,16 +87,16 @@ namespace CircuitTests
             S.Run(1, input, output, Arguments, Iterations);
             S.Reset();
 
-            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
+            double time = 0.0;
             try
             {
-                timer.Start();
+                long a = Timer.Counter;
                 S.Run(vs.Length, input, output, Arguments, Iterations);
-                timer.Stop();
+                time = (double)(Timer.Counter - a) / Timer.Frequency;
             }
             catch (SimulationDiverged Ex)
             {
-                if (Ex.At == 0) throw;
+                if (Ex.At < 10) throw;
                 N = (int)Ex.At;
             }
 
@@ -118,7 +119,7 @@ namespace CircuitTests
                 S.TimeStep * t1, 0, 
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
 
-            double rate = (N * S.TimeStep) / ((double)timer.ElapsedMilliseconds / 1000.0);
+            double rate = (N * S.TimeStep) / time;
             System.Console.WriteLine("Ran at {0}x real time", rate);
             return rate;
         }
