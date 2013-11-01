@@ -37,15 +37,14 @@ namespace LiveSPICE
         public virtual void MouseEnter(Circuit.Coord At) { }
         public virtual void MouseLeave(Circuit.Coord At) { }
 
-        public virtual bool KeyDown(KeyEventArgs Event) 
+        public virtual bool KeyDown(KeyEventArgs Event)
         {
-            switch (Event.Key)
+            if (Event.Key == Key.Escape)
             {
-                case System.Windows.Input.Key.Escape:
-                    Target.Tool = new SchematicTool(Target); 
-                    return true;
-                default: return false;
+                Target.Tool = new SchematicTool(Target);
+                return true;
             }
+            return false;
         }
         public virtual bool KeyUp(KeyEventArgs Event) { return false; }
     }
