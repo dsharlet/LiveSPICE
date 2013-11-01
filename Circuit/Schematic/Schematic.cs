@@ -80,7 +80,7 @@ namespace Circuit
             {
                 foreach (Terminal j in i.Terminals.Where(j => j.ConnectedTo == null))
                 {
-                    log.WriteLine(MessageType.Info, "Unconnected terminal '{0}'", j.ToString());
+                    log.WriteLine(MessageType.Warning, "Unconnected terminal '{0}'", j.ToString());
                     warnings++;
                 }
             }
