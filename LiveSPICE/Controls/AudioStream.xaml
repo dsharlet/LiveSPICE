@@ -33,7 +33,7 @@
             <Border DockPanel.Dock="Left" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
                 <TextBlock x:Name="inputLevel" Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
             </Border>
-            <Slider Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=InputGain}" />
+            <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=InputGain}" />
         </DockPanel>
         
         <TextBlock Grid.Row="4" Grid.Column="0" Text="Output: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
@@ -44,13 +44,13 @@
             <Border DockPanel.Dock="Right" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
                 <TextBlock x:Name="outputLevel" Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
             </Border>
-            <Slider Minimum="-40" Maximum="20" Value="{Binding ElementName=_this, Path=OutputGain}" />
+            <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=OutputGain}" />
         </DockPanel>
 
         <TextBlock Grid.Row="6" Grid.Column="0" Text="Latency:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
         <DockPanel Grid.Row="6" Grid.Column="1" LastChildFill="True">
             <TextBlock DockPanel.Dock="Left" Width="50" Margin="4" Text="{Binding ElementName=_this, Path=Latency, StringFormat={}{0} ms}" TextAlignment="Center" />
-            <Slider Minimum="1" Maximum="1000" Value="{Binding ElementName=_this, Path=Latency}" />
+            <Slider Minimum="1" Maximum="1000" Margin="4" Value="{Binding ElementName=_this, Path=Latency}" />
         </DockPanel>
     </Grid>
 </UserControl>
