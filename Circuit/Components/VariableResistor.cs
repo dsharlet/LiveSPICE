@@ -23,7 +23,7 @@ namespace Circuit
         [Description("Position of the wiper on this variable resistor, between 0 and 1.")]
         public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
-        public VariableResistor() { }
+        public VariableResistor() { Name = "R1"; }
 
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
