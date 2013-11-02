@@ -55,8 +55,8 @@ extern "C" NATIVE_API void LEf32ToLEf64(const float * In, double * Out, int Coun
 
 extern "C" NATIVE_API void LEf32ToLEi16(const float * In, short * Out, int Count) { FloatToFixed<16>(In, Out, Count); }
 extern "C" NATIVE_API void LEf64ToLEi16(const double * In, short * Out, int Count) { FloatToFixed<16>(In, Out, Count); }
-extern "C" NATIVE_API void LEf32ToLEi32(const float * In, short * Out, int Count) { FloatToFixed<32>(In, Out, Count); }
-extern "C" NATIVE_API void LEf64ToLEi32(const double * In, short * Out, int Count) { FloatToFixed<32>(In, Out, Count); }
+extern "C" NATIVE_API void LEf32ToLEi32(const float * In, int * Out, int Count) { FloatToFixed<32>(In, Out, Count); }
+extern "C" NATIVE_API void LEf64ToLEi32(const double * In, int * Out, int Count) { FloatToFixed<32>(In, Out, Count); }
 extern "C" NATIVE_API void LEf64ToLEf32(const double * In, float * Out, int Count) { FloatToFloat(In, Out, Count); }
 
                 //case AsioWrapper.SampleType.Int16MSB:
