@@ -159,16 +159,11 @@ namespace Circuit
                 body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Key), map[i.Key.Evaluate(t_t0)]));
 
             // Create arrays for the newton's method systems.
-            Dictionary<NewtonIteration, LinqExpr> JxFs = new Dictionary<NewtonIteration, LinqExpr>();
-            foreach (NewtonIteration i in Solution.Solutions.OfType<NewtonIteration>())
-            {
-                int M = i.Equations.Count();
-                int N = i.Updates.Count() + 1;
-                JxFs[i] = Declare(locals, body, "JxF" + JxFs.Count.ToString(),
-                    LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
-                for (int j = 0; j < M; ++j)
-                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxFs[i], LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(N))));
-            }
+            int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
+            int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Updates.Count(), 0) + 1;
+            LinqExpr JxF = Declare(locals, body, "JxF", LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
+            for (int j = 0; j < M; ++j)
+                body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(N))));
 
             // for (int n = 0; n < SampleCount; ++n)
             ParamExpr n = Declare<int>(locals, "n");
@@ -224,7 +219,6 @@ namespace Circuit
                         else if (ss is NewtonIteration)
                         {
                             NewtonIteration S = (NewtonIteration)ss;
-                            LinqExpr JxF = JxFs[S];
                             
                             LinearCombination[] eqs = S.Equations.ToArray();
                             Expression[] deltas = S.Updates.ToArray();
