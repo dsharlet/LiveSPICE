@@ -45,9 +45,9 @@ namespace LiveSPICE
                 dc.DrawLine(HighlightedWirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
             else
                 dc.DrawLine(WirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
-
-            dc.DrawRectangle(WireBrush, MapToPen(wire.Anode.ConnectedTo != null ? Circuit.EdgeType.Wire : Circuit.EdgeType.Red), new Rect(-1, -1, 2, 2));
-            dc.DrawRectangle(WireBrush, MapToPen(wire.Cathode.ConnectedTo != null ? Circuit.EdgeType.Wire : Circuit.EdgeType.Red), new Rect(ActualWidth - 1, ActualHeight - 1, 2, 2));
+            
+            ElementControl.DrawTerminal(dc, ToPoint(wire.A - wire.LowerBound), wire.Anode.ConnectedTo != null);
+            ElementControl.DrawTerminal(dc, ToPoint(wire.B - wire.LowerBound), wire.Cathode.ConnectedTo != null);
 
             dc.Pop();
         }

@@ -119,11 +119,22 @@ namespace Circuit
             return elements.SelectMany(i => i.Terminals.Where(j => i.MapTerminal(j) == x));
         }
 
-        public Node NodeAt(Coord x)
+        /// <summary>
+        /// Find the node at point x.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="Self"></param>
+        /// <returns></returns>
+        public Node NodeAt(Coord x, Wire Self)
         {
-            Wire w = Wires.FirstOrDefault(i => i.IsConnectedTo(x));
+            IEnumerable<Wire> wires = Wires;
+            if (Self != null)
+                wires = wires.Except(Self);
+
+            Wire w = wires.FirstOrDefault(i => i.IsConnectedTo(x));
             return w != null ? w.Node : null;
         }
+        public Node NodeAt(Coord x) { return NodeAt(x, null); }
 
         protected void OnElementAdded(object sender, ElementEventArgs e)
         {
@@ -169,8 +180,7 @@ namespace Circuit
 
             if (of is Wire)
                 RebuildNodes((Wire)of, true);
-            else if (of is Symbol)
-                UpdateTerminals((Symbol)of);
+            UpdateTerminals(of);
         }
 
         // Wires was a single node but it is now two. Break it into two sets of nodes
@@ -233,7 +243,10 @@ namespace Circuit
             }
 
             foreach (Wire i in Wires)
+            {
                 i.Node = n;
+                UpdateTerminals(i);
+            }
 
             // Everything connected to a node in nodes should now be connected to n.
             foreach (Node i in nodes.Where(j => j != null && j != n))
@@ -267,30 +280,32 @@ namespace Circuit
             }
 
             if (MovedWire)
-                foreach (Symbol i in Symbols)
+                foreach (Element i in Elements)
                     UpdateTerminals(i);
         }
 
         private void RebuildNodes(bool MovedWire) { RebuildNodes(null, MovedWire); }
 
-        private void UpdateTerminals(Symbol Of)
+        private void UpdateTerminals(Element Of)
         {
             foreach (Terminal i in Of.Terminals)
-            {
-                Node n = NodeAt(Of.MapTerminal(i));
-                if (n != i.ConnectedTo)
-                {
-                    i.ConnectTo(n);
-                    if (n != null)
-                        Log.WriteLine(MessageType.Verbose, "Terminal '" + i.ToString() + "' connected to node '" + n.ToString() + "'");
-                    else
-                        Log.WriteLine(MessageType.Verbose, "Terminal '" + i.ToString() + "' disconnected");
-                }
-            }
+                Connect(i, NodeAt(Of.MapTerminal(i), Of as Wire));
 
             // If Of is a named wire, the nodes might have changed.
-            if (Of.Component is NamedWire)
+            if (Of is Symbol && ((Symbol)Of).Component is NamedWire)
                 RebuildNodes(false);
+        }
+
+        private void Connect(Terminal T, Node V)
+        {
+            if (V != T.ConnectedTo)
+            {
+                T.ConnectTo(V);
+                if (V != null)
+                    Log.WriteLine(MessageType.Verbose, "Terminal '" + T.ToString() + "' connected to node '" + V.ToString() + "'");
+                else
+                    Log.WriteLine(MessageType.Verbose, "Terminal '" + T.ToString() + "' disconnected");
+            }
         }
 
         private void LogComponents()

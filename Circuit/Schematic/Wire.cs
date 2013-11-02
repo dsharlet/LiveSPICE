@@ -17,10 +17,11 @@ namespace Circuit
         public Terminal Anode { get { return conductor.Anode; } }
         public Terminal Cathode { get { return conductor.Cathode; } }
 
+        private Node node = null;
         public Node Node
         {
-            get { return Anode.ConnectedTo; }
-            set { Anode.ConnectedTo = Cathode.ConnectedTo = value; }
+            get { return node; }
+            set { node = value; }
         }
 
         protected Coord a, b;
