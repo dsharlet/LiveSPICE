@@ -100,7 +100,7 @@ namespace LiveSPICE
 
             if (Reverting)
             {
-                switch (MessageBox.Show(Application.Current.MainWindow, "Revert changes to '" + Title + "'?", Application.Current.MainWindow.Title, MessageBoxButton.OKCancel))
+                switch (MessageBox.Show(Application.Current.MainWindow, "Revert changes to '" + Title + "'?", Application.Current.MainWindow.Title, MessageBoxButton.OKCancel, MessageBoxImage.Warning))
                 {
                     case MessageBoxResult.OK: return true;
                     case MessageBoxResult.Cancel: return false;
