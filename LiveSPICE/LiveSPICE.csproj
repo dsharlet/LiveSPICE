@@ -94,6 +94,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
+    <Compile Include="Windows\AudioConfig.xaml.cs">
+      <DependentUpon>AudioConfig.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\PropertyGrid.xaml.cs">
       <DependentUpon>PropertyGrid.xaml</DependentUpon>
     </Compile>
@@ -133,9 +136,6 @@
     <Compile Include="Windows\ClosingDialog.xaml.cs">
       <DependentUpon>ClosingDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\AudioStream.xaml.cs">
-      <DependentUpon>AudioStream.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\Editor\WireTool.cs" />
     <Compile Include="Controls\Editor\MoveTool.cs" />
     <Compile Include="Controls\Editor\SchematicEdits.cs" />
@@ -153,6 +153,10 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Scope\SignalsDisplay.cs" />
+    <Page Include="Windows\AudioConfig.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\Parameters.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -178,10 +182,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ClosingDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\AudioStream.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

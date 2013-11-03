@@ -132,13 +132,7 @@ namespace Audio
         /// <summary>
         /// Unlock the buffer.
         /// </summary>
-        public void Unlock()
-        {
-            if (!locked)
-                throw new InvalidOperationException("SampleBuffer is not locked.");
-
-            locked = false;
-        }
+        public void Unlock() { locked = false; }
 
         /// <summary>
         /// Update the raw buffer.
@@ -146,8 +140,10 @@ namespace Audio
         public void SyncRaw()
         {
             if (samplesValid)
+            {
                 Util.LEf64ToSamples(samples, raw, type);
-            rawValid = true;
+                rawValid = true;
+            }
         }
 
         /// <summary>
@@ -156,8 +152,10 @@ namespace Audio
         public void SyncSamples()
         {
             if (rawValid)
+            {
                 Util.SamplesToLEf64(raw, type, samples);
-            samplesValid = true;
+                samplesValid = true;
+            }
         }
 
         /// <summary>

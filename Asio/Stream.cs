@@ -35,6 +35,8 @@ namespace Asio
         private Buffer[] input;
         private Buffer[] output;
 
+        private int buffer;
+
         private void OnBufferSwitch(int Index, bool Direct)
         {
             Audio.SampleBuffer[] a = new Audio.SampleBuffer[input.Length];
@@ -45,7 +47,7 @@ namespace Asio
             for (int i = 0; i < output.Length; ++i)
                 b[i] = Audio.SampleBuffer.NewOutputBuffer(output[i].Buffers.get_Buffer(Index), AudioSampleType(output[i].Type), output[i].Samples);
 
-            callback(a, b, sampleRate);
+            callback(buffer, a, b, sampleRate);
 
             for (int i = 0; i < output.Length; ++i)
                 b[i].SyncRaw();
@@ -61,14 +63,14 @@ namespace Asio
             instance = Instance;
             callback = Callback;
 
-            int count = instance.BufferSize.Preferred;
-            input = Input.Select(i => new Buffer(i, count)).ToArray();
-            output = Output.Select(i => new Buffer(i, count)).ToArray();
+            buffer = instance.BufferSize.Preferred;
+            input = Input.Select(i => new Buffer(i, buffer)).ToArray();
+            output = Output.Select(i => new Buffer(i, buffer)).ToArray();
 
             instance.CreateBuffers(
                 input.Select(i => i.Buffers).ToArray(),
-                output.Select(i => i.Buffers).ToArray(), 
-                count, 
+                output.Select(i => i.Buffers).ToArray(),
+                buffer, 
                 OnBufferSwitch, 
                 OnSampleRateChange);
             sampleRate = instance.SampleRate;

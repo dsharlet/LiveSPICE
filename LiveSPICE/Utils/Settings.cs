@@ -39,67 +39,30 @@ namespace LiveSPICE
             Mru = mru.ToArray();
         }
 
-        [UserScopedSetting]
-        public string MainWindowLayout { get { return (string)this["MainWindowLayout"]; } set { this["MainWindowLayout"] = value; } }
-        [UserScopedSetting]
-        public string TransientSimulationLayout { get { return (string)this["TransientSimulationLayout"]; } set { this["TransientSimulationLayout"] = value; } }
+        private T This<T>(string Name, T Default)
+        {
+            try
+            {
+                T obj = (T)this[Name];
+                if (obj != null)
+                    return obj;
+            }
+            catch (Exception) { }
+            return Default;
+        }
 
         [UserScopedSetting]
-        public string AudioDriver { get { return (string)this["AudioDriver"]; } set { this["AudioDriver"] = value; } }
+        public string MainWindowLayout { get { return This("MainWindowLayout", ""); } set { this["MainWindowLayout"] = value; } }
         [UserScopedSetting]
-        public string AudioDevice { get { return (string)this["AudioDevice"]; } set { this["AudioDevice"] = value; } }
+        public string LiveSimulationLayout { get { return This("LiveSimulationLayout", ""); } set { this["LiveSimulationLayout"] = value; } }
+
         [UserScopedSetting]
-        public string AudioInput { get { return (string)this["AudioInput"]; } set { this["AudioInput"] = value; } }
+        public string AudioDriver { get { return This("AudioDriver", ""); } set { this["AudioDriver"] = value; } }
         [UserScopedSetting]
-        public string[] AudioOutput 
-        { 
-            get 
-            {
-                try
-                {
-                    return (string[])this["AudioOutput"];
-                }
-                catch (Exception)
-                {
-                    return new string[0];
-                }
-            }
-            set 
-            { 
-                this["AudioOutput"] = value; 
-            } 
-        }
+        public string AudioDevice { get { return This("AudioDevice", ""); } set { this["AudioDevice"] = value; } }
         [UserScopedSetting]
-        public double InputGain 
-        { 
-            get 
-            { 
-                try
-                {
-                    return (double)this["InputGain"]; 
-                }
-                catch (Exception)
-                {
-                    return 1.0;
-                }
-            } 
-            set { this["InputGain"] = value; } 
-        }
+        public string[] AudioInputs { get { return This("AudioInputs", new string[0]); } set { this["AudioInputs"] = value; } }
         [UserScopedSetting]
-        public double OutputGain 
-        { 
-            get 
-            {
-                try
-                {
-                    return (double)this["OutputGain"];
-                }
-                catch (Exception)
-                {
-                    return 1.0;
-                }
-            } 
-            set { this["OutputGain"] = value; } 
-        }
+        public string[] AudioOutputs { get { return This("AudioOutputs", new string[0]); } set { this["AudioOutputs"] = value; } }
     }
 }

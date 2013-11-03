@@ -222,7 +222,12 @@ namespace LiveSPICE
         {
             if (ActiveEditor != null)
             {
-                LiveSimulation simulation = new LiveSimulation(ActiveEditor.Schematic) { Owner = this };
+                AudioConfig config = new AudioConfig() { Owner = this };
+                //if (config.Device == null)
+                    if (!(config.ShowDialog() ?? false))
+                        return;
+
+                LiveSimulation simulation = new LiveSimulation(ActiveEditor.Schematic, config.Device, config.Inputs, config.Outputs) { Owner = this };
                 simulation.Show();
             }
         }

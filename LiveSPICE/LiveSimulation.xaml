@@ -5,7 +5,7 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="Live Simulation" Width="1000" Height="700" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
+        Title="Live Simulation" Width="1000" Height="800" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
     <Window.Resources>
         <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
@@ -47,9 +47,6 @@
 
                 <TextBlock Text="Iterations: " HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" />
-
-                <TextBlock Text="Input: " HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <ComboBox x:Name="inputs" SelectedValue="{Binding ElementName=_this, Path=Input}" Width="50" SelectedValuePath="Tag" />
                 
                 <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
             </ToolBar>
@@ -73,7 +70,33 @@
                         <xcad:LayoutAnchorablePane>
                             <!-- Audio -->
                             <xcad:LayoutAnchorable x:Name="audio" Title="Audio" AutoHideWidth="240">
-                                <ls:AudioStream />
+                                <StackPanel Orientation="Vertical" Margin="4">
+                                    <DockPanel LastChildFill="True">
+                                        <TextBlock DockPanel.Dock="Left" Text="Inputs:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <Border DockPanel.Dock="Right" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
+                                            <TextBlock x:Name="inputLevel" Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
+                                        </Border>
+                                        <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=InputGain}" />
+                                    </DockPanel>
+                                    <Border BorderBrush="DarkGray" Margin="4" BorderThickness="1">
+                                        <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                            <StackPanel x:Name="inputs" Height="100" Background="White" />
+                                        </ScrollViewer>
+                                    </Border>
+                                    <Separator />
+                                    <DockPanel LastChildFill="True">
+                                        <TextBlock DockPanel.Dock="Left" Text="Outputs:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <Border DockPanel.Dock="Right" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
+                                            <TextBlock x:Name="outputLevel" Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
+                                        </Border>
+                                        <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=OutputGain}" />
+                                    </DockPanel>
+                                    <Border BorderBrush="DarkGray" Margin="4" BorderThickness="1">
+                                        <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                            <StackPanel x:Name="outputs" Height="100" Background="White" />
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
                             </xcad:LayoutAnchorable>
                             <!-- Parameters -->
                             <xcad:LayoutAnchorable x:Name="parameters" Title="Parameters" AutoHideWidth="240">

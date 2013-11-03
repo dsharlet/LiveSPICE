@@ -21,6 +21,8 @@ namespace Audio
 
         public override double SampleRate { get { return format.nSamplesPerSec; } }
 
+        private int buffer;
+
         public WaveStream(SampleHandler SampleCallback, WaveChannel[] Input, WaveChannel[] Output, double Latency) : base(Input, Output)
         {
             callback = SampleCallback;
@@ -30,7 +32,7 @@ namespace Audio
             int Channels = 1;
             format = new WAVEFORMATEX(Rate, Bits, Channels);
 
-            int buffer = (int)Math.Ceiling(Latency / 2 * Rate * Channels);
+            buffer = (int)Math.Ceiling(Latency / 2 * Rate * Channels);
             waveIn = Input.Select(i => new WaveIn(i.Device, format, buffer)).ToArray();
             waveOut = Output.Select(i => new WaveOut(i.Device, format, buffer)).ToArray();
 
@@ -63,24 +65,24 @@ namespace Audio
                 SampleBuffer[] input = new SampleBuffer[waveIn.Length];
                 for (int i = 0; i < waveIn.Length; ++i)
                 {
-                    WaveInBuffer buffer = waveIn[i].GetBuffer();
-                    if (buffer == null)
+                    WaveInBuffer b = waveIn[i].GetBuffer();
+                    if (b == null)
                         return;
-                    input[i] = buffer.NewSampleBuffer();
+                    input[i] = b.NewSampleBuffer();
                 }
 
                 // Get an available buffer from the outputs.
                 SampleBuffer[] output = new SampleBuffer[waveOut.Length];
                 for (int i = 0; i < waveOut.Length; ++i)
                 {
-                    WaveOutBuffer buffer = waveOut[i].GetBuffer();
-                    if (buffer == null)
+                    WaveOutBuffer b = waveOut[i].GetBuffer();
+                    if (b == null)
                         return;
-                    output[i] = buffer.NewSampleBuffer();
+                    output[i] = b.NewSampleBuffer();
                 }
 
                 // Call the callback.
-                callback(input, output, format.nSamplesPerSec);
+                callback(buffer, input, output, format.nSamplesPerSec);
 
                 // Play the results.
                 for (int i = 0; i < output.Length; ++i)
