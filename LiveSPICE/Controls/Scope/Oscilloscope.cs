@@ -21,12 +21,12 @@ using SyMath;
 
 namespace LiveSPICE
 {
-    public class SignalsDisplay : Control, INotifyPropertyChanged
+    public class Oscilloscope : SignalDisplay
     {
         protected const double MinFrequency = 20.0;
         protected const double MaxPeriod = 1.0 / MinFrequency;
 
-        static SignalsDisplay() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SignalsDisplay), new FrameworkPropertyMetadata(typeof(SignalsDisplay))); }
+        static Oscilloscope() { DefaultStyleKeyProperty.OverrideMetadata(typeof(Oscilloscope), new FrameworkPropertyMetadata(typeof(Oscilloscope))); }
 
         private Circuit.Quantity a4 = new Circuit.Quantity(440, Circuit.Units.Hz);
         public Circuit.Quantity A4
@@ -58,7 +58,7 @@ namespace LiveSPICE
             get { return zoom; } 
             set 
             { 
-                zoom = Math.Min(Math.Max(value, 16.0 / (double)sampleRate), 2 * MaxPeriod); 
+                zoom = Math.Min(Math.Max(value, 16.0 / 48000.0), 2 * MaxPeriod); 
                 InvalidateVisual(); 
                 NotifyChanged("Zoom"); 
             }
@@ -79,44 +79,17 @@ namespace LiveSPICE
         public Pen GridPen = new Pen(Brushes.Gray, 0.25);
         public Pen AxisPen = new Pen(Brushes.Gray, 0.5);
         public Pen TracePen = new Pen(Brushes.White, 0.5);
-
-        protected SignalCollection signals = new SignalCollection();
-        public SignalCollection Signals { get { return signals; } }
-                
-        private Signal selected;
-        public Signal SelectedSignal 
-        {
-            get 
-            {
-                if (!signals.Contains(selected))
-                {
-                    if (signals.Any())
-                    {
-                        selected = signals.First();
-                        NotifyChanged("SelectedSignal");
-                    }
-                    else if (selected != null)
-                    {
-                        selected = null;
-                        NotifyChanged("SelectedSignal");
-                    }
-                }
-                return selected; 
-            }
-            set { selected = value; NotifyChanged("SelectedSignal"); } 
-        }
-
-        protected long clock = 0;
-        public long Clock { get { return clock; } }
-
+                             
         protected double Vmax, Vmean;
         protected Point? tracePoint;
 
-        public SignalsDisplay()
+        public Oscilloscope()
         {
             Background = Brushes.DimGray;
             Cursor = Cursors.Cross;
             FontFamily = new FontFamily("Courier New");
+
+            Signals = new SignalGroup();
 
             CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 0.5));
             CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 2.0));
@@ -132,39 +105,7 @@ namespace LiveSPICE
             signals.Clear();
             InvalidateVisual();
         }
-
-        private double sampleRate = 1;
-        public void ProcessSignals(int SampleCount, double SampleRate)
-        {
-            sampleRate = SampleRate;
-
-            int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
-
-            // Remove the signals that we didn't get data for.
-            signals.ForEach(i =>
-            {
-                lock (i)
-                {
-                    if (i.Clock < clock)
-                        i.Clear();
-                    else
-                        i.Truncate(truncate);
-                }
-            });
-
-            clock += SampleCount;
-                        
-            Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-        }
-
-        public void ClearSignals()
-        {
-            clock = 0;
-            signals.ForEach(i => i.Clear());
-
-            Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-        }
-
+        
         protected override void OnRender(DrawingContext DC)
         {
             DC.DrawRectangle(BorderBrush, null, new Rect(0, 0, ActualWidth, ActualHeight));
@@ -179,6 +120,8 @@ namespace LiveSPICE
             DrawTimeAxis(DC, bounds);
 
             Signal stats = SelectedSignal;
+
+            double sampleRate = Signals.SampleRate;
 
             double mean = 0.0;
             double peak = 0.0;
@@ -200,7 +143,7 @@ namespace LiveSPICE
                     peak = stats.Max(i => Math.Abs(i - mean), 0.0);
                     rms = Math.Sqrt(stats.Sum(i => (i - mean) * (i - mean)) / stats.Count);
 
-                    int Decimate = 1 << (int)Math.Floor(Math.Log((double)sampleRate / 24000, 2));
+                    int Decimate = 1 << (int)Math.Floor(Math.Log(sampleRate / 24000, 2));
                     int BlockSize = 8192;
                     if (stats.Count >= BlockSize)
                     {
@@ -218,7 +161,7 @@ namespace LiveSPICE
                             align -= (int)Math.Round(phase * BlockSize / f);
 
                         // Compute fundamental frequency in Hz.
-                        f0 = (double)sampleRate * f / BlockSize;
+                        f0 = sampleRate * f / BlockSize;
                     }
                 }
             }
@@ -228,12 +171,10 @@ namespace LiveSPICE
                 {
                     lock (i)
                     {
-                        mean += i.Sum() / i.Count;
                         peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
                         align = Math.Max(align, i.Count);
                     }
                 }
-                mean /= signals.Count();
             }
                                 
             // Compute the target min/max
@@ -337,7 +278,7 @@ namespace LiveSPICE
             const double rate = 1.0;
             
             // How many pixels map to one sample.
-            double margin = Bounds.Width / (double)(zoom * (double)sampleRate);
+            double margin = Bounds.Width / (double)(zoom * Signals.SampleRate);
             List<Point> points = new List<Point>();
             for (double i = -margin; i <= Bounds.Right + margin; i += rate)
             {
@@ -413,7 +354,7 @@ namespace LiveSPICE
         private double MapFromTime(Rect Bounds, double t) { return Bounds.Right + (t * Bounds.Width / zoom); }
         private double MapToTime(Rect Bounds, double x) { return (x - Bounds.Right) * zoom / Bounds.Width; }
 
-        private int MapToSample(Rect Bounds, double x, int shift) { return (int)Math.Round(((x - Bounds.Right) * zoom * (double)sampleRate) / Bounds.Width) + shift; }
+        private int MapToSample(Rect Bounds, double x, int shift) { return (int)Math.Round(((x - Bounds.Right) * zoom * Signals.SampleRate) / Bounds.Width) + shift; }
 
         private double MapToSignal(Rect Bounds, double y) { return Vmax - (y - Bounds.Top) * 2 * Vmax / Bounds.Height + Vmean; }
         private double MapFromSignal(Rect Bounds, double v) { return Bounds.Top + ((Vmax - (v - Vmean)) / (2 * Vmax) * Bounds.Height); }
@@ -445,13 +386,5 @@ namespace LiveSPICE
 
             return Prev + (Cur - Prev) * t;
         }
-                
-        // INotifyPropertyChanged interface.
-        private void NotifyChanged(string p)
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

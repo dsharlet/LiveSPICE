@@ -94,6 +94,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
+    <Compile Include="Controls\Scope\SignalDisplay.cs" />
     <Compile Include="Windows\AudioConfig.xaml.cs">
       <DependentUpon>AudioConfig.xaml</DependentUpon>
     </Compile>
@@ -102,7 +103,7 @@
     </Compile>
     <Compile Include="Utils\Frequency.cs" />
     <Compile Include="Utils\DouglasPeuckerReduction.cs" />
-    <Compile Include="Controls\Scope\SignalCollection.cs" />
+    <Compile Include="Controls\Scope\SignalGroup.cs" />
     <Compile Include="Controls\Scope\Signal.cs" />
     <Compile Include="Controls\Simulation\ProbeTool.cs" />
     <Compile Include="Controls\Simulation\SimulationSchematic.cs" />
@@ -152,7 +153,7 @@
     <Compile Include="Utils\Command.cs" />
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
-    <Compile Include="Controls\Scope\SignalsDisplay.cs" />
+    <Compile Include="Controls\Scope\Oscilloscope.cs" />
     <Page Include="Themes\Theme.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

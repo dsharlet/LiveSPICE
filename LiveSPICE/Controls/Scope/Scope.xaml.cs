@@ -28,22 +28,24 @@ namespace LiveSPICE
     /// </summary>
     public partial class Scope : UserControl, INotifyPropertyChanged
     {
-        //public IEnumerable<string> Signals { get { return scope.Signals.Select(i => i.Name).ToString(); } }
+        public SignalGroup Signals { get { return oscilloscope.Signals; } }
+
+        public Signal SelectedSignal { get { return oscilloscope.SelectedSignal; } set { oscilloscope.SelectedSignal = value; NotifyChanged("SelectedSignal"); } }
 
         public Scope() 
         { 
             InitializeComponent();
-            Display.Signals.ItemAdded += Signals_ItemAdded;
-            Display.Signals.ItemRemoved += Signals_ItemRemoved;
+            Signals.ItemAdded += signals_ItemAdded;
+            Signals.ItemRemoved += signals_ItemRemoved;
+
+            oscilloscope.Signals = Signals;
         }
 
-        public SignalsDisplay Display { get { return display; } }
-
-        void Signals_ItemAdded(object sender, SignalEventArgs e)
+        void signals_ItemAdded(object sender, SignalEventArgs e)
         {
             ComboBoxItem item = new ComboBoxItem()
             {
-                Background = Display.Background,
+                Background = Brushes.DarkGray,
                 Foreground = e.Signal.Pen.Brush,
                 Content = e.Signal.Name,
                 Tag = e.Signal
@@ -52,28 +54,14 @@ namespace LiveSPICE
             e.Signal.Tag = item;
 
             // Add item to the combo box.
-            signals.Items.Add(item);
-            Display.SelectedSignal = e.Signal;
+            selectedSignal.Items.Add(item);
         }
 
-        void Signals_ItemRemoved(object sender, SignalEventArgs e)
+        void signals_ItemRemoved(object sender, SignalEventArgs e)
         {
-            signals.Items.Remove(e.Signal.Tag);
-            signals.SelectedValue = Display.SelectedSignal;
+            selectedSignal.Items.Remove(e.Signal.Tag);
         }
         
-        public void ProcessSignals(int SampleCount, double SampleRate)
-        {
-            Display.ProcessSignals(SampleCount, SampleRate);
-        }
-
-        public long Clock { get { return Display.Clock; } }
-
-        public void ClearSignals()
-        {
-            Display.ClearSignals();
-        }
-
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {

@@ -40,7 +40,7 @@
             <Button Content="Cancel" Width="80" Margin="4" IsCancel="True" />
         </StackPanel>
         <Border BorderBrush="DarkGray" BorderThickness="1" Margin="4">
-            <ls:SignalsDisplay x:Name="scope" />
+            <ls:Oscilloscope x:Name="scope" />
         </Border>
     </DockPanel>
 </Window>

@@ -12,12 +12,12 @@
             <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
             <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
             <Separator />
-            <ComboBox Width="70" x:Name="signals" SelectedValue="{Binding ElementName=display, Path=SelectedSignal}" SelectedValuePath="Tag" />
+            <ComboBox Width="70" x:Name="selectedSignal" SelectedValue="{Binding ElementName=oscilloscope, Path=SelectedSignal}" SelectedValuePath="Tag" />
             <Separator />
-            <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=display, Path=ShowNotes}" />
+            <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=oscilloscope, Path=ShowNotes}" />
             <Label Content="A4:" />
-            <TextBox Width="60" Text="{Binding ElementName=display, Path=A4}" />
+            <TextBox Width="60" Text="{Binding ElementName=oscilloscope, Path=A4}" />
         </ToolBar>
-        <ls:SignalsDisplay x:Name="display" BorderBrush="DarkGray" BorderThickness="1" />
+        <ls:Oscilloscope x:Name="oscilloscope" BorderBrush="DarkGray" BorderThickness="1" />
     </DockPanel>
 </UserControl>

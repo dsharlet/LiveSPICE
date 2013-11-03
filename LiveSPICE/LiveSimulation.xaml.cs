@@ -165,7 +165,8 @@ namespace LiveSPICE
                     Name = probe.V.ToString(), 
                     Pen = MapToSignalPen(probe.Color) 
                 };
-                Scope.Display.Signals.Add(probe.Signal);
+                Scope.Signals.Add(probe.Signal);
+                Scope.SelectedSignal = probe.Signal;
                 lock (probes) probes.Add(probe);
             }
         }
@@ -175,7 +176,7 @@ namespace LiveSPICE
             if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
             {
                 Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
-                Scope.Display.Signals.Remove(probe.Signal);
+                Scope.Signals.Remove(probe.Signal);
                 lock(probes) probes.Remove(probe);
             }
         }
@@ -184,7 +185,7 @@ namespace LiveSPICE
         {
             IEnumerable<Circuit.Symbol> selected = SimulationSchematic.ProbesOf(schematic.Schematic.Selected);
             if (selected.Any())
-                Scope.Display.SelectedSignal = ((Probe)selected.First().Component).Signal;
+                Scope.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
 
         private bool canclose = false;
@@ -231,69 +232,69 @@ namespace LiveSPICE
 
         private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
-            // If there is no simulation, just zero the samples and return.
-            if (simulation == null)
+            if (simulation != null)
             {
-                foreach (Audio.SampleBuffer i in Out)
-                    i.Clear();
-                return;
-            }
-
-            try
-            {
-                lock (probes)
+                try
                 {
-                    KeyValuePair<SyMath.Expression, double[]>[] inputs = new KeyValuePair<SyMath.Expression, double[]>[In.Length];
-                    for (int i = 0; i < In.Length; ++i)
-                        inputs[i] = new KeyValuePair<SyMath.Expression, double[]>(inputChannels[i].Signal, In[i].LockSamples(true, false));
-
-                    List<KeyValuePair<SyMath.Expression, double[]>> signals = new List<KeyValuePair<SyMath.Expression, double[]>>(probes.Count);
-                    foreach (Probe i in probes)
+                    lock (probes)
                     {
-                        i.AllocBuffer(Count);
-                        signals.Add(new KeyValuePair<SyMath.Expression, double[]>(i.V, i.Buffer));
+                        KeyValuePair<SyMath.Expression, double[]>[] inputs = new KeyValuePair<SyMath.Expression, double[]>[In.Length];
+                        for (int i = 0; i < In.Length; ++i)
+                            inputs[i] = new KeyValuePair<SyMath.Expression, double[]>(inputChannels[i].Signal, In[i].LockSamples(true, false));
+
+                        List<KeyValuePair<SyMath.Expression, double[]>> signals = new List<KeyValuePair<SyMath.Expression, double[]>>(probes.Count);
+                        foreach (Probe i in probes)
+                        {
+                            i.AllocBuffer(Count);
+                            signals.Add(new KeyValuePair<SyMath.Expression, double[]>(i.V, i.Buffer));
+                        }
+
+                        KeyValuePair<SyMath.Expression, double[]>[] outputs = new KeyValuePair<SyMath.Expression, double[]>[Out.Length];
+                        for (int i = 0; i < Out.Length; ++i)
+                            outputs[i] = new KeyValuePair<SyMath.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true));
+
+                        // Process the samples!
+                        simulation.Run(Count, inputs, signals.Concat(outputs), Iterations);
+
+                        // Show the samples on the oscilloscope.
+                        foreach (Probe i in probes)
+                            i.Signal.AddSamples(Scope.Signals.Clock, i.Buffer);
                     }
-
-                    KeyValuePair<SyMath.Expression, double[]>[] outputs = new KeyValuePair<SyMath.Expression, double[]>[Out.Length];
-                    for (int i = 0; i < Out.Length; ++i)
-                        outputs[i] = new KeyValuePair<SyMath.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true));
-
-                    // Process the samples!
-                    simulation.Run(Count, inputs, signals.Concat(outputs), Iterations);
-
-                    // Show the samples on the oscilloscope.
-                    foreach (Probe i in probes)
-                        i.Signal.AddSamples(Scope.Clock, i.Buffer);
-                    Scope.ProcessSignals(Count, Rate);
                 }
-            }
-            catch (Circuit.SimulationDiverged Ex)
-            {
-                // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
-                Log.WriteLine(Circuit.MessageType.Error, Ex.Message);
-                if ((double)Ex.At > Rate)
-                    simulation.Reset();
-                else
+                catch (Circuit.SimulationDiverged Ex)
+                {
+                    // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
+                    Log.WriteLine(Circuit.MessageType.Error, Ex.Message);
+                    if ((double)Ex.At > Rate)
+                        simulation.Reset();
+                    else
+                        simulation = null;
+                    foreach (Audio.SampleBuffer i in Out)
+                        i.Clear();
+                }
+                catch (Exception ex)
+                {
+                    // If there was a more serious error, kill the simulation so the user can fix it.
+                    Log.WriteLine(Circuit.MessageType.Error, ex.Message);
                     simulation = null;
+                    foreach (Audio.SampleBuffer i in Out)
+                        i.Clear();
+                }
+
+                // Unlock sample buffers.
                 foreach (Audio.SampleBuffer i in Out)
-                    i.Clear();
-                Scope.ClearSignals();
+                    i.Unlock();
+                foreach (Audio.SampleBuffer i in In)
+                    i.Unlock();
             }
-            catch (Exception ex)
+            else
             {
-                // If there was a more serious error, kill the simulation so the user can fix it.
-                Log.WriteLine(Circuit.MessageType.Error, ex.Message);
-                simulation = null;
+                // If there is no simulation, just zero the output.
                 foreach (Audio.SampleBuffer i in Out)
                     i.Clear();
-                Scope.ClearSignals();
             }
 
-            // Unlock sample buffers.
-            foreach (Audio.SampleBuffer i in Out)
-                i.Unlock();
-            foreach (Audio.SampleBuffer i in In)
-                i.Unlock();
+            Scope.Signals.TickClock(Count, Rate);
         }
 
         private void RebuildSimulation(double SampleRate)

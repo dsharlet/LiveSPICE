@@ -19,7 +19,7 @@ namespace LiveSPICE
     /// <summary>
     /// Collection of Signals.
     /// </summary>
-    public class SignalCollection : IEnumerable<Signal>, IEnumerable
+    public class SignalGroup : IEnumerable<Signal>, IEnumerable
     {
         protected List<Signal> x = new List<Signal>();
 
@@ -41,6 +41,40 @@ namespace LiveSPICE
         {
             add { itemRemoved.Add(value); }
             remove { itemRemoved.Remove(value); }
+        }
+
+        private List<EventHandler> tick = new List<EventHandler>();
+        protected void OnTick() { EventArgs e = new EventArgs(); foreach (EventHandler i in tick) i(this, e); }
+        public event EventHandler ClockTicked
+        {
+            add { tick.Add(value); }
+            remove { tick.Remove(value); }
+        }
+
+        private long clock = 0;
+        public long Clock { get { return clock; } }
+
+        private double sampleRate = 1;
+        public double SampleRate { get { return sampleRate; } }
+
+        public void TickClock(int SampleCount, double SampleRate)
+        {
+            sampleRate = SampleRate;
+
+            int truncate = (int)sampleRate;
+
+            // Remove the signals that we didn't get data for.
+            ForEach(i =>
+            {
+                if (i.Clock < clock)
+                    i.Clear();
+                else
+                    i.Truncate(truncate);
+            });
+
+            clock += SampleCount;
+
+            OnTick();
         }
 
         // ICollection<Node>

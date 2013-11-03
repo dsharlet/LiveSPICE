@@ -148,9 +148,9 @@ namespace LiveSPICE
                     for (int j = 0; j < y.Count; ++j)
                         y[j] = x[j];
 
-            signal.AddSamples(scope.Clock, x);
+            signal.AddSamples(scope.Signals.Clock, x);
 
-            scope.ProcessSignals(x.Length, Rate);
+            scope.Signals.TickClock(x.Length, Rate);
         }
 
         private void EndTest(object sender, EventArgs e)
