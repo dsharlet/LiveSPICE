@@ -107,9 +107,11 @@ namespace LiveSPICE
         }
 
         protected long clock = 0;
+        public long Clock { get { return clock; } }
+
         protected double Vmax, Vmean;
         protected Point? tracePoint;
-        
+
         public SignalsDisplay()
         {
             Background = Brushes.DimGray;
@@ -132,24 +134,26 @@ namespace LiveSPICE
         }
 
         private double sampleRate = 1;
-        public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals, double SampleRate)
+        public void ProcessSignals(int SampleCount, double SampleRate)
         {
             sampleRate = SampleRate;
-            clock += SampleCount;
 
             int truncate = (int)(4 * (double)sampleRate * MaxPeriod);
 
-            // Add signal data.
-            foreach (KeyValuePair<Signal, double[]> i in Signals)
-                lock (i.Key) i.Key.AddSamples(clock, i.Value, truncate);
-
             // Remove the signals that we didn't get data for.
-            signals.ForEach(i => 
+            signals.ForEach(i =>
             {
-                if (i.Clock < clock)
-                    i.Clear();
+                lock (i)
+                {
+                    if (i.Clock < clock)
+                        i.Clear();
+                    else
+                        i.Truncate(truncate);
+                }
             });
 
+            clock += SampleCount;
+                        
             Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 

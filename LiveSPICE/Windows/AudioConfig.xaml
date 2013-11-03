@@ -30,19 +30,19 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Driver: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="drivers" Margin="4" SelectedValue="{Binding ElementName=_this, Path=Driver}" SelectedValuePath="Tag" />
+            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="drivers" Margin="4" SelectedValue="{Binding ElementName=_this, Path=Driver}" SelectedValuePath="Tag" IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Device: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
             <DockPanel Grid.Row="1" Grid.Column="1" LastChildFill="True">
-                <Button DockPanel.Dock="Right" Margin="4" Content="Control Panel..." Click="ShowControlPanel" />
-                <ComboBox x:Name="devices" Margin="4" SelectedValue="{Binding ElementName=_this, Path=Device}" SelectedValuePath="Tag" />
+                <Button DockPanel.Dock="Right" Margin="4" Content="Control Panel..." Click="ShowControlPanel" IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
+                <ComboBox x:Name="devices" Margin="4" SelectedValue="{Binding ElementName=_this, Path=Device}" SelectedValuePath="Tag"  IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
             </DockPanel>
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Inputs: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-            <ListBox Grid.Row="2" Grid.Column="1" x:Name="inputs" Margin="4" SelectionMode="Multiple" />
+            <ListBox Grid.Row="2" Grid.Column="1" x:Name="inputs" Margin="4" SelectionMode="Multiple" IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Outputs: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-            <ListBox Grid.Row="3" Grid.Column="1" x:Name="outputs" Margin="4" SelectionMode="Multiple" />
+            <ListBox Grid.Row="3" Grid.Column="1" x:Name="outputs" Margin="4" SelectionMode="Multiple" IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
         </Grid>
         <StackPanel DockPanel.Dock="Top" Margin="4" Orientation="Horizontal" HorizontalAlignment="Center">
             <ToggleButton Content="Test" Width="80" Margin="4" Checked="BeginTest" Unchecked="EndTest" />

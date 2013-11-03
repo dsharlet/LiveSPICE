@@ -20,7 +20,7 @@ namespace Audio
         /// Handler for accepting new samples in and writing output samples out.
         /// </summary>
         /// <param name="Samples"></param>
-        public delegate void SampleHandler(int Count, SampleBuffer[] In, SampleBuffer[] Out, double SampleRate);
+        public delegate void SampleHandler(int Count, SampleBuffer[] In, SampleBuffer[] Out, double Rate);
 
         public Channel[] InputChannels { get { return inputs; } }
         public Channel[] OutputChannels { get { return outputs; } }

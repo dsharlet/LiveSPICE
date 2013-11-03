@@ -39,16 +39,22 @@ namespace LiveSPICE
         public object Tag { get { return tag; } set { tag = value; } }
 
         // Process new samples for this signal.
-        public void AddSamples(long Clock, double[] Samples, int Truncate)
+        public void AddSamples(long Clock, double[] Samples)
         {
-            samples.AddRange(Samples);
+            lock (this)
+            {
+                samples.AddRange(Samples);
+                clock = Clock;
+            }
+        }
+
+        public void Truncate(int Truncate)
+        {
             if (samples.Count > Truncate)
             {
                 int remove = samples.Count - Truncate;
                 samples.RemoveRange(0, remove);
             }
-
-            clock = Clock;
         }
 
         private long clock = 0;

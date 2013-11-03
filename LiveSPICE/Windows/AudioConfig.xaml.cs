@@ -67,6 +67,9 @@ namespace LiveSPICE
         public Audio.Channel[] Inputs { get { return inputs.SelectedItems.Cast<ListBoxItem>().Select(i => i.Tag).Cast<Audio.Channel>().ToArray(); } }
         public Audio.Channel[] Outputs { get { return outputs.SelectedItems.Cast<ListBoxItem>().Select(i => i.Tag).Cast<Audio.Channel>().ToArray(); } }
 
+        private bool enabled = true;
+        public bool Enabled { get { return enabled; } set { enabled = value; NotifyChanged("Enabled"); } }
+
         private Audio.Stream stream = null;
 
         public AudioConfig()
@@ -123,11 +126,13 @@ namespace LiveSPICE
         {
             signal = new Signal();
             scope.Signals.Add(signal);
-
+            
             stream = Device.Open(Callback, Inputs, Outputs);
+
+            Enabled = false;
         }
 
-        private void Callback(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double SampleRate)
+        private void Callback(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
             double[] x = new double[Count];
 
@@ -143,7 +148,9 @@ namespace LiveSPICE
                     for (int j = 0; j < y.Count; ++j)
                         y[j] = x[j];
 
-            scope.ProcessSignals(x.Length, new[] { new KeyValuePair<Signal, double[]>(signal, x) }, SampleRate);
+            signal.AddSamples(scope.Clock, x);
+
+            scope.ProcessSignals(x.Length, Rate);
         }
 
         private void EndTest(object sender, EventArgs e)
@@ -154,6 +161,8 @@ namespace LiveSPICE
                 stream = null;
             }
             scope.Signals.Clear();
+
+            Enabled = true;
         }
         
         // INotifyPropertyChanged.

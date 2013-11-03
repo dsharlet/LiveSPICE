@@ -92,20 +92,20 @@ namespace LiveSPICE
             {
                 channels[i] = new Channel();
 
-                channels[i].Level = new TextBlock() { TextAlignment = TextAlignment.Center };
+                channels[i].Level = new TextBlock() { TextAlignment = TextAlignment.Center, FontWeight = FontWeights.Bold, Margin = new Thickness(1), Width = 50 };
                 channels[i].Level.SetBinding(TextBlock.TextProperty, new Binding("Gain") { Source = channels[i], StringFormat = "{0:+#;-#;+0} dB" });
                 
-                TextBlock name = new TextBlock() { Text = Channels[i].Name };
-                
+                TextBlock name = new TextBlock() { Text = Channels[i].Name, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
+
                 ComboBox signal = new ComboBox() { Width = 50, ItemsSource = Signals };
                 signal.SetBinding(ComboBox.SelectedValueProperty, new Binding("Signal") { Source = channels[i] });
                 if (Signals.Any())
                     channels[i].Signal = Signals.First();
 
-                Slider gain = new Slider() { Width = 150, Minimum = -20, Maximum = 20 };
+                Slider gain = new Slider() { Minimum = -20, Maximum = 20 };
                 gain.SetBinding(Slider.ValueProperty, new Binding("Gain") { Source = channels[i] });
 
-                Border level = new Border() { Width = 50, Child = channels[i].Level, BorderBrush = Brushes.DarkGray, BorderThickness = new Thickness(1) };
+                UIElement level = channels[i].Level;
 
                 Panel panel = new DockPanel() { LastChildFill = true, Tag = channels[i] };
                 panel.Children.Add(name);
@@ -141,7 +141,7 @@ namespace LiveSPICE
                 IEnumerable<Circuit.Component> components = circuit.Components;
 
                 inputChannels = InitChannels(inputs, Inputs, components.OfType<Circuit.VoltageSource>().Where(j => j.IsInput).Select(j => j.Voltage.Value));
-                outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>().Select(j => j.Sound));
+                outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>().Select(j => j.Sound).DefaultIfEmpty(SyMath.Constant.Zero));
 
                 Parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
 
@@ -199,7 +199,7 @@ namespace LiveSPICE
         }
 
         private bool rebuild = true;
-        private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double SampleRate)
+        private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
             if (closing)
             {
@@ -208,7 +208,7 @@ namespace LiveSPICE
                 return;
             }
 
-            RebuildSimulation(SampleRate);
+            RebuildSimulation(Rate);
 
             // Apply input gain.
             for (int i = 0; i < In.Length; ++i)
@@ -218,7 +218,7 @@ namespace LiveSPICE
                 Dispatcher.InvokeAsync(() => ch.Level.Background = MapSignalToBrush(peak));
             }
 
-            RunSimulation(Count, In, Out, SampleRate);
+            RunSimulation(Count, In, Out, Rate);
 
             // Apply input gain.
             for (int i = 0; i < Out.Length; ++i)
@@ -229,7 +229,7 @@ namespace LiveSPICE
             }
         }
 
-        private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double SampleRate)
+        private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
             // If there is no simulation, just zero the samples and return.
             if (simulation == null)
@@ -243,30 +243,35 @@ namespace LiveSPICE
             {
                 lock (probes)
                 {
-                    List<KeyValuePair<SyMath.Expression, double[]>> inputs = new List<KeyValuePair<SyMath.Expression, double[]>>(In.Length);
-                    // Signal inputs.
+                    KeyValuePair<SyMath.Expression, double[]>[] inputs = new KeyValuePair<SyMath.Expression, double[]>[In.Length];
                     for (int i = 0; i < In.Length; ++i)
-                        inputs.Add(new KeyValuePair<SyMath.Expression, double[]>(inputChannels[i].Signal, In[i].LockSamples(true, false)));
+                        inputs[i] = new KeyValuePair<SyMath.Expression, double[]>(inputChannels[i].Signal, In[i].LockSamples(true, false));
 
-                    List<KeyValuePair<SyMath.Expression, double[]>> outputs = new List<KeyValuePair<SyMath.Expression, double[]>>(probes.Count + Out.Length);
-                    // Probe outputs.
-                    outputs.AddRange(probes.Select(i => i.AllocBuffer(Count)));
-                    // Signal outputs.
+                    List<KeyValuePair<SyMath.Expression, double[]>> signals = new List<KeyValuePair<SyMath.Expression, double[]>>(probes.Count);
+                    foreach (Probe i in probes)
+                    {
+                        i.AllocBuffer(Count);
+                        signals.Add(new KeyValuePair<SyMath.Expression, double[]>(i.V, i.Buffer));
+                    }
+
+                    KeyValuePair<SyMath.Expression, double[]>[] outputs = new KeyValuePair<SyMath.Expression, double[]>[Out.Length];
                     for (int i = 0; i < Out.Length; ++i)
-                        outputs.Add(new KeyValuePair<SyMath.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true)));
+                        outputs[i] = new KeyValuePair<SyMath.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true));
 
                     // Process the samples!
-                    simulation.Run(Count, inputs, outputs, Iterations);
+                    simulation.Run(Count, inputs, signals.Concat(outputs), Iterations);
 
                     // Show the samples on the oscilloscope.
-                    Scope.ProcessSignals(Count, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)), SampleRate);
+                    foreach (Probe i in probes)
+                        i.Signal.AddSamples(Scope.Clock, i.Buffer);
+                    Scope.ProcessSignals(Count, Rate);
                 }
             }
             catch (Circuit.SimulationDiverged Ex)
             {
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 Log.WriteLine(Circuit.MessageType.Error, Ex.Message);
-                if ((double)Ex.At > SampleRate)
+                if ((double)Ex.At > Rate)
                     simulation.Reset();
                 else
                     simulation = null;
@@ -359,13 +364,10 @@ namespace LiveSPICE
 
         private static Brush MapSignalToBrush(double Peak)
         {
-            if (Peak < 0.6)
-                return Brushes.Green;
-            if (Peak < 0.8)
-                return Brushes.Yellow;
-            if (Peak < 0.99)
-                return Brushes.Red;
-            return Brushes.Black;
+            if (Peak < 0.5) return Brushes.Green;
+            if (Peak < 0.75) return Brushes.Yellow;
+            if (Peak < 0.95) return Brushes.Orange;
+            return Brushes.Red;
         }
 
         // INotifyPropertyChanged.

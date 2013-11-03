@@ -20,15 +20,10 @@ namespace LiveSPICE
         private double[] buffer = null;
         public double[] Buffer { get { return buffer; } }
 
-        private KeyValuePair<SyMath.Expression, double[]> key;
-        public KeyValuePair<SyMath.Expression, double[]> AllocBuffer(int Samples) 
+        public void AllocBuffer(int Samples) 
         {
             if (buffer == null || buffer.Length < Samples)
-            {
                 buffer = new double[Samples];
-                key = new KeyValuePair<SyMath.Expression, double[]>(V, buffer);
-            }
-            return key;
         }
 
         public Probe() : this(EdgeType.Red) { }
