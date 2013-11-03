@@ -223,13 +223,19 @@ namespace LiveSPICE
             if (ActiveEditor != null)
             {
                 AudioConfig config = new AudioConfig() { Owner = this };
-                //if (config.Device == null)
+                if (config.Inputs.Length + config.Outputs.Length == 0)
                     if (!(config.ShowDialog() ?? false))
                         return;
 
                 LiveSimulation simulation = new LiveSimulation(ActiveEditor.Schematic, config.Device, config.Inputs, config.Outputs) { Owner = this };
                 simulation.Show();
             }
+        }
+
+        private void AudioConfiguration_Click(object sender, RoutedEventArgs e)
+        {
+            AudioConfig config = new AudioConfig() { Owner = this };
+            config.ShowDialog();
         }
 
         private void ViewProperties_Click(object sender, RoutedEventArgs e) { ToggleVisible(properties); }
