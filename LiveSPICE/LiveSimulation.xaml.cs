@@ -215,7 +215,7 @@ namespace LiveSPICE
             for (int i = 0; i < In.Length; ++i)
             {
                 Channel ch = inputChannels[i];
-                double peak = AmplifySignal(In[i], ch.gain * inputGain);
+                double peak = In[i].Amplify(ch.gain * inputGain);
                 Dispatcher.InvokeAsync(() => ch.Level.Background = MapSignalToBrush(peak));
             }
 
@@ -225,7 +225,7 @@ namespace LiveSPICE
             for (int i = 0; i < Out.Length; ++i)
             {
                 Channel ch = outputChannels[i];
-                double peak = AmplifySignal(Out[i], ch.gain * outputGain);
+                double peak = Out[i].Amplify(ch.gain * outputGain);
                 Dispatcher.InvokeAsync(() => ch.Level.Background = MapSignalToBrush(peak));
             }
         }

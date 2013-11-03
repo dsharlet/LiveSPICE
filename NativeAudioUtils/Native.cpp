@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "Native.h"
 #include <cstdlib>
+#include <algorithm>
 
 template <typename T>
 inline T clamp(T x, T min, T max)
@@ -59,24 +60,14 @@ extern "C" NATIVE_API void LEf32ToLEi32(const float * In, int * Out, int Count) 
 extern "C" NATIVE_API void LEf64ToLEi32(const double * In, int * Out, int Count) { FloatToFixed<32>(In, Out, Count); }
 extern "C" NATIVE_API void LEf64ToLEf32(const double * In, float * Out, int Count) { FloatToFloat(In, Out, Count); }
 
-                //case AsioWrapper.SampleType.Int16MSB:
-                //case AsioWrapper.SampleType.Int24MSB:
-                //case AsioWrapper.SampleType.Int32MSB:
-                //case AsioWrapper.SampleType.Float32MSB:
-                //case AsioWrapper.SampleType.Float64MSB:
-                //case AsioWrapper.SampleType.Int32MSB16:
-                //case AsioWrapper.SampleType.Int32MSB18:
-                //case AsioWrapper.SampleType.Int32MSB20:
-                //case AsioWrapper.SampleType.Int32MSB24:
-                //case AsioWrapper.SampleType.Int16LSB:
-                //case AsioWrapper.SampleType.Int24LSB:
-                //case AsioWrapper.SampleType.Int32LSB:
-                //case AsioWrapper.SampleType.Float32LSB:
-                //case AsioWrapper.SampleType.Float64LSB:
-                //case AsioWrapper.SampleType.Int32LSB16:
-                //case AsioWrapper.SampleType.Int32LSB18:
-                //case AsioWrapper.SampleType.Int32LSB20:
-                //case AsioWrapper.SampleType.Int32LSB24:
-                //case AsioWrapper.SampleType.DSDInt8LSB1:
-                //case AsioWrapper.SampleType.DSDInt8MSB1:
-                //case AsioWrapper.SampleType.DSDInt8NER8:
+extern "C" NATIVE_API double Amplify(double * x, int Count, double Gain)
+{
+	double peak = 0.0;
+	double * end = x + Count;
+	for (x; x != end; ++x)
+	{
+		*x *= Gain;
+		peak = std::max(peak, *x);
+	}
+	return peak;
+}

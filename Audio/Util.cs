@@ -20,6 +20,8 @@ namespace Audio
         [DllImport("NativeAudioUtils.dll", CallingConvention = CallingConvention.Cdecl)] public static extern void LEf32ToLEi32(IntPtr In, IntPtr Out, int Count);
         [DllImport("NativeAudioUtils.dll", CallingConvention = CallingConvention.Cdecl)] public static extern void LEf64ToLEi32(IntPtr In, IntPtr Out, int Count);
         [DllImport("NativeAudioUtils.dll", CallingConvention = CallingConvention.Cdecl)] public static extern void LEf64ToLEf32(IntPtr In, IntPtr Out, int Count);
+        
+        [DllImport("NativeAudioUtils.dll", CallingConvention = CallingConvention.Cdecl)] public static extern double Amplify(IntPtr x, int Count, double Gain);
 
         [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
         public static extern void CopyMemory(IntPtr dest, IntPtr src, int size);

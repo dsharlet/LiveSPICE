@@ -142,6 +142,34 @@ namespace Audio
             samplesValid = false;
             rawValid = true;
         }
+
+        /// <summary>
+        /// Amplify the samples in this buffer.
+        /// </summary>
+        /// <param name="Gain"></param>
+        public double Amplify(double Gain)
+        {
+            if (rawValid)
+            {
+                return Util.Amplify(raw, Count, Gain);
+            }
+            else if (samplesValid)
+            {
+                double peak = 0.0;
+                for (int i = 0; i < samples.Length; ++i)
+                {
+                    double v = samples[i];
+                    v *= Gain;
+                    peak = Math.Max(peak, Math.Abs(v));
+                    samples[i] = v;
+                }
+                return peak;
+            }
+            else
+            {
+                return 0.0;
+            }
+        }
     }
 
     public class RawLock : IDisposable
