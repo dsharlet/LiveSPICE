@@ -40,7 +40,7 @@ namespace LiveSPICE
         {
             if (Type > verbosity)
                 return;
-            Dispatcher.Invoke(() =>
+            Dispatcher.InvokeAsync(() =>
                 {
                     if (Type != Circuit.MessageType.Info)
                         text.AppendText("[" + Type.ToString() + "] ");
