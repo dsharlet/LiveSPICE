@@ -173,6 +173,8 @@ namespace Audio
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveOutOpen(out IntPtr hWaveOut, int uDeviceID, ref WAVEFORMATEX lpFormat, Callback dwCallback, IntPtr dwInstance, WaveOutOpenFlags dwFlags);
         [DllImport("winmm.dll")]
+        public static extern MMRESULT waveOutOpen(out IntPtr hWaveOut, int uDeviceID, ref WAVEFORMATEX lpFormat, IntPtr dwCallback, IntPtr dwInstance, WaveOutOpenFlags dwFlags);
+        [DllImport("winmm.dll")]
         public static extern MMRESULT waveOutReset(IntPtr hWaveOut);
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveOutClose(IntPtr hWaveOut);
@@ -199,6 +201,8 @@ namespace Audio
         public static extern MMRESULT waveInClose(IntPtr hwi);
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveInOpen(out IntPtr phwi, int uDeviceID, ref WAVEFORMATEX lpFormat, Callback dwCallback, IntPtr dwInstance, WaveInOpenFlags dwFlags);
+        [DllImport("winmm.dll")]
+        public static extern MMRESULT waveInOpen(out IntPtr phwi, int uDeviceID, ref WAVEFORMATEX lpFormat, IntPtr dwCallback, IntPtr dwInstance, WaveInOpenFlags dwFlags);
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveInPrepareHeader(IntPtr hWaveIn, ref WAVEHDR lpWaveInHdr, int uSize);
         [DllImport("winmm.dll")]
