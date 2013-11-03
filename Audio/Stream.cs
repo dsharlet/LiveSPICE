@@ -18,6 +18,8 @@ namespace Audio
         /// <param name="Samples"></param>
         public delegate void SampleHandler(SampleBuffer[] In, SampleBuffer[] Out, double SampleRate);
 
+        public abstract double SampleRate { get; }
+
         public abstract void Stop();
     }
 }

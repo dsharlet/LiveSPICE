@@ -27,7 +27,8 @@ namespace Asio
             }
         }
 
-        double sampleRate;
+        private double sampleRate;
+        public override double SampleRate { get { return sampleRate; } }
 
         private AsioWrapper.Asio instance;
         private Audio.Stream.SampleHandler callback;

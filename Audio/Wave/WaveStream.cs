@@ -19,6 +19,8 @@ namespace Audio
         
         private Thread proc;
 
+        public override double SampleRate { get { return format.nSamplesPerSec; } }
+
         public WaveStream(SampleHandler SampleCallback, WaveChannel[] Input, WaveChannel[] Output, double Latency)
         {
             callback = SampleCallback;
