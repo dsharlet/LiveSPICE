@@ -381,10 +381,11 @@ namespace Circuit
                     body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], LinqExpr.Constant(1.0 / (double)Oversample))));
 
                 // Every 256 samples, check for divergence.
-                body.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), Zero),
-                    LinqExpr.Block(Vo.Select(i => LinqExpr.IfThenElse(IsNotReal(i.Value), 
-                        ThrowSimulationDiverged(n), 
-                        LinqExpr.Assign(i.Value, RoundDenormToZero(i.Value)))))));
+                if (Vo.Any())
+                    body.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), Zero),
+                        LinqExpr.Block(Vo.Select(i => LinqExpr.IfThenElse(IsNotReal(i.Value),
+                            ThrowSimulationDiverged(n),
+                            LinqExpr.Assign(i.Value, RoundDenormToZero(i.Value)))))));
             });
 
             // Copy the global state variables back to the globals.
