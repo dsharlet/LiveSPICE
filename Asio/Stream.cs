@@ -9,9 +9,6 @@ namespace Asio
 {
     public class Stream : Audio.Stream
     {
-        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
-        public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
-
         private class Buffer
         {
             private AsioWrapper.Buffers buffers;
@@ -30,38 +27,50 @@ namespace Asio
             }
         }
 
+        double sampleRate;
+
         private AsioWrapper.Asio instance;
         private Audio.Stream.SampleHandler callback;
-        private Buffer input, output;
+        private Buffer[] input;
+        private Buffer[] output;
 
         private void OnBufferSwitch(int Index, bool Direct)
         {
-            CopyMemory(output.Buffers.get_Buffer(Index), input.Buffers.get_Buffer(Index), (uint)output.Samples.Length);
-            //SamplesToDouble(input.Type, input.Buffers.get_Buffer(Index), input.Samples);
-            //callback(input.Samples, output.Samples);
-            //DoubleToSamples(output.Type, output.Samples, output.Buffers.get_Buffer(Index));
+            Audio.SampleBuffer[] a = new Audio.SampleBuffer[input.Length];
+            for (int i = 0; i < input.Length; ++i)
+                a[i] = Audio.SampleBuffer.NewInputBuffer(input[i].Buffers.get_Buffer(Index), AudioSampleType(input[i].Type), input[i].Samples);
+            
+            Audio.SampleBuffer[] b = new Audio.SampleBuffer[output.Length];
+            for (int i = 0; i < output.Length; ++i)
+                b[i] = Audio.SampleBuffer.NewOutputBuffer(output[i].Buffers.get_Buffer(Index), AudioSampleType(output[i].Type), output[i].Samples);
+
+            callback(a, b, sampleRate);
+
+            for (int i = 0; i < output.Length; ++i)
+                b[i].SyncRaw();
         }
 
         private void OnSampleRateChange(double SampleRate)
         {
-
+            sampleRate = SampleRate;
         }
 
-        public Stream(AsioWrapper.Asio Instance, Audio.Stream.SampleHandler Callback, Channel Input, Channel Output, double Latency)
+        public Stream(AsioWrapper.Asio Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
         {
             instance = Instance;
             callback = Callback;
 
-            int size = instance.BufferSize.Preferred;
-            input = new Buffer(Input, size);
-            output = new Buffer(Output, size);
+            int count = instance.BufferSize.Preferred;
+            input = Input.Select(i => new Buffer(i, count)).ToArray();
+            output = Output.Select(i => new Buffer(i, count)).ToArray();
 
             instance.CreateBuffers(
-                new AsioWrapper.Buffers[] { input.Buffers },
-                new AsioWrapper.Buffers[] { output.Buffers }, 
-                size, 
+                input.Select(i => i.Buffers).ToArray(),
+                output.Select(i => i.Buffers).ToArray(), 
+                count, 
                 OnBufferSwitch, 
                 OnSampleRateChange);
+            sampleRate = instance.SampleRate;
             instance.Start();
         }
 
@@ -71,7 +80,7 @@ namespace Asio
             instance.DisposeBuffers();
         }
 
-        private static void SamplesToDouble(SampleType Type, IntPtr In, double[] Out)
+        private static Audio.SampleType AudioSampleType(SampleType Type)
         {
             switch (Type)
             {
@@ -84,11 +93,11 @@ namespace Asio
                 //case SampleType.Int32MSB18:
                 //case SampleType.Int32MSB20:
                 //case SampleType.Int32MSB24:
-                case SampleType.Int16LSB: Audio.Util.LEi16ToLEf64(In, Out, Out.Length); return;
+                case SampleType.Int16LSB: return Audio.SampleType.i16;
                 //case SampleType.Int24LSB:
-                case SampleType.Int32LSB: Audio.Util.LEi32ToLEf64(In, Out, Out.Length); return;
-                //case SampleType.Float32LSB: 
-                case SampleType.Float64LSB: Marshal.Copy(In, Out, 0, Out.Length); return;
+                case SampleType.Int32LSB: return Audio.SampleType.i32;
+                case SampleType.Float32LSB: return Audio.SampleType.f32;
+                case SampleType.Float64LSB: return Audio.SampleType.f64;
                 //case SampleType.Int32LSB16:
                 //case SampleType.Int32LSB18:
                 //case SampleType.Int32LSB20:
@@ -97,7 +106,7 @@ namespace Asio
             }
         }
 
-        private static void DoubleToSamples(SampleType Type, double[] In, IntPtr Out)
+        private static int SampleSize(SampleType Type)
         {
             switch (Type)
             {
@@ -110,11 +119,11 @@ namespace Asio
                 //case SampleType.Int32MSB18:
                 //case SampleType.Int32MSB20:
                 //case SampleType.Int32MSB24:
-                case SampleType.Int16LSB: Audio.Util.LEf64ToLEi16(In, Out, In.Length); return;
+                case SampleType.Int16LSB: return 2;
                 //case SampleType.Int24LSB:
-                case SampleType.Int32LSB: Audio.Util.LEf64ToLEi32(In, Out, In.Length); return;
-                //case SampleType.Float32LSB:
-                case SampleType.Float64LSB: Marshal.Copy(In, 0, Out, In.Length); return;
+                case SampleType.Int32LSB: return 4;
+                case SampleType.Float32LSB: return 4;
+                case SampleType.Float64LSB: return 8;
                 //case SampleType.Int32LSB16:
                 //case SampleType.Int32LSB18:
                 //case SampleType.Int32LSB20:
@@ -122,6 +131,5 @@ namespace Asio
                 default: throw new NotImplementedException("Unsupported sample type");
             }
         }
-
     }
 }

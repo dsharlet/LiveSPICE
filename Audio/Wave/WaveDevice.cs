@@ -48,13 +48,13 @@ namespace Audio
             inputs = channels.ToArray();
         }
 
-        public override Stream Open(Stream.SampleHandler Callback, Channel Input, Channel Output, double Latency)
+        public override Stream Open(Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
         {
             return new WaveStream(
                 Callback,
-                ((WaveChannel)Input).Device,
-                ((WaveChannel)Output).Device,
-                Latency);
+                Input.Cast<WaveChannel>().ToArray(),
+                Output.Cast<WaveChannel>().ToArray(),
+                0.05);
         }
     }
 }

@@ -51,7 +51,24 @@ namespace LiveSPICE
         [UserScopedSetting]
         public string AudioInput { get { return (string)this["AudioInput"]; } set { this["AudioInput"] = value; } }
         [UserScopedSetting]
-        public string AudioOutput { get { return (string)this["AudioOutput"]; } set { this["AudioOutput"] = value; } }
+        public string[] AudioOutput 
+        { 
+            get 
+            {
+                try
+                {
+                    return (string[])this["AudioOutput"];
+                }
+                catch (Exception)
+                {
+                    return new string[0];
+                }
+            }
+            set 
+            { 
+                this["AudioOutput"] = value; 
+            } 
+        }
         [UserScopedSetting]
         public double InputGain 
         { 
@@ -83,23 +100,6 @@ namespace LiveSPICE
                 }
             } 
             set { this["OutputGain"] = value; } 
-        }
-
-        [UserScopedSetting]
-        public double Latency
-        {
-            get
-            {
-                try
-                {
-                    return (double)this["Latency"];
-                }
-                catch (Exception)
-                {
-                    return 50.0;
-                }
-            }
-            set { this["Latency"] = value; }
         }
     }
 }

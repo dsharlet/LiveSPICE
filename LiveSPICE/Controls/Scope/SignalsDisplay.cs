@@ -153,6 +153,14 @@ namespace LiveSPICE
             Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
+        public void ClearSignals()
+        {
+            clock = 0;
+            signals.ForEach(i => i.Clear());
+
+            Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        }
+
         protected override void OnRender(DrawingContext DC)
         {
             DC.DrawRectangle(BorderBrush, null, new Rect(0, 0, ActualWidth, ActualHeight));

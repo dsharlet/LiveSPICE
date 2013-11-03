@@ -132,8 +132,11 @@ namespace LiveSPICE
         private bool closing = false;
         protected override void OnClosing(CancelEventArgs e)
         {
-            closing = true;
-            e.Cancel = !canclose;
+            if (Audio.Stream != null)
+            {
+                closing = true;
+                e.Cancel = !canclose;
+            }
         }
 
         private bool rebuild = true;
@@ -168,28 +171,33 @@ namespace LiveSPICE
             // If there is no simulation, just zero the samples and return.
             if (simulation == null)
             {
-                for (int i = 0; i < Out.Count; ++i)
-                    Out[i] = 0.0;
+                if (Out != null)
+                    Out.Clear();
                 return;
             }
+
+            double[] a = In.LockSamples(true, false);
+            double[] b = null;
+            if (Out != null)
+                b = Out.LockSamples(false, true);
 
             try
             {
                 lock (probes)
                 {
                     // Build the signal list.
-                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(Out.Count));
-                    if (!ReferenceEquals(output, null))
-                        signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(output, Out));
+                    IEnumerable<KeyValuePair<SyMath.Expression, double[]>> signals = probes.Select(i => i.AllocBuffer(In.Count));
+                    if (!ReferenceEquals(output, null) && Out != null)
+                        signals = signals.Append(new KeyValuePair<SyMath.Expression, double[]>(output, b));
 
                     // Process the samples!
                     if (!ReferenceEquals(Input, null))
-                        simulation.Run(Input, In, signals, arguments, Iterations);
+                        simulation.Run(Input, a, signals, arguments, Iterations);
                     else
                         simulation.Run(In.Count, signals, arguments, Iterations);
 
                     // Show the samples on the oscilloscope.
-                    Scope.ProcessSignals(Out.Count, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)), SampleRate);
+                    Scope.ProcessSignals(In.Count, probes.Select(i => new KeyValuePair<Signal, double[]>(i.Signal, i.Buffer)), SampleRate);
                 }
             }
             catch (Circuit.SimulationDiverged Ex)
@@ -200,13 +208,23 @@ namespace LiveSPICE
                     simulation.Reset();
                 else
                     simulation = null;
+                if (Out != null)
+                    Out.Clear();
+                Scope.ClearSignals();
             }
             catch (Exception ex)
             {
                 // If there was a more serious error, kill the simulation so the user can fix it.
                 Log.WriteLine(Circuit.MessageType.Error, ex.Message);
                 simulation = null;
+                if (Out != null)
+                    Out.Clear();
+                Scope.ClearSignals();
             }
+
+            In.Unlock();
+            if (Out != null)
+                Out.Unlock();
         }
 
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) { rebuild = true; }

@@ -39,14 +39,13 @@ namespace Asio
             outputs = instance.OutputChannels.Select(i => new Asio.Channel(i)).ToArray();
         }
 
-        public override Audio.Stream Open(Audio.Stream.SampleHandler Callback, Audio.Channel Input, Audio.Channel Output, double Latency)
+        public override Audio.Stream Open(Audio.Stream.SampleHandler Callback, Audio.Channel[] Input, Audio.Channel[] Output)
         {
             return new Stream(
                 instance,
                 Callback,
-                (Channel)Input,
-                (Channel)Output,
-                Latency);
+                Input.Cast<Channel>().ToArray(),
+                Output.Cast<Channel>().ToArray());
         }
 
         public override void ShowControlPanel() { instance.ShowControlPanel(); }

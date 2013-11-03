@@ -4,6 +4,7 @@
 
 #include <windows.h>
 #include <Ole2.h>
+#include <vector>
 
 #define IEEE754_64FLOAT 1
 
@@ -37,15 +38,15 @@ interface IAsio : public IUnknown
 
 void BufferSwitchRouter(long Index, ASIOBool Direct);
 void SampleRateChangeRouter(double SampleRate);
-//long MessageRouter(long selector, long value, void* message, double* opt);
-//ASIOTime* BufferSwitchTimeInfoRouter(ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess);
+long MessageRouter(long selector, long value, void* message, double* opt);
+ASIOTime* BufferSwitchTimeInfoRouter(ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess);
 
 ASIOCallbacks RouterCallbacks = 
 {
 	BufferSwitchRouter,
 	SampleRateChangeRouter,
-	NULL,
-	NULL
+	MessageRouter,
+	BufferSwitchTimeInfoRouter
 };
 
 namespace AsioWrapper 
@@ -107,14 +108,16 @@ namespace AsioWrapper
 	protected:
 		long channel;
 		array<void *>^ buffers;
+		int size;
 
 	public:
 		Buffers(int Channel) : channel(Channel) { }
 
 		property long Channel { long get() { return channel; } }
 		property System::IntPtr Buffer[int] { System::IntPtr get(int i) { return System::IntPtr(buffers[0]); } }
+		property int Size { int get() { return size; } }
 
-		void SetBuffers(array<void *>^ Buffers) { buffers = Buffers; }
+		void SetBuffers(array<void *>^ Buffers, int Size) { buffers = Buffers; size = Size; }
 	};
 
 	public ref class BufferSizeInfo
@@ -217,10 +220,40 @@ namespace AsioWrapper
 	public:
 		delegate void BufferSwitchCallback(long Index, bool Direct);
 		delegate void SampleRateChangeCallback(double SampleRate);
+		//delegate long MessageCallback(long selector, long value, System::IntPtr message, double^ opt);
+		delegate ASIOTime * BufferSwitchTimeInfoCallback(ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess);
 
 		// Super ghetto, but what can we do?
 		static BufferSwitchCallback^ OnBufferSwitch = nullptr;
 		static SampleRateChangeCallback^ OnSampleRateChange = nullptr;
+
+		//static MessageCallback^ OnMessage = nullptr;
+		static long OnMessage(long selector, long value, void* msg, double* opt)
+		{
+			switch(selector)
+			{
+			case kAsioSelectorSupported:
+			case kAsioEngineVersion:
+				return 2;
+			case kAsioResetRequest:
+			case kAsioBufferSizeChange:		
+			case kAsioResyncRequest:			
+			case kAsioLatenciesChanged: 		
+			case kAsioSupportsTimeInfo:		
+			case kAsioSupportsTimeCode:		
+			case kAsioMMCCommand:			
+			case kAsioSupportsInputMonitor:	
+			case kAsioSupportsInputGain:     
+			case kAsioSupportsInputMeter:    
+			case kAsioSupportsOutputGain:    
+			case kAsioSupportsOutputMeter:   
+			case kAsioOverload:
+			default:
+				return 0;
+			}
+		}
+
+		static BufferSwitchTimeInfoCallback^ OnBufferSwitchTimeInfo = nullptr;
 
 		property array<Channel^>^ InputChannels
 		{ 
@@ -276,7 +309,8 @@ namespace AsioWrapper
 			OnBufferSwitch = BufferSwitch;
 			OnSampleRateChange = SampleRateChange;
 
-			ASIOBufferInfo *infos = new ASIOBufferInfo[Inputs->Length + Outputs->Length];
+			std::vector<ASIOBufferInfo> infos(Inputs->Length + Outputs->Length);
+
 			ASIOBufferInfo *at = &infos[0];
 			for (int i = 0; i < Inputs->Length; ++i, ++at)
 			{
@@ -293,15 +327,13 @@ namespace AsioWrapper
 				at->buffers[1] = NULL;
 			}
 
-			Check(m_asio->createBuffers(infos, Inputs->Length + Outputs->Length, Size, &RouterCallbacks));
+			Check(m_asio->createBuffers(&infos[0], Inputs->Length + Outputs->Length, Size, &RouterCallbacks));
 			
 			at = &infos[0];
 			for (int i = 0; i < Inputs->Length; ++i, ++at)
-				Inputs[i]->SetBuffers(gcnew array<void *> { at->buffers[0], at->buffers[1] });
+				Inputs[i]->SetBuffers(gcnew array<void *> { at->buffers[0], at->buffers[1] }, Size);
 			for (int i = 0; i < Outputs->Length; ++i, ++at)
-				Outputs[i]->SetBuffers(gcnew array<void *> { at->buffers[0], at->buffers[1] });
-
-			delete[] infos;
+				Outputs[i]->SetBuffers(gcnew array<void *> { at->buffers[0], at->buffers[1] }, Size);
 		}
 		void DisposeBuffers() 
 		{ 
@@ -329,10 +361,7 @@ namespace AsioWrapper
 	};
 }
 
-void BufferSwitchRouter(long Index, ASIOBool Direct) 
-{ 
-	AsioWrapper::Asio::OnBufferSwitch(Index, Direct != ASIOFalse); 
-}
+void BufferSwitchRouter(long Index, ASIOBool Direct) { AsioWrapper::Asio::OnBufferSwitch(Index, Direct != ASIOFalse); }
 void SampleRateChangeRouter(double SampleRate) { AsioWrapper::Asio::OnSampleRateChange(SampleRate); }
-//long MessageRouter(long selector, long value, void* message, double* opt) { }
-//ASIOTime* BufferSwitchTimeInfoRouter(ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess) { }
+long MessageRouter(long selector, long value, void* message, double* opt) { return AsioWrapper::Asio::OnMessage(selector, value, message, opt); }
+ASIOTime* BufferSwitchTimeInfoRouter(ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess) { return AsioWrapper::Asio::OnBufferSwitchTimeInfo(params, doubleBufferIndex, directProcess); }

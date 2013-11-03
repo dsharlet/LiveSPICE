@@ -9,11 +9,6 @@ namespace Asio
 {
     public class Driver : Audio.Driver
     {
-        static Driver()
-        {
-            drivers.Add(new Driver());
-        }
-
         public override string Name
         {
             get { return "ASIO"; }

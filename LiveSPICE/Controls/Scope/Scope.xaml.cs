@@ -67,6 +67,11 @@ namespace LiveSPICE
             Display.ProcessSignals(SampleCount, Signals, SampleRate);
         }
 
+        public void ClearSignals()
+        {
+            Display.ClearSignals();
+        }
+
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {

@@ -21,19 +21,6 @@ namespace LiveSPICE
     /// </summary>
     public partial class AudioStream : UserControl, INotifyPropertyChanged
     {
-        protected double latency = 50.0;//App.Current.Settings.Latency;
-        public double Latency
-        {
-            get { return latency; }
-            set 
-            {
-                latency = value;
-                App.Current.Settings.Latency = value;
-                OpenStream(); 
-                NotifyChanged("Latency"); 
-            }
-        }
-
         private Audio.Driver driver;
         public Audio.Driver Driver
         {
@@ -74,10 +61,18 @@ namespace LiveSPICE
                     foreach (Audio.Channel i in device.InputChannels)
                         inputs.Items.Add(new ComboBoxItem() { Content = i.Name, Tag = i });
                     foreach (Audio.Channel i in device.OutputChannels)
-                        outputs.Items.Add(new ComboBoxItem() { Content = i.Name, Tag = i });
+                        outputs.Items.Add(new ListBoxItem() { Content = i.Name, Tag = i });
 
                     Input = device.InputChannels.FindOrDefault(i => i.Name == App.Current.Settings.AudioInput, device.InputChannels.FirstOrDefault());
-                    Output = device.OutputChannels.FindOrDefault(i => i.Name == App.Current.Settings.AudioOutput, device.OutputChannels.FirstOrDefault());
+                    List<ListBoxItem> selected = new List<ListBoxItem>();
+                    foreach (ListBoxItem i in outputs.Items)
+                    {
+                        if (App.Current.Settings.AudioOutput.Contains(i.Content))
+                            selected.Add(i);
+                    }
+                    outputs.SelectedItems.Clear();
+                    foreach (ListBoxItem i in selected)
+                        outputs.SelectedItems.Add(i);
                 }
 
                 NotifyChanged("Device"); 
@@ -100,21 +95,8 @@ namespace LiveSPICE
             }
         }
 
-        private Audio.Channel output;
-        public Audio.Channel Output
-        {
-            get { return output; }
-            set
-            {
-                output = value;
-                if (output != null)
-                {
-                    App.Current.Settings.AudioOutput = output.Name;
-                    OpenStream();
-                }
-                NotifyChanged("Output"); 
-            }
-        }
+        public Audio.Channel[] Inputs { get { return new [] { input }; } }
+        public Audio.Channel[] Outputs { get { return outputs.SelectedItems.Cast<ListBoxItem>().Select(i => i.Tag).Cast<Audio.Channel>().ToArray(); } }
 
         private double inputGain = App.Current.Settings.InputGain;
         public int InputGain 
@@ -140,9 +122,13 @@ namespace LiveSPICE
             }
         }
 
-        public Audio.Stream.SampleHandler Callback = null;
+
+        public delegate void SampleHandler(Audio.SampleBuffer In, Audio.SampleBuffer Out, double SampleRate);
+
+        public SampleHandler Callback = null;
 
         private Audio.Stream stream = null;
+        public Audio.Stream Stream { get { return stream; } }
 
         public AudioStream()
         {
@@ -156,15 +142,15 @@ namespace LiveSPICE
             Stop();
             try
             {
-                if (Device != null && Input != null && Output != null)
+                if (Device != null && Input != null)
                 {
-                    stream = Device.Open(SampleCallback, Input, Output, Latency / 1000.0);
+                    stream = Device.Open(SampleCallback, Inputs, Outputs);
 
                     Settings settings = App.Current.Settings;
                     settings.AudioDriver = Driver.Name;
                     settings.AudioDevice = Device.Name;
                     settings.AudioInput = Input.Name;
-                    settings.AudioOutput = Output.Name;
+                    settings.AudioOutput = Outputs.Select(i => i.Name).ToArray();
                 }
             }
             catch (System.Exception Ex)
@@ -180,33 +166,53 @@ namespace LiveSPICE
             stream = null;
         }
 
-        private void SampleCallback(Audio.SampleBuffer In, Audio.SampleBuffer Out, double SampleRate)
+        private void SampleCallback(Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double SampleRate)
         {
             // Apply input gain.
             double peak = 0.0;
-            for (int i = 0; i < In.Count; ++i)
+
+            using (Audio.SamplesLock samples = new Audio.SamplesLock(In[0], true, true))
             {
-                double v = In[i];
-                peak = Math.Max(peak, Math.Abs(v));
-                v *= inputGain;
-                In[i] = v;
+                for (int i = 0; i < samples.Count; ++i)
+                {
+                    double v = samples[i];
+                    peak = Math.Max(peak, Math.Abs(v));
+                    v *= inputGain;
+                    samples[i] = v;
+                }
             }
             Dispatcher.InvokeAsync(() => inputLevel.Background = StatusBrush(peak));
 
             // Call the callback.
             if (Callback != null)
-                Callback(In, Out, SampleRate);
+                Callback(In[0], Out.Any() ? Out[0] : null, SampleRate);
 
             // Apply output gain.
-            peak = 0.0;
-            for (int i = 0; i < Out.Count; ++i)
+            if (Out.Any())
             {
-                double v = Out[i];
-                v *= outputGain;
-                peak = Math.Max(peak, Math.Abs(v));
-                Out[i] = v;
+                peak = 0.0;
+
+                using (Audio.SamplesLock samples = new Audio.SamplesLock(Out[0], true, true))
+                {
+                    for (int i = 0; i < samples.Count; ++i)
+                    {
+                        double v = samples[i];
+                        v *= outputGain;
+                        peak = Math.Max(peak, Math.Abs(v));
+                        samples[i] = v;
+                    }
+                }
+                Dispatcher.InvokeAsync(() => outputLevel.Background = StatusBrush(peak));
+
+                Out[0].SyncRaw();
+                for (int i = 1; i < Out.Length; ++i)
+                    Out[i].Copy(Out[0]);
             }
-            Dispatcher.InvokeAsync(() => outputLevel.Background = StatusBrush(peak));
+        }
+
+        private void OutputsChanged(object sender, EventArgs e)
+        {
+            OpenStream();
         }
 
         private static Brush StatusBrush(double peak)
@@ -222,10 +228,18 @@ namespace LiveSPICE
 
         private void RefreshDrivers()
         {
+            new Asio.Driver();
             drivers.Items.Clear();
             foreach (Audio.Driver i in Audio.Driver.Drivers)
                 drivers.Items.Add(new ComboBoxItem() { Content = i.Name, Tag = i });
             Driver = Audio.Driver.Drivers.FindOrDefault(i => i.Name == App.Current.Settings.AudioDriver, Audio.Driver.Drivers.FirstOrDefault());
+        }
+
+        private void ShowControlPanel(object sender, EventArgs e)
+        {
+            Audio.Device d = Device;
+            if (d != null)
+                d.ShowControlPanel();
         }
         
         // INotifyPropertyChanged.

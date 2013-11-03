@@ -39,14 +39,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SampleBuffer.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="Driver.cs" />
+    <Compile Include="SampleBuffer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Stream.cs" />
     <Compile Include="Util.cs" />
+    <Compile Include="Wave\WaveIn.cs" />
+    <Compile Include="Wave\WaveOut.cs" />
+    <Compile Include="Wave\WaveBuffer.cs" />
+    <Compile Include="Wave\WaveInBuffer.cs" />
     <Compile Include="Wave\Winmm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Wave\WaveBuffer.cs" />
+    <Compile Include="Wave\WaveOutBuffer.cs" />
     <Compile Include="Wave\WaveDevice.cs" />
     <Compile Include="Wave\WaveDriver.cs" />
     <Compile Include="Wave\WaveStream.cs" />

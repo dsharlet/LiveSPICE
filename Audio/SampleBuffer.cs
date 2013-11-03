@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,104 +17,211 @@ namespace Audio
     };
 
     /// <summary>
-    /// Sample buffer object, provides lazy conversion between native pointers and double[].
+    /// This object provides lazy conversion between raw sample buffers and double[].
+    /// The SampleBuffer object maintains an internal state to indicate whether the raw buffer or 
+    /// sample array are valid. Neither or both can be valid simultaneously.
     /// </summary>
-    public class SampleBuffer : IDisposable
+    public class SampleBuffer
     {
-        private IntPtr buffer;
+        private IntPtr raw;
         private int count;
         private SampleType type;
+        private bool rawValid = false;
+
         private double[] samples;
+        private bool samplesValid = false;
 
-        private bool samplesValid;
-        
-        public void ToBuffer()
-        {
-            if (!samplesValid)
-                return;
-            
-            switch (type)
-            {
-                case SampleType.i16: Util.LEf64ToLEi16(samples, buffer, count); break;
-                case SampleType.i32: Util.LEf64ToLEi32(samples, buffer, count); break;
-                case SampleType.f32: Util.LEf64ToLEf32(samples, buffer, count); break;
-                case SampleType.f64: Marshal.Copy(samples, 0, buffer, count); break;
-                default: throw new NotImplementedException("Unsupported sample type.");
-            }
-            samplesValid = false;
-        }
+        private bool locked = false;
 
-        public void ToSamples()
-        {
-            if (samplesValid)
-                return;
-
-            if (samples == null)
-                samples = new double[count];
-
-            switch (type)
-            {
-                case SampleType.i16: Util.LEi16ToLEf64(buffer, samples, count); break;
-                case SampleType.i32: Util.LEi32ToLEf64(buffer, samples, count); break;
-                case SampleType.f32: Util.LEf32ToLEf64(buffer, samples, count); break;
-                case SampleType.f64: Marshal.Copy(buffer, samples, 0, count); break;
-                default: throw new NotImplementedException("Unsupported sample type.");
-            }
-            samplesValid = true;
-        }
-
-        public IntPtr Buffer { get { ToBuffer(); return buffer; } }
-        public int Size { get { return count * SampleSize(type); } }
+        /// <summary>
+        /// Type of samples contained in this buffer.
+        /// </summary>
         public SampleType Type { get { return type; } }
+        /// <summary>
+        /// Number of samples contained in this buffer.
+        /// </summary>
         public int Count { get { return count; } }
-        public double[] Samples { get { ToSamples(); return samples; } }
 
-        public double this[int i] { get { return Samples[i]; } set { Samples[i] = value; } }
+        private object tag = null;
+        /// <summary>
+        /// User defined tag object.
+        /// </summary>
+        public object Tag { get { return tag; } set { tag = value; } }
 
-        public SampleBuffer(IntPtr Buffer, SampleType Type, int Count)
+        private SampleBuffer(IntPtr Raw, SampleType Type, int Count)
         {
             count = Count;
             type = Type;
-            buffer = Buffer;
-            samplesValid = false;
+            raw = Raw;
         }
-        public SampleBuffer(IntPtr Buffer, SampleType Type, double[] Samples)
+
+        private SampleBuffer(IntPtr Raw, SampleType Type, double[] Samples)
+            : this(Raw, Type, Samples.Length)
         {
-            count = Samples.Length;
-            type = Type;
-            buffer = Buffer;
             samples = Samples;
+        }
+
+        /// <summary>
+        /// Create a new buffer for an input buffer. The raw buffer is marked valid.
+        /// </summary>
+        /// <param name="Buffer"></param>
+        /// <param name="Type"></param>
+        /// <param name="Samples"></param>
+        /// <returns></returns>
+        public static SampleBuffer NewInputBuffer(IntPtr Raw, SampleType Type, double[] Samples)
+        {
+            return new SampleBuffer(Raw, Type, Samples) { rawValid = true };
+        }
+
+        /// <summary>
+        /// Create a new buffer for an output buffer. Neither buffer nor array is marked valid.
+        /// </summary>
+        /// <param name="Buffer"></param>
+        /// <param name="Type"></param>
+        /// <param name="Samples"></param>
+        /// <returns></returns>
+        public static SampleBuffer NewOutputBuffer(IntPtr Buffer, SampleType Type, double[] Samples)
+        {
+            return new SampleBuffer(Buffer, Type, Samples);
+        }
+
+        /// <summary>
+        /// Lock the sample array.
+        /// </summary>
+        /// <param name="Read">True if the sample array will be read from.</param>
+        /// <param name="Write">True if the sample array will be written to.</param>
+        /// <returns>The sample array.</returns>
+        public double[] LockSamples(bool Read, bool Write)
+        {
+            if (locked)
+                throw new InvalidOperationException("SampleBuffer is already locked.");
+
+            if (Read)
+                SyncSamples();
+            if (Write)
+                rawValid = false;
+            locked = true;
+            return samples;
+        }
+
+        /// <summary>
+        /// Lock the raw buffer.
+        /// </summary>
+        /// <param name="Buffer"></param>
+        /// <param name="Read">True if the raw buffer will be read from.</param>
+        /// <param name="Write">True if the raw buffer will be written to.</param>
+        public IntPtr LockRaw(bool Read, bool Write)
+        {
+            if (locked)
+                throw new InvalidOperationException("SampleBuffer is already locked.");
+
+            if (Read)
+                SyncRaw();
+            if (Write)
+                samplesValid = false;
+            locked = true;
+            return raw;
+        }
+
+        /// <summary>
+        /// Unlock the buffer.
+        /// </summary>
+        public void Unlock()
+        {
+            if (!locked)
+                throw new InvalidOperationException("SampleBuffer is not locked.");
+
+            locked = false;
+        }
+
+        /// <summary>
+        /// Update the raw buffer.
+        /// </summary>
+        public void SyncRaw()
+        {
+            if (samplesValid)
+                Util.LEf64ToSamples(samples, raw, type);
+            rawValid = true;
+        }
+
+        /// <summary>
+        /// Update the sample array.
+        /// </summary>
+        public void SyncSamples()
+        {
+            if (rawValid)
+                Util.SamplesToLEf64(raw, type, samples);
+            samplesValid = true;
+        }
+
+        /// <summary>
+        /// Set this buffer to have the zero signal.
+        /// </summary>
+        public void Clear()
+        {
+            Util.ZeroSamples(raw, type, count);
             samplesValid = false;
+            rawValid = true;
         }
-        ~SampleBuffer() { Dispose(false); }
 
-        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
-        
-        private bool disposed = false;
-        private void Dispose(bool Disposing)
+        /// <summary>
+        /// Copy samples from another SampleBuffer.
+        /// </summary>
+        /// <param name="From"></param>
+        public void Copy(SampleBuffer From)
         {
-            if (disposed) return;
-
-            if (buffer != IntPtr.Zero)
-                Marshal.FreeHGlobal(buffer);
-            buffer = IntPtr.Zero;
-
-            disposed = true;
+            IntPtr a = From.LockRaw(true, false);
+            IntPtr b = LockRaw(false, true);
+            Util.CopySamples(a, From.Type, b, type, Count);
+            Unlock();
+            From.Unlock();
         }
+    }
 
-        public static implicit operator double[](SampleBuffer x) { return x.Samples; }
-        public static implicit operator IntPtr(SampleBuffer x) { return x.Buffer; }
+    public class RawLock : IDisposable
+    {
+        private IntPtr raw;
+        private SampleBuffer target;
 
-        private static int SampleSize(SampleType Type)
+        public RawLock(SampleBuffer Target, bool Read, bool Write)
         {
-            switch (Type)
-            {
-                case SampleType.i16: return 2;
-                case SampleType.i32: return 4;
-                case SampleType.f32: return 4;
-                case SampleType.f64: return 8;
-                default: throw new NotImplementedException("Unsupported sample type.");
-            }
+            target = Target;
+            raw = Target.LockRaw(Read, Write);
         }
+
+        ~RawLock() { Unlock(); }
+
+        private void Unlock() { if (raw != IntPtr.Zero) Unlock(); raw = IntPtr.Zero; }
+
+        public void Dispose() { Unlock(); }
+
+        public int Count { get { return target.Count; } }
+        public SampleType Type { get { return target.Type; } }
+
+        public static implicit operator IntPtr(RawLock Lock) { return Lock.raw; }
+    }
+
+    public class SamplesLock : IDisposable
+    {
+        private double[] samples;
+        private SampleBuffer target;
+
+        public SamplesLock(SampleBuffer Target, bool Read, bool Write)
+        {
+            target = Target;
+            samples = Target.LockSamples(Read, Write);
+        }
+
+        ~SamplesLock() { Unlock(); }
+
+        private void Unlock() { if (samples != null) target.Unlock(); samples = null; }
+
+        public void Dispose() { Unlock(); }
+
+        public int Count { get { return samples.Length; } }
+
+        public double this[int i] { get { return samples[i]; } set { samples[i] = value; } }
+
+        public static implicit operator double[](SamplesLock Lock) { return Lock.samples; }
     }
 }

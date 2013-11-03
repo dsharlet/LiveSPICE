@@ -26,7 +26,7 @@ namespace Audio
 
         protected Device(string Name) { name = Name; }
 
-        public abstract Stream Open(Stream.SampleHandler Callback, Channel Input, Channel Output, double Latency);
+        public abstract Stream Open(Stream.SampleHandler Callback, Channel[] Input, Channel[] Output);
 
         public virtual void ShowControlPanel() { }
     }
