@@ -99,7 +99,10 @@ namespace Audio
             if (Read)
                 SyncSamples();
             if (Write)
+            {
+                samplesValid = true;
                 rawValid = false;
+            }
             locked = true;
             return samples;
         }
@@ -118,7 +121,10 @@ namespace Audio
             if (Read)
                 SyncRaw();
             if (Write)
+            {
+                rawValid = true;
                 samplesValid = false;
+            }
             locked = true;
             return raw;
         }
