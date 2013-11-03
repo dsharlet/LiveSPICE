@@ -153,6 +153,10 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Scope\SignalsDisplay.cs" />
+    <Page Include="Themes\Theme.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\AudioConfig.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -6,7 +6,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ls="clr-namespace:LiveSPICE"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" Background="{StaticResource ResourceKey=Background}">
+             d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
         <ToolBar Height="28" DockPanel.Dock="Top">
             <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />

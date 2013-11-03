@@ -5,11 +5,8 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="LiveSPICE" Width="1200" Height="800" Background="{StaticResource ResourceKey=Background}"
-        Closing="OnClosing" Loaded="OnLoaded" >
-    <Window.Resources>
-        <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
-    </Window.Resources>
+        Title="LiveSPICE" Width="1200" Height="800"
+        Closing="OnClosing" Loaded="OnLoaded" Style="{StaticResource ResourceKey=Window}">
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="New_Executed" />
         <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed" />
@@ -33,7 +30,7 @@
         </Grid.RowDefinitions>
                 
         <!-- Menu -->
-        <Menu Grid.Row="1" Background="{StaticResource ResourceKey=Background}">
+        <Menu Grid.Row="1">
             <MenuItem Header="_File">
                 <MenuItem Command="ApplicationCommands.New" />
                 <MenuItem Command="ApplicationCommands.Open" />
@@ -66,7 +63,7 @@
         </Menu>
 
         <!-- Toolbars -->
-        <ToolBarTray Grid.Row="2" Background="{StaticResource ResourceKey=Background}">
+        <ToolBarTray Grid.Row="2">
             <!-- File/Edit -->
             <ToolBar Band="1" BandIndex="1" >
                 <Button Command="ApplicationCommands.New" Content="New" />
@@ -97,7 +94,7 @@
             </ToolBar>
         </ToolBarTray>
 
-        <xcad:DockingManager x:Name="dock" Grid.Row="3" AllowMixedOrientation="True" Margin="0, 0, 0, 0" Background="DarkGray">
+        <xcad:DockingManager x:Name="dock" Grid.Row="3" AllowMixedOrientation="True" Margin="0, 0, 0, 0">
             <xcad:DockingManager.DocumentHeaderTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -131,7 +128,7 @@
             </xcad:LayoutRoot>
         </xcad:DockingManager>
 
-        <StatusBar Grid.Row="4" Background="{StaticResource ResourceKey=Background}">
+        <StatusBar Grid.Row="4">
             <StatusBarItem>
                 <TextBlock Text="{Binding ElementName=_this, Path=Status}" />
             </StatusBarItem>

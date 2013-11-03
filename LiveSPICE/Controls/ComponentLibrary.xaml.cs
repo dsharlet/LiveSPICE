@@ -101,6 +101,7 @@ namespace LiveSPICE
                     Tag = T, 
                     ToolTip = GetDisplayName(T), 
                     Content = content,
+                    BorderBrush = null,
                 };
                 button.Click += OnClick;
                 

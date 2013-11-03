@@ -3,6 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <SolidColorBrush x:Key="Background" Color="#FFF0F0F0" />        
+        <ResourceDictionary Source="Themes\Theme.xaml" />
     </Application.Resources>
 </Application>

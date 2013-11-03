@@ -3,18 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ls="clr-namespace:LiveSPICE"
         Title="Audio Configuration" Height="500" Width="300" 
-        Topmost="True" WindowStartupLocation="CenterOwner" 
-        Background="{StaticResource ResourceKey=Background}">
-    <Window.Resources>
-        <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button">
-            <Setter Property="BorderBrush" Value="DarkGray" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-        <Style BasedOn="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}" TargetType="ToggleButton">
-            <Setter Property="BorderBrush" Value="DarkGray" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-    </Window.Resources>
+        Topmost="True" WindowStartupLocation="CenterOwner"
+         Style="{StaticResource ResourceKey=Window}">
     <DockPanel LastChildFill="True">
         <Grid Margin="4" DockPanel.Dock="Top">
             <Grid.ColumnDefinitions>

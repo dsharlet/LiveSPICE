@@ -5,11 +5,8 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="Live Simulation" Width="1000" Height="800" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
-    <Window.Resources>
-        <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
-        <Style BasedOn="{StaticResource {x:Static ToolBar.ComboBoxStyleKey}}" TargetType="ComboBox"></Style>
-    </Window.Resources>
+        Title="Live Simulation" Width="1000" Height="800" 
+        WindowStartupLocation="CenterOwner" Style="{StaticResource ResourceKey=Window}">
     <Window.CommandBindings>
         <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" />
 
@@ -25,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <!-- Menu -->
-        <Menu Grid.Row="1" Background="{StaticResource ResourceKey=Background}">
+        <Menu Grid.Row="1">
             <MenuItem Header="_File">
                 <MenuItem Command="{x:Static ls:CustomCommands.Exit}" />
             </MenuItem>
@@ -40,7 +37,7 @@
         </Menu>
 
         <!-- Toolbars -->
-        <ToolBarTray Grid.Row="2" Background="{StaticResource ResourceKey=Background}">
+        <ToolBarTray Grid.Row="2">
             <ToolBar Band="1" BandIndex="1">
                 <TextBlock Text="Oversample: " HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Oversample}" />
@@ -133,7 +130,7 @@
             </xcad:LayoutRoot>
         </xcad:DockingManager>
 
-        <StatusBar Grid.Row="4" Background="{StaticResource ResourceKey=Background}">
+        <StatusBar Grid.Row="4">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
