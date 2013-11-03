@@ -100,12 +100,6 @@ namespace LiveSPICE
             MouseDown += (o, e) => { Focus(); InvalidateVisual(); };
         }
         
-        public void Clear()
-        {
-            signals.Clear();
-            InvalidateVisual();
-        }
-        
         protected override void OnRender(DrawingContext DC)
         {
             DC.DrawRectangle(BorderBrush, null, new Rect(0, 0, ActualWidth, ActualHeight));

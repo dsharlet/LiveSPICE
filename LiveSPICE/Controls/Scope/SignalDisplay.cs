@@ -68,10 +68,16 @@ namespace LiveSPICE
             }
             set { selected = value; NotifyChanged("SelectedSignal"); } 
         }
-        
+
         public SignalDisplay()
         {
             Signals = new SignalGroup();
+        }
+
+        public void Clear()
+        {
+            signals.Clear();
+            InvalidateVisual();
         }
 
         // INotifyPropertyChanged interface.
