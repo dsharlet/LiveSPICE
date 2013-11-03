@@ -1,11 +1,13 @@
 ﻿<Window x:Class="LiveSPICE.ClosingDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LiveSPICE" Height="300" Width="300" Topmost="True" WindowStartupLocation="CenterOwner">
+        Title="LiveSPICE" Height="300" Width="300" 
+        Topmost="True" WindowStartupLocation="CenterOwner"
+        Background="{StaticResource ResourceKey=Background}">
     <Window.Resources>
         <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
     </Window.Resources>
-    <Grid Background="{StaticResource ResourceKey=Background}">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="32" />
             <RowDefinition Height="*" />
