@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F53399E8-B038-4111-B89D-F5C4AB0CCB14}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{A9EA4174-EF3B-4229-B304-7BF34F7B4A06}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Audio</RootNamespace>
-    <AssemblyName>Audio</AssemblyName>
+    <RootNamespace>AsioTests</RootNamespace>
+    <AssemblyName>AsioTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -39,14 +41,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Device.cs" />
-    <Compile Include="Driver.cs" />
-    <Compile Include="SampleBuffer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Stream.cs" />
-    <Compile Include="Util.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Asio\Asio.csproj">
+      <Project>{cf21310e-204b-4e9d-a6de-ad511b3f3013}</Project>
+      <Name>Asio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Audio\Audio.csproj">
+      <Project>{f53399e8-b038-4111-b89d-f5c4ab0ccb14}</Project>
+      <Name>Audio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Circuit\Circuit.csproj">
+      <Project>{5e788e8b-995b-4b54-b3a9-040d65d5509a}</Project>
+      <Name>Circuit</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SyMath\SyMath.csproj">
+      <Project>{2877c441-fd0b-4441-a469-e677003ee35a}</Project>
+      <Name>SyMath</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

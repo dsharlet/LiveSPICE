@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace Audio
+namespace WaveAudio
 {
-    class WaveChannel : Channel
+    class Channel : Audio.Channel
     {
         private int device;
         public int Device { get { return device; } }
@@ -15,7 +15,7 @@ namespace Audio
         private string name;
         public override string Name { get { return name; } }
 
-        public WaveChannel(string Name, int Device) { name = Name; device = Device; }
+        public Channel(string Name, int Device) { name = Name; device = Device; }
 
         public override string ToString()
         {
@@ -23,37 +23,37 @@ namespace Audio
         }
     }
 
-    class WaveDevice : Device
+    class Device : Audio.Device
     {
-        public WaveDevice() : base("Windows Audio")
+        public Device() : base("Windows Audio")
         {
-            List<WaveChannel> channels = new List<WaveChannel>();
+            List<Channel> channels = new List<Channel>();
             int count = Winmm.waveOutGetNumDevs();
             for (int i = 0; i < count; ++i)
             {
                 WAVEOUTCAPS caps = new WAVEOUTCAPS();
                 MmException.CheckThrow(Winmm.waveOutGetDevCaps(new IntPtr(i), ref caps, (uint)Marshal.SizeOf(caps)));
-                channels.Add(new WaveChannel(caps.szPname, i));
+                channels.Add(new Channel(caps.szPname, i));
             }
             outputs = channels.ToArray();
 
-            channels = new List<WaveChannel>();
+            channels = new List<Channel>();
             count = Winmm.waveInGetNumDevs();
             for (int i = 0; i < count; ++i)
             {
                 WAVEINCAPS caps = new WAVEINCAPS();
                 MmException.CheckThrow(Winmm.waveInGetDevCaps(new IntPtr(i), ref caps, (uint)Marshal.SizeOf(caps)));
-                channels.Add(new WaveChannel(caps.szPname, i));
+                channels.Add(new Channel(caps.szPname, i));
             }
             inputs = channels.ToArray();
         }
 
-        public override Stream Open(Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
+        public override Audio.Stream Open(Audio.Stream.SampleHandler Callback, Audio.Channel[] Input, Audio.Channel[] Output)
         {
-            return new WaveStream(
+            return new Stream(
                 Callback,
-                Input.Cast<WaveChannel>().ToArray(),
-                Output.Cast<WaveChannel>().ToArray(),
+                Input.Cast<Channel>().ToArray(),
+                Output.Cast<Channel>().ToArray(),
                 0.05);
         }
     }

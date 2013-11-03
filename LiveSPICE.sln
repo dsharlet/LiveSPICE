@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asio", "Asio\Asio.csproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AsioWrapper", "AsioWrapper\AsioWrapper.vcxproj", "{670EF0BE-D0D8-424A-94F3-B1E485E48613}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveAudio", "WaveAudio\WaveAudio.csproj", "{8190C5B2-71F3-4074-8FB8-3E53E7B28675}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +165,18 @@ Global
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Release|Win32.Build.0 = Release|Win32
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Release|x86.ActiveCfg = Release|Win32
 		{670EF0BE-D0D8-424A-94F3-B1E485E48613}.Release|x86.Build.0 = Release|Win32
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|Win32.ActiveCfg = Release|Any CPU
+		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

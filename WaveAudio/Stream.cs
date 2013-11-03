@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Audio
+namespace WaveAudio
 {
-    class WaveStream : Stream
+    class Stream : Audio.Stream
     {                     
         private SampleHandler callback;
         private WAVEFORMATEX format;
@@ -23,7 +23,7 @@ namespace Audio
 
         private int buffer;
 
-        public WaveStream(SampleHandler SampleCallback, WaveChannel[] Input, WaveChannel[] Output, double Latency) : base(Input, Output)
+        public Stream(SampleHandler SampleCallback, Channel[] Input, Channel[] Output, double Latency) : base(Input, Output)
         {
             callback = SampleCallback;
 
@@ -62,23 +62,23 @@ namespace Audio
                 //    continue;
 
                 // Read from the inputs.
-                SampleBuffer[] input = new SampleBuffer[waveIn.Length];
+                Audio.SampleBuffer[] input = new Audio.SampleBuffer[waveIn.Length];
                 for (int i = 0; i < waveIn.Length; ++i)
                 {
-                    WaveInBuffer b = waveIn[i].GetBuffer();
+                    InBuffer b = waveIn[i].GetBuffer();
                     if (b == null)
                         return;
-                    using (RawLock l = new RawLock(b.Samples, false, true))
+                    using (Audio.RawLock l = new Audio.RawLock(b.Samples, false, true))
                         ConvertSamples(b.Data, format, l, l.Count);
                     b.Record();
                     input[i] = b.Samples;
                 }
 
                 // Get an available buffer from the outputs.
-                SampleBuffer[] output = new SampleBuffer[waveOut.Length];
+                Audio.SampleBuffer[] output = new Audio.SampleBuffer[waveOut.Length];
                 for (int i = 0; i < waveOut.Length; ++i)
                 {
-                    WaveOutBuffer b = waveOut[i].GetBuffer();
+                    OutBuffer b = waveOut[i].GetBuffer();
                     if (b == null)
                         return;
                     output[i] = b.Samples;
@@ -90,8 +90,8 @@ namespace Audio
                 // Play the results.
                 for (int i = 0; i < output.Length; ++i)
                 {
-                    WaveOutBuffer b = (WaveOutBuffer)output[i].Tag;
-                    using (RawLock l = new RawLock(b.Samples, true, false))
+                    OutBuffer b = (OutBuffer)output[i].Tag;
+                    using (Audio.RawLock l = new Audio.RawLock(b.Samples, true, false))
                         ConvertSamples(l, b.Data, format, l.Count);
                     b.Play();
                 }
@@ -102,8 +102,8 @@ namespace Audio
         {
             switch (Format.wBitsPerSample)
             {
-                case 16: Util.LEi16ToLEf64(In, Out, Count); break;
-                case 32: Util.LEi32ToLEf64(In, Out, Count); break;
+                case 16: Audio.Util.LEi16ToLEf64(In, Out, Count); break;
+                case 32: Audio.Util.LEi32ToLEf64(In, Out, Count); break;
                 default: throw new NotImplementedException("Unsupported sample type.");
             }
         }
@@ -112,8 +112,8 @@ namespace Audio
         {
             switch (Format.wBitsPerSample)
             {
-                case 16: Util.LEf64ToLEi16(In, Out, Count); break;
-                case 32: Util.LEf64ToLEi32(In, Out, Count); break;
+                case 16: Audio.Util.LEf64ToLEi16(In, Out, Count); break;
+                case 32: Audio.Util.LEf64ToLEi32(In, Out, Count); break;
                 default: throw new NotImplementedException("Unsupported sample type.");
             }
         }

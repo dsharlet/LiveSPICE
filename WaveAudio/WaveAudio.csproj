@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F53399E8-B038-4111-B89D-F5C4AB0CCB14}</ProjectGuid>
+    <ProjectGuid>{8190C5B2-71F3-4074-8FB8-3E53E7B28675}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Audio</RootNamespace>
-    <AssemblyName>Audio</AssemblyName>
+    <RootNamespace>WaveAudio</RootNamespace>
+    <AssemblyName>WaveAudio</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -39,14 +39,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="WaveIn.cs" />
+    <Compile Include="WaveOut.cs" />
+    <Compile Include="Buffer.cs" />
+    <Compile Include="InBuffer.cs" />
+    <Compile Include="Winmm.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="OutBuffer.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="Driver.cs" />
-    <Compile Include="SampleBuffer.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Stream.cs" />
-    <Compile Include="Util.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Audio\Audio.csproj">
+      <Project>{f53399e8-b038-4111-b89d-f5c4ab0ccb14}</Project>
+      <Name>Audio</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

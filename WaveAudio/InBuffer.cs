@@ -5,23 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace Audio
+namespace WaveAudio
 {
     /// <summary>
     /// Helper to manage the memory associated with a WAVEHDR.
     /// </summary>
-    class WaveInBuffer : WaveBuffer
+    class InBuffer : Buffer
     {
         private IntPtr waveIn;
         
-        public WaveInBuffer(IntPtr WaveIn, WAVEFORMATEX Format, int Count) : base(Format, Count)
+        public InBuffer(IntPtr WaveIn, WAVEFORMATEX Format, int Count) : base(Format, Count)
         {
             waveIn = WaveIn;
 
             MmException.CheckThrow(Winmm.waveInPrepareHeader(waveIn, ref header, Marshal.SizeOf(header)));
         }
 
-        ~WaveInBuffer() { Dispose(false); }
+        ~InBuffer() { Dispose(false); }
 
         public override void Dispose(bool Disposing)
         {

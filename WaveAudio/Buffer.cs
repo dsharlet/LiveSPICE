@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace Audio
+namespace WaveAudio
 {
     /// <summary>
     /// Helper to manage the memory associated with a WAVEHDR.
     /// </summary>
-    class WaveBuffer : IDisposable
+    class Buffer : IDisposable
     {
         protected GCHandle handle;
         protected WAVEHDR header;
@@ -24,15 +24,15 @@ namespace Audio
 
         public bool Done { get { return (header.dwFlags & WaveHdrFlags.WHDR_DONE) != 0; } }
 
-        private SampleBuffer samples;
-        public SampleBuffer Samples { get { return samples; } }
+        private Audio.SampleBuffer samples;
+        public Audio.SampleBuffer Samples { get { return samples; } }
         
-        public WaveBuffer(WAVEFORMATEX Format, int Count)
+        public Buffer(WAVEFORMATEX Format, int Count)
         {
             handle = GCHandle.Alloc(this);
 
             size = BlockAlignedSize(Format, Count);
-            samples = new SampleBuffer(Count) { Tag = this };
+            samples = new Audio.SampleBuffer(Count) { Tag = this };
 
             header = new WAVEHDR();
             header.lpData = Marshal.AllocHGlobal(size);
@@ -42,7 +42,7 @@ namespace Audio
             pin = GCHandle.Alloc(header, GCHandleType.Pinned);
         }
 
-        ~WaveBuffer() { Dispose(false); }
+        ~Buffer() { Dispose(false); }
 
         public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
 

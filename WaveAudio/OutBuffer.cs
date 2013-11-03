@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace Audio
+namespace WaveAudio
 {
     /// <summary>
     /// Helper to manage the memory associated with a WAVEHDR.
     /// </summary>
-    class WaveOutBuffer : WaveBuffer
+    class OutBuffer : Buffer
     {
         private IntPtr waveOut;
         
-        public WaveOutBuffer(IntPtr WaveOut, WAVEFORMATEX Format, int Count) : base(Format, Count)
+        public OutBuffer(IntPtr WaveOut, WAVEFORMATEX Format, int Count) : base(Format, Count)
         {
             waveOut = WaveOut;
 
@@ -22,7 +22,7 @@ namespace Audio
             header.dwFlags |= WaveHdrFlags.WHDR_DONE;
         }
 
-        ~WaveOutBuffer() { Dispose(false); }
+        ~OutBuffer() { Dispose(false); }
 
         public override void Dispose(bool Disposing)
         {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Audio
+namespace WaveAudio
 {
     public enum MMRESULT : uint
     {

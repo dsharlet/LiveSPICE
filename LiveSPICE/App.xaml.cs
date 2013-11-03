@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +30,8 @@ namespace LiveSPICE
 
             base.OnStartup(e);
             EventManager.RegisterClassHandler(typeof(TextBox), TextBox.KeyDownEvent, new KeyEventHandler(TextBox_KeyDown));
+
+            LoadAssemblies();
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -45,6 +49,19 @@ namespace LiveSPICE
                 be.UpdateSource();
 
                 Window.GetWindow(textbox).Focus();
+            }
+        }
+
+        public static void LoadAssemblies()
+        {
+            foreach (string dll in Directory.GetFiles(System.AppDomain.CurrentDomain.BaseDirectory, "*.dll"))
+            {
+                try
+                {
+                    Assembly.LoadFile(dll);
+                }
+                catch (FileLoadException) { } 
+                catch (BadImageFormatException) { }
             }
         }
     }

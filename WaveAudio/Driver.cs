@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Audio
+namespace WaveAudio
 {
-    class WaveDriver : Driver
+    class Driver : Audio.Driver
     {
-        public WaveDriver()
+        public Driver()
         {
-            devices = new List<Device>() { new WaveDevice() };
+            devices = new List<Audio.Device>() { new Device() };
         }
 
         public override string Name

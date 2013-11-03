@@ -8,29 +8,35 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Audio
+namespace WaveAudio
 {
-    class WaveOut : IDisposable
+    class WaveIn : IDisposable
     {                     
-        private IntPtr waveOut = IntPtr.Zero;
-        private List<WaveOutBuffer> buffers;
+        private IntPtr waveIn = IntPtr.Zero;
+        private List<InBuffer> buffers;
         private volatile bool disposed = false;
         private AutoResetEvent callback = new AutoResetEvent(false);
 
         public WaitHandle Callback { get { return callback; } }
-
-        public WaveOut(int Device, WAVEFORMATEX Format, int BufferSize)
-        {            
-            // Construct waveOut
-            MmException.CheckThrow(Winmm.waveOutOpen(out waveOut, Device, ref Format, callback.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero, WaveOutOpenFlags.CALLBACK_NULL));
+        
+        public WaveIn(int Device, WAVEFORMATEX Format, int BufferSize)
+        {   
+            // Construct waveIn
+            MmException.CheckThrow(Winmm.waveInOpen(out waveIn, Device, ref Format, callback.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero, WaveInOpenFlags.CALLBACK_EVENT));
 
             // Create buffers.
-            buffers = new List<WaveOutBuffer>();
+            buffers = new List<InBuffer>();
             for (int i = 0; i < 4; ++i)
-                buffers.Add(new WaveOutBuffer(waveOut, Format, BufferSize));
+            {
+                InBuffer b = new InBuffer(waveIn, Format, BufferSize);
+                b.Record();
+                buffers.Add(b);
+            }
+            
+            MmException.CheckThrow(Winmm.waveInStart(waveIn));
         }
 
-        ~WaveOut() { Dispose(false); }
+        ~WaveIn() { Dispose(false); }
 
         public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
         
@@ -39,16 +45,16 @@ namespace Audio
             if (disposed) return;
             disposed = true;
 
-            if (waveOut != IntPtr.Zero)
-                Winmm.waveOutReset(waveOut);
+            if (waveIn != IntPtr.Zero)
+                Winmm.waveInStop(waveIn);
             if (buffers != null)
             {
-                foreach (WaveBuffer i in buffers)
+                foreach (InBuffer i in buffers)
                     i.Dispose(Disposing);
                 buffers.Clear();
             }
-            if (waveOut != IntPtr.Zero)
-                Winmm.waveOutClose(waveOut);
+            if (waveIn != IntPtr.Zero)
+                Winmm.waveInClose(waveIn);
         }
 
         public void Stop()
@@ -56,11 +62,11 @@ namespace Audio
             Dispose();
         }
 
-        public WaveOutBuffer GetBuffer()
+        public InBuffer GetBuffer()
         {
             while (!disposed)
             {
-                foreach (WaveOutBuffer i in buffers)
+                foreach (InBuffer i in buffers)
                     if (i.Done)
                         return i;
             }

@@ -260,6 +260,10 @@
       <Project>{2877c441-fd0b-4441-a469-e677003ee35a}</Project>
       <Name>SyMath</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WaveAudio\WaveAudio.csproj">
+      <Project>{8190c5b2-71f3-4074-8fb8-3e53e7b28675}</Project>
+      <Name>WaveAudio</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

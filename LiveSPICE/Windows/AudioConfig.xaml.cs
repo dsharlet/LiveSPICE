@@ -105,7 +105,6 @@ namespace LiveSPICE
                 
         private void RefreshDrivers()
         {
-            new Asio.Driver();
             drivers.Items.Clear();
             foreach (Audio.Driver i in Audio.Driver.Drivers)
                 drivers.Items.Add(new ComboBoxItem() { Content = i.Name, Tag = i });
