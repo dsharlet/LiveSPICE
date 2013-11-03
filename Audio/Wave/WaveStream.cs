@@ -21,7 +21,7 @@ namespace Audio
 
         public override double SampleRate { get { return format.nSamplesPerSec; } }
 
-        public WaveStream(SampleHandler SampleCallback, WaveChannel[] Input, WaveChannel[] Output, double Latency)
+        public WaveStream(SampleHandler SampleCallback, WaveChannel[] Input, WaveChannel[] Output, double Latency) : base(Input, Output)
         {
             callback = SampleCallback;
 
@@ -52,8 +52,13 @@ namespace Audio
 
         private void Proc()
         {
+            WaitHandle[] events = waveIn.Select(i => i.Callback).Concat(waveOut.Select(i => i.Callback)).ToArray();
+
             while (!stop)
             {
+                //if (!WaitHandle.WaitAll(events, 100))
+                //    continue;
+
                 // Read from the inputs.
                 SampleBuffer[] input = new SampleBuffer[waveIn.Length];
                 for (int i = 0; i < waveIn.Length; ++i)

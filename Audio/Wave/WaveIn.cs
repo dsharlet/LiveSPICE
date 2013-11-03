@@ -15,11 +15,14 @@ namespace Audio
         private IntPtr waveIn = IntPtr.Zero;
         private List<WaveInBuffer> buffers;
         private volatile bool disposed = false;
+        private AutoResetEvent callback = new AutoResetEvent(false);
+
+        public WaitHandle Callback { get { return callback; } }
         
         public WaveIn(int Device, WAVEFORMATEX Format, int BufferSize)
         {   
             // Construct waveIn
-            MmException.CheckThrow(Winmm.waveInOpen(out waveIn, Device, ref Format, null, IntPtr.Zero, WaveInOpenFlags.CALLBACK_NULL));
+            MmException.CheckThrow(Winmm.waveInOpen(out waveIn, Device, ref Format, callback.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero, WaveInOpenFlags.CALLBACK_EVENT));
 
             // Create buffers.
             buffers = new List<WaveInBuffer>();

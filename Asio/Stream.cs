@@ -56,7 +56,7 @@ namespace Asio
             sampleRate = SampleRate;
         }
 
-        public Stream(AsioWrapper.Asio Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
+        public Stream(AsioWrapper.Asio Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output) : base(Input, Output)
         {
             instance = Instance;
             callback = Callback;
