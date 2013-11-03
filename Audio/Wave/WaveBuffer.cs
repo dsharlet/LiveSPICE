@@ -16,11 +16,9 @@ namespace Audio
         protected WAVEHDR header;
         protected GCHandle pin;
         protected int size;
-        protected SampleType type;
 
         protected bool disposed = false;
 
-        public SampleType Type { get { return type; } }
         public IntPtr Data { get { return header.lpData; } }
         public int Size { get { return size; } }
 
@@ -33,7 +31,6 @@ namespace Audio
         {
             handle = GCHandle.Alloc(this);
 
-            type = FormatSampleType(Format);
             size = BlockAlignedSize(Format, Count);
             samples = new SampleBuffer(Count) { Tag = this };
 
@@ -65,16 +62,6 @@ namespace Audio
             disposed = true;
         }
         
-        private static SampleType FormatSampleType(WAVEFORMATEX Format)
-        {
-            switch (Format.wBitsPerSample)
-            {
-                case 16: return SampleType.i16;
-                case 32: return SampleType.i32;
-                default: throw new NotImplementedException("Unsupported sample type.");
-            }
-        }
-
         private static int BlockAlignedSize(WAVEFORMATEX Format, int Count)
         {
             int align = Format.nBlockAlign;

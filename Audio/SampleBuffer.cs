@@ -9,14 +9,6 @@ using System.Runtime.InteropServices;
 
 namespace Audio
 {
-    public enum SampleType
-    {
-        i16 = 0,
-        i32 = 1,
-        f32 = 2,
-        f64 = 3,
-    };
-
     /// <summary>
     /// This object provides lazy conversion between raw sample buffers and double[].
     /// The SampleBuffer object maintains an internal state to indicate whether the raw buffer or 

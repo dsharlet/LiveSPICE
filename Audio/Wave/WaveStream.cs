@@ -69,7 +69,7 @@ namespace Audio
                     if (b == null)
                         return;
                     using (RawLock l = new RawLock(b.Samples, false, true))
-                        Util.SamplesToLEf64(b.Data, b.Type, l, l.Count);
+                        ConvertSamples(b.Data, format, l, l.Count);
                     b.Record();
                     input[i] = b.Samples;
                 }
@@ -92,9 +92,29 @@ namespace Audio
                 {
                     WaveOutBuffer b = (WaveOutBuffer)output[i].Tag;
                     using (RawLock l = new RawLock(b.Samples, true, false))
-                        Util.LEf64ToSamples(l, b.Data, b.Type, l.Count);
+                        ConvertSamples(l, b.Data, format, l.Count);
                     b.Play();
                 }
+            }
+        }
+        
+        private static void ConvertSamples(IntPtr In, WAVEFORMATEX Format, IntPtr Out, int Count)
+        {
+            switch (Format.wBitsPerSample)
+            {
+                case 16: Util.LEi16ToLEf64(In, Out, Count); break;
+                case 32: Util.LEi32ToLEf64(In, Out, Count); break;
+                default: throw new NotImplementedException("Unsupported sample type.");
+            }
+        }
+
+        private static void ConvertSamples(IntPtr In, IntPtr Out, WAVEFORMATEX Format, int Count)
+        {
+            switch (Format.wBitsPerSample)
+            {
+                case 16: Util.LEf64ToLEi16(In, Out, Count); break;
+                case 32: Util.LEf64ToLEi32(In, Out, Count); break;
+                default: throw new NotImplementedException("Unsupported sample type.");
             }
         }
     }
