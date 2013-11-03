@@ -131,7 +131,7 @@ namespace LiveSPICE
             InvalidateVisual();
         }
 
-        private double sampleRate;
+        private double sampleRate = 1;
         public void ProcessSignals(int SampleCount, IEnumerable<KeyValuePair<Signal, double[]>> Signals, double SampleRate)
         {
             sampleRate = SampleRate;
