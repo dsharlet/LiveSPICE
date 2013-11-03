@@ -68,7 +68,10 @@ namespace Audio
                     WaveInBuffer b = waveIn[i].GetBuffer();
                     if (b == null)
                         return;
-                    input[i] = b.NewSampleBuffer();
+                    using (RawLock l = new RawLock(b.Samples, false, true))
+                        Util.SamplesToLEf64(b.Data, b.Type, l, l.Count);
+                    b.Record();
+                    input[i] = b.Samples;
                 }
 
                 // Get an available buffer from the outputs.
@@ -78,7 +81,7 @@ namespace Audio
                     WaveOutBuffer b = waveOut[i].GetBuffer();
                     if (b == null)
                         return;
-                    output[i] = b.NewSampleBuffer();
+                    output[i] = b.Samples;
                 }
 
                 // Call the callback.
@@ -87,8 +90,10 @@ namespace Audio
                 // Play the results.
                 for (int i = 0; i < output.Length; ++i)
                 {
-                    output[i].SyncRaw();
-                    ((WaveOutBuffer)output[i].Tag).Play();
+                    WaveOutBuffer b = (WaveOutBuffer)output[i].Tag;
+                    using (RawLock l = new RawLock(b.Samples, true, false))
+                        Util.LEf64ToSamples(l, b.Data, b.Type, l.Count);
+                    b.Play();
                 }
             }
         }

@@ -10,31 +10,32 @@ namespace Audio
     /// <summary>
     /// Helper to manage the memory associated with a WAVEHDR.
     /// </summary>
-    abstract class WaveBuffer : IDisposable
+    class WaveBuffer : IDisposable
     {
         protected GCHandle handle;
         protected WAVEHDR header;
         protected GCHandle pin;
-        protected double[] samples;
         protected int size;
         protected SampleType type;
 
         protected bool disposed = false;
 
         public SampleType Type { get { return type; } }
-        public IntPtr Buffer { get { return header.lpData; } }
-        public double[] Samples { get { return samples; } }
+        public IntPtr Data { get { return header.lpData; } }
         public int Size { get { return size; } }
 
         public bool Done { get { return (header.dwFlags & WaveHdrFlags.WHDR_DONE) != 0; } }
 
+        private SampleBuffer samples;
+        public SampleBuffer Samples { get { return samples; } }
+        
         public WaveBuffer(WAVEFORMATEX Format, int Count)
         {
             handle = GCHandle.Alloc(this);
 
             type = FormatSampleType(Format);
             size = BlockAlignedSize(Format, Count);
-            samples = new double[Count];
+            samples = new SampleBuffer(Count) { Tag = this };
 
             header = new WAVEHDR();
             header.lpData = Marshal.AllocHGlobal(size);
@@ -63,9 +64,7 @@ namespace Audio
 
             disposed = true;
         }
-
-        public abstract SampleBuffer NewSampleBuffer();
-
+        
         private static SampleType FormatSampleType(WAVEFORMATEX Format)
         {
             switch (Format.wBitsPerSample)

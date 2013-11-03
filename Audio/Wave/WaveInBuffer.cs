@@ -23,8 +23,6 @@ namespace Audio
 
         ~WaveInBuffer() { Dispose(false); }
 
-        public override SampleBuffer NewSampleBuffer() { return SampleBuffer.NewInputBuffer(Buffer, type, Samples); }
-
         public override void Dispose(bool Disposing)
         {
             if (disposed) return;

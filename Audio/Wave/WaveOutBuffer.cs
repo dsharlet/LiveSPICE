@@ -32,14 +32,7 @@ namespace Audio
 
             base.Dispose(Disposing);
         }
-
-        public override SampleBuffer NewSampleBuffer() 
-        {
-            SampleBuffer buffer = SampleBuffer.NewOutputBuffer(Buffer, type, Samples);
-            buffer.Tag = this;
-            return buffer;
-        }
-
+        
         public void Play()
         {
             header.dwFlags &= ~WaveHdrFlags.WHDR_DONE;

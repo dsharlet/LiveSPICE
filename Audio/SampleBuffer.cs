@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,11 +22,9 @@ namespace Audio
     /// The SampleBuffer object maintains an internal state to indicate whether the raw buffer or 
     /// sample array are valid. Neither or both can be valid simultaneously.
     /// </summary>
-    public class SampleBuffer
+    public class SampleBuffer : IDisposable
     {
-        private IntPtr raw;
-        private int count;
-        private SampleType type;
+        private IntPtr raw = IntPtr.Zero;
         private bool rawValid = false;
 
         private double[] samples;
@@ -34,13 +33,9 @@ namespace Audio
         private bool locked = false;
 
         /// <summary>
-        /// Type of samples contained in this buffer.
-        /// </summary>
-        public SampleType Type { get { return type; } }
-        /// <summary>
         /// Number of samples contained in this buffer.
         /// </summary>
-        public int Count { get { return count; } }
+        public int Count { get { return samples.Length; } }
 
         private object tag = null;
         /// <summary>
@@ -48,41 +43,21 @@ namespace Audio
         /// </summary>
         public object Tag { get { return tag; } set { tag = value; } }
 
-        private SampleBuffer(IntPtr Raw, SampleType Type, int Count)
+        public SampleBuffer(int Count)
         {
-            count = Count;
-            type = Type;
-            raw = Raw;
+            samples = new double[Count];
+            raw = Marshal.AllocHGlobal(Count * sizeof(double));
         }
 
-        private SampleBuffer(IntPtr Raw, SampleType Type, double[] Samples)
-            : this(Raw, Type, Samples.Length)
+        ~SampleBuffer() { FreeRaw(); }
+        public void Dispose() { FreeRaw(); }
+        private void FreeRaw()
         {
-            samples = Samples;
-        }
-
-        /// <summary>
-        /// Create a new buffer for an input buffer. The raw buffer is marked valid.
-        /// </summary>
-        /// <param name="Buffer"></param>
-        /// <param name="Type"></param>
-        /// <param name="Samples"></param>
-        /// <returns></returns>
-        public static SampleBuffer NewInputBuffer(IntPtr Raw, SampleType Type, double[] Samples)
-        {
-            return new SampleBuffer(Raw, Type, Samples) { rawValid = true };
-        }
-
-        /// <summary>
-        /// Create a new buffer for an output buffer. Neither buffer nor array is marked valid.
-        /// </summary>
-        /// <param name="Buffer"></param>
-        /// <param name="Type"></param>
-        /// <param name="Samples"></param>
-        /// <returns></returns>
-        public static SampleBuffer NewOutputBuffer(IntPtr Buffer, SampleType Type, double[] Samples)
-        {
-            return new SampleBuffer(Buffer, Type, Samples);
+            if (raw != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(raw);
+                raw = IntPtr.Zero;
+            }
         }
 
         /// <summary>
@@ -141,7 +116,7 @@ namespace Audio
         {
             if (samplesValid)
             {
-                Util.LEf64ToSamples(samples, raw, type);
+                Marshal.Copy(samples, 0, raw, Count);
                 rawValid = true;
             }
         }
@@ -153,7 +128,7 @@ namespace Audio
         {
             if (rawValid)
             {
-                Util.SamplesToLEf64(raw, type, samples);
+                Marshal.Copy(raw, samples, 0, Count);
                 samplesValid = true;
             }
         }
@@ -163,22 +138,9 @@ namespace Audio
         /// </summary>
         public void Clear()
         {
-            Util.ZeroSamples(raw, type, count);
+            Util.ZeroMemory(raw, Count * sizeof(double));
             samplesValid = false;
             rawValid = true;
-        }
-
-        /// <summary>
-        /// Copy samples from another SampleBuffer.
-        /// </summary>
-        /// <param name="From"></param>
-        public void Copy(SampleBuffer From)
-        {
-            IntPtr a = From.LockRaw(true, false);
-            IntPtr b = LockRaw(false, true);
-            Util.CopySamples(a, From.Type, b, type, Count);
-            Unlock();
-            From.Unlock();
         }
     }
 
@@ -194,18 +156,15 @@ namespace Audio
         }
 
         ~RawLock() { Unlock(); }
-
-        private void Unlock() { if (raw != IntPtr.Zero) Unlock(); raw = IntPtr.Zero; }
-
         public void Dispose() { Unlock(); }
-
+        private void Unlock() { if (raw != IntPtr.Zero) target.Unlock(); raw = IntPtr.Zero; }
+        
         public int Count { get { return target.Count; } }
-        public SampleType Type { get { return target.Type; } }
 
         public static implicit operator IntPtr(RawLock Lock) { return Lock.raw; }
     }
 
-    public class SamplesLock : IDisposable
+    public class SamplesLock : IDisposable, IEnumerable
     {
         private double[] samples;
         private SampleBuffer target;
@@ -217,15 +176,16 @@ namespace Audio
         }
 
         ~SamplesLock() { Unlock(); }
-
-        private void Unlock() { if (samples != null) target.Unlock(); samples = null; }
-
         public void Dispose() { Unlock(); }
-
+        private void Unlock() { if (samples != null) target.Unlock(); samples = null; }
+        
         public int Count { get { return samples.Length; } }
 
         public double this[int i] { get { return samples[i]; } set { samples[i] = value; } }
 
         public static implicit operator double[](SamplesLock Lock) { return Lock.samples; }
+
+        // IEnumerable
+        IEnumerator IEnumerable.GetEnumerator() { return samples.GetEnumerator(); }
     }
 }
