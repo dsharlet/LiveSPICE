@@ -8,7 +8,7 @@
         Title="Live Simulation" Width="1000" Height="800" WindowStartupLocation="CenterOwner" Background="{StaticResource ResourceKey=Background}">
     <Window.Resources>
         <Style BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button"></Style>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+        <Style BasedOn="{StaticResource {x:Static ToolBar.ComboBoxStyleKey}}" TargetType="ComboBox"></Style>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" />
@@ -72,28 +72,30 @@
                             <xcad:LayoutAnchorable x:Name="audio" Title="Audio" AutoHideWidth="240">
                                 <StackPanel Orientation="Vertical" Margin="4">
                                     <DockPanel LastChildFill="True">
-                                        <TextBlock DockPanel.Dock="Left" Text="Inputs:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <Border DockPanel.Dock="Right" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
-                                            <TextBlock x:Name="inputLevel" Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
-                                        </Border>
+                                        <TextBlock DockPanel.Dock="Left" Text="Input" Margin="4" 
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="inputLevel" DockPanel.Dock="Right" Width="50"
+                                                    Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0:+#;-#;+0} dB}"
+                                                    TextAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" />
                                         <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=InputGain}" />
                                     </DockPanel>
                                     <Border BorderBrush="DarkGray" Margin="4" BorderThickness="1">
                                         <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                            <StackPanel x:Name="inputs" Height="100" Background="White" />
+                                            <StackPanel x:Name="inputs" Height="80" Background="White" />
                                         </ScrollViewer>
                                     </Border>
                                     <Separator />
                                     <DockPanel LastChildFill="True">
-                                        <TextBlock DockPanel.Dock="Left" Text="Outputs:" Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <Border DockPanel.Dock="Right" Width="50" BorderThickness="1" BorderBrush="Gray" Margin="4">
-                                            <TextBlock x:Name="outputLevel" Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0:+#;-#;+0} dB}" TextAlignment="Center" />
-                                        </Border>
+                                        <TextBlock DockPanel.Dock="Left" Text="Output" Margin="4" 
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <TextBlock x:Name="outputLevel" DockPanel.Dock="Right" Width="50"
+                                                   Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0:+#;-#;+0} dB}" 
+                                                   TextAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" />
                                         <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=OutputGain}" />
                                     </DockPanel>
                                     <Border BorderBrush="DarkGray" Margin="4" BorderThickness="1">
                                         <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                            <StackPanel x:Name="outputs" Height="100" Background="White" />
+                                            <StackPanel x:Name="outputs" Height="80" Background="White" />
                                         </ScrollViewer>
                                     </Border>
                                 </StackPanel>
