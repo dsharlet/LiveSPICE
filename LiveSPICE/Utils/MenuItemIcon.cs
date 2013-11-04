@@ -25,10 +25,10 @@ namespace LiveSPICE
         private double height = 16;
         [LocalizabilityAttribute(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverterAttribute(typeof(LengthConverter))]
-        public double ImageWidth { get { return width; } set { width = value; NotifyChanged("ImageWidth"); } }
+        public double IconWidth { get { return width; } set { width = value; NotifyChanged("IconWidth"); } }
         [LocalizabilityAttribute(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverterAttribute(typeof(LengthConverter))]
-        public double ImageHeight { get { return height; } set { height = value; NotifyChanged("ImageHeight"); } }
+        public double IconHeight { get { return height; } set { height = value; NotifyChanged("IconHeight"); } }
 
         public ImageSource IconSource 
         { 
@@ -41,10 +41,10 @@ namespace LiveSPICE
                     if (enabled != null)
                     {
                         disabled = ImageButton.MakeDisabledImage(enabled);
-                        enabled.SetBinding(Image.WidthProperty, new Binding("ImageWidth") { Source = this });
-                        enabled.SetBinding(Image.HeightProperty, new Binding("ImageHeight") { Source = this });
-                        disabled.SetBinding(Image.WidthProperty, new Binding("ImageWidth") { Source = this });
-                        disabled.SetBinding(Image.HeightProperty, new Binding("ImageHeight") { Source = this });
+                        enabled.SetBinding(Image.WidthProperty, new Binding("IconWidth") { Source = this });
+                        enabled.SetBinding(Image.HeightProperty, new Binding("IconHeight") { Source = this });
+                        disabled.SetBinding(Image.WidthProperty, new Binding("IconWidth") { Source = this });
+                        disabled.SetBinding(Image.HeightProperty, new Binding("IconHeight") { Source = this });
                     }
                 }
                 else

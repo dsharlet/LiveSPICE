@@ -13,6 +13,7 @@ namespace LiveSPICE
     {
         public static RoutedCommand Exit { get { return exit; } }
         public static RoutedCommand SaveAll { get { return saveAll; } }
+        public static RoutedCommand ZoomFit { get { return zoomFit; } }
 
         static Commands()
         {
@@ -21,9 +22,12 @@ namespace LiveSPICE
 
             saveAll = new RoutedUICommand("Save All", "Save All", typeof(Commands));
             saveAll.InputGestures.Add(new KeyGesture(Key.S, ModifierKeys.Control | ModifierKeys.Shift));
+
+            zoomFit = new RoutedUICommand("Zoom Fit", "Zoom Fit", typeof(Commands));
         }
         static RoutedCommand exit;
         static RoutedCommand saveAll;
+        static RoutedCommand zoomFit;
     }
 
     public static class CommandImages
@@ -43,6 +47,7 @@ namespace LiveSPICE
             { MediaCommands.Play, new BitmapImage(new Uri(@"pack://application:,,,/Images/Start.png")) },
             { ApplicationCommands.Undo, new BitmapImage(new Uri(@"pack://application:,,,/Images/Undo.png")) },
             { NavigationCommands.Zoom, new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomIn.png")) },
+            { Commands.ZoomFit, new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomFit.png")) },
             { NavigationCommands.DecreaseZoom, new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomOut.png")) },
         };
     }

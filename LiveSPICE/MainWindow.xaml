@@ -84,12 +84,7 @@
             <ToolBar Band="1" BandIndex="2">
                 <ls:ImageButton CommandImage="NavigationCommands.Zoom" ImageHeight="16" />
                 <ls:ImageButton CommandImage="NavigationCommands.DecreaseZoom" ImageHeight="16" />
-                <ComboBox Width="40" SelectedValue="{Binding ElementName=_this, Path=ActiveViewerZoom}">
-                    <ComboBoxItem Content="0.5" />
-                    <ComboBoxItem Content="1.0" />
-                    <ComboBoxItem Content="2.0" />
-                    <ComboBoxItem Content="4.0" />
-                </ComboBox>
+                <ls:ImageButton CommandImage="{x:Static ls:Commands.ZoomFit}" ImageHeight="16" />
             </ToolBar>
             <!-- Simulation -->
             <ToolBar Band="1" BandIndex="3" >

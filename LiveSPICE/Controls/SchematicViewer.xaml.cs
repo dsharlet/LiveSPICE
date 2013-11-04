@@ -71,9 +71,10 @@ namespace LiveSPICE
         public SchematicViewer()
         {
             InitializeComponent();
-            
+
             CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 2));
             CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 0.5));
+            CommandBindings.Add(new CommandBinding(Commands.ZoomFit, (o, e) => FocusCenter()));
 
             scroll.PreviewMouseWheel += (o, e) =>
             {
@@ -122,7 +123,12 @@ namespace LiveSPICE
         public void FocusCenter()
         {
             Point a, b;
-            if (Schematic.Elements.Any())
+            if (Schematic.Selected.Any())
+            {
+                a = Schematic.ToPoint(SchematicControl.LowerBound(Schematic.Selected));
+                b = Schematic.ToPoint(SchematicControl.UpperBound(Schematic.Selected));
+            }
+            else if (Schematic.Elements.Any())
             {
                 a = Schematic.ToPoint(Schematic.LowerBound());
                 b = Schematic.ToPoint(Schematic.UpperBound());
