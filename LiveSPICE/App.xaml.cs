@@ -46,7 +46,8 @@ namespace LiveSPICE
             if (e.Key == Key.Enter & textbox.AcceptsReturn == false) 
             {
                 BindingExpression be = textbox.GetBindingExpression(TextBox.TextProperty);
-                be.UpdateSource();
+                if (be != null)
+                    be.UpdateSource();
 
                 Window.GetWindow(textbox).Focus();
             }
