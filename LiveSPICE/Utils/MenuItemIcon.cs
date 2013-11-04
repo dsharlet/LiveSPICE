@@ -57,6 +57,18 @@ namespace LiveSPICE
             } 
         }
 
+        public ICommand CommandImage
+        { 
+            get { return base.Command; } 
+            set
+            { 
+                base.Command = value;
+
+                ImageSource image = null;
+                if (CommandImages.Images.TryGetValue(value, out image))
+                    IconSource = image;
+            } 
+        }
 
         public MenuItemIcon() { IsEnabledChanged += OnEnabledChanged; }
 

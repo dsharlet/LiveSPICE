@@ -9,8 +9,8 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
         <ToolBar Height="28" DockPanel.Dock="Top">
-            <ls:ImageButton Command="NavigationCommands.Zoom" Source="{StaticResource ZoomIn}" ImageHeight="16" />
-            <ls:ImageButton Command="NavigationCommands.DecreaseZoom" Source="{StaticResource ZoomOut}" ImageHeight="16" />
+            <ls:ImageButton CommandImage="NavigationCommands.Zoom" ImageHeight="16" />
+            <ls:ImageButton CommandImage="NavigationCommands.DecreaseZoom" ImageHeight="16" />
             <Separator />
             <ComboBox Width="70" x:Name="selectedSignal" SelectedValue="{Binding ElementName=oscilloscope, Path=SelectedSignal}" SelectedValuePath="Tag" />
             <Separator />

@@ -34,6 +34,7 @@ namespace LiveSPICE
 
             Components.Init(toolbox_Click, CommandBindings);
             Properties.PropertyValueChanged += properties_PropertyValueChanged;
+            schematics.ChildrenTreeChanged += (o, e) => NotifyChanged("ActivewViewerZoom");
         }
 
         public IEnumerable<SchematicViewer> Viewers { get { return schematics.Children.Select(i => i.Content).OfType<SchematicViewer>(); } }
@@ -57,6 +58,8 @@ namespace LiveSPICE
                 return active != null ? (SchematicEditor)active.Schematic : null;
             } 
         }
+
+        public double ActiveViewerZoom { get { return ActiveViewer.Zoom; } set { ActiveViewer.Zoom = value; NotifyChanged("ActiveViewerZoom"); } }
 
         private string status;
         public string Status 

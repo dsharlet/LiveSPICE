@@ -10,7 +10,7 @@
     <Window.CommandBindings>
         <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" />
 
-        <CommandBinding Command="{x:Static ls:CustomCommands.Exit}" Executed="Exit_Executed" />
+        <CommandBinding Command="{x:Static ls:Commands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>
     <Grid>
         <Grid.RowDefinitions>
@@ -24,7 +24,7 @@
         <!-- Menu -->
         <Menu Grid.Row="1">
             <MenuItem Header="_File">
-                <MenuItem Command="{x:Static ls:CustomCommands.Exit}" />
+                <MenuItem Command="{x:Static ls:Commands.Exit}" />
             </MenuItem>
             <MenuItem Header="_Edit">
             </MenuItem>
@@ -49,8 +49,8 @@
             </ToolBar>
             <!-- View -->
             <ToolBar Band="1" BandIndex="2">
-                <ls:ImageButton Command="NavigationCommands.Zoom" Source="{StaticResource ZoomIn}" ImageHeight="16" />
-                <ls:ImageButton Command="NavigationCommands.DecreaseZoom" Source="{StaticResource ZoomOut}" ImageHeight="16" />
+                <ls:ImageButton CommandImage="NavigationCommands.Zoom" ImageHeight="16" />
+                <ls:ImageButton CommandImage="NavigationCommands.DecreaseZoom" ImageHeight="16" />
                 <ComboBox Width="40" SelectedValue="{Binding ElementName=ActiveViewer, Path=Zoom}">
                     <ComboBoxItem Content="0.5" />
                     <ComboBoxItem Content="1.0" />
