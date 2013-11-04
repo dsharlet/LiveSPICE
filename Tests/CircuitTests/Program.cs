@@ -18,7 +18,7 @@ namespace CircuitTests
 
         static Quantity SampleRate = new Quantity(48000, Units.Hz);
         static int Samples = 48000;
-        static int Oversample = 4;
+        static int Oversample = 8;
         static int Iterations = 8;
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
@@ -37,8 +37,8 @@ namespace CircuitTests
                 string Name = System.IO.Path.GetFileNameWithoutExtension(File);
                 try
                 {
-                    double p = Run(File, Vin);
-                    performance.Add(Name + ":\t" + p.ToString());
+                    double perf = Run(File, Vin);
+                    performance.Add(Name + ":\t" + Quantity.ToString(perf, Units.Hz));
                 }
                 catch (Exception ex) 
                 {
@@ -119,9 +119,7 @@ namespace CircuitTests
                 S.TimeStep * t1, 0, 
                 plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
 
-            double rate = (N * S.TimeStep) / time;
-            System.Console.WriteLine("Ran at {0}x real time", rate);
-            return rate;
+            return N / time;
         }
 
         // Generate a function with the first N harmonics of f0.
