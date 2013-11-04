@@ -27,6 +27,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorder}" />
     </Style>
     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static ToolBar.ComboBoxStyleKey}}">
-        
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
     </Style>
 </ResourceDictionary>
