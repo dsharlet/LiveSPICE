@@ -9,13 +9,13 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
         <ToolBar Height="28" DockPanel.Dock="Top">
-            <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
-            <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
+            <ls:ImageButton Command="NavigationCommands.Zoom" Source="{StaticResource ZoomIn}" ImageHeight="16" />
+            <ls:ImageButton Command="NavigationCommands.DecreaseZoom" Source="{StaticResource ZoomOut}" ImageHeight="16" />
             <Separator />
             <ComboBox Width="70" x:Name="selectedSignal" SelectedValue="{Binding ElementName=oscilloscope, Path=SelectedSignal}" SelectedValuePath="Tag" />
             <Separator />
             <CheckBox Content="&#x266a;/&#x192;" IsChecked="{Binding ElementName=oscilloscope, Path=ShowNotes}" />
-            <Label Content="A4:" />
+            <Label Content="A&#8324;:" />
             <TextBox Width="60" Text="{Binding ElementName=oscilloscope, Path=A4}" />
         </ToolBar>
         <ls:Oscilloscope x:Name="oscilloscope" BorderBrush="DarkGray" BorderThickness="1" />

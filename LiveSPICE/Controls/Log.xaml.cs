@@ -27,7 +27,7 @@ namespace LiveSPICE
         }
 
         public void Clear() { text.Text = ""; }
-        public void Clear(object sender, EventArgs e) { Clear(); }
+        public void Clear_Click(object sender, EventArgs e) { Clear(); }
 
         private Circuit.MessageType verbosity = Circuit.MessageType.Info;
         public string Verbosity 

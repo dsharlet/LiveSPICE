@@ -44,13 +44,13 @@
 
                 <TextBlock Text="Iterations: " HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" />
-                
-                <Button Command="MediaCommands.Play" Content="&#x25b6; Restart" />
+
+                <ls:ImageButton Command="MediaCommands.Play" Source="{StaticResource Restart}" ImageHeight="16" />
             </ToolBar>
             <!-- View -->
             <ToolBar Band="1" BandIndex="2">
-                <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
-                <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
+                <ls:ImageButton Command="NavigationCommands.Zoom" Source="{StaticResource ZoomIn}" ImageHeight="16" />
+                <ls:ImageButton Command="NavigationCommands.DecreaseZoom" Source="{StaticResource ZoomOut}" ImageHeight="16" />
                 <ComboBox Width="40" SelectedValue="{Binding ElementName=ActiveViewer, Path=Zoom}">
                     <ComboBoxItem Content="0.5" />
                     <ComboBoxItem Content="1.0" />

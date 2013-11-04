@@ -4,7 +4,8 @@
         xmlns:ls="clr-namespace:LiveSPICE"
         Title="Audio Configuration" Height="500" Width="300" 
         Topmost="True" WindowStartupLocation="CenterOwner"
-         Style="{StaticResource ResourceKey=Window}">
+        Style="{StaticResource ResourceKey=Window}"
+        Icon="{StaticResource Gears}">
     <DockPanel LastChildFill="True">
         <Grid Margin="4" DockPanel.Dock="Top">
             <Grid.ColumnDefinitions>

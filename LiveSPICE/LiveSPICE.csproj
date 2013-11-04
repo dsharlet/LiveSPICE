@@ -94,6 +94,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
+    <Compile Include="Utils\MenuItemIcon.cs" />
+    <Compile Include="Utils\ImageButton.cs" />
     <Compile Include="Controls\Scope\SignalDisplay.cs" />
     <Compile Include="Windows\AudioConfig.xaml.cs">
       <DependentUpon>AudioConfig.xaml</DependentUpon>
@@ -154,6 +156,10 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Scope\Oscilloscope.cs" />
+    <Page Include="Themes\Images.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Themes\Theme.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -233,6 +239,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="Images\Thumbs.db" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -264,6 +271,36 @@
       <Project>{8190c5b2-71f3-4074-8fb8-3e53e7b28675}</Project>
       <Name>WaveAudio</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Bars.png" />
+    <Resource Include="Images\Gears.png" />
+    <Resource Include="Images\Copy.png" />
+    <Resource Include="Images\Cut.png" />
+    <Resource Include="Images\New.png" />
+    <Resource Include="Images\Paste.png" />
+    <Resource Include="Images\Pause.png" />
+    <Resource Include="Images\Redo.png" />
+    <Resource Include="Images\Save.png" />
+    <Resource Include="Images\Start.png" />
+    <Resource Include="Images\Undo.png" />
+    <Resource Include="Images\ZoomIn.png" />
+    <Resource Include="Images\ZoomOut.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Open.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\SaveAll.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Clear.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Restart.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Search.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

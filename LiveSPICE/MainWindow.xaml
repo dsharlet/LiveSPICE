@@ -32,11 +32,11 @@
         <!-- Menu -->
         <Menu Grid.Row="1">
             <MenuItem Header="_File">
-                <MenuItem Command="ApplicationCommands.New" />
-                <MenuItem Command="ApplicationCommands.Open" />
-                <MenuItem Command="ApplicationCommands.Save" />
-                <MenuItem Command="ApplicationCommands.SaveAs" />
-                <MenuItem Command="{x:Static ls:CustomCommands.SaveAll}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.New" IconSource="{StaticResource New}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Open" IconSource="{StaticResource Open}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Save" IconSource="{StaticResource Save}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.SaveAs" />
+                <ls:MenuItemIcon Command="{x:Static ls:CustomCommands.SaveAll}" IconSource="{StaticResource SaveAll}" />
                 <MenuItem Command="ApplicationCommands.Close" />
                 <Separator />
                 <ls:MruMenuItem Header="Recent Files" MruClick="OnMruClick" />
@@ -44,17 +44,20 @@
                 <MenuItem Command="{x:Static ls:CustomCommands.Exit}" />
             </MenuItem>
             <MenuItem Header="_Edit">
-                <MenuItem Command="ApplicationCommands.Undo" />
-                <MenuItem Command="ApplicationCommands.Redo" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Undo" IconSource="{StaticResource Undo}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Redo" IconSource="{StaticResource Redo}" />
                 <Separator />
-                <MenuItem Command="ApplicationCommands.Cut" />
-                <MenuItem Command="ApplicationCommands.Copy" />
-                <MenuItem Command="ApplicationCommands.Paste" />
-                <MenuItem Command="ApplicationCommands.Delete" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Cut" IconSource="{StaticResource Cut}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Copy" IconSource="{StaticResource Copy}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Paste" IconSource="{StaticResource Paste}" />
+                <ls:MenuItemIcon Command="ApplicationCommands.Delete" IconSource="{StaticResource Clear}" />
                 <Separator />
-                <MenuItem Command="ApplicationCommands.SelectAll" />
+                <ls:MenuItemIcon Command="ApplicationCommands.SelectAll" />
                 <Separator />
-                <MenuItem Header="Audio Configuration..." Click="AudioConfiguration_Click" />
+                <ls:MenuItemIcon Header="Audio Configuration..." Click="AudioConfiguration_Click" IconSource="{StaticResource Gears}" />
+            </MenuItem>
+            <MenuItem Header="_Simulate">
+                <ls:MenuItemIcon Command="MediaCommands.Play" IconSource="{StaticResource Start}" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Properties" IsChecked="{Binding ElementName=properties, Path=IsVisible}" Click="ViewProperties_Click" />
@@ -66,21 +69,21 @@
         <ToolBarTray Grid.Row="2">
             <!-- File/Edit -->
             <ToolBar Band="1" BandIndex="1" >
-                <Button Command="ApplicationCommands.New" Content="New" />
-                <Button Command="ApplicationCommands.Open" Content="Open" />
-                <Button Command="ApplicationCommands.Save" Content="Save" />
-                <Button Command="{x:Static ls:CustomCommands.SaveAll}" Content="Save All" />
+                <ls:ImageButton Command="ApplicationCommands.New" Source="{StaticResource New}" ImageHeight="16" />
+                <ls:ImageButton Command="ApplicationCommands.Open" Source="{StaticResource Open}" ImageHeight="16" />
+                <ls:ImageButton Command="ApplicationCommands.Save" Source="{StaticResource Save}" ImageHeight="16" />
+                <ls:ImageButton Command="{x:Static ls:CustomCommands.SaveAll}" Source="{StaticResource SaveAll}" ImageHeight="16" />
                 <Separator />
-                <Button Command="ApplicationCommands.Undo" Content="Undo" />
-                <Button Command="ApplicationCommands.Redo" Content="Redo" />
+                <ls:ImageButton Command="ApplicationCommands.Undo" Source="{StaticResource Undo}" ImageHeight="16" />
+                <ls:ImageButton Command="ApplicationCommands.Redo" Source="{StaticResource Redo}" ImageHeight="16" />
                 <Separator />
-                <Button Command="ApplicationCommands.Cut" Content="Cut" />
-                <Button Command="ApplicationCommands.Copy" Content="Copy" />
-                <Button Command="ApplicationCommands.Paste" Content="Paste" />
+                <ls:ImageButton Command="ApplicationCommands.Cut" Source="{StaticResource Cut}" ImageHeight="16" />
+                <ls:ImageButton Command="ApplicationCommands.Copy" Source="{StaticResource Copy}" ImageHeight="16" />
+                <ls:ImageButton Command="ApplicationCommands.Paste" Source="{StaticResource Paste}" ImageHeight="16" />
             </ToolBar>
             <ToolBar Band="1" BandIndex="2">
-                <Button Command="NavigationCommands.Zoom" Content="&#x1f50d;&#x207A;" />
-                <Button Command="NavigationCommands.DecreaseZoom" Content="&#x1f50d;&#x207B;" />
+                <ls:ImageButton Command="NavigationCommands.Zoom" Source="{StaticResource ZoomIn}" ImageHeight="16" />
+                <ls:ImageButton Command="NavigationCommands.DecreaseZoom" Source="{StaticResource ZoomOut}" ImageHeight="16" />
                 <ComboBox Width="40" SelectedValue="{Binding ElementName=ActiveViewer, Path=Zoom}">
                     <ComboBoxItem Content="0.5" />
                     <ComboBoxItem Content="1.0" />
@@ -90,7 +93,7 @@
             </ToolBar>
             <!-- Simulation -->
             <ToolBar Band="1" BandIndex="3" >
-                <Button Command="MediaCommands.Play" Content="&#x25b6; Simulate" />
+                <ls:ImageButton Command="MediaCommands.Play" Source="{StaticResource Start}" ImageHeight="16" />
             </ToolBar>
         </ToolBarTray>
 

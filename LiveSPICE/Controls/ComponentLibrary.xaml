@@ -7,7 +7,7 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
         <ToolBar Height="28" DockPanel.Dock="Top">
-            <Label Content="Filter:" />
+            <Image Source="{StaticResource Search}" Height="16" />
             <TextBox Width="110" Text="{Binding Path=Filter, UpdateSourceTrigger=PropertyChanged}" />
         </ToolBar>
         <ScrollViewer HorizontalAlignment="Stretch" 
