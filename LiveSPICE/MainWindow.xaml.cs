@@ -68,7 +68,7 @@ namespace LiveSPICE
             set { status = value; NotifyChanged("Status"); }
         }
 
-        private SchematicViewer New(SchematicEditor Schematic)
+        private SchematicViewer AddViewer(SchematicEditor Schematic)
         {
             Schematic.SelectionChanged += schematic_SelectionChanged;
             Schematic.EditSelection += schematic_EditSelection;
@@ -99,6 +99,7 @@ namespace LiveSPICE
             sv.FocusCenter();
             return sv;
         }
+        public SchematicViewer New() { return AddViewer(new SchematicEditor()); }
 
         public SchematicViewer FindViewer(string FileName)
         {
@@ -122,11 +123,11 @@ namespace LiveSPICE
             else
             {
                 // Just make a new one.
-                New(SchematicEditor.Open(FileName));
+                AddViewer(SchematicEditor.Open(FileName));
             }
         }
 
-        private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(new SchematicEditor()); }
+        private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(); }
         private void OnMruClick(object sender, RoutedEventArgs e) { Open((string)((MenuItem)e.Source).Tag); }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
@@ -206,7 +207,7 @@ namespace LiveSPICE
         {
             SchematicEditor active = ActiveEditor;
             if (active == null)
-                return;
+                active = (SchematicEditor)New().Schematic;
 
             e.Handled = true;
 
