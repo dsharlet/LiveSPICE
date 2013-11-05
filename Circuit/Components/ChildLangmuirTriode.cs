@@ -18,11 +18,11 @@ namespace Circuit
         protected double mu, k;
         [Description("Voltage gain.")]
         [Serialize]
-        public double Mu { get { return mu; } set { mu = value; } }
+        public double Mu { get { return mu; } set { mu = value; NotifyChanged("Mu"); } }
 
         [Description("Generalized perveance.")]
         [Serialize]
-        public double K { get { return k; } set { k = value; } }
+        public double K { get { return k; } set { k = value; NotifyChanged("K"); } }
 
         protected override void Analyze(ModifiedNodalAnalysis Mna, Expression Vgk, Expression Vpk, out Expression Ip, out Expression Ig)
         {
