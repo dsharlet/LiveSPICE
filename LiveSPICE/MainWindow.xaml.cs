@@ -128,7 +128,17 @@ namespace LiveSPICE
         }
 
         private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(); }
-        private void OnMruClick(object sender, RoutedEventArgs e) { Open((string)((MenuItem)e.Source).Tag); }
+        private void OnMruClick(object sender, RoutedEventArgs e) 
+        { 
+            try
+            {
+                Open((string)((MenuItem)e.Source).Tag);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             try
