@@ -63,18 +63,5 @@ namespace Circuit
             impl = Deserialize(X.Element("Component"));
             base.DeserializeImpl(X);
         }
-        
-        private static PropertyInfo GetProperty(Type T, string Name)
-        {
-            Type t = T;
-            while (t != null)
-            {
-                PropertyInfo p = t.GetProperty(Name);
-                if (p != null)
-                    return p;
-                t = t.BaseType;
-            }
-            throw new KeyNotFoundException("Property '" + Name + "' was not found in type '" + T.FullName + "'.");
-        }
     }
 }
