@@ -13,13 +13,10 @@
         <CommandBinding Command="{x:Static ls:Commands.SaveAll}" Executed="SaveAll_Executed" />
         <CommandBinding Command="ApplicationCommands.Close" CanExecute="Close_CanExecute" Executed="Close_Executed" />
 
-        <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" CanExecute="Simulate_CanExecute" />
+        <CommandBinding Command="{x:Static ls:Commands.Simulate}" Executed="Simulate_Executed" CanExecute="Simulate_CanExecute" />
 
         <CommandBinding Command="{x:Static ls:Commands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>
-    <Window.InputBindings>
-        <KeyBinding Command="MediaCommands.Play" Key="F5" />
-    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="0" />
@@ -54,10 +51,10 @@
                 <Separator />
                 <ls:MenuItemIcon CommandImage="ApplicationCommands.SelectAll" />
                 <Separator />
-                <ls:MenuItemIcon Header="Audio Configuration..." Click="AudioConfiguration_Click" IconSource="{StaticResource Gears}" />
+                <ls:MenuItemIcon Header="Audio Configuration" Click="AudioConfiguration_Click" IconSource="{StaticResource Gears}" />
             </MenuItem>
             <MenuItem Header="_Simulate">
-                <ls:MenuItemIcon CommandImage="MediaCommands.Play" />
+                <ls:MenuItemIcon CommandImage="{x:Static ls:Commands.Simulate}" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Properties" IsChecked="{Binding ElementName=properties, Path=IsVisible}" Click="ViewProperties_Click" />
@@ -88,7 +85,7 @@
             </ToolBar>
             <!-- Simulation -->
             <ToolBar Band="1" BandIndex="3" >
-                <ls:ImageButton CommandImage="MediaCommands.Play" ImageHeight="16" />
+                <ls:ImageButton CommandImage="{x:Static ls:Commands.Simulate}" ImageHeight="16" />
             </ToolBar>
         </ToolBarTray>
 

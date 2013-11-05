@@ -8,7 +8,7 @@
         Title="Live Simulation" Width="1000" Height="800" 
         WindowStartupLocation="CenterOwner" Style="{StaticResource ResourceKey=Window}">
     <Window.CommandBindings>
-        <CommandBinding Command="MediaCommands.Play" Executed="Simulate_Executed" />
+        <CommandBinding Command="{x:Static ls:Commands.Simulate}" Executed="Simulate_Executed" />
 
         <CommandBinding Command="{x:Static ls:Commands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>
@@ -45,7 +45,7 @@
                 <TextBlock Text="Iterations: " HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" />
 
-                <ls:ImageButton Command="MediaCommands.Play" Source="{StaticResource Restart}" ImageHeight="16" />
+                <ls:ImageButton CommandImage="{x:Static ls:Commands.Simulate}" ImageHeight="16" />
             </ToolBar>
             <!-- View -->
             <ToolBar Band="1" BandIndex="2">
