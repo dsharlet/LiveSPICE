@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Implements a linear model operational amplifier (op-amp). This model will not saturate.
     /// </summary>
-    [CategoryAttribute("Standard")]
+    [Category("Op-Amps")]
     [DisplayName("Op-Amp")]
     [Description("Op-amp with model for input resistance Rin, output resistance Rout, and open-loop gain Aol. If the power supply terminals are connected, the op-amp will saturate.")]
     public class OpAmp : IdealOpAmp

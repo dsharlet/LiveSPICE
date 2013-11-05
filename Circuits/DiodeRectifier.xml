@@ -1,17 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Schematic>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-6" Flip="false" Position="0,-50">
-    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D5" />
-  </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-6" Flip="false" Position="0,-150">
-    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D6" />
-  </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-10" Flip="false" Position="50,-50">
-    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D7" />
-  </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-10" Flip="false" Position="50,-150">
-    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D8" />
-  </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="0,-100" B="0,-70" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="50,-170" B="50,-200" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="50,-30" B="50,0" />
@@ -45,4 +33,24 @@
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="50,-200" B="300,-200" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-100" B="-100,-70" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-30" B="-100,100" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="0,-150">
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D1" Category="Diodes" DisplayName="Silicon Diode" Description="Generic silicon diode (IS ~ 1x10^-12).">
+      <Component _Type="Circuit.ShockleyDiode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 p" n="1" IsLed="False" PartName="" Name="D1" />
+    </Component>
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="50,-150">
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D2" Category="Diodes" DisplayName="Silicon Diode" Description="Generic silicon diode (IS ~ 1x10^-12).">
+      <Component _Type="Circuit.ShockleyDiode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 p" n="1" IsLed="False" PartName="" Name="D2" />
+    </Component>
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="50,-50">
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D3" Category="Diodes" DisplayName="Silicon Diode" Description="Generic silicon diode (IS ~ 1x10^-12).">
+      <Component _Type="Circuit.ShockleyDiode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 p" n="1" IsLed="False" PartName="" Name="D3" />
+    </Component>
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="0,-50">
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D4" Category="Diodes" DisplayName="Silicon Diode" Description="Generic silicon diode (IS ~ 1x10^-12).">
+      <Component _Type="Circuit.ShockleyDiode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 p" n="1" IsLed="False" PartName="" Name="D4" />
+    </Component>
+  </Element>
 </Schematic>

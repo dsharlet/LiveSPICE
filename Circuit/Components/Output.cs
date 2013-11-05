@@ -7,7 +7,7 @@ using SyMath;
 
 namespace Circuit
 {
-    [CategoryAttribute("IO")]
+    [Category("IO")]
     [DisplayName("Output")]
     public class Output : TwoTerminal
     {

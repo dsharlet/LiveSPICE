@@ -134,6 +134,28 @@ namespace Circuit
             }
         }
 
+        /// <summary>
+        /// Create a deep copy of this component.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Component Clone() { return Deserialize(Serialize()); }
+
+        public virtual string GetDisplayName() 
+        { 
+            DisplayNameAttribute attr = GetType().GetCustomAttribute<DisplayNameAttribute>(false);
+            return attr != null ? attr.DisplayName : "";
+        }
+        public virtual string GetDescription() 
+        {
+            DescriptionAttribute attr = GetType().GetCustomAttribute<DescriptionAttribute>(false);
+            return attr != null ? attr.Description : "";
+        }
+        public virtual string GetCategory()
+        {
+            CategoryAttribute attr = GetType().GetCustomAttribute<CategoryAttribute>(false);
+            return attr != null ? attr.Category : "";
+        }
+        
         // This is too useful not to have.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
         // Make a variable Name dependent on On.

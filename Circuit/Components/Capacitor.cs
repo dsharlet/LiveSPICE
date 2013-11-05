@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Capacitor is a passive linear component with i = C*dV/dt.
     /// </summary>
-    [CategoryAttribute("Standard")]
+    [Category("Standard")]
     [DisplayName("Capacitor")]
     [DefaultProperty("Capacitance")]
     [Description("Standard capacitor component")]

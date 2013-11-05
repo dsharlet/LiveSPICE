@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal voltage source.
     /// </summary>
-    [CategoryAttribute("Standard")]
+    [Category("Standard")]
     [DisplayName("Voltage Source")]
     [DefaultProperty("Voltage")]
     [Description("Ideal voltage source.")]
@@ -81,7 +81,7 @@ namespace Circuit
     /// <summary>
     /// An input is just a voltage source with Voltage = f(t).
     /// </summary>
-    [CategoryAttribute("IO")]
+    [Category("IO")]
     [DisplayName("Input")]
     public class Input : VoltageSource
     {

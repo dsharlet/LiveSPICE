@@ -23,7 +23,7 @@ namespace Circuit
         [Serialize]
         public string Message { get { return message; } }
 
-        public UnserializedComponent() { }
+        protected UnserializedComponent() { }
         public UnserializedComponent(XElement Data, string Message) { data = Data; message = Message; }
 
         /// <summary>
@@ -40,7 +40,6 @@ namespace Circuit
     /// </summary>
     class Error : UnserializedComponent
     {
-        public Error() { }
         public Error(XElement Data, string Message) : base(Data, Message) { }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { throw new NotImplementedException("Cannot analyze a circuit with Error component."); }
@@ -65,7 +64,6 @@ namespace Circuit
     /// </summary>
     class Warning : UnserializedComponent
     {
-        public Warning() { }
         public Warning(XElement Data, string Message) : base(Data, Message) { }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { }

@@ -26,7 +26,7 @@ namespace LiveSPICE
                 buffer = new double[Samples];
         }
 
-        public Probe() : this(EdgeType.Red) { }
+        private Probe() : this(EdgeType.Red) { }
         public Probe(EdgeType Color) { color = Color; }
 
         public override void Analyze(ModifiedNodalAnalysis Mna) { }

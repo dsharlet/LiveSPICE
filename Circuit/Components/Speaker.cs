@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal speakers just model input impedance.
     /// </summary>
-    [CategoryAttribute("IO")]
+    [Category("Standard")]
     [DisplayName("Speaker")]
     [DefaultProperty("Impedance")]
     [Description("Ideal speaker.")] 

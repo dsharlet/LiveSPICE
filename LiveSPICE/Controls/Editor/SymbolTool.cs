@@ -22,9 +22,9 @@ namespace LiveSPICE
     {
         protected SymbolControl overlay;
         
-        public SymbolTool(SchematicEditor Target, Type Type) : base(Target)
+        public SymbolTool(SchematicEditor Target, Circuit.Component C) : base(Target)
         {
-            overlay = new SymbolControl(Type) 
+            overlay = new SymbolControl(C) 
             { 
                 Visibility = Visibility.Hidden, 
                 ShowText = false,
@@ -41,7 +41,7 @@ namespace LiveSPICE
             if (overlay.Visibility != Visibility.Visible)
                 return;
 
-            Circuit.Symbol S = new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(overlay.Component.GetType()))
+            Circuit.Symbol S = new Circuit.Symbol(overlay.Component.Clone())
             {
                 Position = overlay.Symbol.Position,
                 Rotation = overlay.Symbol.Rotation,

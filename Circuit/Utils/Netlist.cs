@@ -115,7 +115,7 @@ namespace Circuit
                 else if (name.StartsWith("D"))
                 {
                     nodes = Nodes(circuit, ref line, 2);
-                    C = new Diode();
+                    C = new ShockleyDiode();
                 }
                 else if (name.StartsWith("I"))
                 {

@@ -19,6 +19,13 @@ using SyMath;
 
 namespace LiveSPICE
 {
+    class ComponentButton : Button
+    {
+        static ComponentButton() { DefaultStyleKeyProperty.OverrideMetadata(typeof(ComponentButton), new FrameworkPropertyMetadata(typeof(ComponentButton))); }
+
+        public Circuit.Component Component { get { return (Circuit.Component)Tag; } set { Tag = value; } }
+    }
+
     /// <summary>
     /// Interaction logic for ComponentLibrary.xaml
     /// </summary>
@@ -45,14 +52,30 @@ namespace LiveSPICE
             { typeof(Circuit.Inductor), new[] { new KeyGesture(Key.L, ModifierKeys.Control), new KeyGesture(Key.H, ModifierKeys.Control) } },
             { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
         };
-
-        public static IEnumerable<Type> ComponentTypes
+        
+        private static IEnumerable<Circuit.Component> Components
         {
             get
             {
                 Type root = typeof(Circuit.Component);
-                return AppDomain.CurrentDomain.GetAssemblies()
+                IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(i => i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)));
+
+                foreach (Type i in types)
+                {
+                    // Enumerate the component itself.
+                    Circuit.Component C;
+                    try { C = (Circuit.Component)Activator.CreateInstance(i); } catch (Exception) { continue; }
+
+                    yield return C;
+
+                    // Enumerate any part definitions for this component.
+                    IEnumerable<Circuit.Component> parts;
+                    try { parts = (IEnumerable<Circuit.Component>)i.GetField("Parts").GetValue(null); } catch (Exception) { continue; }
+
+                    foreach (Circuit.Component j in parts)
+                        yield return j;
+                }
             }
         }
 
@@ -81,8 +104,8 @@ namespace LiveSPICE
 
                     f = f.ToUpper();
 
-                    foreach (Button i in filtered.Children)
-                        i.Visibility = GetDisplayName((Type)i.Tag).ToUpper().IndexOf(f) != -1 ? Visibility.Visible : Visibility.Collapsed;
+                    foreach (ComponentButton i in filtered.Children)
+                        i.Visibility = i.Component.GetDisplayName().ToUpper().IndexOf(f) != -1 ? Visibility.Visible : Visibility.Collapsed;
                 }
                 NotifyChanged("Filter");
             }
@@ -90,29 +113,30 @@ namespace LiveSPICE
                 
         public void Init(RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
         {
+            List<Circuit.Component> components = Components.OrderBy(i => i.GetDisplayName()).ToList();
+
             Panel common = AddCategory("Common");
-            foreach (Type i in CommonTypes)
+            foreach (Circuit.Component i in components.Where(i => CommonTypes.Contains(i.GetType())))
                 AddItem(common, i, OnClick, CommandBindings);
 
-            foreach (Type i in ComponentTypes)
-                foreach (CategoryAttribute j in i.GetCustomAttributes(typeof(CategoryAttribute), false).Cast<CategoryAttribute>())
-                    AddItem(AddCategory(j.Category), i, OnClick, CommandBindings);
+            foreach (Circuit.Component i in components)
+                AddItem(AddCategory(i.GetCategory()), i, OnClick, CommandBindings);
 
-            foreach (Type i in ComponentTypes)
+            foreach (Circuit.Component i in components)
                 AddItem(filtered, i, OnClick, null);
         }
         
-        private void AddItem(Panel Group, Type T, RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
+        private void AddItem(Panel Group, Circuit.Component C, RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
         {
             try
             {
-                StackPanel content = new StackPanel() { Orientation = Orientation.Vertical };
+                StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
 
                 // Add image to the button.
-                ComponentControl symbol = new ComponentControl((Circuit.Component)Activator.CreateInstance(T))
+                ComponentControl symbol = new ComponentControl(C)
                 {
-                    Width = 48,
-                    Height = 32,
+                    Width = 16,
+                    Height = 16,
                     ShowText = false,
                     Margin = new Thickness(2),
                 };
@@ -120,18 +144,20 @@ namespace LiveSPICE
 
                 TextBlock name = new TextBlock()
                 {
-                    Text = GetDisplayName(T),
-                    MaxWidth = symbol.Width,
+                    Text = C.GetDisplayName(),
+                    Width = 96,
                     TextTrimming = TextTrimming.CharacterEllipsis,
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    FontWeight = FontWeights.Normal
+                    VerticalAlignment = VerticalAlignment.Center,
+                    FontWeight = FontWeights.Normal,
+                    FontSize = FontSize,
                 };
                 content.Children.Add(name);
 
-                Button button = new Button()
+                ComponentButton button = new ComponentButton()
                 {
-                    Tag = T,
-                    ToolTip = GetDisplayName(T),
+                    Component = C,
+                    ToolTip = C.GetDescription(),
                     Content = content,
                     BorderBrush = null,
                 };
@@ -140,12 +166,13 @@ namespace LiveSPICE
                 Group.Children.Add(button);
 
                 // Bind input gestures to a command and add it to the command bindings.
-                if (CommandBindings != null && ShortcutKeys.ContainsKey(T))
+                KeyGesture[] keys;
+                if (CommandBindings != null && ShortcutKeys.TryGetValue(C.GetType(), out keys))
                 {
                     RoutedCommand command = new RoutedCommand();
-                    command.InputGestures.AddRange(ShortcutKeys[T]);
+                    command.InputGestures.AddRange(keys);
 
-                    button.ToolTip = (string)button.ToolTip + " (" + ShortcutKeys[T].Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
+                    button.ToolTip = (string)button.ToolTip + " (" + keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
 
                     CommandBinding binding = new CommandBinding(command, (o, e) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
                     CommandBindings.Add(binding);
@@ -156,6 +183,9 @@ namespace LiveSPICE
         
         private Panel AddCategory(string Category)
         {
+            if (Category == "")
+                Category = "Uncategorized";
+
             IEnumerable<Expander> expanders = categories.Children.OfType<Expander>();
             Expander category = expanders.SingleOrDefault(i => (string)i.Header == Category);
             if (category == null)
@@ -166,6 +196,7 @@ namespace LiveSPICE
                     Content = new WrapPanel(),
                     Focusable = false,
                     FontWeight = FontWeights.Bold,
+                    FontSize = 14,
                     IsExpanded = !expanders.Any(),
                 };
                 categories.Children.Add(category);
@@ -174,18 +205,6 @@ namespace LiveSPICE
             return (Panel)category.Content;
         }
         
-        private static string GetDisplayName(Type T)
-        {
-            DisplayNameAttribute name = T.GetCustomAttribute<DisplayNameAttribute>();
-            return name != null ? name.DisplayName : T.ToString();
-        }
-
-        private static string GetDescription(Type T)
-        {
-            DescriptionAttribute desc = T.GetCustomAttribute<DescriptionAttribute>();
-            return desc != null ? desc.Description : GetDisplayName(T);
-        }
-
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {

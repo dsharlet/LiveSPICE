@@ -37,11 +37,11 @@ namespace LiveSPICE
         {
             Component.LayoutSymbol(layout);
 
-            S.Component.PropertyChanged += (o, e) => InvalidateVisual();
+            S.Component.PropertyChanged += (o, e) => RefreshLayout();
 
             MouseMove += OnMouseMove;
         }
-        public SymbolControl(Type T) : this(new Circuit.Symbol((Circuit.Component)Activator.CreateInstance(T))) { }
+        public SymbolControl(Circuit.Component C) : this(new Circuit.Symbol(C)) { }
 
         public Circuit.Symbol Symbol { get { return (Circuit.Symbol)element; } }
         public Circuit.Component Component { get { return Symbol.Component; } }
@@ -110,6 +110,13 @@ namespace LiveSPICE
                 transform.Translate(ActualWidth / 2, ActualHeight / 2);
                 return transform;
             }
+        }
+
+        protected void RefreshLayout()
+        {
+            layout = new Circuit.SymbolLayout();
+            Component.LayoutSymbol(layout);
+            InvalidateVisual();
         }
 
         protected DrawingContext dc;

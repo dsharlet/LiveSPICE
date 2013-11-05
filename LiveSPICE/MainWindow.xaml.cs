@@ -32,7 +32,7 @@ namespace LiveSPICE
         {
             InitializeComponent();
 
-            Components.Init(toolbox_Click, CommandBindings);
+            Components.Init(component_Click, CommandBindings);
             Properties.PropertyValueChanged += properties_PropertyValueChanged;
             schematics.ChildrenTreeChanged += (o, e) => NotifyChanged("ActivewViewerZoom");
         }
@@ -202,7 +202,7 @@ namespace LiveSPICE
             }
         }
 
-        private void toolbox_Click(object s, RoutedEventArgs e) 
+        private void component_Click(object s, RoutedEventArgs e) 
         {
             SchematicEditor active = ActiveEditor;
             if (active == null)
@@ -210,11 +210,11 @@ namespace LiveSPICE
 
             e.Handled = true;
 
-            Type type = (Type)((Button)s).Tag;
-            if (type == typeof(Circuit.Conductor))
+            Circuit.Component C = ((ComponentButton)s).Component.Clone();
+            if (C is Circuit.Conductor)
                 active.Tool = new WireTool(active);
             else
-                active.Tool = new SymbolTool(active, type);
+                active.Tool = new SymbolTool(active, C);
 
             active.Focus();
             Keyboard.Focus(active);

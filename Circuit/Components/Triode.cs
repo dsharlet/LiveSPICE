@@ -7,108 +7,12 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    [TypeConverter(typeof(ModelConverter<TriodeModel>))]
-    public abstract class TriodeModel : Model
-    {
-        public TriodeModel(string Name) : base(Name) { }
-
-        public abstract void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik);
-
-        public static List<TriodeModel> Models { get { return Model.GetModels<TriodeModel>(); } }
-        
-        static TriodeModel()
-        {
-            Models.Add(new ChildLangmuirTriode("12AX7", 83.5, 1.73e-6));
-            Models.Add(new ChildLangmuirTriode("12AY7", 36.9, 1.73e-6));
-
-            Models.Add(new KorenTriode("12AX7", 100.0,	1.4,	1060.0,	600.0,	300.0,	1e6,	0.33));
-	        Models.Add(new KorenTriode("12AZ7", 74.08,	1.371,	382.0,	190.11,	300.0,	1e6,	0.33));
-	        Models.Add(new KorenTriode("12AT7", 67.49,	1.234,	419.1,	213.96,	300.0,	1e6,	0.33));
-	        Models.Add(new KorenTriode("12AY7", 44.16,	1.113,	1192.4,	409.96,	300.0,	1e6,	0.33));
-	        Models.Add(new KorenTriode("12AU7", 21.5, 	1.3,	1180.0,	84.0,	300.0,	1e6,	0.33));
-        }
-    }
-
-    /// <summary>
-    /// Norman Koren's triode model: http://www.normankoren.com/Audio/Tubemodspice_article.html
-    /// </summary>
-    public class KorenTriode : TriodeModel
-    {
-        private double mu, ex, kg, kp, kvb, rgk, vg;
-
-        public double Mu { get { return mu; } set { mu = value; } }
-        public double Ex { get { return ex; } set { ex = value; } }
-        public double Kg { get { return kg; } set { kg = value; } }
-        public double Kp { get { return kp; } set { kp = value; } }
-        public double Kvb { get { return kvb; } set { kvb = value; } }
-        public double Rgk { get { return rgk; } set { rgk = value; } }
-        public double Vg { get { return vg; } set { vg = value; } }
-        
-        public KorenTriode(string Name, double Mu, double Ex, double Kg, double Kp, double Kvb, double Rgk, double Vg) : base(Name)
-        {
-            mu = Mu;
-            ex = Ex;
-            kg = Kg;
-            kp = Kp;
-            kvb = Kvb;
-            rgk = Rgk;
-            vg = Vg;
-        }
-        
-        public override void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik)
-        {
-            Expression ex = Kp * (1.0 / Mu + Vgk * (Kvb + Vpk * Vpk) ^ (-0.5));
-
-            // ln(1+e^x) = x for large x, and large x causes numerical issues.
-            Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + Call.Exp(ex))) * Vpk / Kp;
-
-            Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, Constant.Zero);
-            Ig = Call.If(Vgk > Vg, (Vgk - Vg) / Rgk, Constant.Zero);
-            Ik = -(Ip + Ig);
-        }
-
-        public override string ToString() { return base.ToString() + " (Koren)"; }
-    };
-
-    /// <summary>
-    /// Child-Langmuir triode.
-    /// </summary>
-    [TypeConverter(typeof(ModelConverter<TriodeModel>))]
-    public class ChildLangmuirTriode : TriodeModel
-    {
-        protected double mu, k;
-
-        public double Mu { get { return mu; } set { mu = value; } }
-        public double K { get { return k; } set { k = value; } }
-
-        public ChildLangmuirTriode(string Name, double Mu, double K) : base(Name)
-        {
-            mu = Mu;
-            k = K;
-        }
-
-        public override void Evaluate(Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig, out Expression Ik)
-        {
-            Expression Ed = Mu * Vgk + Vpk;
-            Ip = Call.If(Ed > 0, K * (Ed ^ 1.5), 0);
-            Ig = 0;
-            Ik = -Ip;
-        }
-
-        public override string ToString() { return base.ToString() + " (Child-Langmuir)"; }
-    }
-
-
     /// <summary>
     /// Base class for a triode.
     /// </summary>
-    [CategoryAttribute("Vacuum Tubes")]
-    [DisplayName("Triode")]
-    [DefaultProperty("Model")]
-    [Description("Triode.")]
-    public class Triode : Component
+    public abstract class Triode : Component
     {
-        protected Terminal p, g, k;
+        private Terminal p, g, k;
         public override IEnumerable<Terminal> Terminals
         {
             get
@@ -119,16 +23,17 @@ namespace Circuit
             }
         }
         [Browsable(false)]
-        public Terminal P { get { return p; } }
+        public Terminal Plate { get { return p; } }
         [Browsable(false)]
-        public Terminal G { get { return g; } }
+        public Terminal Grid { get { return g; } }
         [Browsable(false)]
-        public Terminal K { get { return k; } }
+        public Terminal Cathode { get { return k; } }
 
-        protected TriodeModel model = TriodeModel.Models.First();
+        protected string partName = "";
+        [Description("Name of this part. This property only affects the schematic symbol, it does not affect the simulation.")]
         [Serialize]
-        public TriodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
-        
+        public string PartName { get { return partName; } set { partName = value; NotifyChanged("PartName"); } }
+
         public Triode()
         {
             p = new Terminal(this, "P");
@@ -137,15 +42,17 @@ namespace Circuit
             Name = "V1";
         }
 
+        protected abstract void Analyze(ModifiedNodalAnalysis Mna, Expression Vgk, Expression Vpk, out Expression ip, out Expression ig);
+
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             Expression Vpk = Mna.AddNewUnknownEqualTo(Name + "pk", p.V - k.V);
             Expression Vgk = Mna.AddNewUnknownEqualTo(Name + "gk", g.V - k.V);
 
-            Expression ip, ig, ik;
-            model.Evaluate(Vpk, Vgk, out ip, out ig, out ik);
-            ip = Mna.AddNewUnknownEqualTo("i" + Name + "p", ip); ;
-            ig = Mna.AddNewUnknownEqualTo("i" + Name + "g", ig); ;
+            Expression ip, ig;
+            Analyze(Mna, Vgk, Vpk, out ip, out ig);
+            ip = Mna.AddNewUnknownEqualTo("i" + Name + "p", ip);
+            ig = Mna.AddNewUnknownEqualTo("i" + Name + "g", ig);
             Mna.AddTerminal(p, ip);
             Mna.AddTerminal(g, ig);
             Mna.AddTerminal(k, -(ip + ig));
@@ -176,6 +83,6 @@ namespace Circuit
             Sym.DrawText(Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, p, g, k, () => Name, () => Model.Name); }
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, p, g, k, () => Name, () => PartName); }
     }
 }

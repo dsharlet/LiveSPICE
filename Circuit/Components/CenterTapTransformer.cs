@@ -10,10 +10,10 @@ namespace Circuit
     /// <summary>
     /// Ideal transformer.
     /// </summary>
-    [CategoryAttribute("Standard")]
+    [Category("Standard")]
     [DisplayName("Center Tap Transformer")]
     [DefaultProperty("Turns")]
-    [Description("Transformer with a center tap in the secondary coil.")]
+    [Description("Ideal transformer with a center tap in the secondary coil.")]
     public class CenterTapTransformer : Component
     {
         private Terminal pa, pc, sa, st, sc;

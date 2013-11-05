@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Circuit port component.
     /// </summary>
-    [CategoryAttribute("IO")]
+    [Category("IO")]
     [DisplayName("Port")]
     [DefaultProperty("Name")]
     [Description("Represents a terminal when the schematic is used as a subcircuit.")]
