@@ -18,7 +18,7 @@ namespace Circuit
         protected Quantity _is = new Quantity(1e-12, Units.A);
         [Description("Saturation current.")]
         [Serialize]
-        public Quantity IS { get { return _is; } set { _is = value; NotifyChanged("IS"); } }
+        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
         protected double _n = 1.0;
         [Description("Idealization factor.")]

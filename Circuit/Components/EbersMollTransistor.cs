@@ -29,7 +29,7 @@ namespace Circuit
         protected Quantity _is = new Quantity(1e-12, Units.A);
         [Description("Saturation current.")]
         [Serialize]
-        public Quantity IS { get { return _is; } set { _is = value; NotifyChanged("IS"); } }
+        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
         private double bf = 100;
         [Description("Forward common emitter current gain.")]
@@ -68,7 +68,7 @@ namespace Circuit
             }
 
             ic = Mna.AddNewUnknownEqualTo("i" + Name + "c", sign * ic);
-            ie = Mna.AddNewUnknownEqualTo("i" + Name + "e", sign * -ie);
+            ie = Mna.AddNewUnknownEqualTo("i" + Name + "e", -sign * ie);
             Mna.AddTerminal(Collector, ic);
             Mna.AddTerminal(Base, -(ic + ie));
             Mna.AddTerminal(Emitter, ie);
@@ -108,6 +108,9 @@ namespace Circuit
 
         public static IEnumerable<Component> Parts = new Component[]
         {
+            new ModelSpecialization(new EbersMollBJT() { PartName = "NPN", Structure = BJTStructure.NPN, IS = 1e-12m, BF = 100, BR = 1 }) { DisplayName = "NPN", Description = "Generic NPN BJT (BF = 100, BR = 1)" },
+            new ModelSpecialization(new EbersMollBJT() { PartName = "PNP", Structure = BJTStructure.PNP, IS = 1e-12m, BF = 100, BR = 1 }) { DisplayName = "PNP", Description = "Generic PNP BJT (BF = 100, BR = 1)" },
+
             new ModelSpecialization(new EbersMollBJT() { PartName = "2SC2240", Structure = BJTStructure.NPN, IS = 1e-12m, BF = 200, BR = 0.1 }) { DisplayName = "2SC2240" },
         };
     }
