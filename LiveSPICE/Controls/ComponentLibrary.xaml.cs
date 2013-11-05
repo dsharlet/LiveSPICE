@@ -138,7 +138,7 @@ namespace LiveSPICE
                     Width = 16,
                     Height = 16,
                     ShowText = false,
-                    Margin = new Thickness(2),
+                    Margin = new Thickness(1),
                 };
                 content.Children.Add(symbol);
 
@@ -146,6 +146,7 @@ namespace LiveSPICE
                 {
                     Text = C.GetDisplayName(),
                     Width = 96,
+                    Margin = new Thickness(3, 0, 3, 0),
                     TextTrimming = TextTrimming.CharacterEllipsis,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
