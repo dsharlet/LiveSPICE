@@ -63,10 +63,7 @@ namespace LiveSPICE
             set
             {
                 base.Command = value;
-
-                ImageSource image = null;
-                if (CommandImages.Images.TryGetValue(value, out image))
-                    Source = image;
+                Source = Images.ForCommand(value);
             }
         }
 
