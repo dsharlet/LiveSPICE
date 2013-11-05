@@ -22,7 +22,7 @@ namespace LiveSPICE
     /// <summary>
     /// Interaction logic for ComponentLibrary.xaml
     /// </summary>
-    public partial class ComponentLibrary : UserControl
+    public partial class ComponentLibrary : UserControl, INotifyPropertyChanged
     {
         private static List<Type> CommonTypes = new List<Type>()
         {
@@ -46,31 +46,63 @@ namespace LiveSPICE
             { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
         };
 
-                
+        public static IEnumerable<Type> ComponentTypes
+        {
+            get
+            {
+                Type root = typeof(Circuit.Component);
+                return AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(i => i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)));
+            }
+        }
+
         public ComponentLibrary()
         {
             InitializeComponent();
         }
-                
-        public static IEnumerable<Type> GetComponentTypes()
-        {
-            Type root = typeof(Circuit.Component);
-            return Assembly.GetAssembly(root).GetTypes().Where(t => !t.IsAbstract && root.IsAssignableFrom(t));
-        }
 
+        private string filter = "";
+        public string Filter
+        {
+            get { return filter; }
+            set
+            {
+                filter = value;
+                string f = filter.ToUpper();
+                if (f == "")
+                {
+                    categories.Visibility = Visibility.Visible;
+                    filtered.Visibility = Visibility.Hidden;
+                }
+                else
+                {
+                    categories.Visibility = Visibility.Hidden;
+                    filtered.Visibility = Visibility.Visible;
+
+                    f = f.ToUpper();
+
+                    foreach (Button i in filtered.Children)
+                        i.Visibility = GetDisplayName((Type)i.Tag).ToUpper().IndexOf(f) != -1 ? Visibility.Visible : Visibility.Collapsed;
+                }
+                NotifyChanged("Filter");
+            }
+        }
+                
         public void Init(RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
         {
-            Expander common = GetCategory("Common");
+            Panel common = AddCategory("Common");
             foreach (Type i in CommonTypes)
                 AddItem(common, i, OnClick, CommandBindings);
-            common.IsExpanded = true;
 
-            foreach (Type i in GetComponentTypes())
+            foreach (Type i in ComponentTypes)
                 foreach (CategoryAttribute j in i.GetCustomAttributes(typeof(CategoryAttribute), false).Cast<CategoryAttribute>())
-                    AddItem(GetCategory(j.Category), i, OnClick, CommandBindings);
+                    AddItem(AddCategory(j.Category), i, OnClick, CommandBindings);
+
+            foreach (Type i in ComponentTypes)
+                AddItem(filtered, i, OnClick, null);
         }
         
-        private Button AddItem(Expander Group, Type T, RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
+        private void AddItem(Panel Group, Type T, RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
         {
             try
             {
@@ -96,19 +128,19 @@ namespace LiveSPICE
                 };
                 content.Children.Add(name);
 
-                Button button = new Button() 
-                { 
-                    Tag = T, 
-                    ToolTip = GetDisplayName(T), 
+                Button button = new Button()
+                {
+                    Tag = T,
+                    ToolTip = GetDisplayName(T),
                     Content = content,
                     BorderBrush = null,
                 };
                 button.Click += OnClick;
-                
-                ((Panel)Group.Content).Children.Add(button);
+
+                Group.Children.Add(button);
 
                 // Bind input gestures to a command and add it to the command bindings.
-                if (ShortcutKeys.ContainsKey(T))
+                if (CommandBindings != null && ShortcutKeys.ContainsKey(T))
                 {
                     RoutedCommand command = new RoutedCommand();
                     command.InputGestures.AddRange(ShortcutKeys[T]);
@@ -118,18 +150,13 @@ namespace LiveSPICE
                     CommandBinding binding = new CommandBinding(command, (o, e) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
                     CommandBindings.Add(binding);
                 }
-
-                return button;
             }
-            catch (System.Exception) 
-            {
-                return null;
-            }
+            catch (System.Exception) { }
         }
         
-        private Expander GetCategory(string Category)
+        private Panel AddCategory(string Category)
         {
-            IEnumerable<Expander> expanders = list.Children.OfType<Expander>();
+            IEnumerable<Expander> expanders = categories.Children.OfType<Expander>();
             Expander category = expanders.SingleOrDefault(i => (string)i.Header == Category);
             if (category == null)
             {
@@ -138,14 +165,15 @@ namespace LiveSPICE
                     Header = Category,
                     Content = new WrapPanel(),
                     Focusable = false,
-                    FontWeight = FontWeights.Bold
+                    FontWeight = FontWeights.Bold,
+                    IsExpanded = !expanders.Any(),
                 };
-                list.Children.Add(category);
+                categories.Children.Add(category);
             }
 
-            return category;
+            return (Panel)category.Content;
         }
-
+        
         private static string GetDisplayName(Type T)
         {
             DisplayNameAttribute name = T.GetCustomAttribute<DisplayNameAttribute>();
@@ -157,5 +185,13 @@ namespace LiveSPICE
             DescriptionAttribute desc = T.GetCustomAttribute<DescriptionAttribute>();
             return desc != null ? desc.Description : GetDisplayName(T);
         }
+
+        // INotifyPropertyChanged interface.
+        protected void NotifyChanged(string p)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

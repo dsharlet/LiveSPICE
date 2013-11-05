@@ -16,7 +16,7 @@ using SyMath;
 
 namespace LiveSPICE
 {
-    public class ProbeTool : SchematicTool
+    class ProbeTool : SchematicTool
     {
         public SimulationSchematic Simulation { get { return (SimulationSchematic)Target; } }
 

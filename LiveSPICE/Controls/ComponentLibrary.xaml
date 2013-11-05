@@ -1,21 +1,22 @@
-﻿<UserControl x:Class="LiveSPICE.ComponentLibrary"
+﻿<UserControl x:Class="LiveSPICE.ComponentLibrary" x:Name="_this"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <DockPanel>
+    <DockPanel LastChildFill="True">
         <ToolBar Height="28" DockPanel.Dock="Top">
-            <Image Source="{StaticResource Search}" Height="16" />
-            <TextBox Width="110" Text="{Binding Path=Filter, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Text="Filter: " VerticalAlignment="Center"/>
+            <TextBox Width="110" Margin="2" Text="{Binding ElementName=_this, Path=Filter, UpdateSourceTrigger=PropertyChanged}" />
         </ToolBar>
-        <ScrollViewer HorizontalAlignment="Stretch" 
-                      VerticalAlignment="Stretch" 
-                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+        <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto">
             <Border BorderBrush="DarkGray" BorderThickness="1">
-                <StackPanel Name="list" />
+                <Grid>
+                    <StackPanel Name="categories" />
+                    <WrapPanel Name="filtered" Visibility="Collapsed" />
+                </Grid>
             </Border>
         </ScrollViewer>
     </DockPanel>

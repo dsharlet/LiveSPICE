@@ -10,7 +10,7 @@ namespace LiveSPICE
     /// <summary>
     /// Component to mark nodes for probing.
     /// </summary>
-    public class Probe : OneTerminal
+    class Probe : OneTerminal
     {
         protected EdgeType color;
         public EdgeType Color { get { return color; } set { color = value; } }

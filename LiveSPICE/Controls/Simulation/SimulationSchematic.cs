@@ -24,7 +24,7 @@ namespace LiveSPICE
     /// <summary>
     /// Control for interacting with a Circuit.Schematic.
     /// </summary>
-    public class SimulationSchematic : SchematicControl
+    class SimulationSchematic : SchematicControl
     {
         public SimulationSchematic(Circuit.Schematic Schematic) : base(Schematic)
         {

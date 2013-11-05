@@ -11,7 +11,7 @@ namespace Circuit
     /// <summary>
     /// Special component for indicating a serialization error.
     /// </summary>
-    public abstract class UnserializedComponent : Component
+    abstract class UnserializedComponent : Component
     {
         public override IEnumerable<Terminal> Terminals { get { return new Terminal[0]; } }
 
@@ -38,7 +38,7 @@ namespace Circuit
     /// <summary>
     /// Component that prevent analysis.
     /// </summary>
-    public class Error : UnserializedComponent
+    class Error : UnserializedComponent
     {
         public Error() { }
         public Error(XElement Data, string Message) : base(Data, Message) { }
@@ -63,7 +63,7 @@ namespace Circuit
     /// <summary>
     /// Component that prevent analysis.
     /// </summary>
-    public class Warning : UnserializedComponent
+    class Warning : UnserializedComponent
     {
         public Warning() { }
         public Warning(XElement Data, string Message) : base(Data, Message) { }

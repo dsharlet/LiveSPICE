@@ -21,7 +21,7 @@ namespace LiveSPICE
     /// <summary>
     /// Interaction logic for LiveSimulation.xaml
     /// </summary>
-    public partial class LiveSimulation : Window, INotifyPropertyChanged
+    partial class LiveSimulation : Window, INotifyPropertyChanged
     {
         public Log Log { get { return (Log)log.Content; } }
         public Parameters Parameters { get { return (Parameters)parameters.Content; } }
@@ -59,7 +59,7 @@ namespace LiveSPICE
         protected Circuit.Simulation simulation = null;
         protected Circuit.TransientSolution solution = null;
 
-        protected List<Probe> probes = new List<Probe>();
+        private List<Probe> probes = new List<Probe>();
         protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
 
         protected Audio.Stream stream = null;
