@@ -56,7 +56,7 @@ namespace Circuit
 
             Expression ie = iBE - aR * iBC;
             Expression ic = -iBC + aF * iBE;
-            Expression ib = (1 - aF) * iBE + (1 - aR) * iBC;
+            //Expression ib = (1 - aF) * iBE + (1 - aR) * iBC;
 
             int sign;
             switch (Structure)
@@ -65,13 +65,13 @@ namespace Circuit
                 case BJTStructure.PNP: sign = -1; break;
                 default: 
                     throw new NotSupportedException("Unknown BJT structure.");
-            }                
+            }
 
             ic = Mna.AddNewUnknownEqualTo("i" + Name + "c", sign * ic);
-            ib = Mna.AddNewUnknownEqualTo("i" + Name + "b", sign * ib);
+            ie = Mna.AddNewUnknownEqualTo("i" + Name + "e", sign * -ie);
             Mna.AddTerminal(Collector, ic);
-            Mna.AddTerminal(Base, ib);
-            Mna.AddTerminal(Emitter, -(ic + ib));
+            Mna.AddTerminal(Base, -(ic + ie));
+            Mna.AddTerminal(Emitter, ie);
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, BJTStructure Structure, Terminal C, Terminal B, Terminal E, Func<string> Name, Func<string> Part)
