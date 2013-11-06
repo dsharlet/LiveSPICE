@@ -1,20 +1,21 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <BitmapImage x:Key="Clear" UriSource="../Images/Clear.png" />
-    <BitmapImage x:Key="Copy" UriSource="../Images/Copy.png" />
-    <BitmapImage x:Key="Cut" UriSource="../Images/Cut.png" />
-    <BitmapImage x:Key="Gears" UriSource="../Images/Gears.png" />
-    <BitmapImage x:Key="New" UriSource="../Images/New.png" />
-    <BitmapImage x:Key="Open" UriSource="../Images/Open.png" />
-    <BitmapImage x:Key="Paste" UriSource="../Images/Paste.png" />
-    <BitmapImage x:Key="Pause" UriSource="../Images/Pause.png" />
-    <BitmapImage x:Key="Redo" UriSource="../Images/Redo.png" />
-    <BitmapImage x:Key="Restart" UriSource="../Images/Restart.png" />
-    <BitmapImage x:Key="Save" UriSource="../Images/Save.png" />
-    <BitmapImage x:Key="SaveAll" UriSource="../Images/SaveAll.png" />
-    <BitmapImage x:Key="Search" UriSource="../Images/Search.png" />
-    <BitmapImage x:Key="Start" UriSource="../Images/Start.png" />
-    <BitmapImage x:Key="Undo" UriSource="../Images/Undo.png" />
-    <BitmapImage x:Key="ZoomIn" UriSource="../Images/ZoomIn.png" />
-    <BitmapImage x:Key="ZoomOut" UriSource="../Images/ZoomOut.png" />
+    <BitmapImage x:Key="Clear" UriSource="pack://application:,,,/Images/Clear.png" />
+    <BitmapImage x:Key="Copy" UriSource="pack://application:,,,/Images/Copy.png" />
+    <BitmapImage x:Key="Cut" UriSource="pack://application:,,,/Images/Cut.png" />
+    <BitmapImage x:Key="Gears" UriSource="pack://application:,,,/Images/Gears.png" />
+    <BitmapImage x:Key="Icon" UriSource="pack://application:,,,/Images/LiveSPICE.png" />
+    <BitmapImage x:Key="New" UriSource="pack://application:,,,/Images/New.png" />
+    <BitmapImage x:Key="Open" UriSource="pack://application:,,,/Images/Open.png" />
+    <BitmapImage x:Key="Paste" UriSource="pack://application:,,,/Images/Paste.png" />
+    <BitmapImage x:Key="Pause" UriSource="pack://application:,,,/Images/Pause.png" />
+    <BitmapImage x:Key="Redo" UriSource="pack://application:,,,/Images/Redo.png" />
+    <BitmapImage x:Key="Restart" UriSource="pack://application:,,,/Images/Restart.png" />
+    <BitmapImage x:Key="Save" UriSource="pack://application:,,,/Images/Save.png" />
+    <BitmapImage x:Key="SaveAll" UriSource="pack://application:,,,/Images/SaveAll.png" />
+    <BitmapImage x:Key="Search" UriSource="pack://application:,,,/Images/Search.png" />
+    <BitmapImage x:Key="Start" UriSource="pack://application:,,,/Images/Start.png" />
+    <BitmapImage x:Key="Undo" UriSource="pack://application:,,,/Images/Undo.png" />
+    <BitmapImage x:Key="ZoomIn" UriSource="pack://application:,,,/Images/ZoomIn.png" />
+    <BitmapImage x:Key="ZoomOut" UriSource="pack://application:,,,/Images/ZoomOut.png" />
 </ResourceDictionary>

@@ -5,7 +5,7 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="Live Simulation" Icon="pack://application:,,,/Images/Start.png"
+        Title="Live Simulation" Icon="{StaticResource Start}"
         Width="1000" Height="800" WindowStartupLocation="CenterOwner" 
         Style="{StaticResource ResourceKey=Window}">
     <Window.CommandBindings>
