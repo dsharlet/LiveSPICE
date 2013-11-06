@@ -5,7 +5,7 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="LiveSPICE" Icon="pack://application:,,,/Images/LiveSPICE.png"
+        Title="LiveSPICE" Icon="{StaticResource Icon}"
         Width="1200" Height="800" Closing="OnClosing" Loaded="OnLoaded" 
         Style="{StaticResource ResourceKey=Window}">
     <Window.CommandBindings>
@@ -51,11 +51,11 @@
                 <ls:MenuItemIcon CommandImage="ApplicationCommands.Delete" />
                 <Separator />
                 <ls:MenuItemIcon CommandImage="ApplicationCommands.SelectAll" />
-                <Separator />
-                <ls:MenuItemIcon Header="Audio Configuration" Click="AudioConfiguration_Click" IconSource="{StaticResource Gears}" />
             </MenuItem>
             <MenuItem Header="_Simulate">
                 <ls:MenuItemIcon CommandImage="{x:Static ls:Commands.Simulate}" />
+                <Separator />
+                <ls:MenuItemIcon Header="Audio Configuration" Click="AudioConfiguration_Click" IconSource="{StaticResource Gears}" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Properties" IsChecked="{Binding ElementName=properties, Path=IsVisible}" Click="ViewProperties_Click" />
