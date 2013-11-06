@@ -45,7 +45,7 @@ namespace SyMath
             return Jacobian(F, x.Select(i => Arrow.New(i, i)));
         }
         
-        private const int MaxIterations = 100;
+        private const int MaxIterations = 1000;
 
         private static List<Arrow> NSolve(List<Equal> f, List<Arrow> x0, double Epsilon)
         {
@@ -58,6 +58,7 @@ namespace SyMath
             int M = F.Count;
             int N = x0.Count;
 
+            // Compile the Jacobian and F to delegates so we can evaluate them quickly during iteration.
             Delegate[][] _J = new Delegate[M][];
             for (int i = 0; i < M; ++i)
             {
@@ -82,15 +83,10 @@ namespace SyMath
                 dx[j] = 0.0;
             }
 
-            double error = double.PositiveInfinity;
-            for (int n = 0; error > Epsilon; ++n)
+            for (int n = 0; n < MaxIterations; ++n)
             {
-                if (n > MaxIterations)
-                    throw new NotFiniteNumberException("NSolve failed to converge.");
-
-                error = 0.0;
-
                 // Evaluate JxF and F.
+                double error = 0.0;
                 for (int i = 0; i < M; ++i)
                 {
                     object[] _x = x.Cast<object>().ToArray();
@@ -100,6 +96,8 @@ namespace SyMath
                     JxF[i][N] = e;
                     error += e * e;
                 }
+                if (error < Epsilon * Epsilon * N)
+                    return Enumerable.Range(0, N).Select(i => Arrow.New(x0[i].Left, x[i])).ToList();
 
                 // solve for dx.
                 // For each variable in the system...
@@ -148,7 +146,7 @@ namespace SyMath
                 }
             }
 
-            return Enumerable.Range(0, N).Select(i => Arrow.New(x0[i].Left, x[i])).ToList();
+            throw new NotFiniteNumberException("NSolve failed to converge.");
         }
 
         private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
