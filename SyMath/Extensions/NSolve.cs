@@ -146,7 +146,8 @@ namespace SyMath
                 }
             }
 
-            throw new NotFiniteNumberException("NSolve failed to converge.");
+            // Failed to converge.
+            return new List<Arrow>();
         }
 
         private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
