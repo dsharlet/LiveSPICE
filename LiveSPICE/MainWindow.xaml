@@ -5,8 +5,9 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="LiveSPICE" Width="1200" Height="800"
-        Closing="OnClosing" Loaded="OnLoaded" Style="{StaticResource ResourceKey=Window}">
+        Title="LiveSPICE" Icon="pack://application:,,,/Images/LiveSPICE.png"
+        Width="1200" Height="800" Closing="OnClosing" Loaded="OnLoaded" 
+        Style="{StaticResource ResourceKey=Window}">
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="New_Executed" />
         <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed" />

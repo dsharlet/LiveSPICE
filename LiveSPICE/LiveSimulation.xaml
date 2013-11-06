@@ -5,8 +5,9 @@
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
-        Title="Live Simulation" Width="1000" Height="800" 
-        WindowStartupLocation="CenterOwner" Style="{StaticResource ResourceKey=Window}">
+        Title="Live Simulation" Icon="pack://application:,,,/Images/Start.png"
+        Width="1000" Height="800" WindowStartupLocation="CenterOwner" 
+        Style="{StaticResource ResourceKey=Window}">
     <Window.CommandBindings>
         <CommandBinding Command="{x:Static ls:Commands.Simulate}" Executed="Simulate_Executed" />
 
@@ -39,10 +40,10 @@
         <!-- Toolbars -->
         <ToolBarTray Grid.Row="2">
             <ToolBar Band="1" BandIndex="1">
-                <TextBlock Text="Oversample: " HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Text="Oversample:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Oversample}" />
 
-                <TextBlock Text="Iterations: " HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Text="Iterations:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
                 <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" />
 
                 <ls:ImageButton CommandImage="{x:Static ls:Commands.Simulate}" ImageHeight="16" />
