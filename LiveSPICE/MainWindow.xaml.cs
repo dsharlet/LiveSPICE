@@ -241,7 +241,7 @@ namespace LiveSPICE
                     if (!(config.ShowDialog() ?? false))
                         return;
 
-                LiveSimulation simulation = new LiveSimulation(ActiveEditor.Schematic, config.Device, config.Inputs, config.Outputs) { Owner = this };
+                LiveSimulation simulation = new LiveSimulation(ActiveEditor.Schematic, config.Device, config.Inputs, config.Outputs) { Owner = this, Title = ActiveEditor.Title + " - Live Simulation" };
                 simulation.Show();
             }
         }
