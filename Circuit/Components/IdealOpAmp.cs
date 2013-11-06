@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Implements an ideal operational amplifier (op-amp). An ideal op-amp will not saturate.
     /// </summary>
-    [Category("Standard")]
+    [Category("Op-Amps")]
     [DisplayName("Ideal Op-Amp")]
     [Description("Ideal op-amp.")]
     public class IdealOpAmp : Component
