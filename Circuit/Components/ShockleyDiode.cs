@@ -82,7 +82,5 @@ namespace Circuit
             new ModelSpecialization(new ShockleyDiode() { PartName = "",        IS = 1e-6m,     n = 1.0 }) { DisplayName = "Germanium Diode", Category = "Diodes", Description = "Generic germanium diode." },
             new ModelSpecialization(new ShockleyDiode() { PartName = "",        IS = 1e-12m,    n = 1.0 }) { DisplayName = "Silicon Diode", Category = "Diodes", Description = "Generic silicon diode." },
         };
-
-        private static KeyValuePair<string, object> KV(string Key, object Value) { return new KeyValuePair<string, object>(Key, Value); }
     }
 }

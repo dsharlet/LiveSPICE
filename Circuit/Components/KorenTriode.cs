@@ -57,7 +57,5 @@ namespace Circuit
 	        new ModelSpecialization(new KorenTriode() { PartName = "12AY7", Mu = 44.16, Ex = 1.113,   Kg = 1192.4,    Kp = 409.96, Kvb = 300.0, Rgk = 1e6m, Vg = 0.33m }) { DisplayName = "12AY7" },
 	        new ModelSpecialization(new KorenTriode() { PartName = "12AU7", Mu = 21.5,  Ex = 1.3,     Kg = 1180.0,    Kp = 84.0,   Kvb = 300.0, Rgk = 1e6m, Vg = 0.33m }) { DisplayName = "12AU7" },
         };
-
-        private static KeyValuePair<string, object> KV(string Key, object Value) { return new KeyValuePair<string, object>(Key, Value); }
     }
 }
