@@ -41,11 +41,23 @@
         <ToolBarTray Grid.Row="2">
             <ToolBar Band="1" BandIndex="1">
                 <TextBlock Text="Oversample:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Oversample}" />
+                <ComboBox Width="40" SelectedValue="{Binding ElementName=_this, Path=Oversample}" SelectedValuePath="Tag"
+                          IsEditable="True" Text="{Binding ElementName=_this, Path=Oversample, UpdateSourceTrigger=LostFocus}">
+                    <ComboBoxItem Tag="1">1x</ComboBoxItem>
+                    <ComboBoxItem Tag="2">2x</ComboBoxItem>
+                    <ComboBoxItem Tag="3">3x</ComboBoxItem>
+                    <ComboBoxItem Tag="4">4x</ComboBoxItem>
+                    <ComboBoxItem Tag="6">6x</ComboBoxItem>
+                    <ComboBoxItem Tag="8">8x</ComboBoxItem>
+                    <ComboBoxItem Tag="12">12x</ComboBoxItem>
+                    <ComboBoxItem Tag="16">16x</ComboBoxItem>
+                </ComboBox>
 
                 <TextBlock Text="Iterations:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" />
+                <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" Minimum="1" Maximum="64" />
 
+                <Separator />
+                
                 <ls:ImageButton CommandImage="{x:Static ls:Commands.Simulate}" ImageHeight="16" />
             </ToolBar>
             <!-- View -->

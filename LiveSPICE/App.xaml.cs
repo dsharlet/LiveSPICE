@@ -30,6 +30,7 @@ namespace LiveSPICE
 
             base.OnStartup(e);
             EventManager.RegisterClassHandler(typeof(TextBox), TextBox.KeyDownEvent, new KeyEventHandler(TextBox_KeyDown));
+            EventManager.RegisterClassHandler(typeof(ComboBox), ComboBox.KeyDownEvent, new KeyEventHandler(ComboBox_KeyDown));
 
             LoadAssemblies();
         }
@@ -39,17 +40,30 @@ namespace LiveSPICE
             settings.Save();
             base.OnExit(e);
         }
-        
+
         void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
             TextBox textbox = (TextBox)sender;
-            if (e.Key == Key.Enter & textbox.AcceptsReturn == false) 
+            if (e.Key == Key.Enter & textbox.AcceptsReturn == false)
             {
                 BindingExpression be = textbox.GetBindingExpression(TextBox.TextProperty);
                 if (be != null)
                     be.UpdateSource();
 
                 Window.GetWindow(textbox).Focus();
+            }
+        }
+
+        void ComboBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            ComboBox combo = (ComboBox)sender;
+            if (e.Key == Key.Enter)
+            {
+                BindingExpression be = combo.GetBindingExpression(ComboBox.TextProperty);
+                if (be != null)
+                    be.UpdateSource();
+
+                Window.GetWindow(combo).Focus();
             }
         }
 

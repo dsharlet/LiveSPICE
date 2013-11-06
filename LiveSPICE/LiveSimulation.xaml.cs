@@ -27,7 +27,7 @@ namespace LiveSPICE
         public Parameters Parameters { get { return (Parameters)parameters.Content; } }
         public Scope Scope { get { return (Scope)scope.Content; } }
 
-        protected int oversample = 4;
+        protected int oversample = 8;
         public int Oversample
         {
             get { return oversample; }
