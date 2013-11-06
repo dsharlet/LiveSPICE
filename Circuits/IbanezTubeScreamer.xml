@@ -185,6 +185,8 @@
     </Component>
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-150,0">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rin="500 MΩ" Rout="100 Ω" Aol="100 k" Name="X1" PartNumber="" />
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="X1" PartNumber="4558" Category="Op-Amps" DisplayName="4558" Description="http://www.fairchildsemi.com/ds/KA/KA4558.pdf">
+      <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rin="50 MΩ" Rout="100 Ω" Aol="200 k" Name="X1" PartNumber="4558" />
+    </Component>
   </Element>
 </Schematic>
