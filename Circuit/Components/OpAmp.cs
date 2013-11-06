@@ -46,6 +46,11 @@ namespace Circuit
         [Serialize]
         public Quantity Aol { get { return gain; } set { if (gain.Set(value)) NotifyChanged("Aol"); } }
 
+        protected string partName = "";
+        [Description("Part name/number. This property only affects the schematic symbol, it does not affect the simulation.")]
+        [Serialize]
+        public string PartName { get { return partName; } set { partName = value; NotifyChanged("PartName"); } }
+
         private static readonly Constant Pi = Constant.New(Math.PI);
         private static readonly Constant Epsilon = Constant.New(1e-6);
 
@@ -104,6 +109,11 @@ namespace Circuit
             Sym.DrawText(Name, new Coord(12, -4), Alignment.Near, Alignment.Far);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, vpp, vnn, () => Name, null); }
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, vpp, vnn, () => Name, () => PartName); }
+
+        public static IEnumerable<Component> Parts = new Component[]
+        {
+            new ModelSpecialization(new OpAmp() { PartName = "4558", Aol = 200e3m, Rin = 50e6m }) { DisplayName = "4558", Description = "http://www.fairchildsemi.com/ds/KA/KA4558.pdf" },
+        };
     }
 }
