@@ -77,14 +77,6 @@ namespace Circuit
             foreach (Component c in Components)
                 c.Analyze(Mna);
 
-            //foreach (Node n in Nodes)
-            //{
-            //    Mna.AddUnknowns(n.V);
-            //    Expression i = n.Kcl();
-            //    if (i != null && !i.IsZero())
-            //        Mna.AddEquation(i, Constant.Zero);
-            //}
-
             // Add equations for any depenent expressions.
             foreach (MatchContext v in Mna.Equations.SelectMany(i => i.FindMatches(MatchV)).Distinct().ToArray())
             {
