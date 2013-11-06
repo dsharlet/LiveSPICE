@@ -42,10 +42,12 @@ namespace LiveSPICE
                 return;
             Dispatcher.InvokeAsync(() =>
                 {
+                    bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
                     if (Type != Circuit.MessageType.Info)
                         text.AppendText("[" + Type.ToString() + "] ");
                     text.AppendText(Message + "\r\n");
-                    text.ScrollToEnd();
+                    if (atEnd)
+                        text.ScrollToEnd();
                 });
         }
 
