@@ -19,7 +19,7 @@ namespace Circuit
         {
             // Unknown output current.
             Mna.AddTerminal(Cathode, Mna.AddNewUnknown("i" + Name));
-            // -V[t] = +V[t0], i.e. the voltage at the previous timestep.
+            // V-[t] = V+[t0], i.e. the voltage at the previous timestep.
             Mna.AddEquation(Anode.V.Evaluate(t, t0), Cathode.V);
         }
 
