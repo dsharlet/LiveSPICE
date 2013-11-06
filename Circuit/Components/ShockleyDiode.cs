@@ -15,7 +15,7 @@ namespace Circuit
     [Description("Diode implemented using the Shockley diode model.")]
     public class ShockleyDiode : TwoTerminal
     {
-        protected Quantity _is = new Quantity(1e-12, Units.A);
+        protected Quantity _is = new Quantity(1e-12m, Units.A);
         [Description("Saturation current.")]
         [Serialize]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }

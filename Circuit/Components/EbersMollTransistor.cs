@@ -26,7 +26,7 @@ namespace Circuit
         [Serialize]
         public BJTStructure Structure { get { return type; } set { type = value; NotifyChanged("Structure"); } }
 
-        protected Quantity _is = new Quantity(1e-12, Units.A);
+        protected Quantity _is = new Quantity(1e-12m, Units.A);
         [Description("Saturation current.")]
         [Serialize]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
