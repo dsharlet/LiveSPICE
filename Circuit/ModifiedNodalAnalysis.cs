@@ -15,6 +15,7 @@ namespace Circuit
         private HashSet<Equal> equations = new HashSet<Equal>();
         private List<Expression> unknowns = new List<Expression>();
         private Dictionary<Expression, Expression> nodes = new Dictionary<Expression, Expression>();
+        private List<Arrow> initialConditions = new List<Arrow>();
 
         /// <summary>
         /// Get the KCL expressions for this analysis.
@@ -29,6 +30,11 @@ namespace Circuit
         /// Enumerates the unknowns in the system.
         /// </summary>
         public IEnumerable<Expression> Unknowns { get { return unknowns; } }
+
+        /// <summary>
+        /// Enumerates the inputs 
+        /// </summary>
+        public IEnumerable<Arrow> InitialConditions { get { return initialConditions; } }
 
         /// <summary>
         /// Add a current to the given node.
@@ -73,7 +79,7 @@ namespace Circuit
         public void AddEquations(IEnumerable<Equal> Eq) { foreach (Equal i in Eq) equations.Add(i); }
         public void AddEquations(params Equal[] Eq) { AddEquations(Eq.AsEnumerable()); }
         public void AddEquation(Expression a, Expression b) { equations.Add(Equal.New(a, b)); }
-
+        
         /// <summary>
         /// Add Unknowns to the system.
         /// </summary>
@@ -118,5 +124,12 @@ namespace Circuit
         /// <param name="Eq"></param>
         /// <returns></returns>
         public Expression AddNewUnknownEqualTo(Expression Eq) { return AddNewUnknownEqualTo("_x" + (++anon).ToString(), Eq); }
+
+        /// <summary>
+        /// Add initial conditions to the system.
+        /// </summary>
+        /// <param name="InitialCondition"></param>
+        public void AddInitialConditions(IEnumerable<Arrow> InitialConditions) { initialConditions.AddRange(InitialConditions); }
+        public void AddInitialConditions(params Arrow[] InitialConditions) { initialConditions.AddRange(InitialConditions); }
     }
 }

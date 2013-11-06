@@ -85,7 +85,7 @@ namespace Circuit
         }
 
         /// <summary>
-        /// Clear all state from the simulation.
+        /// Reset the simulation to the initial conditions of the solution.
         /// </summary>
         public virtual void Reset()
         {

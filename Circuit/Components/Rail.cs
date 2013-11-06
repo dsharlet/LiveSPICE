@@ -28,9 +28,14 @@ namespace Circuit
         
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
+            // Unknown current.
             Mna.AddTerminal(Terminal, Mna.AddNewUnknown("i" + Name));
-
+            // Set voltage equal to the rail.
             Mna.AddEquation(V, Voltage.Value);
+            // Add initial conditions, if necessary.
+            Expression V0 = Voltage.Value.Evaluate(t, Constant.Zero);
+            if (!(V0 is Constant))
+                Mna.AddInitialConditions(Arrow.New(V0, Constant.Zero));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

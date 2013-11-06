@@ -38,6 +38,10 @@ namespace Circuit
             Mna.AddPassiveComponent(Anode, Cathode, Mna.AddNewUnknown("i" + Name));
             // Set the voltage.
             Mna.AddEquation(V, Voltage.Value);
+            // Add initial conditions, if necessary.
+            Expression V0 = Voltage.Value.Evaluate(t, Constant.Zero);
+            if (!(V0 is Constant))
+                Mna.AddInitialConditions(Arrow.New(V0, Constant.Zero)); 
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

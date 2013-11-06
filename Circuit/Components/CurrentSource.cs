@@ -26,6 +26,10 @@ namespace Circuit
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
             Mna.AddPassiveComponent(Anode, Cathode, Current);
+            // Add initial conditions, if necessary.
+            Expression i0 = Current.Value.Evaluate(t, Constant.Zero);
+            if (!(i0 is Constant))
+                Mna.AddInitialConditions(Arrow.New(i0, Constant.Zero));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

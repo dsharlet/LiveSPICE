@@ -37,7 +37,13 @@ namespace Circuit
         /// a follows SolutionSet b in this enumeration, b's solution may depend on a's solutions.
         /// </summary>
         public IEnumerable<SolutionSet> Solutions { get { return solutions; } }
-        
+
+        private List<Arrow> initialConditions;
+        /// <summary>
+        /// Set of expressions describing the initial conditions of the variables in this solution.
+        /// </summary>
+        public IEnumerable<Arrow> InitialConditions { get { return initialConditions; } }
+
         private List<Parameter> parameters = new List<Parameter>();
         /// <summary>
         /// Enumerate the parameters found in this circuit.
@@ -48,11 +54,13 @@ namespace Circuit
             Quantity TimeStep,
             IEnumerable<Expression> Nodes,
             IEnumerable<SolutionSet> Solutions,
+            IEnumerable<Arrow> InitialConditions,
             IEnumerable<Parameter> Parameters)
         {
             h = TimeStep;
             nodes = Nodes.ToList();
             solutions = Solutions.ToList();
+            initialConditions = InitialConditions.ToList();
             parameters = Parameters.ToList();
         }
 
@@ -91,11 +99,29 @@ namespace Circuit
             mna = FindParameters(mna, y, parameters);
             Log.WriteLine(MessageType.Info, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
 
-            // Solve the MNA system.
-            Log.WriteLine(MessageType.Info, "[{0}] Solving system...", time);
-
-            // Separate y into differential and algebraic unknowns.
+            // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
+
+            // Find steady state solution for initial conditions.
+            Log.WriteLine(MessageType.Info, "[{0}] Performing steady state analysis...", time);
+            List<Equal> dc = mna
+                // Derivatives are zero in the steady state.
+                .Evaluate(dy_dt.Select(i => Arrow.New(i, Constant.Zero)))
+                // t = 0 and t0 = 0
+                .Evaluate(Arrow.New(t, Constant.Zero), Arrow.New(t0, Constant.Zero))
+                // Use the initial conditions from MNA.
+                .Evaluate(Mna.InitialConditions)
+                // Use default parameter values.
+                .Evaluate(parameters.Select(i => Arrow.New(i.Name, i.Default)))
+                .OfType<Equal>().ToList();
+            List<Arrow> initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, Constant.Zero), Constant.Zero)));
+            if (initial.Count == y.Count)
+                LogExpressions(Log, "Initial conditions:", initial);
+            else
+                Log.WriteLine(MessageType.Warning, "Failed to find steady state initial conditions, circuit may be unstable.");
+            
+            // Transient analysis of the system.
+            Log.WriteLine(MessageType.Info, "[{0}] Performing transient analysis...", time);
 
             // Separate mna into differential and algebraic equations.
             List<LinearCombination> diffeq = mna.Where(i => i.DependsOn(dy_dt)).InTermsOf(dy_dt).ToList();
@@ -111,7 +137,7 @@ namespace Circuit
             mna.AddRange(integrated);
             LogExpressions(Log, "Integrated solutions:", integrated);
 
-            // The remaining diffeqs should be algebraic.
+            // The remaining equations from the system of diff eqs should be algebraic.
             mna.AddRange(diffeq.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
             LogExpressions(Log, "Discretized system:", mna);
 
@@ -172,11 +198,12 @@ namespace Circuit
                 time, 
                 solutions.Count, 
                 solutions.Sum(i => i.Unknowns.Count()));
-
+            
             return new TransientSolution(
                 h,
                 Circuit.Nodes.Select(i => (Expression)i.V),
                 solutions,
+                initial,
                 parameters);
         }
 

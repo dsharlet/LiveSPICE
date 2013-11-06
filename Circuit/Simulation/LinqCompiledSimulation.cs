@@ -38,13 +38,19 @@ namespace Circuit
             // Also need globals for any Newton's method unknowns.
             foreach (Expression i in Solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
                 globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
+
+            Reset();
         }
 
         public override void Reset()
         {
             base.Reset();
-            foreach (GlobalExpr<double> i in globals.Values)
-                i.Value = 0.0;
+
+            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+            {
+                Expression init = i.Key.Evaluate(t0, Constant.Zero).Evaluate(Solution.InitialConditions);
+                i.Value.Value = init is Constant ? (double)init : 0.0;
+            }
         }
 
         protected override void Process(
