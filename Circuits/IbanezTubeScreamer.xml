@@ -169,24 +169,22 @@
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-240,-350">
     <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="Ibanez Tube Screamer TS-9" Subtext="http://www.gmarts.org/index.php?go=217" Name="_1" PartNumber="" />
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-410,-100">
-    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Q1" PartNumber="" Category="Transistors" DisplayName="2SC2240" Description="Bipolar junction transistor implemented using the Ebers-Moll model.">
-      <Component _Type="Circuit.EbersMollBJT, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Structure="NPN" IS="1 pA" BF="200" BR="0.1" Name="Q1" PartNumber="" />
-    </Component>
-  </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-150,-120">
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="true" Position="-150,-120">
     <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D1" PartNumber="" Category="Diodes" DisplayName="Silicon Diode" Description="Generic silicon diode (IS ~ 1x10^-12).">
       <Component _Type="Circuit.ShockleyDiode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 pA" n="1" IsLed="False" Name="D1" PartNumber="" />
     </Component>
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-3" Flip="false" Position="-150,-150">
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-3" Flip="true" Position="-150,-150">
     <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="D2" PartNumber="" Category="Diodes" DisplayName="Silicon Diode" Description="Generic silicon diode (IS ~ 1x10^-12).">
       <Component _Type="Circuit.ShockleyDiode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 pA" n="1" IsLed="False" Name="D2" PartNumber="" />
     </Component>
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-150,0">
-    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="X1" PartNumber="4558" Category="Op-Amps" DisplayName="4558" Description="http://www.fairchildsemi.com/ds/KA/KA4558.pdf">
-      <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rin="50 MΩ" Rout="100 Ω" Aol="200 k" Name="X1" PartNumber="4558" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-410,-100">
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Q1" PartNumber="2SC2240" Category="Transistors" DisplayName="2SC2240" Description="http://www.toshiba.com/taec/components2/Datasheet_Sync/50/6461.pdf">
+      <Component _Type="Circuit.EbersMollBJT, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Structure="NPN" IS="1 pA" BF="200" BR="0.1" Name="Q1" PartNumber="2SC2240" />
     </Component>
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-150,0">
+    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rin="500 MΩ" Rout="100 Ω" Aol="100 k" Name="X1" PartNumber="" />
   </Element>
 </Schematic>
