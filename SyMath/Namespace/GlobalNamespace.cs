@@ -109,9 +109,9 @@ namespace SyMath
         /// <param name="x">Expressions to solve for.</param>
         /// <param name="N">Number of iterations to use for numerical solutions.</param>
         /// <returns>Expression or set of expressions for x.</returns>
-        public static Expression NSolve(Expression f, Expression x, Expression N)
+        public static Expression NSolve(Expression f, Expression x, Expression Epsilon)
         {
-            IEnumerable<Expression> result = Set.MembersOf(f).Cast<Equal>().NSolve(Set.MembersOf(x).Cast<Arrow>(), (int)N);
+            IEnumerable<Expression> result = Set.MembersOf(f).Cast<Equal>().NSolve(Set.MembersOf(x).Cast<Arrow>(), (double)Epsilon);
             return (f is Set || result.Count() != 1) ? Set.New(result) : result.Single();
         }
 
