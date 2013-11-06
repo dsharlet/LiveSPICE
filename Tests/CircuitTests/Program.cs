@@ -23,7 +23,7 @@ namespace CircuitTests
 
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
-        static Expression V1 = Harmonics(t, 0.5, 82, 4);
+        static Expression V1 = Harmonics(t, 0.5, 82, 2);
         
         static void Main(string[] args)
         {
@@ -31,7 +31,9 @@ namespace CircuitTests
 
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
-            
+
+            //Run("BossSD1NoBuffer.xml", Vin, new Expression[] { "_v0[t]", "_v15[t]", "_v11[t]" });
+
             foreach (string File in System.IO.Directory.EnumerateFiles(@".", "*.xml"))
             {
                 string Name = System.IO.Path.GetFileNameWithoutExtension(File);
@@ -55,7 +57,7 @@ namespace CircuitTests
             foreach (string i in errors)
                 System.Console.WriteLine(i);
         }
-                
+
         public static double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
@@ -64,14 +66,31 @@ namespace CircuitTests
             System.Console.WriteLine("");
 
             return RunTest(
-                C, S, 
-                TS.Parameters.ToDictionary(i => i.Name, i => i.Default), 
-                Vin, 
-                Samples, 
+                C, S,
+                C.Nodes.Select(i => i.V),
+                TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
+                Vin,
+                Samples,
                 System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
-        public static double RunTest(Circuit.Circuit C, Simulation S, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
+        public static double Run(string FileName, Func<double, double> Vin, IEnumerable<Expression> Plots)
+        {
+            Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
+            TransientSolution TS = TransientSolution.SolveCircuit(C, 1 / (SampleRate * Oversample), Log);
+            Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
+            System.Console.WriteLine("");
+
+            return RunTest(
+                C, S,
+                Plots,
+                TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
+                Vin,
+                Samples,
+                System.IO.Path.GetFileNameWithoutExtension(FileName));
+        }
+
+        public static double RunTest(Circuit.Circuit C, Simulation S, IEnumerable<Expression> Plots, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
         {            
             double t0 = (double)S.Time;
             
@@ -81,7 +100,7 @@ namespace CircuitTests
                 vs[n] = Vin(n * S.TimeStep);
             input.Add("V[t]", vs);
 
-            Dictionary<Expression, double[]> output = S.Solution.Nodes.ToDictionary(i => i, i => new double[vs.Length]);
+            Dictionary<Expression, double[]> output = Plots.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is cached before benchmarking.
             S.Run(1, input, output, Arguments, Iterations);
@@ -103,8 +122,8 @@ namespace CircuitTests
             int t1 = Math.Min(N, 2000);
 
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
-            foreach (KeyValuePair<Expression, double[]> i in input.Concat(output))
-                plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
+            foreach (KeyValuePair<Expression, double[]> i in output)
+                plots.Add(i.Key, i.Value.Skip(4000).Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
 
             double max = 0.0;
             for (int i = 0; i < vs.Length; ++i)

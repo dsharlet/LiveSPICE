@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using SyMath;
 
 namespace CircuitTests
 {
@@ -25,7 +26,7 @@ namespace CircuitTests
             protected Color color = Color.Transparent;
             public Color Color { get { return color; } set { color = value; } }
 
-            public abstract void Paint(Matrix T, double x0, double x1, Graphics G);
+            public abstract void Paint(System.Drawing.Drawing2D.Matrix T, double x0, double x1, Graphics G);
 
             public virtual double MinY { get { return 0.0; } }
             public virtual double MaxY { get { return 0.0; } }
@@ -39,7 +40,7 @@ namespace CircuitTests
                 this.f = f;
             }
 
-            public override void Paint(Matrix T, double x0, double x1, Graphics G)
+            public override void Paint(System.Drawing.Drawing2D.Matrix T, double x0, double x1, Graphics G)
             {
                 PointF[] dx_ = new PointF[] { new PointF(3.0f, 3.0f) };
                 PointF dx = dx_[0];
@@ -73,7 +74,7 @@ namespace CircuitTests
                 points = Points.Select(i => new PointF((float)(double)i.Left, (float)(double)i.Right)).ToArray();
             }
 
-            public override void Paint(Matrix T, double x0, double x1, Graphics G)
+            public override void Paint(System.Drawing.Drawing2D.Matrix T, double x0, double x1, Graphics G)
             {
                 PointF dx = new PointF(3.0f, 3.0f);
 
@@ -127,13 +128,13 @@ namespace CircuitTests
 
         public Plot(string Name, int Width, int Height, double x0, double y0, double x1, double y1, Series S) : this(Name, Width, Height, x0, y0, x1, y1, new Dictionary<string, Series> { { "", S } }) { }
 
-        private List<Color> colors = new List<Color>() { Color.Red, Color.Blue, Color.Green, Color.DarkRed, Color.DarkGreen, Color.DarkBlue, Color.Black };
+        private List<Color> colors = new List<Color>() { Color.Black, Color.Red, Color.Blue, Color.Green, Color.DarkRed, Color.DarkGreen, Color.DarkBlue };
 
         void Plot_Paint(object sender, PaintEventArgs e)
         {
             Graphics G = e.Graphics;
 
-            Matrix T = new Matrix(
+            System.Drawing.Drawing2D.Matrix T = new System.Drawing.Drawing2D.Matrix(
                 new RectangleF(new PointF(0.0f, 0.0f), (SizeF)e.ClipRectangle.Size), 
                 new PointF[] { new PointF(x0.X, x1.Y), new PointF(x1.X, x1.Y), new PointF(x0.X, x0.Y) });
             T.Invert();
@@ -143,11 +144,7 @@ namespace CircuitTests
             foreach (KeyValuePair<string, Series> i in series)
             {
                 if (i.Value.Color == Color.Transparent)
-                {
-                    i.Value.Color = colors.First();
-                    if (colors.Count > 1)
-                        colors.RemoveAt(0);
-                }
+                    i.Value.Color = colors.ArgMin(j => series.Count(k => k.Value.Color == j));
                 i.Value.Paint(T, x0.X, x1.X, G);
             }
         }
