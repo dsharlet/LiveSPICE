@@ -29,12 +29,7 @@ namespace Circuit
         [Description("Indicates that this part is an LED. This property only affects the schematic symbol, it does not affect the simulation.")]
         [Serialize]
         public bool IsLed { get { return led; } set { led = value; NotifyChanged("IsLed"); } }
-
-        protected string partName = "";
-        [Description("Part name/number. This property only affects the schematic symbol, it does not affect the simulation.")]
-        [Serialize]
-        public string PartName { get { return partName; } set { partName = value; NotifyChanged("PartName"); } }
-
+        
         public ShockleyDiode() { Name = "D1"; }
 
         public override void Analyze(ModifiedNodalAnalysis Mna)
@@ -73,14 +68,14 @@ namespace Circuit
             Sym.DrawText(Name, new Coord(10, -4), Alignment.Near, Alignment.Far);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Anode, Cathode, IsLed, () => Name, () => PartName); }
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Anode, Cathode, IsLed, () => Name, () => PartNumber); }
 
         public static IEnumerable<Component> Parts = new Component[]
         {
-            new ModelSpecialization(new ShockleyDiode() { PartName = "",        IS = 1e-12m,    n = 1.0 }) { DisplayName = "Diode", Category = "Standard", Description = "Generic diode." },
+            new ModelSpecialization(new ShockleyDiode() { PartNumber = "",        IS = 1e-12m,    n = 1.0 }) { DisplayName = "Diode", Category = "Standard", Description = "Generic diode." },
 
-            new ModelSpecialization(new ShockleyDiode() { PartName = "",        IS = 1e-6m,     n = 1.0 }) { DisplayName = "Germanium Diode", Category = "Diodes", Description = "Generic germanium diode." },
-            new ModelSpecialization(new ShockleyDiode() { PartName = "",        IS = 1e-12m,    n = 1.0 }) { DisplayName = "Silicon Diode", Category = "Diodes", Description = "Generic silicon diode." },
+            new ModelSpecialization(new ShockleyDiode() { PartNumber = "",        IS = 1e-6m,     n = 1.0 }) { DisplayName = "Germanium Diode", Category = "Diodes", Description = "Generic germanium diode." },
+            new ModelSpecialization(new ShockleyDiode() { PartNumber = "",        IS = 1e-12m,    n = 1.0 }) { DisplayName = "Silicon Diode", Category = "Diodes", Description = "Generic silicon diode." },
         };
     }
 }

@@ -22,12 +22,14 @@ namespace Circuit
         { 
             impl = Impl;
             category = impl.GetCategory();
-            displayName = impl.GetDisplayName();
+            displayName = impl.PartNumber != "" ? impl.PartNumber : impl.GetDisplayName();
             description = impl.GetDescription();
         }
 
         // Forward the interesting work to the implementation component.
         public override string Name { get { return impl.Name; } set { impl.Name = value; NotifyChanged("Name"); } }
+        [Browsable(false)]
+        public override string PartNumber { get { return impl.PartNumber; } set { impl.PartNumber = value; NotifyChanged("PartNumber"); } }
         public override IEnumerable<Terminal> Terminals { get { return impl.Terminals; } }
         public override void Analyze(ModifiedNodalAnalysis Mna) { impl.Analyze(Mna); }
         public override void LayoutSymbol(SymbolLayout Sym) { impl.LayoutSymbol(Sym); }

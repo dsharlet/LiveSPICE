@@ -28,12 +28,7 @@ namespace Circuit
         public Terminal Grid { get { return g; } }
         [Browsable(false)]
         public Terminal Cathode { get { return k; } }
-
-        protected string partName = "";
-        [Description("Name of this part. This property only affects the schematic symbol, it does not affect the simulation.")]
-        [Serialize]
-        public string PartName { get { return partName; } set { partName = value; NotifyChanged("PartName"); } }
-
+        
         public Triode()
         {
             p = new Terminal(this, "P");
@@ -83,6 +78,6 @@ namespace Circuit
             Sym.DrawText(Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, p, g, k, () => Name, () => PartName); }
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, p, g, k, () => Name, () => PartNumber); }
     }
 }

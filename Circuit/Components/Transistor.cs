@@ -25,11 +25,6 @@ namespace Circuit
         public Terminal Emitter { get { return e; } }
         [Browsable(false)]
         public Terminal Base { get { return b; } }
-        
-        protected string partName = "";
-        [Description("Name of this part. This property only affects the schematic symbol, it does not affect the simulation.")]
-        [Serialize]
-        public string PartName { get { return partName; } set { partName = value; NotifyChanged("PartName"); } }
 
         public Transistor()
         {

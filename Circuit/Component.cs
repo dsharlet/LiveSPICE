@@ -40,6 +40,11 @@ namespace Circuit
         [Serialize]
         public virtual string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
 
+        private string partNumber = "";
+        [Description("Part name/number.")]
+        [Serialize]
+        public virtual string PartNumber { get { return partNumber; } set { partNumber = value; NotifyChanged("PartNumber"); } }
+
         private object tag = null;
         [Browsable(false)]
         public object Tag { get { return tag; } set { tag = value; NotifyChanged("Tag"); } }

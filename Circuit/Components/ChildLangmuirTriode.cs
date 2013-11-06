@@ -33,8 +33,8 @@ namespace Circuit
 
         public static IEnumerable<Component> Parts = new Component[]
         {
-            new ModelSpecialization(new ChildLangmuirTriode() { PartName = "12AX7", Mu = 83.5, K = 1.73e-6 }) { DisplayName = "12AX7" },
-            new ModelSpecialization(new ChildLangmuirTriode() { PartName = "12AY7", Mu = 36.9, K = 1.73e-6 }) { DisplayName = "12AY7" },
+            new ModelSpecialization(new ChildLangmuirTriode() { PartNumber = "12AX7", Mu = 83.5, K = 1.73e-6 }),
+            new ModelSpecialization(new ChildLangmuirTriode() { PartNumber = "12AY7", Mu = 36.9, K = 1.73e-6 }),
         };
     }
 }
