@@ -10,6 +10,7 @@
     <BitmapImage x:Key="Paste" UriSource="pack://application:,,,/Images/Paste.png" />
     <BitmapImage x:Key="Pause" UriSource="pack://application:,,,/Images/Pause.png" />
     <BitmapImage x:Key="Redo" UriSource="pack://application:,,,/Images/Redo.png" />
+    <BitmapImage x:Key="Refresh" UriSource="pack://application:,,,/Images/Refresh.png" />
     <BitmapImage x:Key="Restart" UriSource="pack://application:,,,/Images/Restart.png" />
     <BitmapImage x:Key="Save" UriSource="pack://application:,,,/Images/Save.png" />
     <BitmapImage x:Key="SaveAll" UriSource="pack://application:,,,/Images/SaveAll.png" />
