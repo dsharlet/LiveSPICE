@@ -96,26 +96,10 @@ namespace Asio
         }
 
         private IntPtr OnBufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess) { return _params; }
-
-        private ASIOCallbacks._bufferSwitch onBufferSwitch;
-        private ASIOCallbacks._sampleRateDidChange onSampleRateChange;
-        private ASIOCallbacks._asioMessage onAsioMessage;
-        private ASIOCallbacks._bufferSwitchTimeInfo onBufferSwitchTimeInfo;
-        private GCHandle pinOnBufferSwitch, pinOnSampleRateChange, pinOnAsioMessage, pinOnBufferSwitchTimeInfo;
-        
+                
         public Stream(AsioObject Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
             : base(Input, Output)
         {
-            onBufferSwitch = new ASIOCallbacks._bufferSwitch(OnBufferSwitch);
-            onSampleRateChange = new ASIOCallbacks._sampleRateDidChange(OnSampleRateChange);
-            onAsioMessage = new ASIOCallbacks._asioMessage(OnAsioMessage);
-            onBufferSwitchTimeInfo = new ASIOCallbacks._bufferSwitchTimeInfo(OnBufferSwitchTimeInfo);
-
-            pinOnBufferSwitch = GCHandle.Alloc(onBufferSwitch);
-            pinOnSampleRateChange = GCHandle.Alloc(onSampleRateChange);
-            pinOnAsioMessage = GCHandle.Alloc(onAsioMessage);
-            pinOnBufferSwitchTimeInfo = GCHandle.Alloc(onBufferSwitchTimeInfo);
-            
             instance = Instance;
             callback = Callback;
 
@@ -134,10 +118,10 @@ namespace Asio
 
             ASIOCallbacks callbacks = new ASIOCallbacks()
             {
-                bufferSwitch = onBufferSwitch,
-                sampleRateDidChange = onSampleRateChange,
-                asioMessage = onAsioMessage,
-                bufferSwitchTimeInfo = onBufferSwitchTimeInfo
+                bufferSwitch = OnBufferSwitch,
+                sampleRateDidChange = OnSampleRateChange,
+                asioMessage = OnAsioMessage,
+                bufferSwitchTimeInfo = OnBufferSwitchTimeInfo
             };
             instance.CreateBuffers(infos, buffer, callbacks);
 

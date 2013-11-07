@@ -176,15 +176,15 @@ namespace Asio
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     struct ASIOCallbacks
     {
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void _bufferSwitch(int bufferIndex, ASIOBool directProcess);
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void _sampleRateDidChange(double sRate);
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int _asioMessage(ASIOMessageSelector selector, int value, IntPtr message, IntPtr opt);
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate IntPtr _bufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void BufferSwitch(int bufferIndex, ASIOBool directProcess);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void SampleRateDidChange(double sRate);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int AsioMessage(ASIOMessageSelector selector, int value, IntPtr message, IntPtr opt);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate IntPtr BufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess);
 
-        public _bufferSwitch bufferSwitch;
-        public _sampleRateDidChange sampleRateDidChange;
-        public _asioMessage asioMessage;
-        public _bufferSwitchTimeInfo bufferSwitchTimeInfo;
+        public BufferSwitch bufferSwitch;
+        public SampleRateDidChange sampleRateDidChange;
+        public AsioMessage asioMessage;
+        public BufferSwitchTimeInfo bufferSwitchTimeInfo;
     };
     
     class AsioObject : IDisposable
@@ -323,18 +323,32 @@ namespace Asio
         }
 
         private IntPtr callbacks = IntPtr.Zero;
+        private GCHandle[] pins = null;
 
         public void CreateBuffers(ASIOBufferInfo[] Infos, int Size, ASIOCallbacks Callbacks) 
         {
+            pins = new GCHandle[]
+            {
+                GCHandle.Alloc(Callbacks.bufferSwitch),
+                GCHandle.Alloc(Callbacks.sampleRateDidChange), 
+                GCHandle.Alloc(Callbacks.asioMessage),
+                GCHandle.Alloc(Callbacks.bufferSwitchTimeInfo)
+            };
             callbacks = Marshal.AllocHGlobal(Marshal.SizeOf(Callbacks));
+
             Marshal.StructureToPtr(Callbacks, callbacks, false);
             Try(vtbl.createBuffers(_this, Infos, Infos.Length, Size, callbacks)); 
         }
         public void DisposeBuffers()
         { 
             Try(vtbl.disposeBuffers(_this));
+
             Marshal.FreeHGlobal(callbacks);
             callbacks = IntPtr.Zero;
+
+            foreach (GCHandle i in pins)
+                i.Free();
+            pins = null;
         }
 
         public void OutputReady() { Try(vtbl.outputReady(_this)); }
