@@ -81,13 +81,14 @@ namespace LiveSPICE
         private static List<Circuit.Component> LoadStandardLibraries()
         {
             // If the app is installed, the components should be in CommonDocuments. Otherwise, look for them in the source paths.
+            string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             try
             {
-                return LoadLibraries(System.IO.Path.Combine(App.Current.CommonDocuments.FullName, "Components")).ToList();
+                return LoadLibraries(System.IO.Path.Combine(app, "Components")).ToList();
             }
             catch (Exception)
             {
-                return LoadLibraries(@"..\..\..\Components").ToList();
+                return LoadLibraries(System.IO.Path.Combine(app, @"..\..\..\Components")).ToList();
             }
         }
 
