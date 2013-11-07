@@ -324,35 +324,12 @@ namespace Asio
         
         public void CreateBuffers(ASIOBufferInfo[] Infos, int Size, ASIOCallbacks Callbacks) 
         {
-            if (Callbacks.sampleRateDidChange == null) Callbacks.sampleRateDidChange = OnSampleRateChanged;
-            if (Callbacks.asioMessage == null) Callbacks.asioMessage = OnAsioMessage;
-            if (Callbacks.bufferSwitchTimeInfo == null) Callbacks.bufferSwitchTimeInfo = OnBufferSwitchTimeInfo;
             Try(vtbl.createBuffers(_this, Infos, Infos.Length, Size, ref Callbacks)); 
         }
         public void DisposeBuffers() { Try(vtbl.disposeBuffers(_this)); }
 
         public void OutputReady() { Try(vtbl.outputReady(_this)); }
-
-        // Default sample rate changed handler.
-        private void OnSampleRateChanged(double SampleRate) { }
-
-        // Default message handler.
-        private int OnAsioMessage(ASIOMessage selector, int value, IntPtr msg, ref double opt)
-        {
-            switch(selector)
-            {
-                case ASIOMessage.SelectorSupported:
-                case ASIOMessage.EngineVersion:
-                    return 2;
-                default:
-                    return 0;
-            }
-        }
-
-        // Default buffer switch time info handler.
-        private IntPtr OnBufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess) { return _params; }
-
-
+        
         private static void Try(ASIOError Result)
         {
             if (Result != ASIOError.OK && Result != ASIOError.SUCCESS)

@@ -73,6 +73,20 @@ namespace Asio
         {
             sampleRate = SampleRate;
         }
+        
+        private int OnAsioMessage(ASIOMessage selector, int value, IntPtr msg, ref double opt)
+        {
+            switch (selector)
+            {
+                case ASIOMessage.SelectorSupported:
+                case ASIOMessage.EngineVersion:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        private IntPtr OnBufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess) { return _params; }
 
         public Stream(AsioObject Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
             : base(Input, Output)
@@ -96,7 +110,13 @@ namespace Asio
             instance.CreateBuffers(
                 infos,
                 buffer, 
-                new ASIOCallbacks() { bufferSwitch = OnBufferSwitch, sampleRateDidChange = OnSampleRateChange });
+                new ASIOCallbacks()
+                { 
+                    bufferSwitch = OnBufferSwitch,
+                    sampleRateDidChange = OnSampleRateChange,
+                    asioMessage = OnAsioMessage, 
+                    bufferSwitchTimeInfo = OnBufferSwitchTimeInfo 
+                });
 
             input = new Buffer[Input.Length];
             for (int i = 0; i < Input.Length; ++i)
