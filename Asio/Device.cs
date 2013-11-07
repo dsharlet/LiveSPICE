@@ -6,35 +6,37 @@ using System.Threading.Tasks;
 
 namespace Asio
 {
-    public class Channel : Audio.Channel
+    class Channel : Audio.Channel
     {
         private int index;
         private string name;
-        private AsioWrapper.SampleType type;
+        private ASIOSampleType type;
         public int Index { get { return index; } }
         public override string Name { get { return name; } }
-        public AsioWrapper.SampleType Type { get { return type; } }
+        public ASIOSampleType Type { get { return type; } }
 
-        public Channel(AsioWrapper.Channel Info)
+        public Channel(ASIOChannelInfo Info)
         {
-            index = Info.Index;
-            name = Info.Name;
-            type = Info.Type;
+            index = Info.channel;
+            name = Info.name;
+            type = Info.type;
         }
 
         public override string ToString()
         {
-            return name + " " + Enum.GetName(typeof(AsioWrapper.SampleType), type);
+            return name + " " + Enum.GetName(typeof(ASIOSampleType), type);
         }
     }
 
-    public class Device : Audio.Device
+    class Device : Audio.Device
     {
-        private AsioWrapper.Asio instance;
+        private AsioObject instance;
 
-        public Device(AsioWrapper.Asio Instance) : base(Instance.DriverName) 
+        public Device(AsioObject Instance)
+            : base(Instance.DriverName) 
         { 
             instance = Instance;
+            instance.ShowControlPanel();
             inputs = instance.InputChannels.Select(i => new Asio.Channel(i)).ToArray();
             outputs = instance.OutputChannels.Select(i => new Asio.Channel(i)).ToArray();
         }

@@ -39,17 +39,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SampleType.cs" />
+    <Compile Include="Asio.cs" />
     <Compile Include="Stream.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="Driver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AsioWrapper\AsioWrapper.vcxproj">
-      <Project>{670ef0be-d0d8-424a-94f3-b1e485e48613}</Project>
-      <Name>AsioWrapper</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Audio\Audio.csproj">
       <Project>{f53399e8-b038-4111-b89d-f5c4ab0ccb14}</Project>
       <Name>Audio</Name>

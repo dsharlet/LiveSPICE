@@ -7,22 +7,22 @@ using System.Runtime.InteropServices;
 
 namespace Asio
 {
-    public class Stream : Audio.Stream
+    class Stream : Audio.Stream
     {
         private class Buffer
         {
-            private AsioWrapper.Buffers buffers;
-            private SampleType type;
+            private ASIOBufferInfo info;
+            private ASIOSampleType type;
             private Audio.SampleBuffer samples;
 
-            public AsioWrapper.Buffers Buffers { get { return buffers; } }
-            public SampleType Type { get { return type; } }
+            public ASIOBufferInfo Info { get { return info; } }
+            public ASIOSampleType Type { get { return type; } }
             public Audio.SampleBuffer Samples { get { return samples; } }
 
-            public Buffer(Channel C, int Count)
+            public Buffer(ASIOBufferInfo Info, ASIOSampleType Type, int Count)
             {
-                buffers = new AsioWrapper.Buffers(C.Index);
-                type = (SampleType)C.Type;
+                info = Info;
+                type = Type;
                 samples = new Audio.SampleBuffer(Count);
             }
         }
@@ -30,14 +30,14 @@ namespace Asio
         private double sampleRate;
         public override double SampleRate { get { return sampleRate; } }
 
-        private AsioWrapper.Asio instance;
+        private AsioObject instance;
         private Audio.Stream.SampleHandler callback;
         private Buffer[] input;
         private Buffer[] output;
 
         private int buffer;
 
-        private void OnBufferSwitch(int Index, bool Direct)
+        private void OnBufferSwitch(int Index, ASIOBool Direct)
         {
             Audio.SampleBuffer[] a = new Audio.SampleBuffer[input.Length];
             for (int i = 0; i < input.Length; ++i)
@@ -46,7 +46,7 @@ namespace Asio
 
                 using(Audio.RawLock l = new Audio.RawLock(a[i], false, true))
                     ConvertSamples(
-                        input[i].Buffers.get_Buffer(Index),
+                        input[i].Info.buffers[Index],
                         input[i].Type, 
                         l,
                         l.Count);
@@ -63,7 +63,7 @@ namespace Asio
                 using (Audio.RawLock l = new Audio.RawLock(b[i], true, false))
                     ConvertSamples(
                         l,
-                        output[i].Buffers.get_Buffer(Index),
+                        output[i].Info.buffers[Index],
                         output[i].Type,
                         l.Count);
             }
@@ -74,21 +74,37 @@ namespace Asio
             sampleRate = SampleRate;
         }
 
-        public Stream(AsioWrapper.Asio Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output) : base(Input, Output)
+        public Stream(AsioObject Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
+            : base(Input, Output)
         {
             instance = Instance;
             callback = Callback;
 
             buffer = instance.BufferSize.Preferred;
-            input = Input.Select(i => new Buffer(i, buffer)).ToArray();
-            output = Output.Select(i => new Buffer(i, buffer)).ToArray();
+            ASIOBufferInfo[] infos = new ASIOBufferInfo[Input.Length + Output.Length];
+            for (int i = 0; i < Input.Length; ++i)
+            {
+                infos[i].isInput = ASIOBool.True;
+                infos[i].channelNum = Input[i].Index;
+            }
+            for (int i = 0; i < Output.Length; ++i)
+            {
+                infos[Output.Length + i].isInput = ASIOBool.False;
+                infos[Output.Length + i].channelNum = Output[i].Index;
+            }
 
             instance.CreateBuffers(
-                input.Select(i => i.Buffers).ToArray(),
-                output.Select(i => i.Buffers).ToArray(),
+                infos,
                 buffer, 
-                OnBufferSwitch, 
-                OnSampleRateChange);
+                new ASIOCallbacks() { bufferSwitch = OnBufferSwitch, sampleRateDidChange = OnSampleRateChange });
+
+            input = new Buffer[Input.Length];
+            for (int i = 0; i < Input.Length; ++i)
+                input[i] = new Buffer(infos[i], Input[i].Type, buffer);
+            output = new Buffer[Output.Length];
+            for (int i = 0; i < Output.Length; ++i)
+                output[i] = new Buffer(infos[i], Output[i].Type, buffer);
+
             sampleRate = instance.SampleRate;
             instance.Start();
         }
@@ -99,54 +115,54 @@ namespace Asio
             instance.DisposeBuffers();
         }
 
-        private static void ConvertSamples(IntPtr In, IntPtr Out, SampleType Type, int Count)
+        private static void ConvertSamples(IntPtr In, IntPtr Out, ASIOSampleType Type, int Count)
         {
             switch (Type)
             {
-                //case SampleType.Int16MSB:
-                //case SampleType.Int24MSB:
-                //case SampleType.Int32MSB:
-                //case SampleType.Float32MSB:
-                //case SampleType.Float64MSB:
-                //case SampleType.Int32MSB16:
-                //case SampleType.Int32MSB18:
-                //case SampleType.Int32MSB20:
-                //case SampleType.Int32MSB24:
-                case SampleType.Int16LSB: Audio.Util.LEf64ToLEi16(In, Out, Count); break;
-                //case SampleType.Int24LSB:
-                case SampleType.Int32LSB: Audio.Util.LEf64ToLEi32(In, Out, Count); break;
-                case SampleType.Float32LSB: Audio.Util.LEf64ToLEf32(In, Out, Count); break;
-                case SampleType.Float64LSB: Audio.Util.CopyMemory(Out, In, Count * sizeof(double)); break;
-                //case SampleType.Int32LSB16:
-                //case SampleType.Int32LSB18:
-                //case SampleType.Int32LSB20:
-                //case SampleType.Int32LSB24:
+                //case ASIOSampleType.Int16MSB:
+                //case ASIOSampleType.Int24MSB:
+                //case ASIOSampleType.Int32MSB:
+                //case ASIOSampleType.Float32MSB:
+                //case ASIOSampleType.Float64MSB:
+                //case ASIOSampleType.Int32MSB16:
+                //case ASIOSampleType.Int32MSB18:
+                //case ASIOSampleType.Int32MSB20:
+                //case ASIOSampleType.Int32MSB24:
+                case ASIOSampleType.Int16LSB: Audio.Util.LEf64ToLEi16(In, Out, Count); break;
+                //case ASIOSampleType.Int24LSB:
+                case ASIOSampleType.Int32LSB: Audio.Util.LEf64ToLEi32(In, Out, Count); break;
+                case ASIOSampleType.Float32LSB: Audio.Util.LEf64ToLEf32(In, Out, Count); break;
+                case ASIOSampleType.Float64LSB: Audio.Util.CopyMemory(Out, In, Count * sizeof(double)); break;
+                //case ASIOSampleType.Int32LSB16:
+                //case ASIOSampleType.Int32LSB18:
+                //case ASIOSampleType.Int32LSB20:
+                //case ASIOSampleType.Int32LSB24:
                 default: throw new NotImplementedException("Unsupported sample type");
             }
         }
 
-        private static void ConvertSamples(IntPtr In, SampleType Type, IntPtr Out, int Count)
+        private static void ConvertSamples(IntPtr In, ASIOSampleType Type, IntPtr Out, int Count)
         {
             switch (Type)
             {
-                //case SampleType.Int16MSB:
-                //case SampleType.Int24MSB:
-                //case SampleType.Int32MSB:
-                //case SampleType.Float32MSB:
-                //case SampleType.Float64MSB:
-                //case SampleType.Int32MSB16:
-                //case SampleType.Int32MSB18:
-                //case SampleType.Int32MSB20:
-                //case SampleType.Int32MSB24:
-                case SampleType.Int16LSB: Audio.Util.LEi16ToLEf64(In, Out, Count); break;
-                //case SampleType.Int24LSB:
-                case SampleType.Int32LSB: Audio.Util.LEi32ToLEf64(In, Out, Count); break;
-                case SampleType.Float32LSB: Audio.Util.LEf32ToLEf64(In, Out, Count); break;
-                case SampleType.Float64LSB: Audio.Util.CopyMemory(Out, In, Count * sizeof(double)); break;
-                //case SampleType.Int32LSB16:
-                //case SampleType.Int32LSB18:
-                //case SampleType.Int32LSB20:
-                //case SampleType.Int32LSB24:
+                //case ASIOSampleType.Int16MSB:
+                //case ASIOSampleType.Int24MSB:
+                //case ASIOSampleType.Int32MSB:
+                //case ASIOSampleType.Float32MSB:
+                //case ASIOSampleType.Float64MSB:
+                //case ASIOSampleType.Int32MSB16:
+                //case ASIOSampleType.Int32MSB18:
+                //case ASIOSampleType.Int32MSB20:
+                //case ASIOSampleType.Int32MSB24:
+                case ASIOSampleType.Int16LSB: Audio.Util.LEi16ToLEf64(In, Out, Count); break;
+                //case ASIOSampleType.Int24LSB:
+                case ASIOSampleType.Int32LSB: Audio.Util.LEi32ToLEf64(In, Out, Count); break;
+                case ASIOSampleType.Float32LSB: Audio.Util.LEf32ToLEf64(In, Out, Count); break;
+                case ASIOSampleType.Float64LSB: Audio.Util.CopyMemory(Out, In, Count * sizeof(double)); break;
+                //case ASIOSampleType.Int32LSB16:
+                //case ASIOSampleType.Int32LSB18:
+                //case ASIOSampleType.Int32LSB20:
+                //case ASIOSampleType.Int32LSB24:
                 default: throw new NotImplementedException("Unsupported sample type");
             }
         }
