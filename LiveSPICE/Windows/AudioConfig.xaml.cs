@@ -34,9 +34,9 @@ namespace LiveSPICE
                 {
                     foreach (Audio.Device i in driver.Devices)
                         devices.Items.Add(new ComboBoxItem() { Content = i.Name, Tag = i });
+                    if (devices.Items.Count > 0)
+                        Device = driver.Devices.First();
                 }
-                if (devices.Items.Count > 0)
-                    Device = driver.Devices.First();
 
                 NotifyChanged("Driver"); 
             }
@@ -80,7 +80,11 @@ namespace LiveSPICE
             Settings settings = App.Current.Settings;
 
             Driver = Audio.Driver.Drivers.FirstOrDefault(i => i.Name == settings.AudioDriver);
+            if (Driver == null)
+                Driver = Audio.Driver.Drivers.First();
             Device = Driver.Devices.FirstOrDefault(i => i.Name == settings.AudioDevice);
+            if (Device == null && Driver != null)
+                Device = Driver.Devices.First();
             foreach (ListBoxItem i in inputs.Items)
                 if (settings.AudioInputs.Contains((string)i.Content))
                     inputs.SelectedItems.Add(i);
