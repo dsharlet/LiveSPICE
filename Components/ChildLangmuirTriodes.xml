@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Components>
+  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" PartNumber="12AX7" Category="Vacuum Tubes" DisplayName="12AX7" Description="Triode implemented using the Child-Langmuir law.">
+    <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="83.5" K="1.73E-06" Name="V1" PartNumber="12AX7" />
+  </Component>
+  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" PartNumber="12AY7" Category="Vacuum Tubes" DisplayName="12AY7" Description="Triode implemented using the Child-Langmuir law.">
+    <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="36.9" K="1.73E-06" Name="V1" PartNumber="12AY7" />
+  </Component>
+</Components>

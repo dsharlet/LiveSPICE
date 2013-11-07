@@ -69,13 +69,5 @@ namespace Circuit
         }
 
         public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Anode, Cathode, IsLed, () => Name, () => PartNumber); }
-
-        public static IEnumerable<Component> Parts = new Component[]
-        {
-            new ModelSpecialization(new ShockleyDiode() { PartNumber = "",        IS = 1e-12m,    n = 1.0 }) { DisplayName = "Diode", Category = "Standard", Description = "Generic diode." },
-
-            new ModelSpecialization(new ShockleyDiode() { PartNumber = "",        IS = 1e-6m,     n = 1.0 }) { DisplayName = "Germanium Diode", Category = "Diodes", Description = "Generic germanium diode." },
-            new ModelSpecialization(new ShockleyDiode() { PartNumber = "",        IS = 1e-12m,    n = 1.0 }) { DisplayName = "Silicon Diode", Category = "Diodes", Description = "Generic silicon diode." },
-        };
     }
 }

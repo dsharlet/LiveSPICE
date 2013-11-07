@@ -32,7 +32,7 @@ namespace LiveSPICE
         {
             InitializeComponent();
 
-            Components.Init(component_Click, CommandBindings);
+            Components.ComponentClick += component_Click;
             Properties.PropertyValueChanged += properties_PropertyValueChanged;
             schematics.ChildrenTreeChanged += (o, e) => NotifyChanged("ActivewViewerZoom");
         }

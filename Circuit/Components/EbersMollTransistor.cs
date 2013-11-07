@@ -105,13 +105,5 @@ namespace Circuit
         }
 
         public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Structure, Collector, Base, Emitter, () => Name, () => PartNumber); }
-
-        public static IEnumerable<Component> Parts = new Component[]
-        {
-            new ModelSpecialization(new EbersMollBJT() { PartNumber = "NPN", Structure = BJTStructure.NPN, IS = 1e-12m, BF = 100, BR = 1 }) { Description = "Generic NPN BJT." },
-            new ModelSpecialization(new EbersMollBJT() { PartNumber = "PNP", Structure = BJTStructure.PNP, IS = 1e-12m, BF = 100, BR = 1 }) { Description = "Generic PNP BJT." },
-
-            new ModelSpecialization(new EbersMollBJT() { PartNumber = "2SC2240", Structure = BJTStructure.NPN, IS = 1e-12m, BF = 200, BR = 0.1 }) { Description = "http://www.toshiba.com/taec/components2/Datasheet_Sync/50/6461.pdf" },
-        };
     }
 }

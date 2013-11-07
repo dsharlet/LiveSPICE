@@ -30,11 +30,5 @@ namespace Circuit
             Ip = Call.If(Ed > 0, K * (Ed ^ 1.5), 0);
             Ig = 0;
         }
-
-        public static IEnumerable<Component> Parts = new Component[]
-        {
-            new ModelSpecialization(new ChildLangmuirTriode() { PartNumber = "12AX7", Mu = 83.5, K = 1.73e-6 }),
-            new ModelSpecialization(new ChildLangmuirTriode() { PartNumber = "12AY7", Mu = 36.9, K = 1.73e-6 }),
-        };
     }
 }

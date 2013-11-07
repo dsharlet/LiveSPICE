@@ -1,7 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,8 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Reflection;
-using System.ComponentModel;
+using System.Xml.Linq;
 using SyMath;
 
 namespace LiveSPICE
@@ -52,7 +53,44 @@ namespace LiveSPICE
             { typeof(Circuit.Inductor), new[] { new KeyGesture(Key.L, ModifierKeys.Control), new KeyGesture(Key.H, ModifierKeys.Control) } },
             { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
         };
-        
+
+        private static IEnumerable<Circuit.Component> LoadLibrary(string Library)
+        {
+            List<Circuit.Component> components = new List<Circuit.Component>();
+            try
+            {
+                XDocument doc = XDocument.Load(Library);
+                foreach (XElement i in doc.Element("Components").Elements("Component"))
+                    components.Add(Circuit.Component.Deserialize(i));
+                return components;
+            }
+            catch (Exception Ex)
+            {
+                MessageBox.Show("Error loading component library '" + Library + "': " + Ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return new Circuit.Component[0];
+            }
+        }
+
+        private static IEnumerable<Circuit.Component> LoadLibraries(string Library)
+        {
+            foreach (string i in System.IO.Directory.GetFiles(Library, "*.xml"))
+                foreach (Circuit.Component j in LoadLibrary(i))
+                    yield return j;
+        }
+
+        private static List<Circuit.Component> LoadStandardLibraries()
+        {
+            // If the app is installed, the components should be in CommonDocuments. Otherwise, look for them in the source paths.
+            try
+            {
+                return LoadLibraries(System.IO.Path.Combine(App.Current.CommonDocuments.FullName, "Components")).ToList();
+            }
+            catch (Exception)
+            {
+                return LoadLibraries(@"..\..\..\Components").ToList();
+            }
+        }
+
         private static IEnumerable<Circuit.Component> Components
         {
             get
@@ -65,17 +103,17 @@ namespace LiveSPICE
                 {
                     // Enumerate the component itself.
                     Circuit.Component C;
-                    try { C = (Circuit.Component)Activator.CreateInstance(i); } catch (Exception) { continue; }
+                    try { C = (Circuit.Component)Activator.CreateInstance(i); }
+                    catch (Exception) { continue; }
 
                     yield return C;
-
-                    // Enumerate any part definitions for this component.
-                    IEnumerable<Circuit.Component> parts;
-                    try { parts = (IEnumerable<Circuit.Component>)i.GetField("Parts").GetValue(null); } catch (Exception) { continue; }
-
-                    foreach (Circuit.Component j in parts)
-                        yield return j;
                 }
+
+                // Load the component libraries and enumerate them.
+                foreach (Circuit.Component i in LoadStandardLibraries())
+                    yield return i;
+                foreach (Circuit.Component i in LoadLibraries(System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components")))
+                    yield return i;
             }
         }
 
@@ -110,26 +148,46 @@ namespace LiveSPICE
                 NotifyChanged("Filter");
             }
         }
-                
-        public void Init(RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
+
+        private List<RoutedEventHandler> componentClick = new List<RoutedEventHandler>();
+        public event RoutedEventHandler ComponentClick
         {
+            add { componentClick.Add(value); LoadComponents(); }
+            remove { componentClick.Remove(value); }
+        }
+
+        private void OnComponentClick(object sender, RoutedEventArgs e)
+        {
+            foreach (RoutedEventHandler i in componentClick)
+                i(sender, e);
+        }
+
+        private void LoadComponents()
+        {
+            categories.Children.Clear();
+            filtered.Children.Clear();
+
             List<Circuit.Component> components = Components.OrderBy(i => i.GetDisplayName()).ToList();
 
             Panel common = AddCategory("Common");
             foreach (Circuit.Component i in components.Where(i => CommonTypes.Contains(i.GetType())))
-                AddItem(common, i, OnClick, CommandBindings);
+                AddItem(common, i, CommandBindings);
 
             foreach (Circuit.Component i in components)
-                AddItem(AddCategory(i.GetCategory()), i, OnClick, CommandBindings);
+                AddItem(AddCategory(i.GetCategory()), i, Window.GetWindow(this).CommandBindings);
 
             foreach (Circuit.Component i in components)
-                AddItem(filtered, i, OnClick, null);
+                AddItem(filtered, i, null);
         }
+
+        private void Refresh_Click(object sender, EventArgs e) { LoadComponents(); }
         
-        private void AddItem(Panel Group, Circuit.Component C, RoutedEventHandler OnClick, CommandBindingCollection CommandBindings)
+        private void AddItem(Panel Group, Circuit.Component C, CommandBindingCollection CommandBindings)
         {
             try
             {
+                string DisplayName = C.GetDisplayName();
+
                 StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
 
                 // Add image to the button.
@@ -144,7 +202,7 @@ namespace LiveSPICE
 
                 TextBlock name = new TextBlock()
                 {
-                    Text = C.GetDisplayName(),
+                    Text = DisplayName,
                     Width = 96,
                     Margin = new Thickness(3, 0, 3, 0),
                     TextTrimming = TextTrimming.CharacterEllipsis,
@@ -162,7 +220,7 @@ namespace LiveSPICE
                     Content = content,
                     BorderBrush = null,
                 };
-                button.Click += OnClick;
+                button.Click += OnComponentClick;
 
                 Group.Children.Add(button);
 
@@ -170,13 +228,16 @@ namespace LiveSPICE
                 KeyGesture[] keys;
                 if (CommandBindings != null && ShortcutKeys.TryGetValue(C.GetType(), out keys))
                 {
-                    RoutedCommand command = new RoutedCommand();
-                    command.InputGestures.AddRange(keys);
-
                     button.ToolTip = (string)button.ToolTip + " (" + keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
 
-                    CommandBinding binding = new CommandBinding(command, (o, e) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
-                    CommandBindings.Add(binding);
+                    if (!CommandBindings.OfType<RoutedCommand>().Any(i => i.OwnerType == GetType() && i.Name == DisplayName))
+                    {
+                        RoutedCommand command = new RoutedCommand(DisplayName, GetType());
+                        command.InputGestures.AddRange(keys);
+
+                        CommandBinding binding = new CommandBinding(command, (o, e) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
+                        CommandBindings.Add(binding);
+                    }
                 }
             }
             catch (System.Exception) { }

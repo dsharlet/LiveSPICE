@@ -48,14 +48,5 @@ namespace Circuit
             Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, Constant.Zero);
             Ig = Call.If(Vgk > Vg, (Vgk - (Expression)Vg) / (Expression)Rgk, Constant.Zero);
         }
-
-        public static IEnumerable<Component> Parts = new Component[]
-        {
-            new ModelSpecialization(new KorenTriode() { PartNumber = "12AX7", Mu = 100.0, Ex = 1.4,     Kg = 1060.0,    Kp = 600.0,  Kvb = 300.0, Rgk = 1e6m, Vg = 0.33m }) { Description = "http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc" },
-	        new ModelSpecialization(new KorenTriode() { PartNumber = "12AZ7", Mu = 74.08, Ex = 1.371,   Kg = 382.0,     Kp = 190.11, Kvb = 300.0, Rgk = 1e6m, Vg = 0.33m }) { Description = "http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc" },
-	        new ModelSpecialization(new KorenTriode() { PartNumber = "12AT7", Mu = 67.49, Ex = 1.234,   Kg = 419.1,     Kp = 213.96, Kvb = 300.0, Rgk = 1e6m, Vg = 0.33m }) { Description = "http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc" },
-	        new ModelSpecialization(new KorenTriode() { PartNumber = "12AY7", Mu = 44.16, Ex = 1.113,   Kg = 1192.4,    Kp = 409.96, Kvb = 300.0, Rgk = 1e6m, Vg = 0.33m }) { Description = "http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc" },
-	        new ModelSpecialization(new KorenTriode() { PartNumber = "12AU7", Mu = 21.5,  Ex = 1.3,     Kg = 1180.0,    Kp = 84.0,   Kvb = 300.0, Rgk = 1e6m, Vg = 0.33m }) { Description = "http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc" },
-        };
     }
 }

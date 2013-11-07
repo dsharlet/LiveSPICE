@@ -105,10 +105,5 @@ namespace Circuit
         }
 
         public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, vpp, vnn, () => Name, () => PartNumber); }
-
-        public static IEnumerable<Component> Parts = new Component[]
-        {
-            new ModelSpecialization(new OpAmp() { PartNumber = "4558", Aol = 200e3m, Rin = 50e6m }) { DisplayName = "4558", Description = "http://www.fairchildsemi.com/ds/KA/KA4558.pdf" },
-        };
     }
 }

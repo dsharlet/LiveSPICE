@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Components>
+  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" PartNumber="12AT7" Category="Vacuum Tubes" DisplayName="12AT7" Description="http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc">
+    <Component _Type="Circuit.KorenTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="67.49" Ex="1.234" Kg="419.1" Kp="213.96" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V1" PartNumber="12AT7" />
+  </Component>
+  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" PartNumber="12AU7" Category="Vacuum Tubes" DisplayName="12AU7" Description="http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc">
+    <Component _Type="Circuit.KorenTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="21.5" Ex="1.3" Kg="1180" Kp="84" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V1" PartNumber="12AU7" />
+  </Component>
+  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" PartNumber="12AX7" Category="Vacuum Tubes" DisplayName="12AX7" Description="http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc">
+    <Component _Type="Circuit.KorenTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="100" Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V1" PartNumber="12AX7" />
+  </Component>
+  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" PartNumber="12AY7" Category="Vacuum Tubes" DisplayName="12AY7" Description="http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc">
+    <Component _Type="Circuit.KorenTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="44.16" Ex="1.113" Kg="1192.4" Kp="409.96" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V1" PartNumber="12AY7" />
+  </Component>
+  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" PartNumber="12AZ7" Category="Vacuum Tubes" DisplayName="12AZ7" Description="http://www.vcu.edu/csbc/bnfo601/Paul_amp_designs/Koren_Names.inc">
+    <Component _Type="Circuit.KorenTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="74.08" Ex="1.371" Kg="382" Kp="190.11" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V1" PartNumber="12AZ7" />
+  </Component>
+</Components>

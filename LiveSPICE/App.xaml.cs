@@ -35,6 +35,23 @@ namespace LiveSPICE
             LoadAssemblies();
         }
 
+        public DirectoryInfo UserDocuments 
+        { 
+            get 
+            { 
+                string docs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LiveSPICE");
+                return Directory.CreateDirectory(docs);
+            } 
+        }
+        public DirectoryInfo CommonDocuments
+        {
+            get
+            {
+                string docs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "LiveSPICE");
+                return new DirectoryInfo(docs);
+            }
+        }
+
         protected override void OnExit(ExitEventArgs e)
         {
             settings.Save();

@@ -3,10 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ls="clr-namespace:LiveSPICE"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel LastChildFill="True">
         <ToolBar Height="28" DockPanel.Dock="Top">
+            <Button Click="Refresh_Click"><Image Source="{StaticResource Refresh}" Height="16" /></Button>
+            <Separator />
             <TextBlock Text="Filter: " VerticalAlignment="Center"/>
             <TextBox Width="110" Margin="2" Text="{Binding ElementName=_this, Path=Filter, UpdateSourceTrigger=PropertyChanged}" />
         </ToolBar>
