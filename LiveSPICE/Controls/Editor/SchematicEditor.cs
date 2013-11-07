@@ -83,11 +83,12 @@ namespace LiveSPICE
         {
             SaveFileDialog dlg = new SaveFileDialog()
             {
-                InitialDirectory = System.IO.Path.GetDirectoryName(filepath),
+                InitialDirectory = filepath != null ? System.IO.Path.GetDirectoryName(filepath) : App.Current.UserDocuments.FullName,
                 FileName = Title,
                 Filter = "Circuit Schematics|*" + FileExtension,
                 DefaultExt = FileExtension
             };
+            dlg.CustomPlaces.Add(new FileDialogCustomPlace(App.Current.UserDocuments.FullName));
             if (dlg.ShowDialog(Application.Current.MainWindow) ?? false)
                 return Save(dlg.FileName);
             else

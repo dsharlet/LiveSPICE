@@ -143,15 +143,17 @@ namespace LiveSPICE
         {
             try
             {
-                OpenFileDialog d = new OpenFileDialog()
+                OpenFileDialog dlg = new OpenFileDialog()
                 {
+                    //InitialDirectory = App.Current.UserDocuments.FullName,
                     Filter = "Circuit Schematics|*" + SchematicEditor.FileExtension,
                     DefaultExt = SchematicEditor.FileExtension,
                     Multiselect = true
                 };
-                if (d.ShowDialog(this) ?? false)
+                dlg.CustomPlaces.Add(new FileDialogCustomPlace(App.Current.UserDocuments.FullName));
+                if (dlg.ShowDialog(this) ?? false)
                 {
-                    foreach (string i in d.FileNames)
+                    foreach (string i in dlg.FileNames)
                         Open(i);
                 }
             }
