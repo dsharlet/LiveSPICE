@@ -44,10 +44,10 @@ namespace Asio
             {
                 a[i] = input[i].Samples;
 
-                using(Audio.RawLock l = new Audio.RawLock(a[i], false, true))
+                using (Audio.RawLock l = new Audio.RawLock(a[i], false, true))
                     ConvertSamples(
                         input[i].Info.buffers[Index],
-                        input[i].Type, 
+                        input[i].Type,
                         l,
                         l.Count);
             }
@@ -89,8 +89,8 @@ namespace Asio
             }
             for (int i = 0; i < Output.Length; ++i)
             {
-                infos[Output.Length + i].isInput = ASIOBool.False;
-                infos[Output.Length + i].channelNum = Output[i].Index;
+                infos[Input.Length + i].isInput = ASIOBool.False;
+                infos[Input.Length + i].channelNum = Output[i].Index;
             }
 
             instance.CreateBuffers(
@@ -103,7 +103,7 @@ namespace Asio
                 input[i] = new Buffer(infos[i], Input[i].Type, buffer);
             output = new Buffer[Output.Length];
             for (int i = 0; i < Output.Length; ++i)
-                output[i] = new Buffer(infos[i], Output[i].Type, buffer);
+                output[i] = new Buffer(infos[Input.Length + i], Output[i].Type, buffer);
 
             sampleRate = instance.SampleRate;
             instance.Start();

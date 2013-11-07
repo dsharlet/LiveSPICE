@@ -13,12 +13,12 @@ namespace Asio
         OK = 0,
         SUCCESS = 0x3f4847a0,
         NotPresent = -1000,
-        //ASE_HWMalfunction,
-        //ASE_InvalidParameter,
-        //ASE_InvalidMode,
-        //ASE_SPNotAdvancing,
-        //ASE_NoClock,
-        //ASE_NoMemory
+        HWMalfunction,
+        InvalidParameter,
+        InvalidMode,
+        SPNotAdvancing,
+        NoClock,
+        NoMemory
     }
 
     enum ASIOSampleType : int
@@ -94,7 +94,7 @@ namespace Asio
     struct ASIOBufferInfo
     {
 	    public ASIOBool isInput;
-	    public long channelNum;
+	    public int channelNum;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public IntPtr[] buffers;
     };
@@ -148,7 +148,7 @@ namespace Asio
     struct ASIOTime
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-	    public long[] reserved;
+	    public int[] reserved;
 	    public AsioTimeInfo timeInfo;
 	    public ASIOTimeCode timeCode;
     };
@@ -179,8 +179,7 @@ namespace Asio
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void _bufferSwitch(int bufferIndex, ASIOBool directProcess);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate void _sampleRateDidChange(double sRate);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int _asioMessage(ASIOMessage selector, int value, IntPtr message, ref double opt);
-        [return: MarshalAs(UnmanagedType.LPStruct)]
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate ASIOTime _bufferSwitchTimeInfo(ref ASIOTime _params, int doubleBufferIndex, ASIOBool directProcess);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate IntPtr _bufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess);
 
         public _bufferSwitch bufferSwitch;
         public _sampleRateDidChange sampleRateDidChange;
@@ -207,6 +206,8 @@ namespace Asio
         ~AsioObject() { Release(); }
         public void Dispose() { Release(); }
         private void Release() { if (_this != IntPtr.Zero) { vtbl.Release(_this); _this = IntPtr.Zero; } }
+
+        public void Init(IntPtr SysHandle) { if (vtbl.init(_this, SysHandle) == ASIOBool.False) throw new AsioException("init failed", ASIOError.NotPresent); }
 
         public string DriverName 
         { 
@@ -349,7 +350,7 @@ namespace Asio
         }
 
         // Default buffer switch time info handler.
-        private ASIOTime OnBufferSwitchTimeInfo(ref ASIOTime _params, int doubleBufferIndex, ASIOBool directProcess) { return _params; }
+        private IntPtr OnBufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess) { return _params; }
 
 
         private static void Try(ASIOError Result)
@@ -383,7 +384,7 @@ namespace Asio
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _setClockSource(IntPtr _this, int reference);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _getSamplePosition(IntPtr _this, out long sPos, out long tStamp);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _getChannelInfo(IntPtr _this, ref ASIOChannelInfo info);
-            [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _createBuffers(IntPtr _this, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] ASIOBufferInfo[] bufferInfos, int numChannels, int bufferSize, ref ASIOCallbacks callbacks);
+            [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _createBuffers(IntPtr _this, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] ASIOBufferInfo[] bufferInfos, int numChannels, int bufferSize, ref ASIOCallbacks callbacks);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _disposeBuffers(IntPtr _this);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _controlPanel(IntPtr _this);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _future(IntPtr _this, int selector, IntPtr opt);

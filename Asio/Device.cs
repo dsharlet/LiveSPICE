@@ -36,7 +36,7 @@ namespace Asio
             : base(Instance.DriverName) 
         { 
             instance = Instance;
-            instance.ShowControlPanel();
+            instance.Init(IntPtr.Zero);
             inputs = instance.InputChannels.Select(i => new Asio.Channel(i)).ToArray();
             outputs = instance.OutputChannels.Select(i => new Asio.Channel(i)).ToArray();
         }
