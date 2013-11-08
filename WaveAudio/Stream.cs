@@ -54,15 +54,17 @@ namespace WaveAudio
 
         private void Proc()
         {
-            WaitHandle[] events = waveIn.Select(i => i.Callback).Concat(waveOut.Select(i => i.Callback)).ToArray();
+            EventWaitHandle[] events = waveIn.Select(i => i.Callback).Concat(waveOut.Select(i => i.Callback)).ToArray();
 
+            Audio.SampleBuffer[] input = new Audio.SampleBuffer[waveIn.Length];
+            Audio.SampleBuffer[] output = new Audio.SampleBuffer[waveOut.Length];
             while (!stop)
             {
+                // TODO: Why can't we use this?
                 //if (!WaitHandle.WaitAll(events, 100))
                 //    continue;
 
                 // Read from the inputs.
-                Audio.SampleBuffer[] input = new Audio.SampleBuffer[waveIn.Length];
                 for (int i = 0; i < waveIn.Length; ++i)
                 {
                     InBuffer b = waveIn[i].GetBuffer();
@@ -75,7 +77,6 @@ namespace WaveAudio
                 }
 
                 // Get an available buffer from the outputs.
-                Audio.SampleBuffer[] output = new Audio.SampleBuffer[waveOut.Length];
                 for (int i = 0; i < waveOut.Length; ++i)
                 {
                     OutBuffer b = waveOut[i].GetBuffer();
