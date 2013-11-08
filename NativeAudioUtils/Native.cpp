@@ -26,10 +26,10 @@ inline T dither(T x)
 template <int Bits, typename Fixed, typename Float>
 void FixedToFloat(const Fixed * In, Float * Out, int Count)
 {
-	static const Float Max = (Float)((1UL << (Bits - 1)) - 1);
+	static const Float Max = (Float)(1.0 / ((1UL << (Bits - 1)) - 1));
 
 	for (int i = 0; i < Count; ++i)
-		Out[i] = (Float)In[i] * (Float)(1.0 / Max);
+		Out[i] = (Float)In[i] * Max;
 }
 
 template <int Bits, typename Float, typename Fixed>
@@ -38,7 +38,7 @@ void FloatToFixed(const Float * In, Fixed * Out, int Count)
 	static const Float Max = (Float)((1UL << (Bits - 1)) - 1);
 
 	for (int i = 0; i < Count; ++i)
-		Out[i] = (Fixed)(clamp(dither(In[i] * Max), -Max, Max));
+		Out[i] = (Fixed)(clamp(In[i] * Max, -Max, Max));
 }
 
 template <typename Float1, typename Float2>
