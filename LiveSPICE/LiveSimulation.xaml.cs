@@ -92,13 +92,32 @@ namespace LiveSPICE
             {
                 channels[i] = new Channel();
 
-                channels[i].Level = new TextBlock() { TextAlignment = TextAlignment.Center, FontWeight = FontWeights.Bold, Margin = new Thickness(1), Width = 50 };
+                channels[i].Level = new TextBlock() 
+                {
+                    Width = 45,
+                    Margin = new Thickness(1),
+                    TextAlignment = TextAlignment.Center, 
+                    FontWeight = FontWeights.Bold, 
+                };
                 channels[i].Level.SetBinding(TextBlock.TextProperty, new Binding("Gain") { Source = channels[i], StringFormat = "{0:+#;-#;+0} dB" });
                 
-                TextBlock name = new TextBlock() { Text = Channels[i].Name, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
+                TextBlock name = new TextBlock() 
+                { 
+                    Width = 50,
+                    Margin = new Thickness(0, 0, 8, 0),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Text = Channels[i].Name, 
+                    ToolTip = Channels[i].Name,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                };
 
-                ComboBox signal = new ComboBox() { Width = 50, ItemsSource = Signals };
+                ComboBox signal = new ComboBox()
+                {
+                    Width = 50,
+                    ItemsSource = Signals,
+                };
                 signal.SetBinding(ComboBox.SelectedValueProperty, new Binding("Signal") { Source = channels[i] });
+                signal.SetBinding(ComboBox.ToolTipProperty, new Binding("Signal") { Source = channels[i] });
                 if (Signals.Any())
                     channels[i].Signal = Signals.First();
 
