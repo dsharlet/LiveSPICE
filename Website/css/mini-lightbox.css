@@ -1,0 +1,56 @@
+﻿#minilightbox {
+	position: fixed; 
+	top: 0;
+	left: 0;
+	width: 100%; 
+	height: 100%;	
+}
+#minilightbox-background {
+	position: absolute; 
+	top: 0; 
+	left: 0; 
+	width: 100%; 
+	height: 100%; 
+	background: #000 url(loading.gif) no-repeat center center;
+	color: #fff;
+ 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
+	filter: alpha(opacity=75);
+	-moz-opacity: 0.75;
+	-khtml-opacity: 0.75;
+	opacity: 0.75;
+}
+#minilightbox-content {
+	display: none;
+	position: absolute; 
+	top: 20px; 
+	left: 20px;
+	background: #fff; 
+	-moz-box-shadow: 0px 0px 30px #000; 
+	-webkit-box-shadow: 0px 0px 30px #000; 
+	box-shadow: 0px 0px 30px #000;
+	padding: 10px;
+}
+#minilightbox-image {
+	display: block;
+}
+#minilightbox-text {
+	padding: 10px 5px 5px 5px;
+}
+#minilightbox-closebutton {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 20px;
+	height: 20px;
+	line-height: 20px;
+	text-align: center;
+	background: #fff;
+}
+#minilightbox-closebutton a {
+	text-decoration: none;
+	display: block;
+	width: 20px;
+	height: 20px;
+	font-weight: bold;
+	color: #000;
+}
