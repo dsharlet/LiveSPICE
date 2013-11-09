@@ -85,7 +85,7 @@ namespace Circuit
     /// <summary>
     /// An input is just a voltage source with Voltage = f(t).
     /// </summary>
-    [Category("IO")]
+    [Category("Standard")]
     [DisplayName("Input")]
     public class Input : VoltageSource
     {

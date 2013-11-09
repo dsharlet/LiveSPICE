@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Circuit port component.
     /// </summary>
-    [Category("IO")]
+    [Category("Standard")]
     [DisplayName("Port")]
     [DefaultProperty("Name")]
     [Description("Represents a terminal when the schematic is used as a subcircuit.")]
@@ -37,6 +37,8 @@ namespace Circuit
         public override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
+
+            Sym.InBounds(new Coord(-10, -10), new Coord(10, 10));
 
             Sym.AddRectangle(EdgeType.Black, new Coord(-5, -5), new Coord(5, 5));
 
