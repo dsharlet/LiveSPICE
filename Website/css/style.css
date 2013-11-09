@@ -1,4 +1,5 @@
 body {
+    padding-top: 50px;
     padding-bottom: 20px;
 }
 
@@ -8,6 +9,7 @@ img {
 
 .navbar {
     margin-bottom: 0px;
+    border-width: 0px;
 }
 
 .captionbox {
@@ -24,4 +26,16 @@ img {
 
 div[class=captionbox] p {
 padding: 5px 5px 0px 5px;
+}
+
+.affix,.navbar-fixed-top{
+-webkit-transform: scale3d(1,1,1);
+}
+
+section { 
+    padding-top: 35px; 
+}
+
+h5 {
+    font-weight: bold;
 }
