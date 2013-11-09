@@ -65,7 +65,7 @@ namespace LiveSPICE
             symbol.Position = At;
 
             // Don't allow symbols to be placed on an existing symbol.
-            Target.Cursor = Target.InRect(symbol.LowerBound, symbol.UpperBound).Any() ? Cursors.No : Cursors.None;
+            //Target.Cursor = Target.InRect(symbol.LowerBound, symbol.UpperBound).Any() ? Cursors.No : Cursors.None;
             overlay.Visibility = Visibility.Visible;
         }
 
