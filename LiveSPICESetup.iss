@@ -25,7 +25,9 @@ Source: "Circuits\BridgeRectifier.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"
 Source: "Circuits\CommonCathodeTriodeAmplifier.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
 Source: "Circuits\CommonEmitterTransistorAmplifier.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
 Source: "Circuits\OpAmpModel.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
-Source: "Circuits\AmpParallelDiodesLoad.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
+Source: "Circuits\BossSD1.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
+Source: "Circuits\IbanezTubeScreamer.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
+Source: "Circuits\MarshallBluesBreaker.xml"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
 
 [Run]
 Filename: "{app}\LiveSPICE.exe"; Description: "Run LiveSPICE."; Flags: postinstall nowait
