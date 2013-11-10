@@ -13,11 +13,11 @@
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Custom styles for this template -->
-    <link href="css/styles.css" rel="stylesheet">
-
     <!-- mini-lightbox -->
     <link href="css/mini-lightbox.css" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href="css/styles.css" rel="stylesheet">
 
 </head>
 
@@ -32,6 +32,7 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">About <b class="caret"></b></a>
                         <ul class="dropdown-menu">
+                            <li><a href="#overview">Overview</a></li>
                             <li><a href="#features">Features</a></li>
                             <li><a href="#examples">Examples</a></li>
                         </ul>
@@ -39,14 +40,14 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Documentation <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li class="dropdown-submenu">
+                            <!--li class="dropdown-submenu">
                                 <a href="#getting-started">Getting started guide <i class="icon-arrow-right"></i></a>
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu"-->
                                     <li><a href="#installation">Installation</a></li>
                                     <li><a href="#audio-configuration">Audio Configuration</a></li>
                                     <li><a href="#tutorial">Tutorial</a></li>
-                                </ul>
-                            </li>
+                                <!--/ul>
+                            </!li-->
                         </ul>
                     </li>
                     <li class="dropdown">
@@ -80,8 +81,9 @@
                     <a href="https://github.com/dsharlet/LiveSPICE/releases">GitHub releases</a> page. Note the following requirements:</p>
                 <ul>
                     <li>LiveSPICE is a Windows application.</li>
-                    <li>Requires the Microsoft <a class="external" href="http://www.microsoft.com/en-us/download/details.aspx?id=30653">.Net framework 4.5</a>.</li>
+                    <li>An audio input/output device is required, a device supporting ASIO is recommended.</li>
                     <li>A desktop computer with a recent CPU is recommended for live simulation.</li>
+                    <li>Requires the Microsoft <a target="_blank" href="http://www.microsoft.com/en-us/download/details.aspx?id=30653">.Net framework 4.5</a>.</li>
                 </ul>
             </div>
             <div class="col-md-4">
@@ -106,40 +108,49 @@
         <div class="row">
             <section id="about">
                 <h1>About</h1>
+                <section id="overview">
+                    <h2>Overview</h2>
+                    <div class="picturebox" style="width:400px; float:right;">
+                        <a rel="mini-lightbox" href="images/livespice.png">
+                                <img src="images/livespice.png" alt="Main LiveSPICE window."></a>
+                        <p>The main LiveSPICE application window for creating and editing circuit schematics.</p>
+                    </div>
 
-                <p>LiveSPICE is a SPICE-like circuit simulation tool for processing live audio signals. The motivation 
-                    for developing LiveSPICE is to help prototype guitar effects and amplifiers, without requiring 
-                    constructing a physical circuit or waiting for an offline simulation to run to try it out.</p>
+                    <p>LiveSPICE is a SPICE-like circuit simulation tool for processing live audio signals. The motivation 
+                        for developing LiveSPICE is to help prototype guitar effects and amplifiers, without requiring 
+                        constructing a physical circuit or waiting for an offline simulation to run to try it out. With LiveSPICE,
+                        you can design the circuit in an easy to use visual schematic editor, and simulate it using your real
+                        audio device as an input signal and your speakers as the output.</p>
 
-                <p>Transient simulation of circuits is an extremely computationally intensive task, making it difficult 
-                    to perform in real time. In addition, circuit simulation is a difficult problem to parallelize, 
-                    meaning that most of the computer power improvements in recent years are not useful to speed up circuit 
-                    simulation. In order to deliver real time, low latency transient simulations for audio signals, LiveSPICE 
-                    is somewhat unique among circuit simulators in the following ways:</p>
+                    <p>Transient simulation of circuits is an extremely computationally intensive task, making it difficult 
+                        to perform in real time. In addition, circuit simulation is a difficult problem to parallelize, 
+                        meaning that most of the computer power improvements in recent years are not useful to speed up circuit 
+                        simulation. In order to deliver real time, low latency transient simulations for audio signals, LiveSPICE 
+                        is somewhat unique among circuit simulators in the following ways:</p>
+                
+                    <ul>
+                        <li>LiveSPICE relies heavily on a <strong>custom Computer Algebra System</strong> (CAS) to perform circuit 
+                            analysis. This allows LiveSPICE to evaluate and simplify some of the mathematical operations required 
+                            to simulate the circuit before simulation begins, minimizing the work required during simulation.</li>
+                        <li>LiveSPICE <strong>Just-In-Time (JIT) compiles a custom simulation program</strong> for the particular circuit 
+                            being simulated. This enables LiveSPICE to separate most of the logic for a simulation for evaluation as a 
+                            preprocessing step, instead of evaluating it during simulation.</li>
+                        <li>LiveSPICE uses <strong>simpler component models</strong> than most circuit simulators will use for many 
+                            components, such as transistors and diodes. The simpler models are easier to evaluate quickly, helping 
+                            the simulation to run in real time. However, the simpler models are less accurate and may not replicate 
+                            the sound of the real circuit as well as a more advanced simulation would.</li>
+                    </ul>
 
-                <div class="picturebox" style="width:400px; float:right;">
-                    <a rel="mini-lightbox" href="images/livespice.png">
-                            <img src="images/livespice.png" alt="Main LiveSPICE window."></a>
-                    <p>The main LiveSPICE application window for creating and editing circuit schematics.</p>
-                </div>
+                    <p>Despite these measures, there will always be a limit to the complexity of the circuits that can be simulated
+                        in real time. More powerful computers will be able to simulate larger and more complex circuits before running into
+                        limitations with simulation performance.</p>
 
-                <ul>
-                    <li>LiveSPICE relies heavily on a <strong>custom Computer Algebra System</strong> (CAS) to perform circuit 
-                        analysis. This allows LiveSPICE to evaluate and simplify some of the mathematical operations required 
-                        to simulate the circuit before simulation begins, minimizing the work required during simulation.</li>
-                    <li>LiveSPICE <strong>JIT compiles a custom simulation program</strong> for the particular circuit being simulated. 
-                        This enables LiveSPICE to separate most of the logic for a simulation for evaluation as a preprocessing step, 
-                        instead of evaluating it during simulation.</li>
-                    <li>LiveSPICE uses <strong>simpler component models</strong> than most circuit simulators will use for many 
-                        components such as transistors and diodes. The simpler models are easier to evaluate quickly, helping 
-                        the simulation to run in real time. However, the simpler models are less accurate and may not replicate 
-                        the sound of the real circuit as well as a more advanced simulation would.</li>
-                </ul>
+                    <p>LiveSPICE is a hobby project with no particular goal besides making a tool that is fun to use. It is an open source 
+                        project hosted on <a href="https://www.github.com/dsharlet/LiveSPICE/">GitHub</a>. If you would like 
+                        to contribute, take a look at the <a href="https://github.com/dsharlet/LiveSPICE/issues">open issues</a> 
+                        and send a pull request!</p>
+                </section>
 
-                <p>Despite these measures, there will always be a limit to the complexity of the circuits that can be simulated
-                    in real time. More powerful computers will be able to simulate larger and more complex circuits before running into
-                    issues with simulation performance.</p>
-        
                 <section id="features">
                     <h2>Features</h2>
                     <p>The obligatory bullet point feature list:</p>
@@ -151,20 +162,21 @@
                         <li>Small but growing <strong>library of component and part models</strong>, including op-amps, transistors, 
                             vacuum tubes, transformers, and more. Custom components can easily be added to the library by simply saving
                             them in the library.</li>
-                        <li><strong>Supports ASIO audio devices</strong> for ultra-low-latency audio output.</li>
+                        <li><strong>Supports ASIO audio devices</strong> for ultra low latency audio processing.</li>
                     </ul>
                     <h3>Coming Soon</h3>
                     <p>Major features planned for the future but <strong>not yet implemented:</strong></p>
                     <ul>
+                        <li>(Possibly limited) <strong>interoperability with SPICE netlists.</strong></li>
+                        <li><strong>Exporting the simulation to a VST plugin</strong> for use in other audio processing applications.</li>
                         <li>More simulation and analysis tools in addition to live transient simulation, such as <strong>transfer function 
                             analysis</strong> and <strong>DC operating point analysis/sweeps</strong>.</li>
-                        <li><strong>Exporting the simulation to a VST plugin</strong> for use in other audio processing applications.</li>
                     </ul>
                 </section>
 
                 <section id="examples">
                     <h2>Examples</h2>
-                    <p>Here are some examples of what LiveSPICE is capable of simulating. All of these examples are screenshots of LiveSPICE 
+                    <p>Here are some examples of what LiveSPICE is currently capable of simulating. All of these examples are screenshots of LiveSPICE 
                         during a real-time simulation.</p>
             
                     <div class="row">
@@ -172,22 +184,22 @@
                             <h3>Boss "Super Overdrive"</h3>
                             <div class="picturebox"><a rel="mini-lightbox" href="images/bosssd1.png">
                                 <img src="images/bosssd1.png" alt="Boss SD-1 Super Overdrive effect."></a>
-                                <p>Circuit schematic originally from <a class="external" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
+                                <p>Circuit schematic from <a target="_blank" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <h3>Marshall "Blues Breaker"</h3>
                             <div class="picturebox"><a rel="mini-lightbox" href="images/marshallbluesbreaker.png">
                                 <img src="images/marshallbluesbreaker.png" alt="Marshall Blues Breaker effect."></a>
-                                <p>Circuit schematic originally from <a class="external" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
+                                <p>Circuit schematic from <a target="_blank" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <h3>Triode amplifier stage</h3>
                             <div class="picturebox"><a rel="mini-lightbox" href="images/commoncathodetriodeamp.png">
                                 <img src="images/commoncathodetriodeamp.png" alt="Basic common cathode triode amplifier."></a>
-                                <p>Circuit schematic described in <a class="external" href="https://ccrma.stanford.edu/~dtyeh/papers/pubs.html">David Yeh's 
-                                    Dissertation</a>.</p>
+                                <p>Circuit schematic described in <a target="_blank" href="https://ccrma.stanford.edu/~dtyeh/papers/pubs.html">David Yeh's 
+                                    Dissertation</a> (section 5.4).</p>
                             </div>
                         </div>
                     </div>
@@ -203,13 +215,13 @@
                         <h3>Installation</h3>
                         <h4>Prerequisites</h4>
                         <ul>
-                            <li><a class="external" href="http://www.microsoft.com/en-us/download/details.aspx?id=30653">Microsoft .Net framework 4.5</a></li>
-                            <li><a class="external" href="http://www.asio4all.com/">ASIO4ALL</a> is recommended if you do not have an ASIO compatible audio device.</li>
+                            <li><a target="_blank" href="http://www.microsoft.com/en-us/download/details.aspx?id=30653">Microsoft .Net framework 4.5</a></li>
+                            <li><a target="_blank" href="http://www.asio4all.com/">ASIO4ALL</a> is recommended if you do not have an ASIO compatible audio device.</li>
                         </ul>
                         <h4>Installing</h4>
                         <ol>
-                            <li>Download the latest release from <a href="https://github.com/dsharlet/LiveSPICE/releases">GitHub releases</a>.</li>
-                            <li>Run LiveSpiceSetup.exe and follow the instructions on screen.</li>
+                            <li>Download the current release from <a href="https://github.com/dsharlet/LiveSPICE/releases">GitHub releases</a>.</li>
+                            <li>Run <strong>LiveSpiceSetup.exe</strong> and follow the instructions on screen.</li>
                         </ol>
                     </section>
                 
@@ -217,23 +229,23 @@
                         <h3>Configuring your audio device</h3>
                         <div class="picturebox" style="float:right;"><a rel="mini-lightbox" href="images/audioconfig.png">
                             <img src="images/audioconfig.png" alt="Audio configuration window."></a></div>
-                        <p>To configure your audio device, use the menu to select <strong>Simulate->Audio Configuration</strong>.</p>
+                        <p>To configure your audio device, use the menu to select <b class="menu">Simulate</b><img src="images/r.gif" /><b class="menu">Audio Configuration</b>.</p>
                         <ol>
-                            <li>Begin by choosing the driver to use. Prefer ASIO if your device supports it. <a class="external" href="http://www.asio4all.com/">ASIO4ALL</a>
+                            <li>Choose the driver to use. Prefer ASIO if your device supports it. <a target="_blank" href="http://www.asio4all.com/">ASIO4ALL</a>
                                 may also be a better choice than the windows audio driver.</li>
                             <li>Select your device.</li>
                             <li>Select channels to use. Multiple channels may be used simultaneously. A typical scenario is to select one input channel
                                 corresponding to a microphone/line in device; and two output channels if the output device is a stereo device.
                             </li>
                         </ol>
-                        <p>Use the <strong>Test</strong> button to ensure your device is working. The test mode captures the signal from 
+                        <p>Use the <b class="button">Test</b> button to ensure your device is working. The test mode captures the signal from 
                             the input channels, displays the waveform on the scope, and plays the signal to the output channels.</p>
                         <p>Check that the signal is visible on the scope to ensure the input channels are configured correctly. LiveSPICE maps the digital 
                             signal maximum (0 dB) to 1 V. Therefore, if the peak of the signal is near 1 V, it is likely that your audio system will have 
                             clipping issues.</p>
                         <p>Check that you can hear the signal coming from your output device to ensure the output channels are configured correctly.</p>
-                        <p>Note that the device cannot be reconfigured while the <strong>Test</strong> button is pressed. Click the
-                            Test button again to stop testing and enable reconfiguration of the audio device.</p>
+                        <p>Note that the device cannot be reconfigured while the <b class="button">Test</b> button is pressed. Click the
+                            <b class="button">Test</b> button again to stop testing and enable reconfiguration of the audio device.</p>
                     </section>
 
                     <section id="tutorial">
@@ -245,24 +257,24 @@
                             <a href="#audio-configuration">configured your audio device</a> in LiveSPICE.</p>
                 
                         <p>For some background on the filter circuit to be simulated, see the
-                            <a class="external" href="http://en.wikipedia.org/wiki/Low-pass_filter#Passive_electronic_realization">low-pass filter</a>
+                            <a target="_blank" href="http://en.wikipedia.org/wiki/Low-pass_filter#Passive_electronic_realization">low-pass filter</a>
                             article on Wikipedia.</p>
 
                         <h3>Building the circuit</h3>
                         <p>The first step is to build the circuit we are going to simulate. To begin, select 
-                            <strong>File->New</strong> to create a new blank schematic.</p>
+                            <b class="menu">File</b><img src="images/r.gif" /><b class="menu">New</b> to create a new blank schematic.</p>
 
                         <h4>Adding components</h4>
                         <p>Next, we will begin adding the circuit components. To add a component, find the component 
-                            in the <strong>Component Library</strong> and click it. Then, click on the schematic where
+                            in the <b class="gui">Component Library</b> and click it. Then, click on the schematic where
                             you want to place an instance of that component. We're going to need the following components, 
-                            all from the <strong>Standard</strong> group in the library, to build the filter:</p>
+                            all from the <b class="gui">Standard</b> group in the library, to build the filter:</p>
                         <ul>
-                            <li>An <strong>Input</strong>; the input signal will come from this component, which is an 
+                            <li>An <b class="component">Input</b>; the input signal will come from this component, which is an 
                                 ideal voltage source.</li>
-                            <li>A <strong>Capacitor</strong> and a <strong>Resistor</strong>.</li>
-                            <li>A <strong>Speaker</strong>; the output signal is measured as the voltage across this component.</li>
-                            <li>A <strong>Ground</strong>.</li>
+                            <li>A <b class="component">Capacitor</b> and a <b class="component">Resistor</b>.</li>
+                            <li>A <b class="component">Speaker</b>; the output signal is measured as the voltage across this component.</li>
+                            <li>A <b class="component">Ground</b>.</li>
                         </ul>
                         <p>Arrange the components roughly like so:</p>
                         <div class="picturebox" style="width:400px;"><a rel="mini-lightbox" href="images/rclowpassparts.png">
@@ -272,13 +284,13 @@
                         <p><strong>Tips</strong></p>
                         <ul>
                             <li>You can search the component library by typing the name of the component you are looking for in the 
-                                <strong>Filter</strong> field at the top of the library.</li>
+                                <b class="gui">Filter</b> field at the top of the library.</li>
                             <li>Use the arrow keys to rotate and flip components while adding them to the schematic.</li>
                         </ul>
 
                         <h4>Wiring the components</h4>
-                        <p>Next, we need to wire the components together. Select the <strong>Wire</strong> component
-                            from the library (or press <b class="key">Ctrl + W</b>). Adding wires is a little different from the rest of the components, to draw a wire 
+                        <p>Next, we need to wire the components together. Select the <b class="component">Wire</b> component
+                            from the library (or press <b class="key">Ctrl</b>+<b class="key">W</b>). Adding wires is a little different from the rest of the components, to draw a wire 
                             between two points, click on one point, and drag to the other point. Draw
                             wires to connect the components as follows:</p>
                         <div class="picturebox" style="width:400px;"><a rel="mini-lightbox" href="images/rclowpasswires.png">
@@ -308,11 +320,11 @@
                         <p>Verify that your circuit looks like the following:</p>
                         <div class="picturebox" style="width:400px;"><a rel="mini-lightbox" href="images/rclowpass.png">
                             <img src="images/rclowpass.png" alt="Complete RC low-pass filter."></a></div>
-                        <p>To run the simulation, select <strong>Simulate->Simulate</strong> on the menu. If you have not yet 
+                        <p>To run the simulation, select <b class="menu">Simulate</b><img src="images/r.gif" /><b class="menu">Simulate</b> on the menu. If you have not yet 
                             <a href="#audio-configuration">configured your audio device</a>, you will be prompted to do so now. The
                             simulation should now be running!</p>
-                        <p>Click on any of the wires in the schematic to place a <strong>Probe</strong>. Probes generate signal data displayed 
-                            in the <strong>Scope</strong>.</p>
+                        <p>Click on any of the wires in the schematic to place a <b class="component">Probe</b>. Probes generate signal data displayed 
+                            in the <b class="gui">Scope</b>.</p>
                         <div class="picturebox" style="width:400px;"><a rel="mini-lightbox" href="images/rclowpasssim.png">
                             <img src="images/rclowpasssim.png" alt="Simulating the RC low-pass filter."></a></div>
                         <p>Using this information, we can verify that the qualitative behavior of the circuit matches our expectations 
@@ -341,19 +353,19 @@
                         </div>
                         <p><strong>Tips</strong></p>
                         <ul>
-                            <li>If the signal is too quiet or too loud, use the gain adjustments on the <strong>Audio</strong> pane to 
+                            <li>If the signal is too quiet or too loud, use the gain adjustments on the <b class="gui">Audio</b> pane to 
                                 adjust the amplitude of the signal. 
                                 <ul>
-                                    <li>Adjusting the <strong>Input</strong> gain or the gain of one of the input channels will adjust 
+                                    <li>Adjusting the <b class="gui">Input</b> gain or the gain of one of the input channels will adjust 
                                         the amplitude of the signal before it is processed.</li>
-                                    <li>Adjusting the gain of the <strong>Output</strong> or one of the output channels will adjust the 
+                                    <li>Adjusting the gain of the <b class="gui">Output</b> or one of the output channels will adjust the 
                                         amplitude of the signals after they are processed.</li>
                                 </ul>
                             </li>
                         </ul>
-                    </section>
-                </section>
-            </section>
+                    </section> <!-- tutorial -->
+                </section> <!-- getting started -->
+            </section> <!-- documentation -->
         </div>
 
         <footer>
@@ -371,5 +383,17 @@
 
     <!-- mini-lightbox -->
 	<script src="js/mini-lightbox.js" type="text/javascript"></script>
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-21153992-2', 'livespice.org');
+        ga('send', 'pageview');
+    </script>
 </body>
 </html>
