@@ -20,10 +20,11 @@ namespace LiveSPICE
         private double[] buffer = null;
         public double[] Buffer { get { return buffer; } }
 
-        public void AllocBuffer(int Samples) 
+        public double[] AllocBuffer(int Samples) 
         {
             if (buffer == null || buffer.Length < Samples)
                 buffer = new double[Samples];
+            return buffer;
         }
 
         private Probe() : this(EdgeType.Red) { }

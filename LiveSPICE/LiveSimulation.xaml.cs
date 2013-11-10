@@ -247,6 +247,9 @@ namespace LiveSPICE
                 double peak = Out[i].Amplify(ch.gain * outputGain);
                 Dispatcher.InvokeAsync(() => ch.Level.Background = MapSignalToBrush(peak));
             }
+
+            // Tick oscilloscope.
+            Scope.Signals.TickClock(Count, Rate);
         }
 
         private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
@@ -263,10 +266,7 @@ namespace LiveSPICE
 
                         List<KeyValuePair<SyMath.Expression, double[]>> signals = new List<KeyValuePair<SyMath.Expression, double[]>>(probes.Count);
                         foreach (Probe i in probes)
-                        {
-                            i.AllocBuffer(Count);
-                            signals.Add(new KeyValuePair<SyMath.Expression, double[]>(i.V, i.Buffer));
-                        }
+                            signals.Add(new KeyValuePair<SyMath.Expression, double[]>(i.V, i.AllocBuffer(Count)));
 
                         KeyValuePair<SyMath.Expression, double[]>[] outputs = new KeyValuePair<SyMath.Expression, double[]>[Out.Length];
                         for (int i = 0; i < Out.Length; ++i)
@@ -276,8 +276,9 @@ namespace LiveSPICE
                         simulation.Run(Count, inputs, signals.Concat(outputs), Iterations);
 
                         // Show the samples on the oscilloscope.
+                        long clock = Scope.Signals.Clock;
                         foreach (Probe i in probes)
-                            i.Signal.AddSamples(Scope.Signals.Clock, i.Buffer);
+                            i.Signal.AddSamples(clock, i.Buffer);
                     }
                 }
                 catch (Circuit.SimulationDiverged Ex)
@@ -312,8 +313,6 @@ namespace LiveSPICE
                 foreach (Audio.SampleBuffer i in Out)
                     i.Clear();
             }
-
-            Scope.Signals.TickClock(Count, Rate);
         }
 
         private void RebuildSimulation(double SampleRate)
