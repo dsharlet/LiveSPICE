@@ -90,7 +90,5 @@ namespace Circuit
             Inductor.Draw(Sym, 10, -h, 0.0, 2, -4.0);
             Inductor.Draw(Sym, 10, h, 0.0, 2, -4.0);
         }
-
-        public override string ToString() { return Name + " = " + Turns.ToString(); }
     }
 }

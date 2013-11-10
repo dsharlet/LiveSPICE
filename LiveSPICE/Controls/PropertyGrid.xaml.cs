@@ -62,7 +62,7 @@ namespace LiveSPICE
                 {
                     multi = new ComboBoxItem()
                     {
-                        Content = String.Format("{0} x {1}", objects.Count(), GetCommonBaseClass(objects.Select(i => i.GetType())).Name),
+                        Content = String.Format("({0} objects)", objects.Count()),
                         FontWeight = FontWeights.Bold,
                         Tag = null,
                     };
@@ -101,7 +101,7 @@ namespace LiveSPICE
             get
             {
                 if (objects == null) return new object[0];
-                List<ComboBoxItem> items = objects.Select(i => new ComboBoxItem() { Content = i.GetType().Name + " " + i.ToString(), Tag = i }).ToList();
+                List<ComboBoxItem> items = objects.Select(i => new ComboBoxItem() { Content = i.ToString(), Tag = i }).ToList();
                 if (multi != null)
                     return new[] { multi }.Concat(items);
                 else
@@ -149,14 +149,10 @@ namespace LiveSPICE
             foreach (Type i in Types.Skip(1))
             {
                 if (i.IsAssignableFrom(ret))
-                {
                     ret = i;
-                }
                 else
-                {
                     while (!ret.IsAssignableFrom(i))
                         ret = ret.BaseType;
-                }
             }
 
             return ret;

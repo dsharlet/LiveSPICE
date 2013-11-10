@@ -65,25 +65,27 @@ namespace LiveSPICE
                 }
             }
 
-            ToolTip = Symbol.Component.ToString();
+            TextBlock text = new TextBlock();
 
-            //StringBuilder sb = new StringBuilder();
+            Circuit.Component component = Symbol.Component;
 
-            //Type T = component.GetType();
+            text.Inlines.Add(new Bold(new Run(component.GetDisplayName())));
 
-            //DisplayNameAttribute name = T.GetCustomAttribute<DisplayNameAttribute>();
-            //if (name != null)
-            //    sb.AppendLine(name.DisplayName);
-            //else
-            //    sb.AppendLine(T.ToString());
+            foreach (PropertyInfo i in component.GetType().GetProperties().Where(j =>
+                j.GetCustomAttribute<Circuit.Serialize>() != null &&
+                (j.GetCustomAttribute<BrowsableAttribute>() == null || j.GetCustomAttribute<BrowsableAttribute>().Browsable)))
+            {
+                object value = i.GetValue(component);
+                DefaultValueAttribute def = i.GetCustomAttribute<DefaultValueAttribute>();
+                if (def == null || !Equals(def.Value, value))
+                {
+                    System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
+                    text.Inlines.Add(new Run("\n" + i.Name + " = "));
+                    text.Inlines.Add(new Bold(new Run(tc.ConvertToString(value))));
+                }
+            }
 
-            //foreach (PropertyInfo i in T.GetProperties().Where(j => j.GetCustomAttribute<Circuit.SchematicPersistent>() != null))
-            //{
-            //    System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);
-            //    sb.AppendLine(i.Name + " = " + tc.ConvertToString(i.GetValue(component)));
-            //}
-
-            //ToolTip = sb.ToString();
+            ToolTip = new ToolTip() { Content = text };
         }
 
         protected override Size MeasureOverride(Size constraint)

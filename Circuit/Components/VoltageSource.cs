@@ -78,8 +78,6 @@ namespace Circuit
                 Sym.DrawText(() => Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far);
             }
         }
-
-        public override string ToString() { return Name + " = " + Voltage.ToString(); }
     }
 
     /// <summary>

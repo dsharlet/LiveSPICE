@@ -67,7 +67,5 @@ namespace Circuit
             Sym.DrawText(() => Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(() => inductance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
         }
-
-        public override string ToString() { return Name + " = " + inductance.ToString(); }
     }
 }

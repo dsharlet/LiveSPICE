@@ -42,6 +42,7 @@ namespace Circuit
 
         private string partNumber = "";
         [Description("Part name/number.")]
+        [DefaultValue("")]
         [Serialize]
         public virtual string PartNumber { get { return partNumber; } set { partNumber = value; NotifyChanged("PartNumber"); } }
 
@@ -82,40 +83,35 @@ namespace Circuit
         /// </summary>
         /// <param name="S"></param>
         public abstract void LayoutSymbol(SymbolLayout Sym);
-
+                
         public virtual XElement Serialize()
         {
             XElement X = new XElement("Component");
             Type T = GetType();
             X.SetAttributeValue("_Type", T.AssemblyQualifiedName);
-
-            while (T != null)
+            foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
             {
-                foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
+                object value = i.GetValue(this);
+                DefaultValueAttribute def = i.GetCustomAttribute<DefaultValueAttribute>();
+                if (def == null || !Equals(def.Value, value))
                 {
                     TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
-                    X.SetAttributeValue(i.Name, tc.ConvertToString(i.GetValue(this)));
+                    X.SetAttributeValue(i.Name, tc.ConvertToString(value));
                 }
-                T = T.BaseType;
             }
             return X;
         }
 
         protected virtual void DeserializeImpl(XElement X)
         {
-            Type T = GetType();
-            while (T != null)
+            foreach (PropertyInfo i in GetType().GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
             {
-                foreach (PropertyInfo i in GetType().GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
+                XAttribute attr = X.Attribute(i.Name);
+                if (attr != null)
                 {
-                    XAttribute attr = X.Attribute(i.Name);
-                    if (attr != null)
-                    {
-                        TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
-                        i.SetValue(this, tc.ConvertFromString(attr.Value));
-                    }
+                    TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
+                    i.SetValue(this, tc.ConvertFromString(attr.Value));
                 }
-                T = T.BaseType;
             }
         }
 
@@ -172,7 +168,7 @@ namespace Circuit
         }
 
         // object interface.
-        public override string ToString() { return Name; }
+        public override string ToString() { return GetDisplayName() + " " + Name; }
 
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)

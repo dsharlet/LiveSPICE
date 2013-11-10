@@ -48,7 +48,5 @@ namespace Circuit
             Sym.DrawText(() => Name, new Coord(12, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(() => capacitance.ToString(), new Coord(-12, 0), Alignment.Far, Alignment.Center);
         }
-
-        public override string ToString() { return Name + " = " + capacitance.ToString(); }
     }
 }

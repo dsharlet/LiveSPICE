@@ -77,7 +77,5 @@ namespace Circuit
             Sym.DrawText(() => Name, new Coord(-16, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => Turns.ToString(), new Coord(16, 0), Alignment.Near, Alignment.Center);
         }
-
-        public override string ToString() { return Name + " = " + Turns.ToString(); }
     }
 }

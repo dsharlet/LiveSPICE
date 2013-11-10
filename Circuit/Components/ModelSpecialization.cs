@@ -35,18 +35,15 @@ namespace Circuit
         public override void LayoutSymbol(SymbolLayout Sym) { impl.LayoutSymbol(Sym); }
         
         private string category = "";
-        [Serialize]
-        [Browsable(false)]
+        [Serialize, DefaultValue(""), Browsable(false)]
         public string Category { get { return category; } set { category = value; NotifyChanged("Categories"); } }
 
         private string displayName = "";
-        [Serialize]
-        [Browsable(false)]
+        [Serialize, DefaultValue(""), Browsable(false)]
         public string DisplayName { get { return displayName; } set { displayName = value; NotifyChanged("DisplayName"); } }
 
         private string description = "";
-        [Serialize]
-        [Browsable(false)]
+        [Serialize, DefaultValue(""), Browsable(false)]
         public string Description { get { return description; } set { description = value; NotifyChanged("Description"); } }
 
         public override string GetCategory() { return category; }
