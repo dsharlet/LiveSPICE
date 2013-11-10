@@ -36,7 +36,11 @@ namespace Circuit
         {
             Context context = contexts.Pop();
             foreach (Equal i in context.Equations)
-                equations.Add((Equal)i.Evaluate(context.Controllers));
+            {
+                Equal ei = (Equal)i.Evaluate(context.Controllers);
+                if (!equations.Contains(ei))
+                    equations.Add(ei);
+            }
         }
         
         /// <summary>
