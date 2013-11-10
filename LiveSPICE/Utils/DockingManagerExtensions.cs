@@ -36,8 +36,11 @@ namespace LiveSPICE
 
         public static void LoadLayout(this DockingManager This, string Config)
         {
-            Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(This);
-            serializer.Deserialize(XmlReader.Create(new System.IO.StringReader(Config)));
+            if (Config != "")
+            {
+                Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(This);
+                serializer.Deserialize(XmlReader.Create(new System.IO.StringReader(Config)));
+            }
         }
     }
 }

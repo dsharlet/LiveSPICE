@@ -100,6 +100,7 @@ namespace LiveSPICE
         {
             get
             {
+                if (objects == null) return new object[0];
                 List<ComboBoxItem> items = objects.Select(i => new ComboBoxItem() { Content = i.GetType().Name + " " + i.ToString(), Tag = i }).ToList();
                 if (multi != null)
                     return new[] { multi }.Concat(items);
