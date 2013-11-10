@@ -7,14 +7,7 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    /// <summary>
-    /// Circuit port component.
-    /// </summary>
-    [Category("Standard")]
-    [DisplayName("Port")]
-    [DefaultProperty("Name")]
-    [Description("Represents a terminal when the schematic is used as a subcircuit.")]
-    public class Port : OneTerminal
+    public abstract class Port : OneTerminal
     {
         private Terminal external;
         /// <summary>
@@ -22,6 +15,11 @@ namespace Circuit
         /// </summary>
         [Browsable(false)]
         public Terminal External { get { return external; } }
+
+        private int number = -1;
+        [Serialize]
+        [Description("Index of this port.")]
+        public int Number { get { return number; } set { number = value; NotifyChanged("Number"); } }
 
         // Use the name of the external terminal as the name of this port.
         public override string Name { get { return external.Name; } set { external.Name = value; } }
@@ -33,16 +31,41 @@ namespace Circuit
             // Port acts like a perfect conductor.
             Conductor.Analyze(Mna, Terminal, External);
         }
+    }
 
+    [Category("Standard")]
+    [DisplayName("Input Port")]
+    [DefaultProperty("Name")]
+    [Description("Represents an input terminal when the schematic is used as a subcircuit.")]
+    public class InputPort : Port
+    {
         public override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 
-            Sym.InBounds(new Coord(-10, -10), new Coord(10, 10));
+            Sym.AddLoop(EdgeType.Black,
+                new Coord(-10, 5), new Coord(-5, 5),
+                new Coord(0, 0),
+                new Coord(-5, -5), new Coord(-10, -5));
+            Sym.DrawText(() => Name, new Coord(-5, 7), Alignment.Center, Alignment.Near);
+        }
+    }
 
-            Sym.AddRectangle(EdgeType.Black, new Coord(-5, -5), new Coord(5, 5));
+    [Category("Standard")]
+    [DisplayName("Output Port")]
+    [DefaultProperty("Name")]
+    [Description("Represents an output terminal when the schematic is used as a subcircuit.")]
+    public class OutputPort : Port
+    {
+        public override void LayoutSymbol(SymbolLayout Sym)
+        {
+            base.LayoutSymbol(Sym);
 
-            Sym.DrawText(() => Name, new Coord(0, 7), Alignment.Center, Alignment.Near);
+            Sym.AddLoop(EdgeType.Black,
+                new Coord(0, 5), new Coord(5, 5),
+                new Coord(10, 0),
+                new Coord(5, -5), new Coord(0, -5));
+            Sym.DrawText(() => Name, new Coord(5, 7), Alignment.Center, Alignment.Near);
         }
     }
 }

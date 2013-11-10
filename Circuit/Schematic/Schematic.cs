@@ -15,6 +15,10 @@ namespace Circuit
     public class Schematic
     {
         protected Circuit circuit = new Circuit();
+        /// <summary>
+        /// Get the circuit object for this schematic. Use Build to ensure the circuit object is up to date.
+        /// </summary>
+        public Circuit Circuit { get { return circuit; } }
 
         protected ElementCollection elements;
         /// <summary>
@@ -328,6 +332,8 @@ namespace Circuit
         {
             XDocument doc = XDocument.Load(FileName);
             Schematic S = Schematic.Deserialize(doc.Root, Log);
+            if (S.Circuit.DisplayName == "")
+                S.Circuit.DisplayName = System.IO.Path.GetFileNameWithoutExtension(FileName);
             Log.WriteLine(MessageType.Info, "Schematic loaded from '" + FileName + "'");
             S.LogComponents();
             return S;
@@ -338,6 +344,11 @@ namespace Circuit
         public XElement Serialize()
         {
             XElement x = new XElement("Schematic");
+            x.SetAttributeValue("Name", Circuit.Name);
+            x.SetAttributeValue("DisplayName", Circuit.DisplayName);
+            x.SetAttributeValue("Description", Circuit.Description);
+            x.SetAttributeValue("Category", Circuit.Category);
+            x.SetAttributeValue("PartNumber", Circuit.PartNumber);
             foreach (Element i in Elements)
                 x.Add(i.Serialize());
             return x;
@@ -347,8 +358,15 @@ namespace Circuit
         {
             Schematic s = new Schematic(Log);
             s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
+            s.Circuit.Name = Value(X.Attribute("Name"));
+            s.Circuit.DisplayName = Value(X.Attribute("DisplayName"));
+            s.Circuit.Description = Value(X.Attribute("Description"));
+            s.Circuit.Category = Value(X.Attribute("Category"));
+            s.Circuit.PartNumber = Value(X.Attribute("PartNumber"));
             return s;
         }
         public static Schematic Deserialize(XElement X) { return Deserialize(X, new NullLog()); }
+
+        private static string Value(XAttribute X) { return X != null ? X.Value : ""; }
     }
 }

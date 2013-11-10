@@ -56,10 +56,10 @@ namespace LiveSPICE
 
         private static IEnumerable<Circuit.Component> LoadLibrary(string Library)
         {
-            List<Circuit.Component> components = new List<Circuit.Component>();
             try
             {
                 XDocument doc = XDocument.Load(Library);
+                List<Circuit.Component> components = new List<Circuit.Component>();
                 foreach (XElement i in doc.Element("Components").Elements("Component"))
                     components.Add(Circuit.Component.Deserialize(i));
                 return components;
@@ -71,25 +71,35 @@ namespace LiveSPICE
             }
         }
 
-        private static IEnumerable<Circuit.Component> LoadLibraries(string Library)
+        private static IEnumerable<Circuit.Component> LoadSchematics(string Folder, string Category)
         {
-            foreach (string i in System.IO.Directory.GetFiles(Library, "*.xml"))
-                foreach (Circuit.Component j in LoadLibrary(i))
-                    yield return j;
+            List<Circuit.Component> components = new List<Circuit.Component>();
+            foreach (string i in GetFiles(Folder, "*.xml"))
+            {
+                try
+                {
+                    Circuit.Schematic S = Circuit.Schematic.Load(i);
+                    if (S.Circuit.Category == "")
+                        S.Circuit.Category = Category;
+                    components.Add(S.Build());
+                }
+                catch (Exception Ex)
+                {
+                    MessageBox.Show("Error loading component '" + i + "': " + Ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            return components;
         }
 
         private static List<Circuit.Component> LoadStandardLibraries()
         {
-            // If the app is installed, the components should be in CommonDocuments. Otherwise, look for them in the source paths.
+            // Look next to the app, or up a bit.
             string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            try
-            {
-                return LoadLibraries(System.IO.Path.Combine(app, "Components")).ToList();
-            }
-            catch (Exception)
-            {
-                return LoadLibraries(System.IO.Path.Combine(app, @"..\..\..\Components")).ToList();
-            }
+            List<Circuit.Component> lib = GetFiles(System.IO.Path.Combine(app, "Components"), "*.xml").SelectMany(i => LoadLibrary(i)).ToList();
+            if (lib.Count == 0)
+                lib = GetFiles(System.IO.Path.Combine(app, @"..\..\..\Components"), "*.xml").SelectMany(i => LoadLibrary(i)).ToList();
+
+            return lib;
         }
 
         private static IEnumerable<Circuit.Component> Components
@@ -107,13 +117,18 @@ namespace LiveSPICE
                     try { C = (Circuit.Component)Activator.CreateInstance(i); }
                     catch (Exception) { continue; }
 
-                    yield return C;
+                    if (C.IsImplemented)
+                        yield return C;
                 }
 
                 // Load the component libraries and enumerate them.
                 foreach (Circuit.Component i in LoadStandardLibraries())
                     yield return i;
-                foreach (Circuit.Component i in LoadLibraries(System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components")))
+
+                string docs = App.Current.UserDocuments.FullName;
+                foreach (Circuit.Component i in GetFiles(System.IO.Path.Combine(docs, "Components"), "*.xml").SelectMany(i => LoadLibrary(i)))
+                    yield return i;
+                foreach (Circuit.Component i in LoadSchematics(System.IO.Path.Combine(docs, "User Components"), "User Components"))
                     yield return i;
             }
         }
@@ -217,7 +232,7 @@ namespace LiveSPICE
                 ComponentButton button = new ComponentButton()
                 {
                     Component = C,
-                    ToolTip = C.GetDescription(),
+                    ToolTip = C.GetDescription() != "" ? C.GetDescription() : null,
                     Content = content,
                     BorderBrush = null,
                 };
@@ -267,7 +282,19 @@ namespace LiveSPICE
 
             return (Panel)category.Content;
         }
-        
+
+        private static IEnumerable<string> GetFiles(string Path, string Filter)
+        {
+            try
+            {
+                return System.IO.Directory.GetFiles(Path, Filter);
+            }
+            catch (Exception)
+            {
+                return new string[0];
+            }
+        }
+
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {

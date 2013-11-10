@@ -13,14 +13,17 @@ namespace Circuit
     public class ModifiedNodalAnalysis
     {
         private HashSet<Equal> equations = new HashSet<Equal>();
-        private List<Expression> unknowns = new List<Expression>();
-        private Dictionary<Expression, Expression> nodes = new Dictionary<Expression, Expression>();
+        private HashSet<Expression> unknowns = new HashSet<Expression>();
+        private Dictionary<Expression, Expression> kcl = new Dictionary<Expression, Expression>();
         private List<Arrow> initialConditions = new List<Arrow>();
+
+        private NodeCollection nodes = new NodeCollection();
+        public void BeginAnalysis(Circuit C) { nodes.AddRange(C.Nodes); }
 
         /// <summary>
         /// Get the KCL expressions for this analysis.
         /// </summary>
-        public IEnumerable<KeyValuePair<Expression, Expression>> Kcl { get { return nodes.Where(i => !ReferenceEquals(i.Value, null)); } }
+        public IEnumerable<KeyValuePair<Expression, Expression>> Kcl { get { return kcl.Where(i => !ReferenceEquals(i.Value, null)); } }
 
         /// <summary>
         /// Enumerates the equations in the system.
@@ -44,18 +47,18 @@ namespace Circuit
         public void AddTerminal(Terminal Terminal, Expression i)
         {
             Expression v = Terminal.V;
-            Expression kcl;
-            if (nodes.TryGetValue(v, out kcl))
+            Expression sumi;
+            if (kcl.TryGetValue(v, out sumi))
             {
-                // null represents a node with undefined current.
+                // preserve null (arbitrary current).
                 if (ReferenceEquals(i, null))
-                    nodes[v] = null;
-                else if (!ReferenceEquals(kcl, null))
-                    nodes[v] = kcl + i;
+                    kcl[v] = null;
+                else if (!ReferenceEquals(sumi, null))
+                    kcl[v] = sumi + i;
             }
             else
             {
-                nodes[v] = i;
+                kcl[v] = i;
                 AddUnknowns(v);
             }
         }
@@ -84,8 +87,8 @@ namespace Circuit
         /// Add Unknowns to the system.
         /// </summary>
         /// <param name="Unknowns"></param>
-        public void AddUnknowns(IEnumerable<Expression> Unknowns) { unknowns.AddRange(Unknowns); }
-        public void AddUnknowns(params Expression[] Unknowns) { unknowns.AddRange(Unknowns); }
+        public void AddUnknowns(IEnumerable<Expression> Unknowns) { foreach (Expression i in Unknowns) unknowns.Add(i); }
+        public void AddUnknowns(params Expression[] Unknowns) { AddUnknowns(Unknowns.AsEnumerable()); }
 
         /// <summary>
         /// Add a new named unknown to the system.

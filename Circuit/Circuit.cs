@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +15,25 @@ namespace Circuit
     public class Circuit : Component
     {
         private ComponentCollection components = new ComponentCollection();
+        [Browsable(false)]
         public ComponentCollection Components { get { return components; } }
 
         private NodeCollection nodes = new NodeCollection();
+        [Browsable(false)]
         public NodeCollection Nodes { get { return nodes; } }
-        
+
+        private string displayName = "";
+        [Serialize, DefaultValue("")]
+        public string DisplayName { get { return displayName; } set { displayName = value; NotifyChanged("DisplayName"); } }
+
+        private string description = "";
+        [Serialize, DefaultValue("")]
+        public string Description { get { return description; } set { description = value; NotifyChanged("Description"); } }
+
+        private string category = "";
+        [Serialize, DefaultValue("")]
+        public string Category { get { return category; } set { category = value; NotifyChanged("Category"); } }
+
         /// <summary>
         /// External terminals (ports) in this circuit.
         /// </summary>
@@ -29,24 +44,36 @@ namespace Circuit
                 return Components.OfType<Port>().Select(i => i.External);
             }
         }
-        
+
         public override void LayoutSymbol(SymbolLayout Sym)
         {
             // The default circuit layout is a box with the terminals alternating up the sides.
-            List<Terminal> terminals = Terminals.ToList();
+            List<Port> ports = Components.OfType<Port>().ToList();
 
             int w = 40;
-            int h = Math.Max(20, (terminals.Count / 2 + 1) * 10);
+            int h = Math.Max(
+                Math.Max(ports.OfType<InputPort>().Max(i => i.Number), ports.OfType<InputPort>().Count()),
+                Math.Max(ports.OfType<OutputPort>().Max(i => i.Number), ports.OfType<OutputPort>().Count())) * 10;
 
+            Sym.DrawText(() => PartNumber, new Coord(0, h + 2), Alignment.Center, Alignment.Near);
             Sym.AddRectangle(EdgeType.Black, new Coord(-w, -h), new Coord(w, h));
+            Sym.DrawText(() => Name, new Coord(0, -h - 2), Alignment.Center, Alignment.Far);
 
-            for (int i = 0; i < terminals.Count; ++i)
+            int number = 0;
+            foreach (Port i in ports.OfType<InputPort>())
             {
-                int dx = (i % 2) * 2 - 1;
-                int x = w * dx;
-                int y = h - (i / 2 + 1) * 20;
-                Sym.AddTerminal(terminals[i], new Coord(x, y));
-                Sym.DrawText(() => terminals[i].Name, new Coord(x - dx * 3, y), x < 0 ? Alignment.Near : Alignment.Far, Alignment.Center);
+                Terminal t = i.External;
+                int y = h - (i.Number != -1 ? i.Number : number++) * 20 - 10;
+                Sym.AddTerminal(t, new Coord(-w, y));
+                Sym.DrawText(() => t.Name, new Coord(-w + 3, y), Alignment.Near, Alignment.Center);
+            }
+            number = 0;
+            foreach (Port i in ports.OfType<OutputPort>())
+            {
+                Terminal t = i.External;
+                int y = h - (i.Number != -1 ? i.Number : number++) * 20 - 10;
+                Sym.AddTerminal(t, new Coord(w, y));
+                Sym.DrawText(() => t.Name, new Coord(w - 3, y), Alignment.Far, Alignment.Center);
             }
         }
 
@@ -74,6 +101,8 @@ namespace Circuit
 
         public override void Analyze(ModifiedNodalAnalysis Mna)
         {
+            Mna.BeginAnalysis(this);
+
             foreach (Component c in Components)
                 c.Analyze(Mna);
 
@@ -99,13 +128,6 @@ namespace Circuit
         public override XElement Serialize()
         {
             XElement X = base.Serialize();
-            // Serialize nodes.
-            foreach (Node i in Nodes)
-            {
-                XElement node = new XElement("Node");
-                node.SetAttributeValue("Name", i.Name);
-                X.Add(node);
-            }
             // Serialize child components.
             foreach (Component i in Components)
             {
@@ -127,9 +149,6 @@ namespace Circuit
         {
             base.DeserializeImpl(X);
 
-            // Deserialize nodes.
-            Nodes.AddRange(X.Elements("Node").Select(i => new Node() { Name = i.Attribute("Name").Value }));
-
             foreach (XElement i in X.Elements("Component"))
             {
                 Component component = Deserialize(i);
@@ -138,6 +157,10 @@ namespace Circuit
                 Components.Add(component);
             }
         }
+
+        public override string GetDisplayName() { return DisplayName != "" ? DisplayName : PartNumber; }
+        public override string GetDescription() { return Description; }
+        public override string GetCategory() { return Category; }
 
         /// <summary>
         /// Create a circuit from a SPICE netlist.
