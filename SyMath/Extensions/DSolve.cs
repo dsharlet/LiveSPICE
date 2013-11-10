@@ -45,7 +45,7 @@ namespace SyMath
             // Take L^-1[Y].
             Y = Y.Select(i => Arrow.New(IL(i.Left, t), IL(i.Right, t))).ToList();
             if (Y.DependsOn(s))
-                throw new InvalidOperationException("DSolve failed");
+                throw new AlgebraException("Could not find L^-1[Y(s)].");
 
             return Y;
         }
