@@ -130,8 +130,8 @@ namespace LiveSPICE
             }
             else if (Schematic.Elements.Any())
             {
-                a = Schematic.ToPoint(Schematic.LowerBound());
-                b = Schematic.ToPoint(Schematic.UpperBound());
+                a = Schematic.ToPoint(Schematic.LowerBound() - 40);
+                b = Schematic.ToPoint(Schematic.UpperBound() + 40);
             }
             else
             {
