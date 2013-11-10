@@ -32,7 +32,8 @@ namespace CircuitTests
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
 
-            //Run("BossSD1NoBuffer.xml", Vin, new Expression[] { "_v0[t]", "_v15[t]", "_v11[t]" });
+            //Run("BossSD1NoBuffer.xml", Vin, new Expression[] { "_v15[t]", "_v11[t]" });
+            //return;
 
             foreach (string File in System.IO.Directory.EnumerateFiles(@".", "*.xml"))
             {

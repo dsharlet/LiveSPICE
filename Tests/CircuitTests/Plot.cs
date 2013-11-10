@@ -128,7 +128,7 @@ namespace CircuitTests
 
         public Plot(string Name, int Width, int Height, double x0, double y0, double x1, double y1, Series S) : this(Name, Width, Height, x0, y0, x1, y1, new Dictionary<string, Series> { { "", S } }) { }
 
-        private List<Color> colors = new List<Color>() { Color.Black, Color.Red, Color.Blue, Color.Green, Color.DarkRed, Color.DarkGreen, Color.DarkBlue };
+        private List<Color> colors = new List<Color>() { Color.Red, Color.Blue, Color.Green, Color.DarkRed, Color.DarkGreen, Color.DarkBlue };
 
         void Plot_Paint(object sender, PaintEventArgs e)
         {
