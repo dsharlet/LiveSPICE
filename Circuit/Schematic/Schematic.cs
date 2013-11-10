@@ -84,7 +84,7 @@ namespace Circuit
             {
                 foreach (Terminal j in i.Terminals.Where(j => j.ConnectedTo == null))
                 {
-                    log.WriteLine(MessageType.Warning, "Unconnected terminal '{0}'", j.ToString());
+                    log.WriteLine(MessageType.Warning, "Warning: Unconnected terminal '{0}'", j.ToString());
                     warnings++;
                 }
             }
@@ -92,14 +92,14 @@ namespace Circuit
             // Check for error symbols.
             foreach (Error i in circuit.Components.OfType<Error>())
             {
-                log.WriteLine(MessageType.Error, "{0}", i.Message);
+                log.WriteLine(MessageType.Error, "Error: {0}", i.Message);
                 errors++;
             }
 
             // Check for warning symbols.
             foreach (Warning i in circuit.Components.OfType<Warning>())
             {
-                log.WriteLine(MessageType.Warning, "{0}", i.Message);
+                log.WriteLine(MessageType.Warning, "Warning: {0}", i.Message);
                 warnings++;
             }
 
