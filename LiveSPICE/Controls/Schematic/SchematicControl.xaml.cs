@@ -23,10 +23,11 @@ namespace LiveSPICE
 {
     public class SelectionEventArgs : EventArgs
     {
-        private IEnumerable<Circuit.Element> selected;
-        public IEnumerable<Circuit.Element> Selected { get { return selected; } }
+        private List<Circuit.Component> selected;
+        public IEnumerable<Circuit.Component> Selected { get { return selected; } }
 
-        public SelectionEventArgs(IEnumerable<Circuit.Element> Selected) { selected = Selected; }
+        public SelectionEventArgs(IEnumerable<Circuit.Component> Selected) { selected = Selected.ToList(); }
+        public SelectionEventArgs(params Circuit.Component[] Selected) { selected = Selected.ToList(); }
     }
 
     /// <summary>
@@ -192,7 +193,7 @@ namespace LiveSPICE
         }
         public void RaiseSelectionChanged()
         {
-            SelectionEventArgs e = new SelectionEventArgs(Selected);
+            SelectionEventArgs e = new SelectionEventArgs(Selected.OfType<Circuit.Symbol>().Select(i => i.Component).DefaultIfEmpty(Schematic.Circuit));
             foreach (SelectionEventHandler i in selectionChanged)
                 i(this, e);
         }

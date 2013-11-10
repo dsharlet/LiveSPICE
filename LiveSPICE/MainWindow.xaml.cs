@@ -185,13 +185,7 @@ namespace LiveSPICE
 
         private void schematic_SelectionChanged(object Sender, SelectionEventArgs Args)
         {
-            object[] selected = Args.Selected.OfType<Circuit.Symbol>().Select(i => i.Component).ToArray<object>();
-            if (selected.Any())
-                Properties.SelectedObjects = selected;
-            else if (ActiveEditor != null)
-                Properties.SelectedObjects = new object[] { ActiveEditor.Schematic.Circuit };
-            else
-                Properties.SelectedObjects = null;
+            Properties.SelectedObjects = Args.Selected.ToArray<object>();
             Properties.Tag = ((SchematicEditor)Sender).Edits;
         }
 
