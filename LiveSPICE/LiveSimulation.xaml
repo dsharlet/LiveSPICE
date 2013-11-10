@@ -41,16 +41,15 @@
         <ToolBarTray Grid.Row="2">
             <ToolBar Band="1" BandIndex="1">
                 <TextBlock Text="Oversample:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <ComboBox Width="40" SelectedValue="{Binding ElementName=_this, Path=Oversample}" SelectedValuePath="Tag"
-                          IsEditable="True" Text="{Binding ElementName=_this, Path=Oversample, UpdateSourceTrigger=LostFocus}">
-                    <ComboBoxItem Tag="1">1x</ComboBoxItem>
-                    <ComboBoxItem Tag="2">2x</ComboBoxItem>
-                    <ComboBoxItem Tag="3">3x</ComboBoxItem>
-                    <ComboBoxItem Tag="4">4x</ComboBoxItem>
-                    <ComboBoxItem Tag="6">6x</ComboBoxItem>
-                    <ComboBoxItem Tag="8">8x</ComboBoxItem>
-                    <ComboBoxItem Tag="12">12x</ComboBoxItem>
-                    <ComboBoxItem Tag="16">16x</ComboBoxItem>
+                <ComboBox Width="40" IsEditable="True" Text="{Binding ElementName=_this, Path=Oversample, UpdateSourceTrigger=LostFocus}">
+                    <ComboBoxItem>1</ComboBoxItem>
+                    <ComboBoxItem>2</ComboBoxItem>
+                    <ComboBoxItem>3</ComboBoxItem>
+                    <ComboBoxItem>4</ComboBoxItem>
+                    <ComboBoxItem>6</ComboBoxItem>
+                    <ComboBoxItem>8</ComboBoxItem>
+                    <ComboBoxItem>12</ComboBoxItem>
+                    <ComboBoxItem>16</ComboBoxItem>
                 </ComboBox>
 
                 <TextBlock Text="Iterations:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
