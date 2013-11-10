@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Schematic>
+<Schematic Name="" DisplayName="59BassmanPreampToneStack" Description="" Category="" PartNumber="">
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="170,100">
     <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="250 pF" Name="C1" />
   </Element>
@@ -161,19 +161,19 @@
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-300,-20">
     <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="Fender Bassman 5F6-A, Preamp + tone stack" Subtext="http://www.turretboards.com/layouts_schematics/fender/schematics/fender_bassman_5f6a.gif" Name="_1" />
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-400,300">
-    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V2" Category="Vacuum Tubes" DisplayName="12AY7" Description="Triode implemented using the Child-Langmuir law.">
-      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="36.9" K="1.73E-06" PartName="12AY7" Name="V2" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="0,200">
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V8" PartNumber="12AX7" Category="Vacuum Tubes" DisplayName="12AX7" Description="Triode implemented using the Child-Langmuir law.">
+      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="83.5" K="1.73E-06" Name="V8" PartNumber="12AX7" />
     </Component>
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-100,300">
-    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V4" Category="Vacuum Tubes" DisplayName="12AX7" Description="Triode implemented using the Child-Langmuir law.">
-      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="83.5" K="1.73E-06" PartName="12AX7" Name="V4" />
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V9" PartNumber="12AX7" Category="Vacuum Tubes" DisplayName="12AX7" Description="Triode implemented using the Child-Langmuir law.">
+      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="83.5" K="1.73E-06" Name="V9" PartNumber="12AX7" />
     </Component>
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="0,200">
-    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V6" Category="Vacuum Tubes" DisplayName="12AX7" Description="Triode implemented using the Child-Langmuir law.">
-      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="83.5" K="1.73E-06" PartName="12AX7" Name="V6" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-400,300">
+    <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V2" PartNumber="12AY7" Category="Vacuum Tubes" DisplayName="12AY7" Description="Triode implemented using the Child-Langmuir law.">
+      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="36.9" K="1.73E-06" Name="V2" PartNumber="12AY7" />
     </Component>
   </Element>
 </Schematic>
