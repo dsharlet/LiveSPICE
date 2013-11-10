@@ -47,11 +47,18 @@ namespace SyMath
             if (!Args.Zip(Method.GetParameters(), (a, p) => p.ParameterType.IsAssignableFrom(a.GetType())).All())
                 return null;
 
-            object ret = Method.Invoke(_this, Args.ToArray<object>());
-            if (ret is Expression)
-                return ret as Expression;
-            else
-                return Constant.New(ret);
+            try
+            {
+                object ret = Method.Invoke(_this, Args.ToArray<object>());
+                if (ret is Expression)
+                    return ret as Expression;
+                else
+                    return Constant.New(ret);
+            }
+            catch (TargetInvocationException Ex)
+            {
+                throw Ex.InnerException;
+            }
         }
 
         public override bool CanCall(IEnumerable<Expression> Args)
