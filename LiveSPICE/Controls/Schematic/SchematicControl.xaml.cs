@@ -100,7 +100,8 @@ namespace LiveSPICE
         {
             Circuit.Coord a = new Circuit.Coord(Math.Min(x1.x, x2.x), Math.Min(x1.y, x2.y));
             Circuit.Coord b = new Circuit.Coord(Math.Max(x1.x, x2.x), Math.Max(x1.y, x2.y));
-            return Elements.Where(i => i.Intersects(a, b));
+            return Symbols.Where(i => i.Intersects(a, b)).Cast<Circuit.Element>().Concat(
+                Wires.Where(i => i.Intersects(a, b)));
         }
         public IEnumerable<Circuit.Element> AtPoint(Circuit.Coord At) { return InRect(At - 1, At + 1); }
         public Circuit.Node NodeAt(Circuit.Coord At) { return schematic.NodeAt(At); }
