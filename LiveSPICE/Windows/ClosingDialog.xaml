@@ -14,9 +14,9 @@
         <TextBlock Grid.Row="0" Margin="8" VerticalAlignment="Center" Text="Save changes to the following schematics?" />
         <ListView x:Name="files" Grid.Row="1" Margin="4 0 4 0" VerticalAlignment="Stretch" BorderBrush="DarkGray" BorderThickness="1" />
         <DockPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Button Content="Yes" Width="80" Margin="4" BorderThickness="1" BorderBrush="DarkGray" Click="Yes_Click" IsDefault="True" />
-            <Button Content="No" Width="80" Margin="4" BorderThickness="1" BorderBrush="DarkGray" Click="No_Click" />
-            <Button Content="Cancel" Width="80" Margin="4" BorderThickness="1" BorderBrush="DarkGray" IsCancel="True" />
+            <Button Content="Yes" Width="80" Margin="4" Click="Yes_Click" IsDefault="True" />
+            <Button Content="No" Width="80" Margin="4" Click="No_Click" />
+            <Button Content="Cancel" Width="80" Margin="4" IsCancel="True" />
         </DockPanel>
     </Grid>
 </Window>
