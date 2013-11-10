@@ -41,8 +41,6 @@ namespace Circuit
         {
             if (Type > verbosity)
                 return;
-            if (Type != MessageType.Info)
-                System.Console.Write("[" + Type.ToString() + "] "); 
             System.Console.WriteLine(Text, Format);
         }
     }

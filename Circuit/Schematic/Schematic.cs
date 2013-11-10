@@ -72,9 +72,9 @@ namespace Circuit
                 IEnumerable<Component> named = circuit.Components.Where(j => j.Name == i);
                 if (named.Count() > 1)
                 {
-                    log.WriteLine(MessageType.Error, "Name '{0}' is not unique", i);
+                    log.WriteLine(MessageType.Error, "Error: Name '{0}' is not unique", i);
                     foreach (Component j in named)
-                        log.WriteLine(MessageType.Info, "  " + j.ToString());
+                        log.WriteLine(MessageType.Error, "  " + j.ToString());
                     errors++;
                 }
             }
@@ -315,8 +315,8 @@ namespace Circuit
         private void LogComponents()
         {
             foreach (Element i in Symbols)
-                Log.WriteLine(MessageType.Info, "  " + i.ToString());
-            Log.WriteLine(MessageType.Info, "  (" + Wires.Count() + " wires)");
+                Log.WriteLine(MessageType.Verbose, "  " + i.ToString());
+            Log.WriteLine(MessageType.Verbose, "  (" + Wires.Count() + " wires)");
         }
 
         public void Save(string FileName)

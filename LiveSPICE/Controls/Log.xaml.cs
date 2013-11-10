@@ -30,10 +30,10 @@ namespace LiveSPICE
         public void Clear_Click(object sender, EventArgs e) { Clear(); }
 
         private Circuit.MessageType verbosity = Circuit.MessageType.Info;
-        public string Verbosity 
+        public Circuit.MessageType Verbosity 
         {
-            get { return verbosity.ToString(); } 
-            set { verbosity = (Circuit.MessageType)Enum.Parse(typeof(Circuit.MessageType), value); NotifyChanged("Verbosity"); } 
+            get { return verbosity; } 
+            set { verbosity = value; NotifyChanged("Verbosity"); } 
         }
 
         public void WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
@@ -43,8 +43,6 @@ namespace LiveSPICE
             Dispatcher.InvokeAsync(() =>
                 {
                     bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
-                    if (Type != Circuit.MessageType.Info)
-                        text.AppendText("[" + Type.ToString() + "] ");
                     text.AppendText(Message + "\r\n");
                     if (atEnd)
                         text.ScrollToEnd();

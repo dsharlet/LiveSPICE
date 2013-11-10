@@ -284,7 +284,7 @@ namespace LiveSPICE
                 catch (Circuit.SimulationDiverged Ex)
                 {
                     // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
-                    Log.WriteLine(Circuit.MessageType.Error, Ex.Message);
+                    Log.WriteLine(Circuit.MessageType.Error, "Error: " + Ex.Message);
                     if ((double)Ex.At > Rate)
                         simulation.Reset();
                     else
@@ -295,7 +295,7 @@ namespace LiveSPICE
                 catch (Exception ex)
                 {
                     // If there was a more serious error, kill the simulation so the user can fix it.
-                    Log.WriteLine(Circuit.MessageType.Error, ex.Message);
+                    Log.WriteLine(Circuit.MessageType.Error, "Error: " + ex.Message);
                     simulation = null;
                     foreach (Audio.SampleBuffer i in Out)
                         i.Clear();
@@ -330,7 +330,7 @@ namespace LiveSPICE
                 }
                 catch (System.Exception ex)
                 {
-                    Log.WriteLine(Circuit.MessageType.Error, ex.Message);
+                    Log.WriteLine(Circuit.MessageType.Error, "Error: " + ex.Message);
                     simulation = null;
                 }
                 rebuild = false;

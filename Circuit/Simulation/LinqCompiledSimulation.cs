@@ -103,9 +103,9 @@ namespace Circuit
             Timer time = new Timer();
 
             Log.WriteLine(MessageType.Info, "[{0}] Defining sample processing function...", time);
-            Log.WriteLine(MessageType.Info, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
-            Log.WriteLine(MessageType.Info, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
-            Log.WriteLine(MessageType.Info, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
+            Log.WriteLine(MessageType.Verbose, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
+            Log.WriteLine(MessageType.Verbose, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
+            Log.WriteLine(MessageType.Verbose, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
             LinqExprs.LambdaExpression lambda = DefineProcessFunction(T, Oversample, Iterations, Input, Output, Parameters);
             Log.WriteLine(MessageType.Info, "[{0}] Compiling sample processing function...", time);
             d = lambda.Compile();
@@ -411,7 +411,7 @@ namespace Circuit
             }
             catch (Exception ex)
             {
-                Log.WriteLine(MessageType.Warning, "Error compiling output expression '{0}': {1}", x.ToString(), ex.Message);
+                Log.WriteLine(MessageType.Warning, "Warning: Error compiling output expression '{0}': {1}", x.ToString(), ex.Message);
                 return LinqExpr.Constant(0.0);
             }
         }

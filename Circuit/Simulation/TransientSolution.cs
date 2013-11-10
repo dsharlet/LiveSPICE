@@ -84,7 +84,7 @@ namespace Circuit
 
             Expression h = TimeStep;
 
-            Log.WriteLine(MessageType.Info, "Building TransientSolution for circuit '{0}', h={1}", Circuit.Name, TimeStep.ToString());
+            Log.WriteLine(MessageType.Info, "Building solution for circuit '{0}', h={1}", Circuit.Name, TimeStep.ToString());
 
             Log.WriteLine(MessageType.Info, "[{0}] Performing MNA on circuit...", time);
 
@@ -92,12 +92,12 @@ namespace Circuit
             ModifiedNodalAnalysis Mna = Circuit.Analyze();
             List<Equal> mna = Mna.Equations.ToList();
             List<Expression> y = Mna.Unknowns.ToList();
-            LogExpressions(Log, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
+            LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
             
             // Find and replace the parameters of the simulation.
             List<Parameter> parameters = new List<Parameter>();
             mna = FindParameters(mna, y, parameters);
-            Log.WriteLine(MessageType.Info, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
+            Log.WriteLine(MessageType.Verbose, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
 
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
@@ -116,7 +116,7 @@ namespace Circuit
                 .OfType<Equal>().ToList();
             List<Arrow> initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, Constant.Zero), Constant.Zero)));
             if (initial.Count == y.Count)
-                LogExpressions(Log, "Initial conditions:", initial);
+                LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
             else
                 Log.WriteLine(MessageType.Warning, "Failed to find steady state initial conditions, circuit may be unstable.");
             
@@ -126,7 +126,7 @@ namespace Circuit
             // Separate mna into differential and algebraic equations.
             List<LinearCombination> diffeq = mna.Where(i => i.DependsOn(dy_dt)).InTermsOf(dy_dt).ToList();
             mna = mna.Where(i => !i.DependsOn(dy_dt)).ToList();
-            LogList(Log, "Differential equations:", diffeq.Select(i => i.ToString()));
+            LogList(Log, MessageType.Verbose, "Differential equations:", diffeq.Select(i => i.ToString()));
 
             // Solve the diff eq for dy/dt and integrate the results.
             diffeq.RowReduce(dy_dt);
@@ -135,11 +135,11 @@ namespace Circuit
                 .NDIntegrate(t, t0, h, IntegrationMethod.Trapezoid)
                 .Select(i => Equal.New(i.Left, i.Right)).ToList();
             mna.AddRange(integrated);
-            LogExpressions(Log, "Integrated solutions:", integrated);
+            LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
 
             // The remaining equations from the system of diff eqs should be algebraic.
             mna.AddRange(diffeq.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
-            LogExpressions(Log, "Discretized system:", mna);
+            LogExpressions(Log, MessageType.Verbose, "Discretized system:", mna);
 
             // Solving the system...
             List<SolutionSet> solutions = new List<SolutionSet>();
@@ -152,7 +152,7 @@ namespace Circuit
             if (linear.Any())
             {
                 solutions.Add(new LinearSolutions(linear));
-                LogExpressions(Log, "Linear solutions:", linear);
+                LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
             }
 
             // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
@@ -190,11 +190,11 @@ namespace Circuit
                 List<Arrow> guess = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
                 solutions.Add(new NewtonIteration(solved, J, dy, guess));
-                LogExpressions(Log, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
-                LogExpressions(Log, "Linear Newton's method updates:", solved);
+                LogExpressions(Log, MessageType.Verbose, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+                LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
             }
 
-            Log.WriteLine(MessageType.Info, "[{0}] System solved, {1} solution sets for {2} unknowns", 
+            Log.WriteLine(MessageType.Info, "[{0}] System solved, {1} solution sets for {2} unknowns.", 
                 time, 
                 solutions.Count, 
                 solutions.Sum(i => i.Unknowns.Count()));
@@ -284,20 +284,20 @@ namespace Circuit
         }
 
         // Logging helpers.
-        private static void LogList(ILog Log, string Title, IEnumerable<string> List)
+        private static void LogList(ILog Log, MessageType Type, string Title, IEnumerable<string> List)
         {
             if (List.Any())
             {
-                Log.WriteLine(MessageType.Info, Title);
+                Log.WriteLine(Type, Title);
                 foreach (string i in List)
-                    Log.WriteLine(MessageType.Info, "  " + i);
-                Log.WriteLine(MessageType.Info, "");
+                    Log.WriteLine(Type, "  " + i);
+                Log.WriteLine(Type, "");
             }
         }
 
-        private static void LogExpressions(ILog Log, string Title, IEnumerable<Expression> Expressions)
+        private static void LogExpressions(ILog Log, MessageType Type, string Title, IEnumerable<Expression> Expressions)
         {
-            LogList(Log, Title, Expressions.Select(i => i.ToString()));
+            LogList(Log, Type, Title, Expressions.Select(i => i.ToString()));
         }
     }
 }

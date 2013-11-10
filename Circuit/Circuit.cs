@@ -171,17 +171,5 @@ namespace Circuit
         {
             return Netlist.Parse(Filename);
         }
-
-        // Logging helpers.
-        private static void LogExpressions(ILog Log, string Title, IEnumerable<Expression> Expressions)
-        {
-            if (Expressions.Any())
-            {
-                Log.WriteLine(MessageType.Info, Title);
-                foreach (Expression i in Expressions)
-                    Log.WriteLine(MessageType.Info, "  " + i.ToString());
-                Log.WriteLine(MessageType.Info, "");
-            }
-        }
     };
 }

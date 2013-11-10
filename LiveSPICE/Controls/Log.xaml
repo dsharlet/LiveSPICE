@@ -4,26 +4,27 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ls="clr-namespace:LiveSPICE"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:c="clr-namespace:Circuit;assembly=Circuit"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="MessageType" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="c:MessageType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
     <DockPanel>
         <ToolBar Height="28" DockPanel.Dock="Top">
-            <Label Content="Verbosity:" />
-            <ComboBox Width="50" SelectedValue="{Binding ElementName=_this, Path=Verbosity}">
-                <ComboBoxItem>Error</ComboBoxItem>
-                <ComboBoxItem>Warning</ComboBoxItem>
-                <ComboBoxItem>Info</ComboBoxItem>
-                <ComboBoxItem>Verbose</ComboBoxItem>
-            </ComboBox>
-            <Button Click="Clear_Click" Content="Clear" />
+            <TextBlock Text="Verbosity: " VerticalAlignment="Center" />
+            <ComboBox Width="50" ItemsSource="{Binding Source={StaticResource MessageType}}" SelectedValue="{Binding ElementName=_this, Path=Verbosity}" />
+            <Button Click="Clear_Click">
+                <Image Source="{StaticResource Clear}" />
+            </Button>
         </ToolBar>
-        <TextBox x:Name="text"
-                     VerticalAlignment="Stretch"
-                     FontFamily="Courier New" 
-                     IsReadOnly="True" 
-                     Background="LightGray" 
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     ScrollViewer.CanContentScroll="True" />
+        <TextBox x:Name="text" FontFamily="Courier New" IsReadOnly="True" 
+                 Background="LightGray" VerticalAlignment="Stretch"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" />
     </DockPanel>
 </UserControl>
