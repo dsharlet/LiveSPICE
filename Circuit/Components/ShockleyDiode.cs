@@ -32,7 +32,7 @@ namespace Circuit
         
         public ShockleyDiode() { Name = "D1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             // V = Va - Vc
             Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
@@ -40,7 +40,7 @@ namespace Circuit
             Expression i = (Expression)IS * (Call.Exp(Vac / (n * VT)) - 1);
 
             // Evaluate the model.
-            Mna.AddPassiveComponent(Anode, Cathode, Mna.AddNewUnknownEqualTo("i" + Name, i));
+            Mna.AddPassiveComponent(Name, Anode, Cathode, Mna.AddNewUnknownEqualTo("i" + Name, i));
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, Terminal A, Terminal C, bool IsLed, Func<string> Name, Func<string> Part)

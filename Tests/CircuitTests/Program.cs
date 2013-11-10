@@ -68,6 +68,7 @@ namespace CircuitTests
 
             return RunTest(
                 C, S,
+                C.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault(), 
                 C.Nodes.Select(i => i.V),
                 TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
                 Vin,
@@ -75,7 +76,7 @@ namespace CircuitTests
                 System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
-        public static double Run(string FileName, Func<double, double> Vin, IEnumerable<Expression> Plots)
+        public static double Run(string FileName, Func<double, double> Vin, Expression Input, IEnumerable<Expression> Plots)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
             TransientSolution TS = TransientSolution.SolveCircuit(C, 1 / (SampleRate * Oversample), Log);
@@ -84,6 +85,7 @@ namespace CircuitTests
 
             return RunTest(
                 C, S,
+                Input,
                 Plots,
                 TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
                 Vin,
@@ -91,7 +93,7 @@ namespace CircuitTests
                 System.IO.Path.GetFileNameWithoutExtension(FileName));
         }
 
-        public static double RunTest(Circuit.Circuit C, Simulation S, IEnumerable<Expression> Plots, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
+        public static double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
         {            
             double t0 = (double)S.Time;
             
@@ -99,9 +101,9 @@ namespace CircuitTests
             double[] vs = new double[N];
             for (int n = 0; n < vs.Length; ++n)
                 vs[n] = Vin(n * S.TimeStep);
-            input.Add("V[t]", vs);
+            input.Add(Input, vs);
 
-            Dictionary<Expression, double[]> output = Plots.ToDictionary(i => i, i => new double[vs.Length]);
+            Dictionary<Expression, double[]> output = Outputs.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is cached before benchmarking.
             S.Run(1, input, output, Arguments, Iterations);

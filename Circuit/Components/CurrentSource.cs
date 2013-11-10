@@ -23,9 +23,9 @@ namespace Circuit
 
         public CurrentSource() { Name = "I1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
-            Mna.AddPassiveComponent(Anode, Cathode, Current);
+            Mna.AddPassiveComponent(Name, Anode, Cathode, Current);
             // Add initial conditions, if necessary.
             Expression i0 = Current.Value.Evaluate(t, Constant.Zero);
             if (!(i0 is Constant))

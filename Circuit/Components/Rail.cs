@@ -26,7 +26,7 @@ namespace Circuit
         
         public Rail() { Name = "V1"; }
         
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             // Unknown current.
             Mna.AddTerminal(Terminal, Mna.AddNewUnknown("i" + Name));

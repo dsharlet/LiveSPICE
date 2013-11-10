@@ -54,7 +54,7 @@ namespace Circuit
             return Call.Max(Call.Min(x, b), a);
         }
                         
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             // The input terminals are connected by a resistor Rin.
             Resistor.Analyze(Mna, Positive, Negative, Rin);

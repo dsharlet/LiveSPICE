@@ -31,7 +31,7 @@ namespace Circuit
         [Browsable(false)]
         public override string PartNumber { get { return impl.PartNumber; } set { impl.PartNumber = value; NotifyChanged("PartNumber"); } }
         public override IEnumerable<Terminal> Terminals { get { return impl.Terminals; } }
-        public override void Analyze(ModifiedNodalAnalysis Mna) { impl.Analyze(Mna); }
+        public override void Analyze(Analysis Mna) { impl.Analyze(Mna); }
         public override void LayoutSymbol(SymbolLayout Sym) { impl.LayoutSymbol(Sym); }
         
         private string category = "";

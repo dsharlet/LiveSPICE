@@ -85,7 +85,7 @@ namespace LiveSPICE
 
         protected Channel[] inputChannels, outputChannels;
 
-        private Channel[] InitChannels(Panel Target, Audio.Channel[] Channels, IEnumerable<SyMath.Expression> Signals)
+        private Channel[] InitChannels(Panel Target, Audio.Channel[] Channels, IEnumerable<ComboBoxItem> Signals)
         {
             Channel[] channels = new Channel[Channels.Length];
             for (int i = 0; i < Channels.Length; ++i)
@@ -113,13 +113,14 @@ namespace LiveSPICE
 
                 ComboBox signal = new ComboBox()
                 {
-                    Width = 50,
+                    Width = 36,
                     ItemsSource = Signals,
+                    SelectedValuePath = "Tag",
                 };
                 signal.SetBinding(ComboBox.SelectedValueProperty, new Binding("Signal") { Source = channels[i] });
                 signal.SetBinding(ComboBox.ToolTipProperty, new Binding("Signal") { Source = channels[i] });
                 if (Signals.Any())
-                    channels[i].Signal = Signals.First();
+                    channels[i].Signal = (SyMath.Expression)Signals.First().Tag;
 
                 Slider gain = new Slider() { Minimum = -20, Maximum = 20 };
                 gain.SetBinding(Slider.ValueProperty, new Binding("Gain") { Source = channels[i] });
@@ -159,8 +160,8 @@ namespace LiveSPICE
                 circuit = schematic.Schematic.Schematic.Build(Log);
                 IEnumerable<Circuit.Component> components = circuit.Components;
 
-                inputChannels = InitChannels(inputs, Inputs, components.OfType<Circuit.VoltageSource>().Where(j => j.IsInput).Select(j => j.Voltage.Value));
-                outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>().Select(j => j.Sound).DefaultIfEmpty(SyMath.Constant.Zero));
+                inputChannels = InitChannels(inputs, Inputs, components.OfType<Circuit.Input>().Select(j => new ComboBoxItem() { Content = j.Name, Tag = Circuit.Component.DependentVariable(j.Name, Circuit.Component.t) }));
+                outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>().Select(j => new ComboBoxItem() { Content = j.Name, Tag = j.V }));
 
                 Parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
 

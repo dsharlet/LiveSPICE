@@ -16,7 +16,7 @@ namespace Circuit
     {
         public Ground() { Name = "GND1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             // Nodes connected to ground have V = 0.
             Mna.AddEquation(Terminal.V, Constant.Zero);

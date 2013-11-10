@@ -25,9 +25,9 @@ namespace Circuit
 
         public VariableResistor() { Name = "R1"; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
-            Resistor.Analyze(Mna, Anode, Cathode, Resistance.Value * Wipe);
+            Resistor.Analyze(Mna, Name, Anode, Cathode, Resistance.Value * Wipe);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

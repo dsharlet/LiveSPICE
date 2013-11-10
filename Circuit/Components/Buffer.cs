@@ -12,7 +12,7 @@ namespace Circuit
     [Description("Ideal voltage follower.")]
     public class Buffer : TwoTerminal
     {
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             // Unknown output current.
             Mna.AddTerminal(Cathode, Mna.AddNewUnknown("i" + Name));

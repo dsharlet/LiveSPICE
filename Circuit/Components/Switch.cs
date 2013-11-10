@@ -24,10 +24,10 @@ namespace Circuit
         public Switch() { Name = "S1"; }
         public Switch(bool Closed) : this() { closed = Closed; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             if (closed)
-                Conductor.Analyze(Mna, Anode, Cathode);
+                Conductor.Analyze(Mna, Name, Anode, Cathode);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

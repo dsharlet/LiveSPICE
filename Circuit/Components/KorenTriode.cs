@@ -38,7 +38,7 @@ namespace Circuit
         [Serialize]
         public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged("Vg"); } }
 
-        protected override void Analyze(ModifiedNodalAnalysis Mna, Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig)
+        protected override void Analyze(Analysis Mna, Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig)
         {
             Expression ex = Kp * (1.0 / Mu + Vgk * (Kvb + Vpk * Vpk) ^ (-0.5));
 

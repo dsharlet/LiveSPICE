@@ -10,16 +10,35 @@ namespace Circuit
     /// <summary>
     /// Helper class for building a system of MNA equations and unknowns.
     /// </summary>
-    public class ModifiedNodalAnalysis
+    public class Analysis
     {
-        private HashSet<Equal> equations = new HashSet<Equal>();
-        private HashSet<Expression> unknowns = new HashSet<Expression>();
+        private List<Equal> equations = new List<Equal>();
+        private List<Expression> unknowns = new List<Expression>();
         private Dictionary<Expression, Expression> kcl = new Dictionary<Expression, Expression>();
         private List<Arrow> initialConditions = new List<Arrow>();
 
+        // This renames the nodes to ensure unique unknowns among subcircuits.
         private NodeCollection nodes = new NodeCollection();
-        public void BeginAnalysis(Circuit C) { nodes.AddRange(C.Nodes); }
+        
+        protected class Context
+        {
+            public List<Equal> Equations = new List<Equal>();
+            public Dictionary<Expression, Expression> Controllers = new Dictionary<Expression, Expression>();
+        }
+        private Stack<Context> contexts = new Stack<Context>();
 
+        public void PushContext(Circuit C) 
+        {
+            nodes.AddRange(C.Nodes);
+            contexts.Push(new Context());
+        }
+        public void PopContext()
+        {
+            Context context = contexts.Pop();
+            foreach (Equal i in context.Equations)
+                equations.Add((Equal)i.Evaluate(context.Controllers));
+        }
+        
         /// <summary>
         /// Get the KCL expressions for this analysis.
         /// </summary>
@@ -69,6 +88,23 @@ namespace Circuit
         /// <param name="Anode"></param>
         /// <param name="Cathode"></param>
         /// <param name="i"></param>
+        public void AddPassiveComponent(string Name, Terminal Anode, Terminal Cathode, Expression i)
+        {
+            if (Name != "")
+            {
+                contexts.Peek().Controllers.Add("V[" + Name + "]", Anode.V - Cathode.V);
+                contexts.Peek().Controllers.Add("i[" + Name + "]", i);
+            }
+            AddTerminal(Anode, i);
+            AddTerminal(Cathode, -i);
+        }
+
+        /// <summary>
+        /// Add the current for a passive component with the given terminals.
+        /// </summary>
+        /// <param name="Anode"></param>
+        /// <param name="Cathode"></param>
+        /// <param name="i"></param>
         public void AddPassiveComponent(Terminal Anode, Terminal Cathode, Expression i)
         {
             AddTerminal(Anode, i);
@@ -79,15 +115,25 @@ namespace Circuit
         /// Add equations to the system.
         /// </summary>
         /// <param name="Eq"></param>
-        public void AddEquations(IEnumerable<Equal> Eq) { foreach (Equal i in Eq) equations.Add(i); }
+        public void AddEquations(IEnumerable<Equal> Eq) 
+        { 
+            foreach (Equal i in Eq) 
+                if (!equations.Contains(i))
+                    contexts.Peek().Equations.Add(i); 
+        }
         public void AddEquations(params Equal[] Eq) { AddEquations(Eq.AsEnumerable()); }
-        public void AddEquation(Expression a, Expression b) { equations.Add(Equal.New(a, b)); }
+        public void AddEquation(Expression a, Expression b) { AddEquations(Equal.New(a, b)); }
         
         /// <summary>
         /// Add Unknowns to the system.
         /// </summary>
         /// <param name="Unknowns"></param>
-        public void AddUnknowns(IEnumerable<Expression> Unknowns) { foreach (Expression i in Unknowns) unknowns.Add(i); }
+        public void AddUnknowns(IEnumerable<Expression> Unknowns) 
+        {
+            foreach (Expression i in Unknowns) 
+                if (!unknowns.Contains(i))
+                    unknowns.Add(i); 
+        }
         public void AddUnknowns(params Expression[] Unknowns) { AddUnknowns(Unknowns.AsEnumerable()); }
 
         /// <summary>

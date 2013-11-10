@@ -30,7 +30,7 @@ namespace LiveSPICE
         private Probe() : this(EdgeType.Red) { }
         public Probe(EdgeType Color) { color = Color; }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { }
+        public override void Analyze(Analysis Mna) { }
         
         public override void LayoutSymbol(SymbolLayout Sym)
         {

@@ -49,7 +49,7 @@ namespace Circuit
         /// Enumerate the parameters found in this circuit.
         /// </summary>
         public IEnumerable<Parameter> Parameters { get { return parameters; } }
-        
+
         public TransientSolution(
             Quantity TimeStep,
             IEnumerable<Expression> Nodes,
@@ -89,7 +89,7 @@ namespace Circuit
             Log.WriteLine(MessageType.Info, "[{0}] Performing MNA on circuit...", time);
 
             // Analyze the circuit to get the MNA system and unknowns.
-            ModifiedNodalAnalysis Mna = Circuit.Analyze();
+            Analysis Mna = Circuit.Analyze();
             List<Equal> mna = Mna.Equations.ToList();
             List<Expression> y = Mna.Unknowns.ToList();
             LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);

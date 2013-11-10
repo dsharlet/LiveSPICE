@@ -23,14 +23,9 @@ namespace Circuit
 
         public Speaker() { Name = "S1"; }
 
-        /// <summary>
-        /// Get an expression describing the sound of this speaker.
-        /// </summary>
-        public virtual Expression Sound { get { return V; } }
-
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
-            Resistor.Analyze(Mna, Anode, Cathode, Impedance);
+            Resistor.Analyze(Mna, Name, Anode, Cathode, Impedance);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

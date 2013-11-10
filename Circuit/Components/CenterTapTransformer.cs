@@ -45,7 +45,7 @@ namespace Circuit
             Name = "TX1"; 
         }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) 
+        public override void Analyze(Analysis Mna) 
         {
             Expression Ip = Mna.AddNewUnknown("i" + Name + "p");
             Mna.AddPassiveComponent(pa, pc, Ip);

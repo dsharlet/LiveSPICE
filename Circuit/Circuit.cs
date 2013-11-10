@@ -77,50 +77,17 @@ namespace Circuit
             }
         }
 
-        private static readonly Expression MatchName = Variable.New("name");
-        private static readonly Expression MatchV = DependentVariable("V", MatchName);
-        /// <summary>
-        /// Evaluates x for the components in this circuit.
-        /// </summary>
-        /// <param name="V"></param>
-        /// <returns></returns>
-        public Expression Evaluate(Expression x)
+        public override void Analyze(Analysis Mna)
         {
-            MatchContext m = MatchV.Matches(x);
-            if (m != null && m[MatchName] != Component.t)
-            {
-                string name = m[MatchName].ToString();
-                Component of = Components.Single(i => i.Name == name);
-                if (of is TwoTerminal)
-                    return ((TwoTerminal)of).V;
-                else if (of is OneTerminal)
-                    return ((OneTerminal)of).V;
-            }
-            return x;
-        }
-
-        public override void Analyze(ModifiedNodalAnalysis Mna)
-        {
-            Mna.BeginAnalysis(this);
-
+            Mna.PushContext(this);
             foreach (Component c in Components)
                 c.Analyze(Mna);
-
-            // Add equations for any depenent expressions.
-            foreach (MatchContext v in Mna.Equations.SelectMany(i => i.FindMatches(MatchV)).Distinct().ToArray())
-            {
-                if (v[MatchName] != Component.t)
-                {
-                    string name = v[MatchName].ToString();
-                    Mna.AddEquation(v.Matched, Evaluate(v.Matched));
-                    Mna.AddUnknowns(v.Matched);
-                }
-            }
+            Mna.PopContext();
         }
 
-        public ModifiedNodalAnalysis Analyze()
+        public Analysis Analyze()
         {
-            ModifiedNodalAnalysis mna = new ModifiedNodalAnalysis();
+            Analysis mna = new Analysis();
             Analyze(mna);
             return mna;
         }

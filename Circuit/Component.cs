@@ -76,7 +76,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Mna"></param>
         /// <param name="Unknowns"></param>
-        public virtual void Analyze(ModifiedNodalAnalysis Mna) { }
+        public virtual void Analyze(Analysis Mna) { }
         
         /// <summary>
         /// Define the schematic layout of this component.

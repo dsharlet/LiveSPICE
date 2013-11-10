@@ -18,15 +18,16 @@ namespace Circuit
     {
         public Conductor() { Name = "_1"; }
 
-        public static Expression Analyze(ModifiedNodalAnalysis Mna, Terminal Anode, Terminal Cathode)
+        public static Expression Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode)
         {
             Expression i = Mna.AddNewUnknown();
-            Mna.AddPassiveComponent(Anode, Cathode, i);
+            Mna.AddPassiveComponent(Name, Anode, Cathode, i);
             Mna.AddEquation(Anode.V, Cathode.V);
             return i;
         }
+        public static Expression Analyze(Analysis Mna, Terminal Anode, Terminal Cathode) { return Analyze(Mna, "", Anode, Cathode); }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode); }
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode); }
         
         public override void LayoutSymbol(SymbolLayout Sym)
         {

@@ -37,9 +37,9 @@ namespace Circuit
             Name = "V1";
         }
 
-        protected abstract void Analyze(ModifiedNodalAnalysis Mna, Expression Vgk, Expression Vpk, out Expression ip, out Expression ig);
+        protected abstract void Analyze(Analysis Mna, Expression Vgk, Expression Vpk, out Expression ip, out Expression ig);
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             Expression Vpk = Mna.AddNewUnknownEqualTo(Name + "pk", p.V - k.V);
             Expression Vgk = Mna.AddNewUnknownEqualTo(Name + "gk", g.V - k.V);

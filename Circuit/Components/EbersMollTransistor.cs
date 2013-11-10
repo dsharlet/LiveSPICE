@@ -43,7 +43,7 @@ namespace Circuit
 
         public EbersMollBJT() { }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", Base.V - Collector.V);
             Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", Base.V - Emitter.V);

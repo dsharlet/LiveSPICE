@@ -8,6 +8,12 @@ using SyMath;
 
 namespace Circuit
 {
+    public abstract class Decoration : Component
+    {
+        public override bool IsImplemented { get { return true; } }
+        public override sealed void Analyze(Analysis Mna) { }
+    }
+
     /// <summary>
     /// Token component for storing circuit labels.
     /// </summary>
@@ -15,7 +21,7 @@ namespace Circuit
     [DisplayName("Label")]
     [DefaultProperty("Text")]
     [Description("Displays a text label on a schematic.")]
-    public class Label : Component
+    public class Label : Decoration
     {
         public override IEnumerable<Terminal> Terminals { get { return new Terminal[0]; } }
 

@@ -23,22 +23,23 @@ namespace Circuit
 
         public Resistor() { Name = "R1"; }
 
-        public static Expression Analyze(ModifiedNodalAnalysis Mna, Terminal Anode, Terminal Cathode, Expression R)
+        public static Expression Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode, Expression R)
         {
             // i = V/R
             if (R.IsZero())
             {
-                return Conductor.Analyze(Mna, Anode, Cathode);
+                return Conductor.Analyze(Mna, Name, Anode, Cathode);
             }
             else
             {
                 Expression i = (Anode.V - Cathode.V) / R;
-                Mna.AddPassiveComponent(Anode, Cathode, i);
+                Mna.AddPassiveComponent(Name, Anode, Cathode, i);
                 return i;
             }
         }
+        public static Expression Analyze(Analysis Mna, Terminal Anode, Terminal Cathode, Expression R) { return Analyze(Mna, "", Anode, Cathode, R); }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { Analyze(Mna, Anode, Cathode, Resistance); }
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Resistance); }
 
         public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int N, double Scale)
         {

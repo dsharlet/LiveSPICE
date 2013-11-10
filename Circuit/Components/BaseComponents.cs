@@ -52,7 +52,7 @@ namespace Circuit
     /// </summary>
     public abstract class TwoTerminal : Component
     {
-        protected Terminal anode, cathode;
+        private Terminal anode, cathode;
         [Browsable(false)]
         public Terminal Anode { get { return anode; } }
         [Browsable(false)]

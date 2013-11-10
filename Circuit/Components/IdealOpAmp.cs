@@ -39,7 +39,7 @@ namespace Circuit
             o = new Terminal(this, "Out");
         }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna)
+        public override void Analyze(Analysis Mna)
         {
             // Infinite input impedance.
             Mna.AddPassiveComponent(Positive, Negative, Constant.Zero);

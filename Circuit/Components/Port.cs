@@ -26,7 +26,7 @@ namespace Circuit
 
         public Port() { external = new Terminal(this, "X1"); }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) 
+        public override void Analyze(Analysis Mna) 
         {
             // Port acts like a perfect conductor.
             Conductor.Analyze(Mna, Terminal, External);

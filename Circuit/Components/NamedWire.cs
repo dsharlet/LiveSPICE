@@ -23,7 +23,7 @@ namespace Circuit
         [Description("Name of the node connected to this named wire.")]
         public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire");  } }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { }
+        public override void Analyze(Analysis Mna) { }
         
         public override void LayoutSymbol(SymbolLayout Sym)
         {

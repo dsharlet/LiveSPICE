@@ -42,7 +42,7 @@ namespace Circuit
     {
         public Error(XElement Data, string Message) : base(Data, Message) { }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { throw new NotImplementedException("Cannot analyze a circuit with Error component."); }
+        public override void Analyze(Analysis Mna) { throw new NotImplementedException("Cannot analyze a circuit with Error component."); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
@@ -66,7 +66,7 @@ namespace Circuit
     {
         public Warning(XElement Data, string Message) : base(Data, Message) { }
 
-        public override void Analyze(ModifiedNodalAnalysis Mna) { }
+        public override void Analyze(Analysis Mna) { }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
