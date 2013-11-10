@@ -16,10 +16,18 @@ namespace LiveSPICE
         public SignalEventArgs(Signal E) { e = E; }
     }
 
+    public class TickEventArgs : EventArgs
+    {
+        private long clock;
+        public long Clock { get { return Clock; } }
+
+        public TickEventArgs(long Clock) { clock = Clock; }
+    }
+
     /// <summary>
     /// Collection of Signals.
     /// </summary>
-    public class SignalGroup : IEnumerable<Signal>, IEnumerable
+    public class SignalCollection : IEnumerable<Signal>, IEnumerable
     {
         protected List<Signal> x = new List<Signal>();
 
@@ -43,9 +51,9 @@ namespace LiveSPICE
             remove { itemRemoved.Remove(value); }
         }
 
-        private List<EventHandler> tick = new List<EventHandler>();
-        protected void OnTick() { EventArgs e = new EventArgs(); foreach (EventHandler i in tick) i(this, e); }
-        public event EventHandler ClockTicked
+        private List<EventHandler<TickEventArgs>> tick = new List<EventHandler<TickEventArgs>>();
+        protected void OnTick(long Clock) { TickEventArgs e = new TickEventArgs(Clock); foreach (EventHandler<TickEventArgs> i in tick) i(this, e); }
+        public event EventHandler<TickEventArgs> ClockTicked
         {
             add { tick.Add(value); }
             remove { tick.Remove(value); }
@@ -61,7 +69,7 @@ namespace LiveSPICE
         {
             sampleRate = SampleRate;
 
-            int truncate = (int)sampleRate;
+            int truncate = (int)sampleRate / 4;
 
             // Remove the signals that we didn't get data for.
             ForEach(i =>
@@ -72,9 +80,9 @@ namespace LiveSPICE
                     i.Truncate(truncate);
             });
 
-            clock += SampleCount;
+            OnTick(clock);
 
-            OnTick();
+            clock += SampleCount;
         }
 
         // ICollection<Node>

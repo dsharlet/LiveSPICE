@@ -28,7 +28,7 @@ namespace LiveSPICE
     /// </summary>
     public partial class Scope : UserControl, INotifyPropertyChanged
     {
-        public SignalGroup Signals { get { return oscilloscope.Signals; } }
+        public SignalCollection Signals { get { return oscilloscope.Signals; } }
 
         public Signal SelectedSignal { get { return oscilloscope.SelectedSignal; } set { oscilloscope.SelectedSignal = value; NotifyChanged("SelectedSignal"); } }
 
@@ -55,11 +55,27 @@ namespace LiveSPICE
 
             // Add item to the combo box.
             selectedSignal.Items.Add(item);
+
+            if (!Signals.Contains(SelectedSignal))
+            {
+                if (Signals.Any())
+                    SelectedSignal = Signals.First();
+                else if (SelectedSignal != null)
+                    SelectedSignal = null;
+            }
         }
 
         void signals_ItemRemoved(object sender, SignalEventArgs e)
         {
             selectedSignal.Items.Remove(e.Signal.Tag);
+
+            if (!Signals.Contains(SelectedSignal))
+            {
+                if (Signals.Any())
+                    SelectedSignal = Signals.First();
+                else if (SelectedSignal != null)
+                    SelectedSignal = null;
+            }
         }
         
         // INotifyPropertyChanged.

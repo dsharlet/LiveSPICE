@@ -89,7 +89,7 @@ namespace LiveSPICE
             Cursor = Cursors.Cross;
             FontFamily = new FontFamily("Courier New");
 
-            Signals = new SignalGroup();
+            Signals = new SignalCollection();
 
             CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 0.5));
             CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 2.0));
@@ -113,62 +113,62 @@ namespace LiveSPICE
 
             DrawTimeAxis(DC, bounds);
 
+            if (Signals.Empty())
+                return;
+
             Signal stats = SelectedSignal;
+            Signal stabilize = stats;
+            if (stabilize == null)
+                stabilize = Signals.First();
 
             double sampleRate = Signals.SampleRate;
+
+            double f0 = 0.0;
+
+            // Remembe the clock for when we analyzed the signal to keep the signals in sync even if new data gets added in the background.
+            long sync = stabilize.Clock;
+
+            lock (stabilize.Lock)
+            {
+                int Decimate = 1 << (int)Math.Floor(Math.Log(sampleRate / 24000, 2));
+                int BlockSize = 8192;
+                if (stabilize.Count >= BlockSize)
+                {
+                    double[] data = stabilize.Skip(stabilize.Count - BlockSize).ToArray();
+
+                    // Estimate the fundamental frequency of the signal.
+                    double phase;
+                    double f = Frequency.Estimate(data, Decimate, out phase);
+
+                    // Convert phase from (-pi, pi] to (0, 1]
+                    phase = ((phase + Math.PI) / (2 * Math.PI));
+
+                    // Shift all the signals by the phase in samples to align the signal between frames.
+                    if (f > 1.0)
+                        sync -= (int)Math.Round(phase * BlockSize / f);
+
+                    // Compute fundamental frequency in Hz.
+                    f0 = sampleRate * f / BlockSize;
+                }
+            }
 
             double mean = 0.0;
             double peak = 0.0;
             double rms = 0.0;
-            double f0 = 0.0;
-            int align = 0;
-            long sync = 0;
-
             if (stats != null)
             {
-                lock (stats)
+                lock (stats.Lock)
                 {
-                    // Remembe the clock for when we analyzed the signal to keep the signals in sync even if new data gets added in the background.
-                    sync = stats.Clock;
-
                     // Compute statistics of the clock signal.
-                    align = stats.Count;
                     mean = stats.Sum() / stats.Count;
                     peak = stats.Max(i => Math.Abs(i - mean), 0.0);
                     rms = Math.Sqrt(stats.Sum(i => (i - mean) * (i - mean)) / stats.Count);
-
-                    int Decimate = 1 << (int)Math.Floor(Math.Log(sampleRate / 24000, 2));
-                    int BlockSize = 8192;
-                    if (stats.Count >= BlockSize)
-                    {
-                        double[] data = stats.Skip(stats.Count - BlockSize).ToArray();
-
-                        // Estimate the fundamental frequency of the signal.
-                        double phase;
-                        double f = Frequency.Estimate(data, Decimate, out phase);
-
-                        // Convert phase from (-pi, pi] to (0, 1]
-                        phase = ((phase + Math.PI) / (2 * Math.PI));
-
-                        // Shift all the signals by the phase in samples to align the signal between frames.
-                        if (f > 1.0)
-                            align -= (int)Math.Round(phase * BlockSize / f);
-
-                        // Compute fundamental frequency in Hz.
-                        f0 = sampleRate * f / BlockSize;
-                    }
                 }
             }
-            else if (signals.Count > 0)
+            else
             {
                 foreach (Signal i in signals)
-                {
-                    lock (i)
-                    {
-                        peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
-                        align = Math.Max(align, i.Count);
-                    }
-                }
+                    lock (i.Lock) peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
             }
                                 
             // Compute the target min/max
@@ -180,15 +180,11 @@ namespace LiveSPICE
 
             DrawSignalAxis(DC, bounds);
 
-            foreach (Signal i in signals.Except(stats))
-                lock (i) DrawSignal(DC, bounds, i, align - (int)(i.Clock - sync));
+            foreach (Signal i in signals.Except(stabilize).Append(stabilize))
+                lock (i.Lock) DrawSignal(DC, bounds, i, (int)(sync - i.Clock));
             
-            // Draw the focus signal last.
             if (stats != null)
-            {
-                lock (stats) DrawSignal(DC, bounds, stats, align - (int)(stats.Clock - sync));
                 DrawStatistics(DC, bounds, stats.Pen.Brush, peak, mean, rms, f0);
-            }
 
             if (tracePoint.HasValue)
                 DrawTrace(DC, bounds, tracePoint.Value);
@@ -268,6 +264,8 @@ namespace LiveSPICE
 
         protected void DrawSignal(DrawingContext DC, Rect Bounds, Signal S, int shift)
         {
+            shift += S.Count;
+
             // Rate of pixels to sample.
             const double rate = 1.0;
             
@@ -276,8 +274,8 @@ namespace LiveSPICE
             List<Point> points = new List<Point>();
             for (double i = -margin; i <= Bounds.Right + margin; i += rate)
             {
-                int s0 = MapToSample(Bounds, i, shift);
-                int s1 = MapToSample(Bounds, i + rate, shift);
+                int s0 = MapToSample(Bounds, i) + shift;
+                int s1 = MapToSample(Bounds, i + rate) + shift;
 
                 if (s1 > s0)
                 {
@@ -348,7 +346,7 @@ namespace LiveSPICE
         private double MapFromTime(Rect Bounds, double t) { return Bounds.Right + (t * Bounds.Width / zoom); }
         private double MapToTime(Rect Bounds, double x) { return (x - Bounds.Right) * zoom / Bounds.Width; }
 
-        private int MapToSample(Rect Bounds, double x, int shift) { return (int)Math.Round(((x - Bounds.Right) * zoom * Signals.SampleRate) / Bounds.Width) + shift; }
+        private int MapToSample(Rect Bounds, double x) { return (int)Math.Round(((x - Bounds.Right) * zoom * Signals.SampleRate) / Bounds.Width); }
 
         private double MapToSignal(Rect Bounds, double y) { return Vmax - (y - Bounds.Top) * 2 * Vmax / Bounds.Height + Vmean; }
         private double MapFromSignal(Rect Bounds, double v) { return Bounds.Top + ((Vmax - (v - Vmean)) / (2 * Vmax) * Bounds.Height); }

@@ -25,8 +25,8 @@ namespace LiveSPICE
     {
         static SignalDisplay() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SignalDisplay), new FrameworkPropertyMetadata(typeof(SignalDisplay))); }
         
-        protected SignalGroup signals;
-        public SignalGroup Signals
+        protected SignalCollection signals;
+        public SignalCollection Signals
         {
             get { return signals; }
             set
@@ -47,31 +47,11 @@ namespace LiveSPICE
         }
                 
         private Signal selected;
-        public Signal SelectedSignal 
-        {
-            get 
-            {
-                if (!signals.Contains(selected))
-                {
-                    if (signals.Any())
-                    {
-                        selected = signals.First();
-                        NotifyChanged("SelectedSignal");
-                    }
-                    else if (selected != null)
-                    {
-                        selected = null;
-                        NotifyChanged("SelectedSignal");
-                    }
-                }
-                return selected; 
-            }
-            set { selected = value; NotifyChanged("SelectedSignal"); } 
-        }
+        public Signal SelectedSignal { get { return selected; } set { selected = value; NotifyChanged("SelectedSignal"); } }
 
         public SignalDisplay()
         {
-            Signals = new SignalGroup();
+            Signals = new SignalCollection();
         }
 
         public void Clear()

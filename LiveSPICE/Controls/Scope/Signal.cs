@@ -54,7 +54,7 @@ namespace LiveSPICE
         /// <param name="Samples"></param>
         public void AddSamples(long Clock, double[] Samples)
         {
-            lock (this)
+            lock (Lock)
             {
                 samples.AddRange(Samples);
                 clock = Clock;
@@ -67,7 +67,7 @@ namespace LiveSPICE
         /// <param name="Truncate"></param>
         public void Truncate(int NewCount)
         {
-            lock (this)
+            lock (Lock)
             {
                 if (samples.Count > NewCount)
                 {
@@ -77,7 +77,7 @@ namespace LiveSPICE
             }
         }
         
-        public void Clear() { lock (this) { samples.Clear(); clock = 0; } }
+        public void Clear() { lock (Lock) { samples.Clear(); clock = 0; } }
 
         public int Count { get { return samples.Count; } }
         public double this[int i] 
@@ -90,6 +90,8 @@ namespace LiveSPICE
                     return double.NaN;
             } 
         }
+
+        public object Lock { get { return samples; } }
 
         // IEnumerable<double> interface
         IEnumerator<double> IEnumerable<double>.GetEnumerator() { return samples.GetEnumerator(); }

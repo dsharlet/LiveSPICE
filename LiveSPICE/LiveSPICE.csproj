@@ -123,7 +123,7 @@
     </Compile>
     <Compile Include="Utils\Frequency.cs" />
     <Compile Include="Utils\DouglasPeuckerReduction.cs" />
-    <Compile Include="Controls\Scope\SignalGroup.cs" />
+    <Compile Include="Controls\Scope\SignalCollection.cs" />
     <Compile Include="Controls\Scope\Signal.cs" />
     <Compile Include="Controls\Simulation\ProbeTool.cs" />
     <Compile Include="Controls\Simulation\SimulationSchematic.cs" />
