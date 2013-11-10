@@ -201,7 +201,16 @@ namespace SyMath
 
         protected override PrettyString VisitAdd(Add A)
         {
-            return UnSplit(A.Terms, " + ");
+            PrettyString s = Visit(A.Terms.First());
+
+            foreach (Expression i in A.Terms.Skip(1))
+            {
+                if (IsNegative(i))
+                    s = PrettyString.ConcatColumns(s, " - ", Visit(-i));
+                else
+                    s = PrettyString.ConcatColumns(s, " + ", Visit(i));
+            }
+            return s;
         }
 
         protected override PrettyString VisitBinary(Binary B)
