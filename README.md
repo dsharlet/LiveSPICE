@@ -1,11 +1,8 @@
 LiveSPICE
 =========
 
-Real time SPICE-like simulation for audio signals
+LiveSPICE is a circuit simulator that attempts to run in real time with minimal latency for audio signals.
+It processes signals from audio input devices attached to your computer, and plays the results to the speakers.
 
-This project is an attempt to simulate audio circuits in a SPICE style application in real time, using
-audio devices attached to the computer, with minimial latency. 
+For more information, see http://www.livespice.org.
 
-Currently, the project is capable of simulating small, simple circuits in real time.
-
-Currently the only tested audio input device is a Rocksmith guitar cable.
