@@ -252,6 +252,12 @@ namespace LiveSPICE
             config.ShowDialog();
         }
 
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            About about = new About() { Owner = this };
+            about.ShowDialog();
+        }
+
         private void ViewProperties_Click(object sender, RoutedEventArgs e) { ToggleVisible(properties); }
         private void ViewComponents_Click(object sender, RoutedEventArgs e) { ToggleVisible(components); }
 

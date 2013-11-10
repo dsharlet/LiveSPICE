@@ -4,7 +4,7 @@
     <BitmapImage x:Key="Copy" UriSource="pack://application:,,,/Images/Copy.png" />
     <BitmapImage x:Key="Cut" UriSource="pack://application:,,,/Images/Cut.png" />
     <BitmapImage x:Key="Gears" UriSource="pack://application:,,,/Images/Gears.png" />
-    <BitmapImage x:Key="Icon" UriSource="pack://application:,,,/Images/LiveSPICE.png" />
+    <BitmapImage x:Key="Icon" UriSource="pack://application:,,,/Images/Icon.png" />
     <BitmapImage x:Key="New" UriSource="pack://application:,,,/Images/New.png" />
     <BitmapImage x:Key="Open" UriSource="pack://application:,,,/Images/Open.png" />
     <BitmapImage x:Key="Paste" UriSource="pack://application:,,,/Images/Paste.png" />
@@ -15,6 +15,7 @@
     <BitmapImage x:Key="Save" UriSource="pack://application:,,,/Images/Save.png" />
     <BitmapImage x:Key="SaveAll" UriSource="pack://application:,,,/Images/SaveAll.png" />
     <BitmapImage x:Key="Search" UriSource="pack://application:,,,/Images/Search.png" />
+    <BitmapImage x:Key="Signal" UriSource="pack://application:,,,/Images/Signal.png" />
     <BitmapImage x:Key="Start" UriSource="pack://application:,,,/Images/Start.png" />
     <BitmapImage x:Key="Undo" UriSource="pack://application:,,,/Images/Undo.png" />
     <BitmapImage x:Key="ZoomIn" UriSource="pack://application:,,,/Images/ZoomIn.png" />

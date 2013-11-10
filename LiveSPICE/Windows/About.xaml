@@ -1,0 +1,14 @@
+﻿<Window x:Class="LiveSPICE.About"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LiveSPICE" Width="201" Height="200" 
+        Topmost="True" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        WindowStyle="ToolWindow" Style="{StaticResource ResourceKey=Window}">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
+            <Image Source="{StaticResource Signal}" HorizontalAlignment="Center" Width="139" Height="64" Margin="0 20" />
+            <TextBlock HorizontalAlignment="Center"><Hyperlink NavigateUri="http://www.livespice.org" RequestNavigate="Hyperlink_RequestNavigate">www.livespice.org</Hyperlink></TextBlock>
+        </StackPanel>
+        <Button DockPanel.Dock="Bottom" Content="OK" Width="80" Margin="4" IsDefault="True" IsCancel="True" />
+    </DockPanel>
+</Window>

@@ -61,6 +61,9 @@
                 <MenuItem Header="Properties" IsChecked="{Binding ElementName=properties, Path=IsVisible}" Click="ViewProperties_Click" />
                 <MenuItem Header="Components" IsChecked="{Binding ElementName=components, Path=IsVisible}" Click="ViewComponents_Click" />
             </MenuItem>
+            <MenuItem Header="_About">
+                <MenuItem Header="About" Click="About_Click" />
+            </MenuItem>
         </Menu>
 
         <!-- Toolbars -->
