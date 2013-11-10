@@ -177,6 +177,8 @@ namespace LiveSPICE
             double window = Math.Max(Math.Pow(2.0, Math.Ceiling(Math.Log(bound + 1e-9, 2.0))), 1e-2);
             Vmax = Math.Max(TimeFilter(Vmax, window, gamma), Math.Abs(bound + (Vmean - mean)));
             Vmean = TimeFilter(Vmean, mean, gamma);
+            if (Math.Abs(mean) * 1e2 < Vmax)
+                Vmean = 0.0;
 
             DrawSignalAxis(DC, bounds);
 
