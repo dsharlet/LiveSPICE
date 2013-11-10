@@ -40,13 +40,12 @@ namespace SyMath
             if (!Method.IsStatic)
             {
                 _this = Args.First();
-                //if (!Method.DeclaringType.IsAssignableFrom(_this.GetType()))
-                //    return SyMath.Call.New(this, Args);
+                if (!Method.DeclaringType.IsAssignableFrom(_this.GetType()))
+                    return null;
                 Args = Args.Skip(1);
             }
-            //if (!Args.Zip(Method.GetParameters(), (a, p) => new { a, p })
-            //    .All(i => i.p.ParameterType.IsAssignableFrom(i.a.GetType())))
-            //    return SyMath.Call.New(this, Args);
+            if (!Args.Zip(Method.GetParameters(), (a, p) => p.ParameterType.IsAssignableFrom(a.GetType())).All())
+                return null;
 
             object ret = Method.Invoke(_this, Args.ToArray<object>());
             if (ret is Expression)

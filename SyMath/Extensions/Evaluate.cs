@@ -107,7 +107,11 @@ namespace SyMath
             try
             {
                 if (C.Target.CanCall(C.Arguments))
-                    return C.Target.Call(C.Arguments);
+                {
+                    Expression call = C.Target.Call(C.Arguments);
+                    if (!ReferenceEquals(call, null))
+                        return call;
+                }
             }
             catch (ArgumentException) { }
             return C;
