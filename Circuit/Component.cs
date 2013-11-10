@@ -160,6 +160,8 @@ namespace Circuit
             CategoryAttribute attr = GetType().GetCustomAttribute<CategoryAttribute>(false);
             return attr != null ? attr.Category : "";
         }
+        [Browsable(false)]
+        public virtual bool IsImplemented { get { return Terminals.Any(); } }
         
         // This is too useful not to have.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }

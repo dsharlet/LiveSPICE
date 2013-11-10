@@ -53,6 +53,8 @@ namespace Circuit
         public override string GetDisplayName() { return displayName; }
         public override string GetDescription() { return description; }
 
+        public override bool IsImplemented { get { return impl != null && impl.IsImplemented; } }
+
         public override XElement Serialize()
         {
             XElement E = base.Serialize();
