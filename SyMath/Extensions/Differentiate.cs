@@ -16,9 +16,17 @@ namespace SyMath
             new SubstituteTransform("D[Sin[u], x]", "Cos[u]*D[u, x]"),
             new SubstituteTransform("D[Cos[u], x]", "-Sin[u]*D[u, x]"),
             new SubstituteTransform("D[Tan[u], x]", "Sec[u]^2*D[u, x]"),
+            new SubstituteTransform("D[Sec[u], x]", "Cos[u]*Tan[u]*D[u, x]"),
+            new SubstituteTransform("D[Csc[u], x]", "-Csc[u]*Cot[u]*D[u, x]"),
+            new SubstituteTransform("D[Cot[u], x]", "-Csc[u]^2*D[u, x]"),
+
             new SubstituteTransform("D[ArcSin[u], x]", "D[u, x]/Sqrt[1 - u^2]"),
             new SubstituteTransform("D[ArcCos[u], x]", "-D[u, x]/Sqrt[1 - u^2]"),
             new SubstituteTransform("D[ArcTan[u], x]", "D[u, x]/(u^2 + 1)"),
+            new SubstituteTransform("D[ArcSec[u], x]", "D[u, x]/(Abs[u]*Sqrt[u^2 - 1])"),
+            new SubstituteTransform("D[ArcCsc[u], x]", "-D[u, x]/(Abs[u]*Sqrt[u^2 - 1])"),
+            new SubstituteTransform("D[ArcCot[u], x]", "-D[u, x]/(u^2 + 1)"),
+
             new SubstituteTransform("D[Abs[u], x]", "Sign[u]*D[u, x]"),
             new SubstituteTransform("D[Sign[u], x]", "0"),
             new SubstituteTransform("D[Exp[u], x]", "Exp[u]*D[u, x]"),
