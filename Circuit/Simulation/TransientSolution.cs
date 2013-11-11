@@ -157,6 +157,9 @@ namespace Circuit
             y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
             if (linear.Any())
             {
+                // Factor the solution to minimize arithmetic.
+                Factor(linear);
+
                 solutions.Add(new LinearSolutions(linear));
                 LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
             }
@@ -194,6 +197,11 @@ namespace Circuit
 
                 // Initial guess for y(t) = y(t0).
                 List<Arrow> guess = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+
+                // Factor the solution to minimize arithmetic.
+                Factor(solved);
+                foreach (LinearCombination i in J)
+                    Factor(i);
                 
                 solutions.Add(new NewtonIteration(solved, J, dy, guess));
                 LogExpressions(Log, MessageType.Verbose, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), 0)));
@@ -235,6 +243,18 @@ namespace Circuit
                 }
             }
             return result;
+        }
+
+        private static void Factor(List<Arrow> x)
+        {
+            for (int i = 0; i < x.Count; ++i)
+                x[i] = Arrow.New(x[i].Left, x[i].Right.Factor());
+        }
+
+        private static void Factor(LinearCombination x)
+        {
+            foreach (Expression i in x.Basis.Append(1))
+                x[i] = x[i].Factor();
         }
 
         // Finds and replaces the parameter expressions in Mna with their variables.
