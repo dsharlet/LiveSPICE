@@ -10,10 +10,10 @@ namespace SyMath
         // Evaluate x*A, distributing x if A is Add.
         public static Expression Distribute(Expression x, Expression A)
         {
-            if (A is Add || x is Add)
-                return Add.New(Add.TermsOf(A).Select(i => Distribute(i, x))).Evaluate();
+            if (A is Sum || x is Sum)
+                return Sum.New(Sum.TermsOf(A).Select(i => Distribute(i, x))).Evaluate();
             else
-                return Multiply.New(A, x).Evaluate();
+                return Product.New(A, x).Evaluate();
         }
 
         // Expand N(x)/D(x) using partial fractions.
@@ -22,7 +22,7 @@ namespace SyMath
             List<Expression> terms = new List<Expression>();
             List<Variable> unknowns = new List<Variable>();
             List<Expression> basis = new List<Expression>();
-            foreach (Expression i in Multiply.TermsOf(D))
+            foreach (Expression i in Product.TermsOf(D))
             {
                 // Get the multiplicity of this basis term.
                 Expression e = i;
@@ -51,7 +51,7 @@ namespace SyMath
             }
 
             // Equate the original expression with the decomposed expressions.
-            D = Add.New(terms.Select(j => D * j)).Expand();
+            D = Sum.New(terms.Select(j => D * j)).Expand();
             Polynomial l = Polynomial.New(N, x);
             Polynomial r = Polynomial.New(D, x);
 
@@ -63,7 +63,7 @@ namespace SyMath
             List<Arrow> A = eqs.Solve(unknowns);
 
             // Substitute the now knowns.
-            return Add.New(terms.Select(i => i.Evaluate(A)));
+            return Sum.New(terms.Select(i => i.Evaluate(A)));
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace SyMath
             }
 
             // If f is an add expression, expand it as if it were multiplication.
-            if (n > 1 && f.Left is Add)
+            if (n > 1 && f.Left is Sum)
             {
                 Expression e = f.Left;
                 for (int i = 1; i < n; ++i)
@@ -109,16 +109,16 @@ namespace SyMath
             // If the denominator is multiplication, expand partial fractions.
             if (!ReferenceEquals(x, null))
             {
-                Expression d = Multiply.Denominator(f).Factor(x);
-                if (d is Multiply)
-                    return ExpandPartialFractions(Multiply.Numerator(f), (Multiply)d, x);
+                Expression d = Product.Denominator(f).Factor(x);
+                if (d is Product)
+                    return ExpandPartialFractions(Product.Numerator(f), (Product)d, x);
             }
 
             // If f contains an add expression, distribute it.
-            if (Multiply.TermsOf(f).Any(i => i is Add))
+            if (Product.TermsOf(f).Any(i => i is Sum))
             {
                 Expression e = Constant.One;
-                foreach (Expression i in Multiply.TermsOf(f))
+                foreach (Expression i in Product.TermsOf(f))
                     e = Distribute(i.Expand(x), e);
                 return e;
             }
@@ -133,10 +133,10 @@ namespace SyMath
         /// <returns></returns>
         public static Expression Expand(this Expression f, Expression x) 
         {
-            if (f is Multiply)
+            if (f is Product)
                 return ExpandMultiply(f, x);
-            else if (f is Add)
-                return Add.New(((Add)f).Terms.Select(i => i.Expand(x)));
+            else if (f is Sum)
+                return Sum.New(((Sum)f).Terms.Select(i => i.Expand(x)));
             else if (f is Power)
                 return ExpandPower((Power)f, x);
             else if (f is Binary)

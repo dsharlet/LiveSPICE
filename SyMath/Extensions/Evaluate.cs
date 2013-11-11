@@ -11,12 +11,15 @@ namespace SyMath
     /// </summary>
     class EvaluateVisitor : CachedRecursiveVisitor
     {
+        private List<Exception> exceptions = new List<Exception>();
+        public IEnumerable<Exception> Exceptions { get { return exceptions; } }
+
         public EvaluateVisitor() { }
 
         // In the case of revisiting an expression, just return it to avoid stack overflow.
         protected override Expression Revisit(Expression E) { return E; }
         
-        protected override Expression VisitAdd(Add A)
+        protected override Expression VisitSum(Sum A)
         {
             // Map terms to their coefficients.
             DefaultDictionary<Expression, Real> Terms = new DefaultDictionary<Expression, Real>(0);
@@ -25,7 +28,7 @@ namespace SyMath
             Real C = 0;
             foreach (Expression i in A.Terms)
             {
-                foreach (Expression Vi in Add.TermsOf(Visit(i)))
+                foreach (Expression Vi in Sum.TermsOf(Visit(i)))
                 {
                     if (Vi is Constant)
                     {
@@ -34,8 +37,8 @@ namespace SyMath
                     else
                     {
                         // Find constant term.
-                        Expression Coefficient = Multiply.TermsOf(Vi).FirstOrDefault(j => j is Constant);
-                        Expression Term = Multiply.New(Multiply.TermsOf(Vi).ExceptUnique(Coefficient, Expression.RefComparer));
+                        Expression Coefficient = Product.TermsOf(Vi).FirstOrDefault(j => j is Constant);
+                        Expression Term = Product.New(Product.TermsOf(Vi).ExceptUnique(Coefficient, Expression.RefComparer));
                         Terms[Term] += AsReal(Coefficient, 1);
                     }
                 }
@@ -44,13 +47,13 @@ namespace SyMath
             // Build a new expression with the accumulated terms.
             if (C != 0)
                 Terms.Add(Constant.New(C), (Real)1);
-            return Add.New(Terms
+            return Sum.New(Terms
                 .Where(i => (i.Value != 0))
-                .Select(i => i.Value != 1 ? Multiply.New(i.Key, Constant.New(i.Value)) : i.Key));
+                .Select(i => i.Value != 1 ? Product.New(i.Key, Constant.New(i.Value)) : i.Key));
         }
         
         // Combine like terms and multiply constants.
-        protected override Expression VisitMultiply(Multiply M)
+        protected override Expression VisitProduct(Product M)
         {
             // Map terms to exponents.
             DefaultDictionary<Expression, Real> Terms = new DefaultDictionary<Expression, Real>(0);
@@ -59,7 +62,7 @@ namespace SyMath
             Real C = 1;
             foreach (Expression i in M.Terms)
             {
-                foreach (Expression Vi in Multiply.TermsOf(Visit(i)))
+                foreach (Expression Vi in Product.TermsOf(Visit(i)))
                 {
                     if (Vi is Constant)
                     {
@@ -84,7 +87,7 @@ namespace SyMath
             else if (C != 1)
             {
                 Expression CE = Constant.New(C);
-                KeyValuePair<Expression, Real> A = Terms.FirstOrDefault(i => i.Key is Add && Real.Abs(i.Value) == 1);
+                KeyValuePair<Expression, Real> A = Terms.FirstOrDefault(i => i.Key is Sum && Real.Abs(i.Value) == 1);
                 if (!ReferenceEquals(A.Key, null))
                 {
                     Terms.Remove(A.Key);
@@ -95,7 +98,7 @@ namespace SyMath
                     Terms.Add(CE, (Real)1);
                 }
             }
-            return Multiply.New(Terms
+            return Product.New(Terms
                 .Where(i => i.Value != 0)
                 .Select(i => i.Value != 1 ? Power.New(i.Key, Constant.New(i.Value)) : i.Key));
         }
@@ -113,7 +116,7 @@ namespace SyMath
                         return call;
                 }
             }
-            catch (ArgumentException) { }
+            catch (Exception Ex) { exceptions.Add(Ex); }
             return C;
         }
 
@@ -122,9 +125,9 @@ namespace SyMath
             Expression L = Visit(P.Left);
             
             // Transform (x*y)^z => x^z*y^z.
-            Multiply M = L as Multiply;
+            Product M = L as Product;
             if (!ReferenceEquals(M, null))
-                return Visit(Multiply.New(M.Terms.Select(i => Power.New(i, P.Right))));
+                return Visit(Product.New(M.Terms.Select(i => Power.New(i, P.Right))));
             
             Expression R = Visit(P.Right);
 
@@ -133,7 +136,7 @@ namespace SyMath
             if (!ReferenceEquals(LP, null))
             {
                 L = LP.Left;
-                R = Visit(Multiply.New(R, LP.Right)); // TODO: Redundant visit of R?
+                R = Visit(Product.New(R, LP.Right)); // TODO: Redundant visit of R?
             }
 
             // Handle identities.

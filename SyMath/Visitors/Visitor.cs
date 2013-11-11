@@ -13,8 +13,8 @@ namespace SyMath
     {
         protected abstract T VisitUnknown(Expression E);
 
-        protected virtual T VisitAdd(Add A) { return VisitUnknown(A); }
-        protected virtual T VisitMultiply(Multiply M) { return VisitUnknown(M); }
+        protected virtual T VisitSum(Sum A) { return VisitUnknown(A); }
+        protected virtual T VisitProduct(Product M) { return VisitUnknown(M); }
         protected virtual T VisitConstant(Constant C) { return VisitUnknown(C); }
         protected virtual T VisitVariable(Variable V) { return VisitUnknown(V); }
         protected virtual T VisitSet(Set S) { return VisitUnknown(S); }
@@ -25,8 +25,8 @@ namespace SyMath
 
         public virtual T Visit(Expression E)
         {
-            if (E is Add) return VisitAdd(E as Add);
-            else if (E is Multiply) return VisitMultiply(E as Multiply);
+            if (E is Sum) return VisitSum(E as Sum);
+            else if (E is Product) return VisitProduct(E as Product);
             else if (E is Constant) return VisitConstant(E as Constant);
             else if (E is Variable) return VisitVariable(E as Variable);
             else if (E is Set) return VisitSet(E as Set);

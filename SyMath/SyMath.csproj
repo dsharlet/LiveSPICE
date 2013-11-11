@@ -46,12 +46,14 @@
   <ItemGroup>
     <Compile Include="Expression\Arrow.cs" />
     <Compile Include="Expression\Atom.cs" />
+    <Compile Include="Expression\Sum\Add.cs" />
     <Compile Include="Expression\Functions\IfFunction.cs" />
     <Compile Include="Expression\Functions\LutFunction.cs" />
     <Compile Include="Expression\Functions\ExprFunction.cs" />
     <Compile Include="Expression\Functions\NativeFunction.cs" />
     <Compile Include="Expression\Substitute.cs" />
     <Compile Include="Expression\Equal.cs" />
+    <Compile Include="Expression\Product\Multiply.cs" />
     <Compile Include="Extensions\Compile.cs" />
     <Compile Include="Extensions\AlgebraicEquivalents.cs" />
     <Compile Include="Extensions\FindMatches.cs" />
@@ -63,8 +65,7 @@
     <Compile Include="Expression\Function.cs" />
     <Compile Include="Extensions\DSolve.cs" />
     <Compile Include="Extensions\Matrix.cs" />
-    <Compile Include="Extensions\RationalFunction.cs" />
-    <Compile Include="Extensions\Polynomial.cs" />
+    <Compile Include="Expression\Sum\Polynomial.cs" />
     <Compile Include="Transform\AlgebraTransform.cs" />
     <Compile Include="Transform\CachedTransform.cs" />
     <Compile Include="Transform\TransformSet.cs" />
@@ -91,9 +92,9 @@
     <Compile Include="Expression\Unary.cs" />
     <Compile Include="Expression\Constant.cs" />
     <Compile Include="Expression\Call.cs" />
-    <Compile Include="Expression\Multiply.cs" />
+    <Compile Include="Expression\Product\Product.cs" />
     <Compile Include="Expression\Expression.cs" />
-    <Compile Include="Expression\Add.cs" />
+    <Compile Include="Expression\Sum\Sum.cs" />
     <Compile Include="Expression\Variable.cs" />
     <Compile Include="Extensions\Integrate.cs" />
     <Compile Include="Utils\DefaultDictionary.cs" />
@@ -108,7 +109,7 @@
     <Compile Include="Extensions\Expand.cs" />
     <Compile Include="Visitors\Visitor.cs" />
     <Compile Include="Extensions\LaplaceTransform.cs" />
-    <Compile Include="Extensions\LinearCombination.cs" />
+    <Compile Include="Expression\Sum\LinearCombination.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions\Substitute.cs" />
   </ItemGroup>

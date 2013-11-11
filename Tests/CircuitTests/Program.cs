@@ -32,7 +32,7 @@ namespace CircuitTests
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
 
-            //Run("BossSD1NoBuffer.xml", Vin, new Expression[] { "_v15[t]", "_v11[t]" });
+            //Run("BossSD1NoBuffer.xml", Vin, "V1[t]", new Expression[] { "_v15[t]", "_v11[t]" });
             //return;
 
             foreach (string File in System.IO.Directory.EnumerateFiles(@".", "*.xml"))
@@ -132,6 +132,8 @@ namespace CircuitTests
             for (int i = 0; i < vs.Length; ++i)
                 max = Math.Max(max, Math.Abs(vs[i] - output.First().Value[i]));
             System.Console.WriteLine("Max error {0}", max);
+
+            System.Console.WriteLine("Performance {0}", Quantity.ToString(N / time, Units.Hz));
 
             IEnumerable<double[]> series = input.Concat(output).Select(i => i.Value);
             Plot p = new Plot(

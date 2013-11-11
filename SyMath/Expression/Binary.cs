@@ -31,10 +31,10 @@ namespace SyMath
 
         protected Binary(Operator Op, Expression L, Expression R) { op = Op; l = L; r = R; }
 
-        static public Expression Add(Expression L, Expression R) { return SyMath.Add.New(L, R); }
-        static public Expression Subtract(Expression L, Expression R) { return SyMath.Add.New(L, Unary.Negate(R)); }
-        static public Expression Multiply(Expression L, Expression R) { return SyMath.Multiply.New(L, R); }
-        static public Expression Divide(Expression L, Expression R) { return SyMath.Multiply.New(L, Unary.Inverse(R)); }
+        static public Expression Add(Expression L, Expression R) { return SyMath.Sum.New(L, R); }
+        static public Expression Subtract(Expression L, Expression R) { return SyMath.Sum.New(L, Unary.Negate(R)); }
+        static public Expression Multiply(Expression L, Expression R) { return SyMath.Product.New(L, R); }
+        static public Expression Divide(Expression L, Expression R) { return SyMath.Product.New(L, Unary.Inverse(R)); }
         static public Expression Power(Expression L, Expression R) { return SyMath.Power.New(L, R); }
 
         static public Binary Arrow(Expression L, Expression R) { return SyMath.Arrow.New(L, R); }

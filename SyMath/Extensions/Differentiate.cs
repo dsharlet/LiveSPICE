@@ -46,7 +46,7 @@ namespace SyMath
                 return base.Visit(E);
         }
 
-        protected override Expression VisitAdd(Add A) { return Add.New(A.Terms.Select(i => Visit(i)).Where(i => !i.IsZero())); }
+        protected override Expression VisitSum(Sum A) { return Sum.New(A.Terms.Select(i => Visit(i)).Where(i => !i.IsZero())); }
 
         protected Expression ProductRule(Expression L, IEnumerable<Expression> R)
         {
@@ -56,18 +56,18 @@ namespace SyMath
             if (L.DependsOn(x))
             {
                 // Product rule.
-                return Add.New(
-                    Multiply.New(new Expression[] { Visit(L) }.Concat(R)),
-                    Multiply.New(L, ProductRule(R.First(), R.Skip(1)))).Evaluate();
+                return Sum.New(
+                    Product.New(new Expression[] { Visit(L) }.Concat(R)),
+                    Product.New(L, ProductRule(R.First(), R.Skip(1)))).Evaluate();
             }
             else
             {
                 // L is constant w.r.t. x.
-                return Multiply.New(L, ProductRule(R.First(), R.Skip(1))).Evaluate();
+                return Product.New(L, ProductRule(R.First(), R.Skip(1))).Evaluate();
             }
         }
 
-        protected override Expression VisitMultiply(Multiply M)
+        protected override Expression VisitProduct(Product M)
         {
             return ProductRule(M.Terms.First(), M.Terms.Skip(1));
         }
@@ -79,15 +79,15 @@ namespace SyMath
             if (g.DependsOn(x))
             {
                 // f(x)^g(x)
-                return Multiply.New(P,
-                    Add.New(
-                        Multiply.New(Visit(f), Binary.Divide(g, f)),
-                        Multiply.New(Visit(g), Call.Ln(f)))).Evaluate();
+                return Product.New(P,
+                    Sum.New(
+                        Product.New(Visit(f), Binary.Divide(g, f)),
+                        Product.New(Visit(g), Call.Ln(f)))).Evaluate();
             }
             else
             {
                 // f(x)^g
-                return Multiply.New(
+                return Product.New(
                     g,
                     Power.New(f, Binary.Subtract(g, Constant.One)),
                     Visit(f)).Evaluate();

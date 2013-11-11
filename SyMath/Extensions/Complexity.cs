@@ -12,8 +12,8 @@ namespace SyMath
     {
         protected override int VisitUnknown(Expression E) { return 1; }
 
-        protected override int VisitAdd(Add A) { return A.Terms.Sum(i => Visit(i) + 1) - 1; }
-        protected override int VisitMultiply(Multiply M) { return M.Terms.Sum(i => Visit(i) + 1) - 1; }
+        protected override int VisitSum(Sum A) { return A.Terms.Sum(i => Visit(i) + 1) - 1; }
+        protected override int VisitProduct(Product M) { return M.Terms.Sum(i => Visit(i) + 1) - 1; }
         protected override int VisitCall(Call F) { return F.Arguments.Sum(i => Visit(i)) + 5; }
         protected override int VisitSet(Set S) { return S.Members.Sum(i => Visit(i)); }
 

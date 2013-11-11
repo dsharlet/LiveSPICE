@@ -22,10 +22,10 @@ namespace SyMath
         {
             int child = 0;
 
-            if (P is Add)
-                return SyMath.Add.New(((SyMath.Add)P).Terms.Select(i => ChildPattern(ref child)));
-            if (P is Multiply)
-                return Multiply.New(((Multiply)P).Terms.Select(i => ChildPattern(ref child)));
+            if (P is Sum)
+                return SyMath.Sum.New(((SyMath.Sum)P).Terms.Select(i => ChildPattern(ref child)));
+            if (P is Product)
+                return Product.New(((Product)P).Terms.Select(i => ChildPattern(ref child)));
             if (P is Binary)
                 return Binary.New(((Binary)P).Operator, ChildPattern(ref child), ChildPattern(ref child));
             if (P is Unary)
@@ -97,7 +97,7 @@ namespace SyMath
         /// </summary>
         /// <param name="E"></param>
         /// <returns></returns>
-        public Expression Transform(Expression x)
+        public Expression Transform(Expression x, Func<Expression, bool> Validate)
         {
             // If the expression doesn't match the base pattern, it won't match any of the transforms here.
             if (pattern != null && pattern.Matches(x) == null)
@@ -106,7 +106,7 @@ namespace SyMath
             // Try child nodes.
             foreach (TransformSet i in children)
             {
-                Expression xi = i.Transform(x);
+                Expression xi = i.Transform(x, Validate);
                 if (!ReferenceEquals(xi, x))
                     return xi;
             }
@@ -116,11 +116,21 @@ namespace SyMath
             {
                 ++TransformCalls;
                 Expression xi = i.Transform(x);
-                if (!ReferenceEquals(xi, x))
+                if (!ReferenceEquals(xi, x) && Validate(xi))
                     return xi;
             }
 
             return x;
+        }
+
+        /// <summary>
+        /// Transform expression with the first successful transform in the set.
+        /// </summary>
+        /// <param name="E"></param>
+        /// <returns></returns>
+        public Expression Transform(Expression x)
+        {
+            return Transform(x, y => true);
         }
 
         public IEnumerator<PatternTransform> GetEnumerator() { return transforms.GetEnumerator(); }

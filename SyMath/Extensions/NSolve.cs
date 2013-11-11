@@ -147,7 +147,7 @@ namespace SyMath
             }
 
             // Failed to converge.
-            return new List<Arrow>();
+            throw new AlgebraException("NSolve failed to converge.");
         }
 
         private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }

@@ -57,18 +57,18 @@ namespace SyMath
                 return Unary.New(U.Operator, O);
         }
 
-        protected override Expression VisitAdd(Add A)
+        protected override Expression VisitSum(Sum A)
         {
             IEnumerable<Expression> terms = VisitList(A.Terms);
             if (ReferenceEquals(terms, null)) return null;
-            return ReferenceEquals(terms, A.Terms) ? A : Add.New(terms);
+            return ReferenceEquals(terms, A.Terms) ? A : Sum.New(terms);
         }
 
-        protected override Expression VisitMultiply(Multiply M)
+        protected override Expression VisitProduct(Product M)
         {
             IEnumerable<Expression> terms = VisitList(M.Terms);
             if (ReferenceEquals(terms, null)) return null;
-            return ReferenceEquals(terms, M.Terms) ? M : Multiply.New(terms);
+            return ReferenceEquals(terms, M.Terms) ? M : Product.New(terms);
         }
 
         protected override Expression VisitSet(Set S)

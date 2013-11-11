@@ -114,11 +114,17 @@ namespace Circuit
                 // Use default parameter values.
                 .Evaluate(parameters.Select(i => Arrow.New(i.Name, i.Default)))
                 .OfType<Equal>().ToList();
-            List<Arrow> initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, Constant.Zero), Constant.Zero)));
-            if (initial.Count == y.Count)
+            List<Arrow> initial;
+            try
+            {
+                initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, Constant.Zero), Constant.Zero)));
                 LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
-            else
-                Log.WriteLine(MessageType.Warning, "Failed to find steady state initial conditions, circuit may be unstable.");
+            }
+            catch (AlgebraException)
+            {
+                initial = new List<Arrow>();
+                Log.WriteLine(MessageType.Warning, "Failed to find steady state for initial conditions, circuit may be unstable.");
+            }
             
             // Transient analysis of the system.
             Log.WriteLine(MessageType.Info, "[{0}] Performing transient analysis...", time);

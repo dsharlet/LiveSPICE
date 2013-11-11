@@ -55,25 +55,25 @@ namespace SyMath
             return LinqExpression.Constant((double)C); 
         }
 
-        protected override LinqExpression VisitAdd(Add A)
+        protected override LinqExpression VisitSum(Sum A)
         {
-            LinqExpression add = Visit(A.Terms.First());
+            LinqExpression sum = Visit(A.Terms.First());
             foreach (Expression i in A.Terms.Skip(1))
             {
                 if (IsNegative(i))
-                    add = LinqExpression.Subtract(add, Visit(-i));
+                    sum = LinqExpression.Subtract(sum, Visit(-i));
                 else
-                    add = LinqExpression.Add(add, Visit(i));
+                    sum = LinqExpression.Add(sum, Visit(i));
             }
-            return add;
+            return sum;
         }
 
-        protected override LinqExpression VisitMultiply(Multiply M)
+        protected override LinqExpression VisitProduct(Product M)
         {
-            LinqExpression multiply = Visit(M.Terms.First());
+            LinqExpression product = Visit(M.Terms.First());
             foreach (Expression i in M.Terms.Skip(1))
-                multiply = LinqExpression.Multiply(multiply, Visit(i));
-            return multiply;
+                product = LinqExpression.Multiply(product, Visit(i));
+            return product;
         }
 
         protected override LinqExpression VisitUnary(Unary U)
@@ -145,7 +145,7 @@ namespace SyMath
 
         private static bool IsNegative(Expression x)
         {
-            Constant C = Multiply.TermsOf(x).FirstOrDefault(i => i is Constant) as Constant;
+            Constant C = Product.TermsOf(x).FirstOrDefault(i => i is Constant) as Constant;
             if (C != null)
                 return C.Value < 0;
             return false;

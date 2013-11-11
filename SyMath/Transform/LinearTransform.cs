@@ -17,24 +17,16 @@ namespace SyMath
         /// <returns></returns>
         protected abstract bool IsConstant(Expression x);
 
-        /// <summary>
-        /// V(x + y) = V(x) + V(y)
-        /// </summary>
-        /// <param name="A"></param>
-        /// <returns></returns>
-        protected override Expression VisitAdd(Add A) { return Add.New(A.Terms.Select(i => Visit(i))); }
+        // V(x + y) = V(x) + V(y)
+        protected override Expression VisitSum(Sum A) { return Sum.New(A.Terms.Select(i => Visit(i))); }
 
-        /// <summary>
-        /// V(A*x) = A*V(x)
-        /// </summary>
-        /// <param name="M"></param>
-        /// <returns></returns>
-        protected override Expression VisitMultiply(Multiply M)
+        // V(A*x) = A*V(x)
+        protected override Expression VisitProduct(Product M)
         {
-            IEnumerable<Expression> f = M.Terms.Where(i => !IsConstant(i));
-            if (f.Count() == 1)
-                return Multiply.New(M.Terms.ExceptUnique(f.First()).Append(Visit(f.First())));
-            return base.VisitMultiply(M);
+            IEnumerable<Expression> A = M.Terms.Where(i => IsConstant(i));
+            if (A.Any())
+                return Product.New(A.Append(Visit(Product.New(M.Terms.Where(i => !IsConstant(i))))));
+            return base.VisitProduct(M);
         }
     }
 }

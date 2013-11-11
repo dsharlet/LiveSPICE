@@ -20,11 +20,11 @@ namespace SyMath
             return base.Visit(E);
         }
         
-        protected override string VisitMultiply(Multiply M)
+        protected override string VisitProduct(Product M)
         {
             int pr = Parser.Precedence(Operator.Multiply);
 
-            Expression N = Multiply.Numerator(M);
+            Expression N = Product.Numerator(M);
             string minus = "";
             if (IsNegative(N))
             {
@@ -32,8 +32,8 @@ namespace SyMath
                 N = -N;
             }
 
-            string n = Multiply.TermsOf(N).Select(i => Visit(i, pr)).UnSplit(' ');
-            string d = Multiply.TermsOf(Multiply.Denominator(M)).Select(i => Visit(i, pr)).UnSplit(' ');
+            string n = Product.TermsOf(N).Select(i => Visit(i, pr)).UnSplit(' ');
+            string d = Product.TermsOf(Product.Denominator(M)).Select(i => Visit(i, pr)).UnSplit(' ');
 
             if (d != "1")
                 return minus + Frac(n, d);
@@ -41,7 +41,7 @@ namespace SyMath
                 return minus + n;
         }
 
-        protected override string VisitAdd(Add A)
+        protected override string VisitSum(Sum A)
         {
             int pr = Parser.Precedence(Operator.Add);
 
@@ -150,7 +150,7 @@ namespace SyMath
 
         private static bool IsNegative(Expression x)
         {
-            Constant C = Multiply.TermsOf(x).FirstOrDefault(i => i is Constant) as Constant;
+            Constant C = Product.TermsOf(x).FirstOrDefault(i => i is Constant) as Constant;
             if (C != null)
                 return C.Value < 0;
             return false;

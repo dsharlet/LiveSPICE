@@ -78,7 +78,7 @@ namespace SyMath
         /// <param name="E">Expression to get coefficients from.</param>
         public LinearCombination(IEnumerable<Expression> B, Expression E) : this(B)
         {
-            foreach (Expression t in Add.TermsOf(E.Expand()))
+            foreach (Expression t in Sum.TermsOf(E.Expand()))
                 AddTerm(B, t);
         }
 
@@ -94,7 +94,7 @@ namespace SyMath
         /// <summary>
         /// Create an Expression equal to this linear combination.
         /// </summary>
-        public Expression ToExpression() { return Add.New(terms.Select(i => i.Ab).Except(Constant.Zero)); }
+        public Expression ToExpression() { return Sum.New(terms.Select(i => i.Ab).Except(Constant.Zero)); }
 
         public bool DependsOn(IEnumerable<Expression> x) { return ToExpression().DependsOn(x); }
         public bool DependsOn(params Expression[] x) { return DependsOn(x.AsEnumerable()); }
@@ -119,7 +119,7 @@ namespace SyMath
         public Expression Solve(Expression v)
         {
             // Subtract independent terms.
-            Expression R = Add.New(terms.Where(x => !x.b.Equals(v)).Select(x => Unary.Negate(x.Ab)));
+            Expression R = Sum.New(terms.Where(x => !x.b.Equals(v)).Select(x => Unary.Negate(x.Ab)));
             // Divide coefficient from dependent term.
             return R / this[v];
         }

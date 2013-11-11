@@ -108,9 +108,9 @@ namespace SyMath
 
         public static int Precedence(Expression x)
         {
-            if (x is Add)
+            if (x is Sum)
                 return Precedence(Operator.Add);
-            else if (x is Multiply)
+            else if (x is Product)
                 return Precedence(Operator.Multiply);
             else if (x is Binary)
                 return Precedence(((Binary)x).Operator);

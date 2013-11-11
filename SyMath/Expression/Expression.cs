@@ -79,9 +79,9 @@ namespace SyMath
         public static Expression Parse(string s) { return new Parser(Namespace.Global, s).Parse(); }
 
         // Expression operators.
-        public static Expression operator +(Expression L, Expression R) { return Add.New(L, R).Evaluate(); }
+        public static Expression operator +(Expression L, Expression R) { return Sum.New(L, R).Evaluate(); }
         public static Expression operator -(Expression L, Expression R) { return L + Unary.Negate(R); }
-        public static Expression operator *(Expression L, Expression R) { return Multiply.New(L, R).Evaluate(); }
+        public static Expression operator *(Expression L, Expression R) { return Product.New(L, R).Evaluate(); }
         public static Expression operator /(Expression L, Expression R) { return L * Power.New(R, Constant.NegativeOne); }
         public static Expression operator ^(Expression L, Expression R) { return Binary.Power(L, R).Evaluate(); }
         public static Expression operator -(Expression O) { return -1 * O; }

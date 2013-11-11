@@ -111,9 +111,9 @@ namespace SyMath
 
         private static int Precedence(Expression x)
         {
-            if (x is Add)
+            if (x is Sum)
                 return Parser.Precedence(Operator.Add);
-            else if (x is Multiply)
+            else if (x is Product)
                 return Parser.Precedence(Operator.Multiply);
             else if (x is Binary)
                 return Parser.Precedence(((Binary)x).Operator);
@@ -126,7 +126,7 @@ namespace SyMath
 
         private static bool IsNegative(Expression x)
         {
-            Constant C = Multiply.TermsOf(x).FirstOrDefault(i => i is Constant) as Constant;
+            Constant C = Product.TermsOf(x).FirstOrDefault(i => i is Constant) as Constant;
             if (C != null)
                 return C.Value < 0;
             return false;
@@ -174,18 +174,18 @@ namespace SyMath
             return PrettyString.ConcatLines(NS.LineCount, NS, PrettyString.ConcatLines(0, new string('-', Cols), DS));
         }
 
-        protected override PrettyString VisitMultiply(Multiply M)
+        protected override PrettyString VisitProduct(Product M)
         {
-            Expression N = Multiply.Numerator(M);
-            Expression D = Multiply.Denominator(M);
+            Expression N = Product.Numerator(M);
+            Expression D = Product.Denominator(M);
 
             bool negative = false;
-            if (N is Multiply && IsNegative(N))
+            if (N is Product && IsNegative(N))
             {
                 negative = !negative;
                 N = -N;
             }
-            if (D is Multiply && IsNegative(D))
+            if (D is Product && IsNegative(D))
             {
                 negative = !negative;
                 D = -D;
@@ -193,13 +193,13 @@ namespace SyMath
 
             if (!D.Equals(Constant.One))
                 return PrettyString.ConcatColumns(negative ? "- " : "", VisitDivide(N, D));
-            else if (N is Multiply)
-                return PrettyString.ConcatColumns(negative ? "-" : "", UnSplit(Multiply.TermsOf(N), "*"));
+            else if (N is Product)
+                return PrettyString.ConcatColumns(negative ? "-" : "", UnSplit(Product.TermsOf(N), "*"));
             else
                 return PrettyString.ConcatColumns(negative ? "-" : "", Visit(N));
         }
 
-        protected override PrettyString VisitAdd(Add A)
+        protected override PrettyString VisitSum(Sum A)
         {
             PrettyString s = Visit(A.Terms.First());
 

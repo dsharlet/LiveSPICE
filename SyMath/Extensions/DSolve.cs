@@ -31,13 +31,10 @@ namespace SyMath
         /// <returns></returns>
         public static List<Arrow> DSolve(this IEnumerable<Equal> f, IEnumerable<Expression> y, IEnumerable<Arrow> y0, Expression t)
         {
-            // TODO: Add missing initial conditions as constants.
-            List<Arrow> C = new List<Arrow>();
-
             // Find F(s) = L[f(t)] and substitute the initial conditions.
             List<Equal> F = f.Select(i => Equal.New(
-                L(i.Left, t).Evaluate(y0).Evaluate(C),
-                L(i.Right, t).Evaluate(y0).Evaluate(C))).ToList();
+                L(i.Left, t).Evaluate(y0),
+                L(i.Right, t).Evaluate(y0))).ToList();
 
             // Solve F for Y(s) = L[y(t)].
             List<Arrow> Y = F.Solve(y.Select(i => L(i, t)));

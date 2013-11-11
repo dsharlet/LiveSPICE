@@ -34,24 +34,24 @@ namespace SyMath
             return null;
         }
 
-        protected override object VisitAdd(Add A)
+        protected override object VisitSum(Sum A)
         {
             foreach (Expression i in A.Terms)
             {
                 equal.Push(equal.Peek() - i);
-                Visit(Add.New(A.Terms.ExceptUnique(i)));
+                Visit(Sum.New(A.Terms.ExceptUnique(i)));
                 equal.Pop();
             }
             return null;
         }
 
-        protected override object VisitMultiply(Multiply M)
+        protected override object VisitProduct(Product M)
         {
             foreach (Expression i in M.Terms)
             {
                 conditions.Push(Binary.NotEqual(i, Constant.Zero));
                 equal.Push(equal.Peek() / i);
-                Visit(Multiply.New(M.Terms.ExceptUnique(i)));
+                Visit(Product.New(M.Terms.ExceptUnique(i)));
                 equal.Pop();
                 conditions.Pop();
             }

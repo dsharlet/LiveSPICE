@@ -79,7 +79,7 @@ namespace SyMath
             Expression LE = Call.IL(E, s, t);
 
             // Try applying a known rule to E.
-            Expression TLE = rules.Transform(LE);
+            Expression TLE = rules.Transform(LE, x => !x.DependsOn(s));
             if (!ReferenceEquals(TLE, LE))
                 return TLE;
 

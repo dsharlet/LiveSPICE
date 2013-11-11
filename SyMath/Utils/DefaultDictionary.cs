@@ -12,21 +12,16 @@ namespace SyMath
     /// <typeparam name="TValue"></typeparam>
     public class DefaultDictionary<TKey, TValue> : Dictionary<TKey, TValue>
     {
+        private TValue def = default(TValue);
+        /// <summary>
+        /// The default value for new values.
+        /// </summary>
+        public TValue Default { get { return def; } set { def = value; } }
+
         public DefaultDictionary() { }
         public DefaultDictionary(TValue Default) { def = Default; }
         public DefaultDictionary(IDictionary<TKey, TValue> Copy) : base(Copy) { }
         public DefaultDictionary(IDictionary<TKey, TValue> Copy, TValue Default) : base(Copy) { def = Default; }
-
-        protected TValue def = default(TValue);
-
-        /// <summary>
-        /// The default value for new values.
-        /// </summary>
-        public TValue Default
-        {
-            get { return def; }
-            set { def = value; }
-        }
 
         /// <summary>
         /// The same as Dictionary's indexer, except if the key does not exist, return Default.
@@ -38,16 +33,17 @@ namespace SyMath
             get
             {
                 TValue V;
-                if (!base.TryGetValue(K, out V))
-                {
-                    V = def != null ? def : (TValue)Activator.CreateInstance(typeof(TValue));
-                    base[K] = V;
-                }
-                return V;
+                if (base.TryGetValue(K, out V))
+                    return V;
+                else
+                    return Default;
             }
             set
             {
-                base[K] = value;
+                if (Equals(Default, value))
+                    base.Remove(K);
+                else
+                    base[K] = value;
             }
         }
     }
