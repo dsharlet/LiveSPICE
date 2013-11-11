@@ -177,43 +177,49 @@
                     <h2>Examples</h2>
                     <p>Here are some examples of what LiveSPICE is currently capable of simulating. All of these examples are screenshots of LiveSPICE 
                         during a real-time simulation.</p>
+
+                    <p>Some notes about the performance data:</p>
+                    <ul>
+                        <li>Performance is reported as the rate of processing by the simulation.</li>
+                        <li>Not all simulations require the same oversampling rate to achieve real time performance. The oversampling factor was adjusted
+                            from the default of 8x to enable real time simulation.</li>
+                        <li>All of the reported performance data is measured on an Intel i5 2500 (Sandy Bridge) CPU.</li>
+                    </ul>
             
                     <div class="row">
                         <div class="col-md-4">
-                            <h3>Boss "Super Overdrive"</h3>
-                            <div class="picturebox"><a data-lightbox="examples" href="img/bosssd1.png" title="Boss SD-1 Super Overdrive effect.">
+                            <div class="picturebox"><a data-lightbox="examples" href="img/bosssd1.png" title="Boss SD-1 Super Overdrive guitar pedal.">
                                 <img src="img/bosssd1.png" alt="Boss SD-1 Super Overdrive effect."></a>
-                                <p>Circuit schematic from <a target="_blank" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
+                                <p><strong>Boss SD-1 "Super Overdrive"</strong> guitar pedal.</p>
                             </div>
+                            <p>This simulation runs at 59.9 kHz with a 6x oversampling factor (1.36x real time at 44.1 kHz sample rate).</p>
+                            <p>Circuit schematic from <a target="_blank" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
                         </div>
                         <div class="col-md-4">
-                            <h3>Marshall "Blues Breaker"</h3>
-                            <div class="picturebox"><a data-lightbox="examples" href="img/marshallbluesbreaker.png" title="Marshall Blues Breaker effect.">
+                            <div class="picturebox"><a data-lightbox="examples" href="img/marshallbluesbreaker.png" title="Marshall Blues Breaker guitar pedal.">
                                 <img src="img/marshallbluesbreaker.png" alt="Marshall Blues Breaker effect."></a>
-                                <p>Circuit schematic from <a target="_blank" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
+                                <p><strong>Marshall "Blues Breaker"</strong> guitar pedal.</p>
                             </div>
+                            <p>This simulation runs at 80.8 kHz with an 6x oversampling factor (1.83x real time at 44.1 kHz sample rate).</p>
+                            <p>Circuit schematic from <a target="_blank" href="http://www.gmarts.org/index.php?go=217">GM Arts</a>.</p>
                         </div>
                         <div class="col-md-4">
-                            <h3>Triode amplifier stage</h3>
-                            <div class="picturebox"><a data-lightbox="examples" href="img/commoncathodetriodeamp.png" title="Basic common cathode triode amplifier.">
-                                <img src="img/commoncathodetriodeamp.png" alt="Basic common cathode triode amplifier."></a>
-                                <p>Circuit schematic described in <a target="_blank" href="https://ccrma.stanford.edu/~dtyeh/papers/pubs.html">David Yeh's 
-                                    Dissertation</a> (section 5.4).</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h3>Fender Bassman 5F6-A preamp</h3>
                             <div class="picturebox"><a data-lightbox="examples" href="img/bassmanpreamp.png" title="Fender Bassman 5F6-A preamp.">
                                 <img src="img/bassmanpreamp.png" alt="Fender Bassman 5F6-A preamp."></a>
-                                <p>This simulation shows 3 triodes being simulated at once! Circuit schematic from 
-                                    <a target="_blank" href="http://www.turretboards.com/guitar_amplifier_builders_info_schematics_library.htm">Watts Tube Audio</a>.</p>
+                                <p><strong>Fender Bassman 5F6-A</strong> preamp and tone stack.</p>
                             </div>
+                            <p>This circuit contains 3 related triodes (using a model derived from the Child-Langmuir law).</p>
+                            <p>This simulation runs at 47.6 kHz with a 4x oversampling factor (1.08x real time at 44.1 kHz sample rate).</p> 
+                            <p>Circuit schematic from <a target="_blank" href="http://www.turretboards.com/guitar_amplifier_builders_info_schematics_library.htm">Watts Tube Audio</a>.</p>
                         </div>
                         <div class="col-md-4">
-                        </div>
-                        <div class="col-md-4">
+                            <div class="picturebox"><a data-lightbox="examples" href="img/commoncathodetriodeamp.png" title="Basic common cathode triode amplifier.">
+                                <img src="img/commoncathodetriodeamp.png" alt="Basic common cathode triode amplifier."></a>
+                                <p>A <strong>basic triode amplifier stage.</strong></p>
+                            </div>
+                            <p>This circuit is a building block of most tube amplifiers.</p>
+                            <p>This simulation runs at 213 kHz with an 8x oversampling factor (4.83x real time at 44.1 kHz sample rate).</p>
+                            <p>Circuit described and analyzed in <a target="_blank" href="https://ccrma.stanford.edu/~dtyeh/papers/pubs.html">David Yeh's Dissertation</a> (section 5.4).</p>
                         </div>
                     </div>
                 </section>
@@ -289,9 +295,11 @@
                             <li>A <b class="component">Speaker</b>; the output signal is measured as the voltage across this component.</li>
                             <li>A <b class="component">Ground</b>.</li>
                         </ul>
-                        <p>Arrange the components roughly like so:</p>
-                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpassparts.png">
-                            <img src="img/rclowpassparts.png" alt="RC low-pass filter components."></a></div>
+                        <p>Arrange the components roughly as follows:</p>
+                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpassparts.png" title="Parts for the RC low-pass filter.">
+                            <img src="img/rclowpassparts.png" alt="RC low-pass filter components."></a>
+                            <p>Parts for the RC low-pass filter.</p>
+                        </div>
                         <p>If you need to move the components, select them and then click and drag them to move them. You can also use 
                             the arrow keys to rotate and flip the selected components.</p>
                         <p><strong>Tips</strong></p>
@@ -306,8 +314,10 @@
                             from the library (or press <b class="key">Ctrl</b>+<b class="key">W</b>). Adding wires is a little different from the rest of the components, to draw a wire 
                             between two points, click on one point, and drag to the other point. Draw
                             wires to connect the components as follows:</p>
-                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpasswires.png">
-                            <img src="img/rclowpasswires.png" alt="RC low-pass filter with wires."></a></div>
+                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpasswires.png" title="RC low-pass filter wired up.">
+                            <img src="img/rclowpasswires.png" alt="RC low-pass filter with wires."></a>
+                            <p>RC low-pass filter wired up.</p>
+                        </div>
                         <p><strong>Tips</strong></p>
                         <ul>
                             <li>Holding <b class="key">Ctrl</b> will allow you to draw more than one wire without selecting 
@@ -331,36 +341,43 @@
 
                         <h3>Running the simulation</h3>
                         <p>Verify that your circuit looks like the following:</p>
-                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpass.png">
-                            <img src="img/rclowpass.png" alt="Complete RC low-pass filter."></a></div>
+                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpass.png" title="Complete RC low-pass filter.">
+                            <img src="img/rclowpass.png" alt="Complete RC low-pass filter."></a>
+                            <p>Complete RC low-pass filter.</p>
+                        </div>
                         <p>To run the simulation, select <b class="menu">Simulate</b><img src="img/r.gif" /><b class="menu">Simulate</b> on the menu. If you have not yet 
                             <a href="#audio-configuration">configured your audio device</a>, you will be prompted to do so now. The
                             simulation should now be running!</p>
-                        <p>Click on any of the wires in the schematic to place a <b class="component">Probe</b>. Probes generate signal data displayed 
-                            in the <b class="gui">Scope</b>.</p>
-                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpasssim.png">
-                            <img src="img/rclowpasssim.png" alt="Simulating the RC low-pass filter."></a></div>
+                        <p>Click on any of the wires in the schematic to place a <b class="component">Probe</b>. Probes generate signal data from the simulation, 
+                            which is displayed in the <b class="gui">Scope</b>.</p>
+                        <div class="picturebox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/rclowpasssim.png" title="RC low-pass filter simulation.">
+                            <img src="img/rclowpasssim.png" alt="Simulating the RC low-pass filter."></a>
+                            <p>RC low-pass filter simulation.</p>
+                        </div>
                         <p>Using this information, we can verify that the qualitative behavior of the circuit matches our expectations 
                             for the circuit we designed:</p>
                         <div class="row">
                             <div class="col-md-4">
-                                <h5>E<sub>2</sub> (low-E string)</h5>
-                                <div class="picturebox"><a data-lightbox="tutorial-1" href="img/rclowpasssime2.png">
-                                    <img src="img/rclowpasssime2.png" alt="RC low-pass filter after plucking the low-E string."></a></div>
+                                <div class="picturebox"><a data-lightbox="tutorial-1" href="img/rclowpasssime2.png" title="Input (red) and output (green) signals after plucking the <strong>low E string</strong> (E<sub>2</sub>, 82 Hz) of a guitar.">
+                                    <img src="img/rclowpasssime2.png" alt="RC low-pass filter after plucking the low-E string."></a>
+                                    <p>Input (red) and output (green) signals after plucking the <strong>low E string</strong> (E<sub>2</sub>, 82 Hz) of a guitar.</p>
+                                </div>
                                 <p>Plucking the low-E string of the guitar shows the higher harmonics filtered, and the gain of the 
                                 circuit near unity.</p>
                             </div>
-                            <div class="col-md-4">
-                                <h5>D<sub>3</sub> (D string)</h5>
-                                <div class="picturebox"><a data-lightbox="tutorial-1" href="img/rclowpasssimd3.png">
-                                    <img src="img/rclowpasssimd3.png" alt="RC low-pass filter after plucking the D string."></a></div>
+                            <div class="col-md-4" style="align-content:center;">
+                                <div class="picturebox"><a data-lightbox="tutorial-1" href="img/rclowpasssimd3.png" title="Input (red) and output (green) signals after plucking the <strong>D string</strong> (D<sub>3</sub>, 147 Hz) of a guitar.">
+                                    <img src="img/rclowpasssimd3.png" alt="RC low-pass filter after plucking the D string."></a>
+                                    <p>Input (red) and output (green) signals after plucking the <strong>D string</strong> (D<sub>3</sub>, 147 Hz) of a guitar.</p>
+                                </div>
                                 <p>We selected the corner frequency of the circuit to be the frequency of this note, and we can indeed 
                                     roughly see the expected gain of -3 dB (<sup>1</sup>/<sub>2</sub>).</p>
                             </div>
                             <div class="col-md-4">
-                                <h5>E<sub>4</sub> (high-E string)</h5>
-                                <div class="picturebox"><a data-lightbox="tutorial-1" href="img/rclowpasssime4.png">
-                                    <img src="img/rclowpasssime4.png" alt="RC low-pass filter after plucking the high-E string"></a></div>
+                                <div class="picturebox"><a data-lightbox="tutorial-1" href="img/rclowpasssime4.png" title="Input (red) and output (green) signals after plucking the <strong>high E string</strong> (E<sub>4</sub>, 330 Hz) of a guitar.">
+                                    <img src="img/rclowpasssime4.png" alt="RC low-pass filter after plucking the high-E string"></a>
+                                    <p>Input (red) and output (green) signals after plucking the <strong>high E string</strong> (E<sub>4</sub>, 330 Hz) of a guitar.</p>
+                                </div>
                                 <p>Plucking the high-E string shows a gain significantly smaller than unity, as expected.</p>
                             </div>
                         </div>
