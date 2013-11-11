@@ -322,7 +322,7 @@ namespace LiveSPICE
             {
                 try
                 {
-                    Circuit.Quantity h = new Circuit.Quantity(1 / (SampleRate * Oversample), Circuit.Units.s);
+                    Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (SampleRate * Oversample), Circuit.Units.s);
                     solution = Circuit.TransientSolution.SolveCircuit(circuit, h, Log);
                     arguments = solution.Parameters.ToDictionary(i => i.Name, i => 0.5);
                     Dispatcher.Invoke(() => Parameters.UpdateControls(solution.Parameters));
