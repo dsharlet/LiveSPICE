@@ -49,7 +49,7 @@ namespace SyMath
         {
             foreach (Expression i in M.Terms)
             {
-                conditions.Push(Binary.NotEqual(i, Constant.Zero));
+                conditions.Push(Binary.NotEqual(i, 0));
                 equal.Push(equal.Peek() / i);
                 Visit(Product.New(M.Terms.ExceptUnique(i)));
                 equal.Pop();

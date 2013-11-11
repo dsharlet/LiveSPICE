@@ -47,9 +47,9 @@ namespace SyMath
         public override Expression Visit(Expression E) 
         {
             if (x.Equals(E))
-                return Constant.One;
+                return 1;
             else if (!E.DependsOn(x))
-                return Constant.Zero;
+                return 0;
             else
                 return base.Visit(E);
         }
@@ -97,7 +97,7 @@ namespace SyMath
                 // f(x)^g
                 return Product.New(
                     g,
-                    Power.New(f, Binary.Subtract(g, Constant.One)),
+                    Power.New(f, Binary.Subtract(g, 1)),
                     Visit(f)).Evaluate();
             }
         }

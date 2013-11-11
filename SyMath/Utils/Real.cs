@@ -20,7 +20,7 @@ namespace SyMath
         public Real(BigRational x) { this.rational = x; this.real = null; }
         public Real(double x) 
         {
-            if (x % 1 == 0)
+            if (IsReal(x))// && x % 1 == 0)
             {
                 this.rational = new BigRational(x);
                 this.real = null;
@@ -31,6 +31,8 @@ namespace SyMath
                 this.rational = null;
             }
         }
+
+        private static bool IsReal(double x) { return !(double.IsNaN(x) || double.IsInfinity(x)); }
 
         public static readonly Real Infinity = new Real(double.PositiveInfinity);
 

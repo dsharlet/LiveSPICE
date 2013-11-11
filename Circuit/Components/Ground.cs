@@ -19,7 +19,7 @@ namespace Circuit
         public override void Analyze(Analysis Mna)
         {
             // Nodes connected to ground have V = 0.
-            Mna.AddEquation(Terminal.V, Constant.Zero);
+            Mna.AddEquation(Terminal.V, 0);
             // Ground doesn't care about current.
             Mna.AddTerminal(Terminal, null);
         }

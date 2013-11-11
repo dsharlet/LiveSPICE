@@ -44,7 +44,7 @@ namespace SyMath
             
             switch (Terms.Count())
             {
-                case 0: return Constant.One;
+                case 0: return 1;
                 case 1: return Terms.First();
                 default: return new Multiply(Terms);
             }
@@ -55,7 +55,7 @@ namespace SyMath
         {
             // if E is zero, any term can match to zero to succeed.
             if (E.IsZero())
-                return Terms.Any(i => i.Matches(Constant.Zero, Matched));
+                return Terms.Any(i => i.Matches(0, Matched));
 
             // Move the constants in this pattern to E.
             IEnumerable<Expression> PTerms = Terms;
@@ -98,7 +98,7 @@ namespace SyMath
                         }
 
                         // Try matching p to identity.
-                        if (Matched.TryMatch(() => p.Matches(Constant.One, Matched) && P.Matches(E, Matched)))
+                        if (Matched.TryMatch(() => p.Matches(1, Matched) && P.Matches(E, Matched)))
                             return true;
                     }
                 }

@@ -82,7 +82,7 @@ namespace SyMath
             // Build a new expression with the accumulated terms.
             if (C == 0)
             {
-                return Constant.Zero;
+                return 0;
             }
             else if (C != 1)
             {
@@ -141,11 +141,11 @@ namespace SyMath
 
             // Handle identities.
             Real? LR = AsReal(L);
-            if (IsZero(LR)) return Constant.Zero;
-            if (IsOne(LR)) return Constant.One;
+            if (IsZero(LR)) return 0;
+            if (IsOne(LR)) return 1;
 
             Real? RR = AsReal(R);
-            if (IsZero(RR)) return Constant.One;
+            if (IsZero(RR)) return 1;
             if (IsOne(RR)) return L;
 
             // Evaluate result.

@@ -44,7 +44,7 @@ namespace SyMath
 
             switch (Terms.Count())
             {
-                case 0: return Constant.Zero;
+                case 0: return 0;
                 case 1: return Terms.First();
                 default: return new Add(Terms);
             }
@@ -94,7 +94,7 @@ namespace SyMath
                         }
 
                         // Try matching p to identity.
-                        if (Matched.TryMatch(() => p.Matches(Constant.Zero, Matched) && P.Matches(E, Matched)))
+                        if (Matched.TryMatch(() => p.Matches(0, Matched) && P.Matches(E, Matched)))
                             return true;
                     }
                 }

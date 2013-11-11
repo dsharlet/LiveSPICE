@@ -53,7 +53,7 @@ namespace SyMath
     /// </summary>
     public class SumDictionary : DefaultDictionary<Expression, Expression>
     {
-        public SumDictionary() : base(Constant.Zero) { }
-        public SumDictionary(IDictionary<Expression, Expression> Copy) : base(Copy, Constant.Zero) { }
+        public SumDictionary() : base(0) { }
+        public SumDictionary(IDictionary<Expression, Expression> Copy) : base(Copy, 0) { }
     }
 }

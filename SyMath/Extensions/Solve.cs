@@ -55,7 +55,7 @@ namespace SyMath
                 {
                     i2.AddScaled(-i2.PivotCoefficient / scale, i1);
                     // This really should be 0 already, but due to numerical/symbolic issues, it might not be.
-                    i2[j] = Constant.Zero;
+                    i2[j] = 0;
                 }
             }
         }

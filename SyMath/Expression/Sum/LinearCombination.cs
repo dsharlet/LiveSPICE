@@ -17,15 +17,15 @@ namespace SyMath
             { 
                 get 
                 {
-                    if (Equals(b, Constant.One))
+                    if (b.IsOne())
                         return A;
-                    if (Equals(A, Constant.Zero))
-                        return Constant.Zero;
+                    if (A.IsZero())
+                        return 0;
                     return Product.New(A, b);
                 } 
             }
 
-            public Term(Expression b) { this.b = b; this.A = Constant.Zero; }
+            public Term(Expression b) { this.b = b; this.A = 0; }
 
             public override string ToString()
             {
@@ -43,12 +43,12 @@ namespace SyMath
                     Expression Tb = t / b;
                     if (!Tb.DependsOn(B))
                     {
-                        this[b] = this[b] + Tb;
+                        this[b] += Tb;
                         return;
                     }
                 }
             }
-            this[Constant.One] = this[Constant.One] + t;
+            this[1] += t;
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace SyMath
         {
             // Add terms for the basis.
             terms = B.Select(i => new Term(i)).ToList();
-            terms.Add(new Term(Constant.One));
+            terms.Add(new Term(1));
         }
 
         /// <summary>
@@ -98,13 +98,13 @@ namespace SyMath
             terms = new List<Term>();
             foreach (Expression i in NewBasis)
                 terms.Add(old.Single(j => j.b.Equals(i)));
-            terms.Add(old.Single(i => i.b.Equals(Constant.One)));
+            terms.Add(old.Single(i => i.b.IsOne()));
         }
 
         /// <summary>
         /// Create an Expression equal to this linear combination.
         /// </summary>
-        public Expression ToExpression() { return Sum.New(terms.Select(i => i.Ab).Except(Constant.Zero)); }
+        public Expression ToExpression() { return Sum.New(terms.Select(i => i.Ab).Except(0)); }
 
         public bool DependsOn(IEnumerable<Expression> x) { return ToExpression().DependsOn(x); }
         public bool DependsOn(params Expression[] x) { return DependsOn(x.AsEnumerable()); }
@@ -112,7 +112,7 @@ namespace SyMath
         /// <summary>
         /// The pivot is the first term in this expression.
         /// </summary>
-        private Term Pivot { get { return terms.FirstOrDefault(i => !i.A.IsZero() && !i.b.Equals(Constant.One)); } }
+        private Term Pivot { get { return terms.FirstOrDefault(i => !i.A.IsZero() && !i.b.IsOne()); } }
         public Expression PivotCoefficient { get { return Pivot != null ? Pivot.A : null; } }
         public Expression PivotVariable { get { return Pivot != null ? Pivot.b : null; } }
 
@@ -147,6 +147,6 @@ namespace SyMath
                 this[i] = this[i] + Binary.Multiply(S[i], M);
         }
 
-        public override string ToString() { return terms.Select(i => i.Ab).Except(Constant.Zero).UnSplit(" + "); }
+        public override string ToString() { return terms.Select(i => i.Ab).Except(0).UnSplit(" + "); }
     }
 }

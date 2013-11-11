@@ -20,7 +20,7 @@ namespace Circuit
     [TypeConverter(typeof(QuantityConverter))]
     public class Quantity : IEquatable<Quantity>, IFormattable, IXmlSerializable
     {
-        private Expression x = Constant.Zero;
+        private Expression x = 0;
         private Units units;
         
         public Quantity(Expression x, Units Units)
@@ -54,7 +54,7 @@ namespace Circuit
             s = s.Trim();
             Units units = Units.Parse(ref s);
             s = s.Trim();
-            Expression prefix = Constant.One;
+            Expression prefix = 1;
             for (int i = 0; i < prefixes.Length; ++i)
             {
                 string p = prefixes[i];

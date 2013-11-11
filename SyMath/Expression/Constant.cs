@@ -12,11 +12,36 @@ namespace SyMath
 
         protected Constant(Real x) { this.x = x; }
 
-        public static Constant New(int x) { return new Constant(new Real(x)); }
-        public static Constant New(double x) { return new Constant(new Real(x)); }
-        public static Constant New(decimal x) { return new Constant(new Real(x)); }
-        public static Constant New(bool x) { return new Constant(new Real(x ? 1 : 0)); }
+        private static readonly Constant One = new Constant(1);
+        private static readonly Constant Zero = new Constant(0);
+        private static readonly Constant NegativeOne = new Constant(-1);
+
+        public static Constant New(int x) 
+        {
+            //switch (x)
+            //{
+            //    case -1: return NegativeOne;
+            //    case 0: return Zero;
+            //    case 1: return One;
+            //}
+            return new Constant(new Real(x));
+        }
+        public static Constant New(double x)
+        {
+            //if (x == -1.0d) return NegativeOne;
+            //if (x == 0.0d) return Zero;
+            //if (x == 1.0d) return One;
+            return new Constant(new Real(x));
+        }
+        public static Constant New(decimal x)
+        {
+            //if (x == -1m) return NegativeOne;
+            //if (x == 0m) return Zero;
+            //if (x == 1m) return One;
+            return new Constant(new Real(x));
+        }
         public static Constant New(Real x) { return new Constant(x); }
+        public static Constant New(bool x) { return x ? One : Zero; }
         public static Expression New(object x) 
         {
             if (x.GetType() == typeof(int)) return New((int)x);
@@ -24,7 +49,7 @@ namespace SyMath
             if (x.GetType() == typeof(decimal)) return New((decimal)x);
             if (x.GetType() == typeof(bool)) return New((bool)x);
             if (x.GetType() == typeof(Real)) return New((Real)x);
-            throw new InvalidOperationException();
+            throw new InvalidCastException();
         }
 
         public override bool IsZero() { return x == 0; }
@@ -43,8 +68,7 @@ namespace SyMath
         {
             Constant RC = R as Constant;
             if (!ReferenceEquals(RC, null))
-                return Real.Abs(RC.Value).CompareTo(Real.Abs(Value));
-                //return RC.Value.CompareTo(Value);
+                return RC.Value.CompareTo(Value);
 
             return base.CompareTo(R);
         }
@@ -59,10 +83,5 @@ namespace SyMath
 
             return base.Equals(R);
         }
-        
-        public static readonly Expression Zero = Constant.New(0);
-        public static readonly Expression One = Constant.New(1);
-        public static readonly Expression NegativeOne = Constant.New(-1);
-        public static readonly Expression Infinity = Constant.New(Real.Infinity);
     }
 }

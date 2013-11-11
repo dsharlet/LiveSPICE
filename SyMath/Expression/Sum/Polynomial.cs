@@ -36,7 +36,7 @@ namespace SyMath
                 if (coefficients.ContainsKey(d))
                     return coefficients[d];
                 else
-                    return Constant.Zero;
+                    return 0;
             }
         }
 
@@ -85,7 +85,7 @@ namespace SyMath
             Variable N = PatternVariable.New("N", i => (i is Constant) && ((Real)i % 1 == 0));
             Expression TermPattern = Product.New(A, Power.New(x, N));
 
-            DefaultDictionary<int, Expression> P = new DefaultDictionary<int, Expression>(Constant.Zero);
+            DefaultDictionary<int, Expression> P = new DefaultDictionary<int, Expression>(0);
 
             foreach (Expression i in Sum.TermsOf(f))
             {
@@ -196,7 +196,7 @@ namespace SyMath
             foreach (KeyValuePair<int, Expression> i in N.Coefficients)
                 r.Add(i.Key, i.Value);
 
-            while (r.Any() && !r[0].Equals(Constant.Zero) && r.Keys.Max() + 1 >= D.Degree)
+            while (r.Any() && !r[0].Equals(0) && r.Keys.Max() + 1 >= D.Degree)
             {
                 int rd = r.Keys.Max() + 1;
                 int dd = D.Degree;

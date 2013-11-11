@@ -33,9 +33,9 @@ namespace Circuit
             // Set the voltage.
             Mna.AddEquation(Anode.V - Cathode.V, V);
             // Add initial conditions, if necessary.
-            Expression V0 = V.Evaluate(t, Constant.Zero);
+            Expression V0 = V.Evaluate(t, 0);
             if (!(V0 is Constant))
-                Mna.AddInitialConditions(Arrow.New(V0, Constant.Zero));
+                Mna.AddInitialConditions(Arrow.New(V0, 0));
         }
 
         public override void Analyze(Analysis Mna)

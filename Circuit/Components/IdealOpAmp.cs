@@ -42,7 +42,7 @@ namespace Circuit
         public override void Analyze(Analysis Mna)
         {
             // Infinite input impedance.
-            Mna.AddPassiveComponent(Positive, Negative, Constant.Zero);
+            Mna.AddPassiveComponent(Positive, Negative, 0);
             // Unknown output current.
             Mna.AddTerminal(Out, Mna.AddNewUnknown("i" + Name));
             // The voltage between the positive and negative terminals is 0.

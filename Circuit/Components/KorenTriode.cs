@@ -45,8 +45,8 @@ namespace Circuit
             // ln(1+e^x) = x for large x, and large x causes numerical issues.
             Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + Call.Exp(ex))) * Vpk / Kp;
 
-            Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, Constant.Zero);
-            Ig = Call.If(Vgk > Vg, (Vgk - (Expression)Vg) / (Expression)Rgk, Constant.Zero);
+            Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
+            Ig = Call.If(Vgk > Vg, (Vgk - (Expression)Vg) / (Expression)Rgk, 0);
         }
     }
 }

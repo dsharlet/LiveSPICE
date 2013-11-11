@@ -82,7 +82,7 @@ namespace SyMath
         public static Expression operator +(Expression L, Expression R) { return Sum.New(L, R).Evaluate(); }
         public static Expression operator -(Expression L, Expression R) { return L + Unary.Negate(R); }
         public static Expression operator *(Expression L, Expression R) { return Product.New(L, R).Evaluate(); }
-        public static Expression operator /(Expression L, Expression R) { return L * Power.New(R, Constant.NegativeOne); }
+        public static Expression operator /(Expression L, Expression R) { return L * Power.New(R, -1); }
         public static Expression operator ^(Expression L, Expression R) { return Binary.Power(L, R).Evaluate(); }
         public static Expression operator -(Expression O) { return -1 * O; }
 

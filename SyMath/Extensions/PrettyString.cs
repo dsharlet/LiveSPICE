@@ -191,7 +191,7 @@ namespace SyMath
                 D = -D;
             }
 
-            if (!D.Equals(Constant.One))
+            if (!D.Equals(1))
                 return PrettyString.ConcatColumns(negative ? "- " : "", VisitDivide(N, D));
             else if (N is Product)
                 return PrettyString.ConcatColumns(negative ? "-" : "", UnSplit(Product.TermsOf(N), "*"));
@@ -242,7 +242,7 @@ namespace SyMath
         protected override PrettyString VisitPower(Power P)
         {
             if (IsNegative(P.Right))
-                return VisitDivide(Constant.One, P ^ -1);
+                return VisitDivide(1, P ^ -1);
 
             PrettyString l = Visit(P.Left);
             PrettyString r = Visit(P.Right);

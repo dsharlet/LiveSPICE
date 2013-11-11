@@ -27,9 +27,9 @@ namespace Circuit
         {
             Mna.AddPassiveComponent(Name, Anode, Cathode, Current);
             // Add initial conditions, if necessary.
-            Expression i0 = Current.Value.Evaluate(t, Constant.Zero);
+            Expression i0 = Current.Value.Evaluate(t, 0);
             if (!(i0 is Constant))
-                Mna.AddInitialConditions(Arrow.New(i0, Constant.Zero));
+                Mna.AddInitialConditions(Arrow.New(i0, 0));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

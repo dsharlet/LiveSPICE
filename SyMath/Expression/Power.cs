@@ -19,7 +19,7 @@ namespace SyMath
         {
             if (x is Power)
                 return ((Power)x).Right;
-            return Constant.One;
+            return 1;
         }
 
         /// <summary>
@@ -40,15 +40,15 @@ namespace SyMath
             Expression matched;
             if (Matched.TryGetValue(Right, out matched))
             {
-                if (Left.Matches(E ^ Binary.Divide(Constant.One, matched), Matched))
+                if (Left.Matches(E ^ Binary.Divide(1, matched), Matched))
                     return true;
             }
 
             // x^0 = 1.
-            if (E.IsOne() && Right.Matches(Constant.Zero, Matched))
+            if (E.IsOne() && Right.Matches(0, Matched))
                 return true;
             // 0^x = 0.
-            if (E.IsZero() && Left.Matches(Constant.Zero, Matched))
+            if (E.IsZero() && Left.Matches(0, Matched))
                 return true;
 
             Binary PE = E as Power;
@@ -56,10 +56,10 @@ namespace SyMath
                 return true;
 
             // If the exponent matches 1, E can match left.
-            if (Matched.TryMatch(() => Right.Matches(Constant.One, Matched) && Left.Matches(E, Matched)))
+            if (Matched.TryMatch(() => Right.Matches(1, Matched) && Left.Matches(E, Matched)))
                 return true;
 
-            if (Left.Matches(SyMath.Power.New(E, Binary.Divide(Constant.One, Right)).Evaluate(), Matched))
+            if (Left.Matches(SyMath.Power.New(E, Binary.Divide(1, Right)).Evaluate(), Matched))
                 return true;
 
             return false;
@@ -68,7 +68,7 @@ namespace SyMath
         public override int CompareTo(Expression R)
         {
             Expression RL = R;
-            Expression RR = Constant.One;
+            Expression RR = 1;
             Power RP = R as Power;
             if (!ReferenceEquals(RP, null))
             {

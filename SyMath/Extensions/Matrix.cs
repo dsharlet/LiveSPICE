@@ -24,7 +24,7 @@ namespace SyMath
             m = new Expression[M, N];
             for (int i = 0; i < M; ++i)
                 for (int j = 0; j < N; ++j)
-                    m[i, j] = Constant.Zero;
+                    m[i, j] = 0;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace SyMath
             m = new Expression[N, N];
             for (int i = 0; i < N; ++i)
                 for (int j = 0; j < N; ++j)
-                    m[i, j] = i == j ? Constant.One : Constant.Zero;
+                    m[i, j] = i == j ? 1 : 0;
         }
 
         public Matrix(Matrix Clone)
@@ -263,7 +263,7 @@ namespace SyMath
             {
                 for (int j = 0; j < L; ++j)
                 {
-                    Expression ABij = Constant.Zero;
+                    Expression ABij = 0;
                     for (int k = 0; k < N; ++k)
                         ABij += A[i, k] * B[k, j];
                     AB[i, j] = ABij;

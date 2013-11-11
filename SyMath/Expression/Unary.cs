@@ -21,8 +21,8 @@ namespace SyMath
                 return Call.D(f, f.Arguments.First());
             return new Unary(Operator.Prime, Operand); 
         }
-        public static Expression Negate(Expression Operand) { return Product.New(Constant.NegativeOne, Operand); }
-        public static Expression Inverse(Expression Operand) { return Binary.Power(Operand, Constant.NegativeOne); }
+        public static Expression Negate(Expression Operand) { return Product.New(-1, Operand); }
+        public static Expression Inverse(Expression Operand) { return Binary.Power(Operand, -1); }
         public static Expression Not(Expression Operand) { return new Unary(Operator.Not, Operand); }
         public static Expression New(Operator Op, Expression Operand)
         {

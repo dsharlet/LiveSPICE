@@ -48,7 +48,7 @@ namespace Circuit
 
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
             {
-                Expression init = i.Key.Evaluate(t0, Constant.Zero).Evaluate(Solution.InitialConditions);
+                Expression init = i.Key.Evaluate(t0, 0).Evaluate(Solution.InitialConditions);
                 i.Value.Value = init is Constant ? (double)init : 0.0;
             }
         }
@@ -248,7 +248,7 @@ namespace Circuit
                                             eqs[i][deltas[x]].Compile(map)));
                                     body.Add(LinqExpr.Assign(
                                         LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(deltas.Length)),
-                                        eqs[i][Constant.One].Compile(map)));
+                                        eqs[i][1].Compile(map)));
                                 }
                                                                 
                                 // Gaussian elimination on this turd.

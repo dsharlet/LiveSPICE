@@ -51,7 +51,7 @@ namespace Circuit
         /// <summary>
         /// Enumerates the equations in the system.
         /// </summary>
-        public IEnumerable<Equal> Equations { get { return equations.Concat(Kcl.Select(i => Equal.New(i.Value, Constant.Zero))); } }
+        public IEnumerable<Equal> Equations { get { return equations.Concat(Kcl.Select(i => Equal.New(i.Value, 0))); } }
         /// <summary>
         /// Enumerates the unknowns in the system.
         /// </summary>

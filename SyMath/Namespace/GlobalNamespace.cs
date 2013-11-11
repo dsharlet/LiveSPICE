@@ -24,8 +24,8 @@ namespace SyMath
         public static readonly Expression Pi = Constant.New(Math.PI);
         public static readonly Expression e = Constant.New(Math.E);
 
-        public static readonly Expression False = Constant.Zero;
-        public static readonly Expression True = Constant.One;
+        public static readonly Expression False = 0;
+        public static readonly Expression True = 1;
 
         public static Expression Abs(Constant x) { return Constant.New(Real.Abs(x)); }
         public static Expression Sign(Constant x) { return Constant.New(Real.Sign(x)); }

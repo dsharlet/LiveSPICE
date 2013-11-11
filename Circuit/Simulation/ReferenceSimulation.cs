@@ -34,20 +34,20 @@ namespace Circuit
 
             // State for each node.
             foreach (Expression i in Solution.Nodes)
-                state[i] = Constant.Zero;
+                state[i] = 0;
 
             //// State for the state variables (differentials).
             //foreach (Arrow i in Transient.Differential)
-            //    state[i.Left.Evaluate(t, t0)] = Constant.Zero;
+            //    state[i.Left.Evaluate(t, t0)] = 0;
 
             //// State for iterative unknowns
             //foreach (AlgebraicSystem i in Transient.Algebraic)
             //    foreach (Expression j in i.Unknowns)
-            //        state[j.Evaluate(t, t0)] = Constant.Zero;
+            //        state[j.Evaluate(t, t0)] = 0;
 
             //// State for the linearization.
             //foreach (Arrow i in Transient.Linearization)
-            //    state[i.Left] = Constant.Zero;
+            //    state[i.Left] = 0;
         }
 
         protected override void Process(

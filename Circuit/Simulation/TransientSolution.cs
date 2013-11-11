@@ -106,9 +106,9 @@ namespace Circuit
             Log.WriteLine(MessageType.Info, "[{0}] Performing steady state analysis...", time);
             List<Equal> dc = mna
                 // Derivatives are zero in the steady state.
-                .Evaluate(dy_dt.Select(i => Arrow.New(i, Constant.Zero)))
+                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)))
                 // t = 0 and t0 = 0
-                .Evaluate(Arrow.New(t, Constant.Zero), Arrow.New(t0, Constant.Zero))
+                .Evaluate(Arrow.New(t, 0), Arrow.New(t0, 0))
                 // Use the initial conditions from MNA.
                 .Evaluate(Mna.InitialConditions)
                 // Use default parameter values.
@@ -117,7 +117,7 @@ namespace Circuit
             List<Arrow> initial;
             try
             {
-                initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, Constant.Zero), Constant.Zero)));
+                initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
                 LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
             }
             catch (AlgebraException)
@@ -144,7 +144,7 @@ namespace Circuit
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
 
             // The remaining equations from the system of diff eqs should be algebraic.
-            mna.AddRange(diffeq.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+            mna.AddRange(diffeq.Select(i => Equal.New(i.ToExpression(), 0)));
             LogExpressions(Log, MessageType.Verbose, "Discretized system:", mna);
 
             // Solving the system...
@@ -172,7 +172,7 @@ namespace Circuit
                 // Compute JxF*dy + F(y0) == 0.
                 List<LinearCombination> J = F.Jacobian(y.Select(i => Arrow.New(i, NewtonIteration.Delta(i))));
                 foreach (LinearCombination i in J)
-                    i[Constant.One] = ((Expression)i.Tag);
+                    i[1] = ((Expression)i.Tag);
 
                 // ly is the subset of y that can be found linearly.
                 List<Expression> ly = dy.Where(j => !J.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
@@ -194,9 +194,9 @@ namespace Circuit
 
                 // Initial guess for y(t) = y(t0).
                 List<Arrow> guess = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
-
+                
                 solutions.Add(new NewtonIteration(solved, J, dy, guess));
-                LogExpressions(Log, MessageType.Verbose, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), Constant.Zero)));
+                LogExpressions(Log, MessageType.Verbose, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), 0)));
                 LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
             }
 

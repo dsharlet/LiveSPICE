@@ -16,7 +16,7 @@ namespace Circuit
     [Description("Ideal speaker.")] 
     public class Speaker : TwoTerminal
     {
-        private Quantity impedance = new Quantity(Constant.Infinity, Units.Ohm);
+        private Quantity impedance = new Quantity(Real.Infinity, Units.Ohm);
         [Serialize]
         [Description("Impedance of this speaker.")]
         public Quantity Impedance { get { return impedance; } set { impedance = value; NotifyChanged("Impedance"); } }

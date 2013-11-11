@@ -33,9 +33,9 @@ namespace Circuit
             // Set voltage equal to the rail.
             Mna.AddEquation(V, Voltage.Value);
             // Add initial conditions, if necessary.
-            Expression V0 = Voltage.Value.Evaluate(t, Constant.Zero);
+            Expression V0 = Voltage.Value.Evaluate(t, 0);
             if (!(V0 is Constant))
-                Mna.AddInitialConditions(Arrow.New(V0, Constant.Zero));
+                Mna.AddInitialConditions(Arrow.New(V0, 0));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

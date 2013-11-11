@@ -37,7 +37,7 @@ namespace SyMath
                 for (int j = 1; j <= n; ++j)
                 {
                     // Expression for the unknown numerator of this term.
-                    Expression unknown = Constant.Zero;
+                    Expression unknown = 0;
                     for (int k = 0; k < Pi.Degree; ++k)
                     {
                         Variable Ai = Variable.New("_A" + unknowns.Count.ToString());
@@ -83,7 +83,7 @@ namespace SyMath
                 Expression b = f.Left.Factor(x);
                 if (n != -1)
                     b = Power.New(b, Math.Abs(n));
-                return ExpandPartialFractions(Constant.One, b, x);
+                return ExpandPartialFractions(1, b, x);
             }
 
             // If f is an add expression, expand it as if it were multiplication.
@@ -117,7 +117,7 @@ namespace SyMath
             // If f contains an add expression, distribute it.
             if (Product.TermsOf(f).Any(i => i is Sum))
             {
-                Expression e = Constant.One;
+                Expression e = 1;
                 foreach (Expression i in Product.TermsOf(f))
                     e = Distribute(i.Expand(x), e);
                 return e;
