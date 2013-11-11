@@ -64,5 +64,8 @@ namespace LiveSPICE
         public string[] AudioInputs { get { return This("AudioInputs", new string[0]); } set { this["AudioInputs"] = value; } }
         [UserScopedSetting]
         public string[] AudioOutputs { get { return This("AudioOutputs", new string[0]); } set { this["AudioOutputs"] = value; } }
+
+        [UserScopedSetting]
+        public Circuit.MessageType LogVerbosity { get { return This("LogVerbosity", Circuit.MessageType.Info); } set { this["LogVerbosity"] = value; } }
     }
 }

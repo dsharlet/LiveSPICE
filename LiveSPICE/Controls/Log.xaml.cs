@@ -29,11 +29,11 @@ namespace LiveSPICE
         public void Clear() { text.Text = ""; }
         public void Clear_Click(object sender, EventArgs e) { Clear(); }
 
-        private Circuit.MessageType verbosity = Circuit.MessageType.Info;
+        private Circuit.MessageType verbosity = App.Current.Settings.LogVerbosity;
         public Circuit.MessageType Verbosity 
         {
             get { return verbosity; } 
-            set { verbosity = value; NotifyChanged("Verbosity"); } 
+            set { App.Current.Settings.LogVerbosity = verbosity = value; NotifyChanged("Verbosity"); } 
         }
 
         public void WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
