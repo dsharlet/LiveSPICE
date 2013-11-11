@@ -52,7 +52,7 @@ h5 {
 a[target="_blank"] {
     font-weight:bold;
     padding-right: 14px;
-    background:transparent url(../images/external.gif) center right no-repeat;
+    background:transparent url(img/external.gif) center right no-repeat;
 }
 
 .dropdown-submenu{position:relative;}
@@ -89,3 +89,5 @@ a[target="_blank"] {
 
 .component {
 }
+
+.lb-image{   max-width: inherit; }
