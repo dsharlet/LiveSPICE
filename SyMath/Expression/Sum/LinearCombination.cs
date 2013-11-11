@@ -13,7 +13,17 @@ namespace SyMath
         private class Term
         {
             public Expression b, A;
-            public Expression Ab { get { return A * b; } }
+            public Expression Ab 
+            { 
+                get 
+                {
+                    if (Equals(b, Constant.One))
+                        return A;
+                    if (Equals(A, Constant.Zero))
+                        return Constant.Zero;
+                    return Product.New(A, b);
+                } 
+            }
 
             public Term(Expression b) { this.b = b; this.A = Constant.Zero; }
 
