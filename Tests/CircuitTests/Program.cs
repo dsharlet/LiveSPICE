@@ -21,6 +21,9 @@ namespace CircuitTests
         static int Oversample = 8;
         static int Iterations = 8;
 
+        static double analysisTime = 0.0;
+        static double simulateTime = 0.0;
+
         static ConsoleLog Log = new ConsoleLog(MessageType.Info);
 
         static Expression V1 = Harmonics(t, 0.5, 82, 2);
@@ -34,7 +37,7 @@ namespace CircuitTests
 
             //Run("BossSD1NoBuffer.xml", Vin, "V1[t]", new Expression[] { "_v15[t]", "_v11[t]" });
             //return;
-
+            
             foreach (string File in System.IO.Directory.EnumerateFiles(@".", "*.xml"))
             {
                 string Name = System.IO.Path.GetFileNameWithoutExtension(File);
@@ -50,6 +53,8 @@ namespace CircuitTests
                 }
             }
 
+            System.Console.WriteLine("Analyze/Simulate {0}/{1}", analysisTime, simulateTime);
+
             System.Console.WriteLine("{0} succeeded:", performance.Count);
             foreach (string i in performance)
                 System.Console.WriteLine(i);
@@ -62,7 +67,9 @@ namespace CircuitTests
         public static double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
+            long a = Timer.Counter;
             TransientSolution TS = TransientSolution.SolveCircuit(C, 1 / (SampleRate * Oversample), Log);
+            analysisTime += Timer.Delta(a);
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
 
@@ -79,7 +86,9 @@ namespace CircuitTests
         public static double Run(string FileName, Func<double, double> Vin, Expression Input, IEnumerable<Expression> Plots)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
+            long a = Timer.Counter;
             TransientSolution TS = TransientSolution.SolveCircuit(C, 1 / (SampleRate * Oversample), Log);
+            analysisTime += Timer.Delta(a);
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
 
@@ -114,7 +123,8 @@ namespace CircuitTests
             {
                 long a = Timer.Counter;
                 S.Run(vs.Length, input, output, Arguments, Iterations);
-                time = (double)(Timer.Counter - a) / Timer.Frequency;
+                time = Timer.Delta(a);
+                simulateTime += time;
             }
             catch (SimulationDiverged Ex)
             {

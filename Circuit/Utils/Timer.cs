@@ -37,6 +37,8 @@ namespace Circuit
         private long begin;
         public Timer() { begin = Counter; }
 
+        public static double Delta(long t1) { return (double)(Counter - t1) / (double)Frequency; }
+
         public static implicit operator double(Timer T) { return (Counter - T.begin) / Frequency; }
 
         public override string ToString() { return Quantity.ToString((Counter - begin) / Frequency, Units.s); }
