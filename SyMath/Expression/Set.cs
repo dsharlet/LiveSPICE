@@ -45,7 +45,15 @@ namespace SyMath
             return base.CompareTo(R);
         }
 
+        public override bool Equals(Expression E)
+        {
+            Set S = E as Set;
+            if (ReferenceEquals(S, null)) return false;
+
+            return Members.SequenceEqual(S.Members);
+        }
         public override string ToString() { return "{" + members.UnSplit(", ") + "}"; }
+        public override int GetHashCode() { return Members.UnorderedHashCode(); }
         
         public static IEnumerable<Expression> MembersOf(Expression E)
         {

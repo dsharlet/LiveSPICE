@@ -143,11 +143,12 @@ namespace SyMath
             return true;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Expression E)
         {
-            if (obj is Polynomial)
-                return Equals((Polynomial)obj);
-            return base.Equals(obj);
+            Polynomial P = E as Polynomial;
+            if (ReferenceEquals(P, null)) return false;
+            
+            return Equals(P);
         }
         public override int GetHashCode() { return coefficients.OrderedHashCode() ^ variable.GetHashCode(); }
         public override string ToString() { return "(" + coefficients.Select(i => i.Value * (SyMath.Variable.New("x") ^ i.Key)).UnSplit(" + ") + ")"; }

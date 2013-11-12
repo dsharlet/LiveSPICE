@@ -46,19 +46,16 @@ namespace SyMath
 
         // object interface.
         public override string ToString() { return target.ToString() + "[" + arguments.UnSplit(", ") + "]"; }
-        public override bool Equals(Expression R)
+        public override bool Equals(Expression E)
         {
-            if (ReferenceEquals(this, R))
-                return true;
-
-            Call RF = R as Call;
-            if (!ReferenceEquals(RF, null))
-                return target.Equals(RF.Target) && arguments.SequenceEqual(RF.Arguments);
-
-            return false;
+            Call C = E as Call;
+            if (ReferenceEquals(C, null)) return false;
+            
+            return target.Equals(C.Target) && arguments.SequenceEqual(C.Arguments);
         }
         public override int GetHashCode() { return target.GetHashCode() ^ arguments.OrderedHashCode(); }
 
+        protected override int TypeRank { get { return 2; } }
         //public override IEnumerable<Atom> Atoms
         //{
         //    get 

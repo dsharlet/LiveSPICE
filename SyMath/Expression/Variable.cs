@@ -18,20 +18,8 @@ namespace SyMath
         {
             return Matched.Matches(this, E);
         }
-
-        // object interface.
-        public override bool Equals(Expression E)
-        {
-            if (ReferenceEquals(this, E))
-                return true;
-
-            Variable VE = E as Variable;
-            if (!ReferenceEquals(VE, null))
-                return Name.Equals(VE.Name);
-
-            return false;
-        }
-        public override int GetHashCode() { return Name.GetHashCode(); }
+        
+        protected override int TypeRank { get { return 1; } }
     }
 
     /// <summary>

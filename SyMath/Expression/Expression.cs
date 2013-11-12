@@ -128,16 +128,13 @@ namespace SyMath
         }
 
         // object interface.
-        public virtual bool Equals(Expression E) { return E != null ? CompareTo(E) == 0 : base.Equals(E); }
-        public override bool Equals(object obj)
+        public virtual bool Equals(Expression E) { return Equals((object)E); }
+        public sealed override bool Equals(object obj)
         {
             Expression E = obj as Expression;
-            if (!ReferenceEquals(E, null))
-                return Equals(E);
-            else
-                return base.Equals(obj);
+            return ReferenceEquals(E, null) ? false : Equals(E);
         }
-        public override int GetHashCode() { return Atoms.OrderedHashCode(); }
+        public override int GetHashCode() { throw new NotImplementedException(GetType().ToString() + ".GetHashCode"); }
         
         /// <summary>
         /// Get an ordered list of the atomic Expression elements in this expression.

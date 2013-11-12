@@ -46,14 +46,15 @@ namespace SyMath
             }
         }
 
-        // operator interface.
-        public override string ToString()
+        // object.
+        public override string ToString() { return ToString(Operator) + Operand.ToString(Parser.Precedence(Operator)); }
+        public override int GetHashCode() { return Operator.GetHashCode() ^ Operand.GetHashCode(); }
+        public override bool Equals(Expression E)
         {
-            return ToString(Operator) + Operand.ToString(Parser.Precedence(Operator));
-        }
-        public override int GetHashCode()
-        {
-            return Operator.GetHashCode() ^ Operand.GetHashCode();
+            Unary U = E as Unary;
+            if (ReferenceEquals(U, null)) return false;
+            
+            return Operator.Equals(U.Operator) && Operand.Equals(U.Operand);
         }
 
         public override IEnumerable<Atom> Atoms { get { return Operand.Atoms; } }

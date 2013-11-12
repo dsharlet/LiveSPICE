@@ -101,9 +101,10 @@ namespace SyMath
         public override bool Equals(Expression E)
         {
             NativeFunction F = E as NativeFunction;
-            if (F != null)
-                return method == F.method;
-            return base.Equals(E);
+            if (ReferenceEquals(F, null)) return false;
+
+            return method.Equals(F.method);
         }
+        public override int GetHashCode() { return method.GetHashCode(); }
     }
 }

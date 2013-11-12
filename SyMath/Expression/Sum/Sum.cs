@@ -114,8 +114,14 @@ namespace SyMath
             }
             return s.ToString();
         }
-        public override bool Equals(Expression E) { return ReferenceEquals(this, E) || Terms.SequenceEqual(TermsOf(E)); }
         public override int GetHashCode() { return Terms.OrderedHashCode(); }
+        public override bool Equals(Expression E)
+        {
+            Sum S = E as Sum;
+            if (ReferenceEquals(S, null)) return false;
+
+            return Terms.SequenceEqual(S.Terms);
+        }
 
         public override IEnumerable<Atom> Atoms 
         {

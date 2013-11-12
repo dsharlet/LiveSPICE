@@ -118,6 +118,16 @@ namespace SyMath
         public override int GetHashCode() { return Operator.GetHashCode() ^ Left.GetHashCode() ^ Right.GetHashCode(); }
 
         public override IEnumerable<Atom> Atoms { get { return Left.Atoms.Concat(Right.Atoms); } }
+        public override bool Equals(Expression E)
+        {
+            Binary B = E as Binary;
+            if (ReferenceEquals(B, null)) return false;
+
+            return 
+                Operator.Equals(B.Operator) &&
+                Left.Equals(B.Left) &&
+                Right.Equals(B.Right);
+        }
         public override int CompareTo(Expression R)
         {
             Binary RB = R as Binary;

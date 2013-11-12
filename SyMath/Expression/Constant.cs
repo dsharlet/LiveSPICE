@@ -52,12 +52,14 @@ namespace SyMath
             throw new InvalidCastException();
         }
 
-        public override bool IsZero() { return x == 0; }
-        public override bool IsOne() { return x == 1; }
-        public override bool IsFalse() { return x == 0; }
-        public override bool IsTrue() { return x != 0; }
+        public override bool IsZero() { return x.IsZero(); }
+        public override bool IsOne() { return x.IsOne(); }
+        public override bool IsFalse() { return x.IsZero(); }
+        public override bool IsTrue() { return !x.IsZero(); }
 
         public static implicit operator Real(Constant x) { return x.x; }
+
+        protected override int TypeRank { get { return 0; } }
 
         // object interface.
         public override int GetHashCode() { return x.GetHashCode(); }
@@ -73,16 +75,12 @@ namespace SyMath
 
             return base.CompareTo(R);
         }
-        public override bool Equals(Expression R)
+        public override bool Equals(Expression E)
         {
-            if (ReferenceEquals(this, R))
-                return true;
+            Constant C = E as Constant;
+            if (ReferenceEquals(C, null)) return false;
 
-            Constant RC = R as Constant;
-            if (!ReferenceEquals(RC, null))
-                return Value == RC.Value;
-
-            return base.Equals(R);
+            return Value.Equals(C.Value);
         }
     }
 }

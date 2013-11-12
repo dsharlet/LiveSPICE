@@ -119,8 +119,14 @@ namespace SyMath
 
         private static int Precedence = Parser.Precedence(Operator.Multiply);
         public override string ToString() { return Terms.Select(i => i.ToString(Precedence)).UnSplit("*"); }
-        public override bool Equals(Expression E) { return ReferenceEquals(this, E) || Terms.SequenceEqual(TermsOf(E)); }
         public override int GetHashCode() { return Terms.OrderedHashCode(); }
+        public override bool Equals(Expression E) 
+        {
+            Product P = E as Product;
+            if (ReferenceEquals(P, null)) return false;
+            
+            return Terms.SequenceEqual(P.Terms);
+        }
 
         public override IEnumerable<Atom> Atoms
         {
