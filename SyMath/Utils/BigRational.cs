@@ -27,6 +27,8 @@ namespace SyMath
             }
         }
 
+        public static BigRational Unchecked(int n, int d) { BigRational x = new BigRational(); x.n = n; x.d = d; return x; }
+
         public BigRational(int Integer) { n = Integer; d = 1; }
         public BigRational(int Numerator, int Denominator) { n = Numerator; d = Denominator; Reduce();  }
         public BigRational(long Integer) { n = Integer; d = 1; }
@@ -137,7 +139,7 @@ namespace SyMath
         {
             if (Equals(x))
                 return 0;
-            return (n * x.d - x.n * d).Sign; 
+            return (n * x.d).CompareTo(x.n * d); 
         }
 
         // IFormattable interface.
@@ -196,6 +198,7 @@ namespace SyMath
         public static implicit operator BigRational(long x) { return new BigRational(x); }
         public static implicit operator BigRational(int x) { return new BigRational(x); }
         public static implicit operator BigRational(double x) { return new BigRational(x); }
+        public static implicit operator BigRational(decimal x) { return new BigRational(x); }
         public static explicit operator BigInteger(BigRational x) { return x.n / x.d; }
         public static explicit operator decimal(BigRational x) { return (decimal)x.n / (decimal)x.d; }
         public static explicit operator long(BigRational x) { return (long)(x.n / x.d); }

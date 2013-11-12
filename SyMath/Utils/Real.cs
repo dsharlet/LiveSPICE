@@ -11,61 +11,38 @@ namespace SyMath
     /// </summary>
     public struct Real : IComparable<Real>, IEquatable<Real>
     {
-        private BigRational? rational;
-        private double? real;
+        private BigRational r;
 
-        public Real(int x) { this.rational = new BigRational(x); this.real = null; }
-        public Real(decimal x) { this.rational = new BigRational(x); this.real = null; }
-        public Real(BigInteger x) { this.rational = x; this.real = null; }
-        public Real(BigRational x) { this.rational = x; this.real = null; }
+        // It's amazing how well this works to correctly deal with comparisons of infinity.
+        private static BigRational PositiveInfinity = BigRational.Unchecked(1, 0);
+        private static BigRational NegativeInfinity = BigRational.Unchecked(-1, 0);
+
+        // This doesn't work as well...
+        private static BigRational NaN = BigRational.Unchecked(0, 0);
+
+        public Real(int x) { r = x; }
+        public Real(decimal x) { r = x; }
+        public Real(BigInteger x) { r = x; }
+        public Real(BigRational x) { r = x; }
         public Real(double x) 
         {
-            if (IsReal(x))// && x % 1 == 0)
-            {
-                this.rational = new BigRational(x);
-                this.real = null;
-            }
+            if (double.IsNaN(x))
+                r = NaN;
+            else if (double.IsPositiveInfinity(x))
+                r = PositiveInfinity;
+            else if (double.IsNegativeInfinity(x))
+                r = NegativeInfinity;
             else
-            {
-                this.real = x;
-                this.rational = null;
-            }
+                r = x;
         }
 
-        private static bool IsReal(double x) { return !(double.IsNaN(x) || double.IsInfinity(x)); }
+        public static readonly Real Infinity = new Real(PositiveInfinity);
 
-        public static readonly Real Infinity = new Real(double.PositiveInfinity);
-
-        public static explicit operator int(Real x)
-        {
-            if (x.rational != null) return (int)x.rational.Value;
-            else if (x.real != null) return (int)x.real.Value;
-            else throw new InvalidCastException();
-        }
-        public static explicit operator double(Real x)
-        {
-            if (x.rational != null) return (double)x.rational.Value;
-            else if (x.real != null) return x.real.Value;
-            else throw new InvalidCastException();
-        }
-        public static explicit operator decimal(Real x)
-        {
-            if (x.rational != null) return (decimal)x.rational.Value;
-            else if (x.real != null) return (decimal)x.real.Value;
-            else throw new InvalidCastException();
-        }
-        public static explicit operator BigInteger(Real x)
-        {
-            if (x.rational != null) return (BigInteger)x.rational.Value;
-            else if (x.real != null) return (BigInteger)x.real.Value;
-            else throw new InvalidCastException();
-        }
-        public static explicit operator BigRational(Real x)
-        {
-            if (x.rational != null) return x.rational.Value;
-            else if (x.real != null) return (BigRational)x.real.Value;
-            else throw new InvalidCastException();
-        }
+        public static explicit operator int(Real x) { return (int)x.r; }
+        public static explicit operator double(Real x) { return (double)x.r; }
+        public static explicit operator decimal(Real x) { return (decimal)x.r; }
+        public static explicit operator BigInteger(Real x) { return (BigInteger)x.r; }
+        public static explicit operator BigRational(Real x) { return x.r; }
 
         public static implicit operator Real(int x) { return new Real(x); }
         public static implicit operator Real(double x) { return new Real(x); }
@@ -81,52 +58,17 @@ namespace SyMath
         public static bool operator >=(Real a, Real b) { return a.CompareTo(b) >= 0; }
         
         // Arithmetic operators.
-        public static Real operator +(Real a, Real b) 
-        {
-            if (a.rational != null && b.rational != null)
-                return new Real(a.rational.Value + b.rational.Value);
-            return new Real((double)a + (double)b); 
-        }
-        public static Real operator -(Real a, Real b)
-        {
-            if (a.rational != null && b.rational != null)
-                return new Real(a.rational.Value - b.rational.Value);
-            return new Real((double)a - (double)b);
-        }
-        public static Real operator *(Real a, Real b)
-        {
-            if (a.rational != null && b.rational != null)
-                return new Real(a.rational.Value * b.rational.Value);
-            return new Real((double)a * (double)b);
-        }
-        public static Real operator %(Real a, Real b)
-        {
-            if (a.rational != null && b.rational != null)
-                return new Real(a.rational.Value % b.rational.Value);
-            return new Real((double)a % (double)b);
-        }
-        public static Real operator /(Real a, Real b)
-        {
-            if (a.rational != null && b.rational != null)
-                return new Real(a.rational.Value / b.rational.Value);
-            return new Real((double)a / (double)b);
-        }
-        public static Real operator ^(Real a, Real b)
-        {
-            if (a.rational != null && b.rational != null)
-                return new Real(a.rational.Value ^ b.rational.Value);
-            return new Real(Math.Pow((double)a, (double)b));
-        }
-        public static Real operator -(Real x) 
-        { 
-            if (x.rational != null)
-                return new Real(-x.rational.Value);
-            return new Real(-(double)x);
-        }
+        public static Real operator +(Real a, Real b) { return new Real(a.r + b.r); }
+        public static Real operator -(Real a, Real b) { return new Real(a.r - b.r); }
+        public static Real operator *(Real a, Real b) { return new Real(a.r * b.r); }
+        public static Real operator %(Real a, Real b) { return new Real(a.r % b.r); }
+        public static Real operator /(Real a, Real b) { return new Real(a.r / b.r); }
+        public static Real operator ^(Real a, Real b) { return new Real(a.r ^ b.r); }
+        public static Real operator -(Real x) { return new Real(-x.r); }
         
         // Math functions
         public static Real Abs(Real x) { return x > 0 ? x : -x; }
-        public static Real Sign(Real x) { return new Real(x < 0 ? -1 : 1); }
+        public static int Sign(Real x) { return x < 0 ? -1 : 1; }
 
         public static Real Min(Real x, Real y) { return x < y ? x : y; }
         public static Real Max(Real x, Real y) { return x > y ? x : y; }
@@ -165,59 +107,23 @@ namespace SyMath
         public static Real Log(Real x, Real b) { return new Real(Math.Log((double)x, (double)b)); }
         public static Real Log10(Real x) { return new Real(Math.Log((double)x, 10.0)); }
         
-        public static Real Floor(Real x) 
-        {
-            if (x.rational != null)
-                return new Real(BigRational.Floor(x.rational.Value));
-            return new Real(Math.Floor((double)x)); 
-        }
-        public static Real Ceiling(Real x)
-        {
-            if (x.rational != null)
-                return new Real(BigRational.Ceiling(x.rational.Value));
-            return new Real(Math.Ceiling((double)x)); 
-        }
-        public static Real Round(Real x)
-        {
-            if (x.rational != null)
-                return new Real(BigRational.Round(x.rational.Value));
-            return new Real(Math.Round((double)x)); 
-        }
+        public static Real Floor(Real x) { return new Real(BigRational.Floor(x.r)); }
+        public static Real Ceiling(Real x) { return new Real(BigRational.Ceiling(x.r)); }
+        public static Real Round(Real x) { return new Real(BigRational.Round(x.r)); }
         
         // IComparable interface.
-        public int CompareTo(Real x)
-        {
-            if (rational != null && x.rational != null)
-                return rational.Value.CompareTo(x.rational.Value);
-            return ((double)this).CompareTo((double)x);
-        }
+        public int CompareTo(Real x) { return r.CompareTo(x.r); }
 
         // IEquatable interface.
-        public bool Equals(Real x)
-        {
-            if (rational != null && x.rational != null)
-                return rational.Equals(x.rational);
-            else if (real != null && x.real != null)
-                return real.Equals(x.real);
-            else
-                return CompareTo(x) == 0;
-        }
+        public bool Equals(Real x) { return r.Equals(x.r); }
 
         public string ToLaTeX()
         {
             if (Equals(Infinity)) return @"\infty";
             if (Equals(-Infinity)) return @"-\infty";
+            if (Equals(NaN)) return "NaN";
 
-            if (rational != null)
-                return rational.Value.ToLaTeX();
-            
-            string r = ((decimal)this).ToString("G6");
-            int e = r.IndexOfAny("eE".ToCharArray());
-
-            if (e == -1)
-                return r;
-
-            return r.Substring(0, e) + @"\times 10^{" + int.Parse(r.Substring(e + 1)).ToString() + "}";
+            return r.ToLaTeX();
         }
 
         // IFormattable interface.
@@ -225,14 +131,15 @@ namespace SyMath
         {
             if (Equals(Infinity)) return "\u221E";
             if (Equals(-Infinity)) return "-\u221E";
+            if (Equals(NaN)) return "NaN";
 
-            return rational != null ? rational.Value.ToString(format, formatProvider) : real.Value.ToString(format);
+            return r.ToString(format, formatProvider);
         }
         public string ToString(string format) { return ToString(format, null); }
          
         // object interface.
         public override bool Equals(object obj) { return obj is Real ? Equals((Real)obj) : base.Equals(obj); }
-        public override int GetHashCode() { return rational != null ? rational.GetHashCode() : real.GetHashCode(); }
-        public override string ToString() { return rational != null ? rational.ToString() : real.ToString(); }
+        public override int GetHashCode() { return r.GetHashCode(); }
+        public override string ToString() { return r.ToString(); }
     }
 }
