@@ -13,6 +13,7 @@ namespace SyMath
         private class Term
         {
             public Expression b, A;
+            public int bh;
             public Expression Ab 
             { 
                 get 
@@ -25,7 +26,7 @@ namespace SyMath
                 } 
             }
 
-            public Term(Expression b) { this.b = b; this.A = 0; }
+            public Term(Expression b) { this.b = b; this.A = 0; bh = b.GetHashCode(); }
 
             public override string ToString()
             {
@@ -63,8 +64,8 @@ namespace SyMath
         /// <returns></returns>
         public Expression this[Expression b]
         {
-            get { return terms.Single(i => i.b.Equals(b)).A; }
-            set { terms.SingleOrDefault(i => i.b.Equals(b)).A = value; }
+            get { int bh = b.GetHashCode(); return terms.Single(i => i.bh == bh && i.b.Equals(b)).A; }
+            set { int bh = b.GetHashCode(); terms.SingleOrDefault(i => i.bh == bh && i.b.Equals(b)).A = value; }
         }
 
         private object tag;
