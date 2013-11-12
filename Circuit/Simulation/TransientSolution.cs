@@ -204,7 +204,7 @@ namespace Circuit
                     Factor(i);
                 
                 solutions.Add(new NewtonIteration(solved, J, dy, guess));
-                LogExpressions(Log, MessageType.Verbose, "Non-linear Newton's method updates:", J.Select(i => Equal.New(i.ToExpression(), 0)));
+                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", dy.UnSplit(", ")), J.Select(i => i.ToString() + " == 0"));
                 LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
             }
 
