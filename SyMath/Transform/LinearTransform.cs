@@ -28,5 +28,19 @@ namespace SyMath
                 return Product.New(A.Append(Visit(Product.New(M.Terms.Where(i => !IsConstant(i))))));
             return base.VisitProduct(M);
         }
+
+        // V((A*x)^n) = A^(1/n)*V(x^n)
+        protected override Expression VisitPower(Power P)
+        {
+            if (!IsConstant(P.Right))
+                return base.VisitPower(P);
+
+            Expression L = P.Left.Factor();
+
+            IEnumerable<Expression> A = Product.TermsOf(L).Where(i => IsConstant(i));
+            if (A.Any())
+                return Product.New(Power.New(Product.New(A), 1 / P.Right), Visit(Product.New(Product.TermsOf(L).Where(i => !IsConstant(i)))));
+            return base.VisitPower(P);
+        }
     }
 }

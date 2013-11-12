@@ -41,7 +41,7 @@ namespace SyMath
 
                 List<Expression> terms = s.Terms.Select(i => i.Factor()).ToList();
                 
-                // All of the distinct factors, excluding constants.
+                // All of the distinct factors.
                 List<Expression> factors = terms.SelectMany(i => Product.TermsOf(i)).Distinct().ToList();
                 // Choose the most common factor to use.
                 Expression factor = factors.ArgMax(i => terms.Count(j => Product.TermsOf(j).Contains(i)));
