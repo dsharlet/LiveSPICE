@@ -27,8 +27,6 @@ namespace SyMath
             }
         }
 
-        public static BigRational Unchecked(int n, int d) { BigRational x = new BigRational(); x.n = n; x.d = d; return x; }
-
         public BigRational(int Integer) { n = Integer; d = 1; }
         public BigRational(int Numerator, int Denominator) { n = Numerator; d = Denominator; Reduce();  }
         public BigRational(long Integer) { n = Integer; d = 1; }
@@ -101,6 +99,10 @@ namespace SyMath
             Reduce();
         }
 
+        public static BigRational Unchecked(int n, int d) { BigRational x = new BigRational(); x.n = n; x.d = d; return x; }
+        public static BigRational Unchecked(BigInteger n, BigInteger d) { BigRational x = new BigRational(); x.n = n; x.d = d; return x; }
+        public bool Equals(int n, int d) { return this.n == n && this.d == d; }
+
         private static int InsignificantDigits(BigInteger x)
         {
             for (int i = 0; i < 1000; ++i)
@@ -131,15 +133,22 @@ namespace SyMath
                 return @"\frac{" + ns + "}{" + nd + "}";
         }
 
+        public bool IsZero() { return n == 0; }
+        public bool IsOne() { return n == d; }
+
         // IEquatable interface.
         public bool Equals(BigRational x) { return d == x.d && n == x.n; }
 
         // IComparable interface.
-        public int CompareTo(BigRational x) 
+        public int CompareTo(BigRational x)
         {
             if (Equals(x))
                 return 0;
-            return (n * x.d).CompareTo(x.n * d); 
+            // Try comparing signs first, to avoid big integer multiply.
+            int sign = (n.Sign * x.d.Sign).CompareTo(x.n.Sign * d.Sign);
+            if (sign != 0) return sign;
+
+            return (n * x.d).CompareTo(x.n * d);
         }
 
         // IFormattable interface.
@@ -192,7 +201,7 @@ namespace SyMath
         public static bool operator <=(BigRational a, BigRational b) { return a.CompareTo(b) <= 0; }
         public static bool operator >(BigRational a, BigRational b) { return a.CompareTo(b) > 0; }
         public static bool operator >=(BigRational a, BigRational b) { return a.CompareTo(b) >= 0; }
-
+                
         // Conversions.
         public static implicit operator BigRational(BigInteger x) { return new BigRational(x); }
         public static implicit operator BigRational(long x) { return new BigRational(x); }
@@ -206,20 +215,24 @@ namespace SyMath
         public static explicit operator double(BigRational x) { return (double)x.n / (double)x.d; }
 
         // Useful functions.
-        public static BigRational Abs(BigRational x) { return new BigRational(BigInteger.Abs(x.n), BigInteger.Abs(x.d)); }
-        public static BigRational Sign(BigRational x) { return new BigRational(x < 0 ? -1 : 1); }
-        
-        public static BigRational Floor(BigRational x) 
+        public static BigRational Abs(BigRational x) { return BigRational.Unchecked(BigInteger.Abs(x.n), BigInteger.Abs(x.d)); }
+        public static int Sign(BigRational x) { return x.n.Sign * x.d.Sign; }
+
+        public static BigInteger Floor(BigInteger n, BigInteger d)
         {
-            BigInteger i = x.n / x.d;
-            if (i == x)
-                return x;
-            else if (x < 0)
-                return i - 1;
+            BigInteger r;
+            BigInteger q = BigInteger.DivRem(n, d, out r);
+
+            if (r == 0)
+                return q;
+            else if (r < 0)
+                return q - 1;
             else
-                return i;
+                return q;
         }
-        public static BigRational Ceiling(BigRational x) { return Floor(new BigRational(x.n + x.d - 1, x.d)); }
-        public static BigRational Round(BigRational x) { return Floor(new BigRational(x.n + (x.d >> 1), x.d)); }
+
+        public static BigInteger Floor(BigRational x) { return Floor(x.n, x.d); }
+        public static BigInteger Ceiling(BigRational x) { return Floor(x.n + x.d - 1, x.d); }
+        public static BigInteger Round(BigRational x) { return Floor(x.n + (x.d >> 1), x.d); }
     }
 }

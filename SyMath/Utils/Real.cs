@@ -13,11 +13,9 @@ namespace SyMath
     {
         private BigRational r;
 
-        // It's amazing how well this works to correctly deal with comparisons of infinity.
         private static BigRational PositiveInfinity = BigRational.Unchecked(1, 0);
         private static BigRational NegativeInfinity = BigRational.Unchecked(-1, 0);
 
-        // This doesn't work as well...
         private static BigRational NaN = BigRational.Unchecked(0, 0);
 
         public Real(int x) { r = x; }
@@ -37,6 +35,8 @@ namespace SyMath
         }
 
         public static readonly Real Infinity = new Real(PositiveInfinity);
+
+        public bool IsNaN() { return r.Equals(0, 0); }
 
         public static explicit operator int(Real x) { return (int)x.r; }
         public static explicit operator double(Real x) { return (double)x.r; }
@@ -65,10 +65,13 @@ namespace SyMath
         public static Real operator /(Real a, Real b) { return new Real(a.r / b.r); }
         public static Real operator ^(Real a, Real b) { return new Real(a.r ^ b.r); }
         public static Real operator -(Real x) { return new Real(-x.r); }
+
+        public bool IsZero() { return r.IsZero(); }
+        public bool IsOne() { return r.IsOne(); }
         
         // Math functions
-        public static Real Abs(Real x) { return x > 0 ? x : -x; }
-        public static int Sign(Real x) { return x < 0 ? -1 : 1; }
+        public static Real Abs(Real x) { return new Real(BigRational.Abs(x.r)); }
+        public static int Sign(Real x) { return BigRational.Sign(x.r); }
 
         public static Real Min(Real x, Real y) { return x < y ? x : y; }
         public static Real Max(Real x, Real y) { return x > y ? x : y; }
