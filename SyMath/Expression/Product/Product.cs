@@ -13,43 +13,14 @@ namespace SyMath
     public abstract class Product : Expression
     {
         public abstract IEnumerable<Expression> Terms { get; }
-
-        private static IEnumerable<Expression> FlattenTerms(IEnumerable<Expression> Terms)
-        {
-            foreach (Expression i in Terms)
-            {
-                if (i is Product)
-                    foreach (Expression j in FlattenTerms(((Product)i).Terms))
-                        yield return j;
-                else
-                    yield return i;
-            }
-        }
-        private static IEnumerable<Expression> CanonicalForm(IEnumerable<Expression> Terms)
-        {
-            return FlattenTerms(Terms.Where(i => !i.IsOne())).OrderBy(i => i);
-        }
-
+        
         /// <summary>
         /// Create a new product expression in canonical form.
         /// </summary>
         /// <param name="Terms">The list of terms in the product expression.</param>
         /// <returns></returns>
-        public static Expression New(IEnumerable<Expression> Terms)
-        {
-            Debug.Assert(!Terms.Contains(null));
-
-            // Canonicalize the terms.
-            Terms = CanonicalForm(Terms);
-            
-            switch (Terms.Count())
-            {
-                case 0: return 1;
-                case 1: return Terms.First();
-                default: return new Multiply(Terms);
-            }
-        }
-        public static Expression New(params Expression[] Terms) { return New(Terms.AsEnumerable()); }
+        public static Expression New(IEnumerable<Expression> Terms) { return Multiply.New(Terms); }
+        public static Expression New(params Expression[] Terms) { return Multiply.New(Terms); }
 
         public override bool Matches(Expression E, MatchContext Matched)
         {
