@@ -17,7 +17,7 @@ namespace SyMath
         /// </summary>
         public ReadOnlyCollection<Expression> Members { get { return new ReadOnlyCollection<Expression>(members); } }
 
-        protected Set(IEnumerable<Expression> Members) { members = Members.ToList(); }
+        protected Set(IEnumerable<Expression> Members) { members = Members.OrderBy(i => i).ToList(); }
 
         public static Set New(IEnumerable<Expression> Members) { return new Set(Members); }
         public static Set New(params Expression[] Members) { return new Set(Members); }
