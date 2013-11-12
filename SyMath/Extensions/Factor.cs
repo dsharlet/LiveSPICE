@@ -45,25 +45,13 @@ namespace SyMath
                 List<Expression> factors = terms.SelectMany(i => Product.TermsOf(i)).Distinct().ToList();
                 // Choose the most common factor to use.
                 Expression factor = factors.ArgMax(i => terms.Count(j => Product.TermsOf(j).Contains(i)));
+                // Find the terms that contain the factor.
                 List<Expression> contains = terms.Where(i => Product.TermsOf(i).Contains(factor)).ToList();
+                // If more than one term contains the factor, pull it out and factor the resulting expression (again).
                 if (contains.Count > 1)
                     return Sum.New(
-                        Product.New(factor, Sum.New(contains.Select(i => Product.New(Product.TermsOf(i).Except(factor)))).Factor()),
-                        Sum.New(terms.ExceptUnique(contains)).Factor()).Factor();
-
-                //// Find the largest constant.
-                //Real A = 1;
-                //foreach (Expression i in terms)
-                //{
-                //    Real Ai = Product.TermsOf(i).OfType<Constant>().Select(j => j.Value).Aggregate((Real)1, (a, j) => a * j);
-                //    if (Real.Abs(Real.Max(Ai, 1 / Ai)) > Real.Abs(Real.Max(A, 1 / A)))
-                //        A = Ai;
-                //    else if (Ai == -1 && A == 1)
-                //        A = Ai;
-                //}
-
-                //if (A != 1)
-                //    return Product.New(Constant.New(A), Sum.New(terms.Select(i => i / A)));
+                        Product.New(factor, Sum.New(contains.Select(i => Product.New(Product.TermsOf(i).Except(factor))))),
+                        Sum.New(terms.ExceptUnique(contains))).Factor();
             }
 
             return f;
