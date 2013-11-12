@@ -64,11 +64,12 @@ namespace SyMath
         public override string ToString() { return x.ToString("G6"); }
         public string ToString(string format, IFormatProvider formatProvider) { return x.ToString(format, formatProvider); }
 
+        // Note that this is *not* an arithmetic comparison, it is a canonicalization ordering.
         public override int CompareTo(Expression R)
         {
             Constant RC = R as Constant;
             if (!ReferenceEquals(RC, null))
-                return RC.Value.CompareTo(Value);
+                return Real.Abs(RC.Value).CompareTo(Real.Abs(Value));
 
             return base.CompareTo(R);
         }
