@@ -17,7 +17,7 @@ namespace CircuitTests
         static readonly Variable t = Component.t;
 
         static Quantity SampleRate = new Quantity(48000, Units.Hz);
-        static int Samples = 48000;
+        static int Samples = 100000;
         static int Oversample = 8;
         static int Iterations = 8;
 
@@ -35,6 +35,7 @@ namespace CircuitTests
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
 
+            // This test generates the signal for the LiveSPICE 'logo'.
             //Run("BossSD1NoBuffer.xml", Vin, "V1[t]", new Expression[] { "_v15[t]", "_v11[t]" });
             //return;
             
@@ -72,15 +73,18 @@ namespace CircuitTests
             analysisTime += Timer.Delta(a);
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
-
-            return RunTest(
-                C, S,
-                C.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault(), 
-                C.Nodes.Select(i => i.V),
-                TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
-                Vin,
-                Samples,
-                System.IO.Path.GetFileNameWithoutExtension(FileName));
+            
+            if (Samples > 0) 
+                return RunTest(
+                    C, S,
+                    C.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault(), 
+                    C.Nodes.Select(i => i.V),
+                    TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
+                    Vin,
+                    Samples,
+                    System.IO.Path.GetFileNameWithoutExtension(FileName));
+            else
+                return 0.0;
         }
 
         public static double Run(string FileName, Func<double, double> Vin, Expression Input, IEnumerable<Expression> Plots)
@@ -91,15 +95,17 @@ namespace CircuitTests
             analysisTime += Timer.Delta(a);
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
-
-            return RunTest(
-                C, S,
-                Input,
-                Plots,
-                TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
-                Vin,
-                Samples,
-                System.IO.Path.GetFileNameWithoutExtension(FileName));
+            if (Samples > 0)
+                return RunTest(
+                    C, S,
+                    Input,
+                    Plots,
+                    TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
+                    Vin,
+                    Samples,
+                    System.IO.Path.GetFileNameWithoutExtension(FileName));
+            else
+                return 0.0;
         }
 
         public static double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
