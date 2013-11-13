@@ -194,7 +194,7 @@ namespace SyMath
         /// <param name="x">List of variables to solve for, with an initial guess.</param>
         /// <param name="Epsilon">Threshold for convergence.</param>
         /// <returns></returns>
-        public static List<Arrow> NSolve(this IEnumerable<Expression> f, IEnumerable<Arrow> x, double Epsilon, int MaxIterations)
+        public static List<Arrow> NSolve(this IEnumerable<Equal> f, IEnumerable<Arrow> x, double Epsilon, int MaxIterations)
         {
             return NSolve(f.Select(i => EqualToZero(i)).AsList(), x.AsList(), Epsilon, MaxIterations);
         }
@@ -205,7 +205,7 @@ namespace SyMath
         /// <param name="f">System of equations to solve for 0.</param>
         /// <param name="x">List of variables to solve for, with an initial guess.</param>
         /// <returns></returns>
-        public static List<Arrow> NSolve(this IEnumerable<Expression> f, IEnumerable<Arrow> x) { return NSolve(f, x, 1e-6, 64); }
+        public static List<Arrow> NSolve(this IEnumerable<Equal> f, IEnumerable<Arrow> x) { return NSolve(f, x, 1e-6, 64); }
 
         private static Expression EqualToZero(Expression i)
         {

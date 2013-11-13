@@ -111,12 +111,12 @@ namespace SyMath
         /// <returns>Expression or set of expressions for x.</returns>
         public static Expression NSolve(Expression f, Expression x, Expression e, Expression n)
         {
-            IEnumerable<Expression> result = Set.MembersOf(f).NSolve(Set.MembersOf(x).Cast<Arrow>(), (double)e, (int)n);
+            IEnumerable<Expression> result = Set.MembersOf(f).Cast<Equal>().NSolve(Set.MembersOf(x).Cast<Arrow>(), (double)e, (int)n);
             return (f is Set || result.Count() != 1) ? Set.New(result) : result.Single();
         }
         public static Expression NSolve(Expression f, Expression x)
         {
-            IEnumerable<Expression> result = Set.MembersOf(f).NSolve(Set.MembersOf(x).Cast<Arrow>());
+            IEnumerable<Expression> result = Set.MembersOf(f).Cast<Equal>().NSolve(Set.MembersOf(x).Cast<Arrow>());
             return (f is Set || result.Count() != 1) ? Set.New(result) : result.Single();
         }
 
