@@ -55,19 +55,36 @@ namespace SyMath
             int M = F.Count;
             int N = x0.Count;
 
-            // Compile the Jacobian and F to delegates so we can evaluate them quickly during iteration.
-            Delegate[][] _J = new Delegate[M][];
+            // Define a function to evaluate JxF(x0).
+            LinqCodeGen code = new LinqCodeGen();
+
+            ParamExpr _J = code.DeclParameter<double[][]>("J");
+            ParamExpr _x0 = code.DeclParameter<double[]>("x0");
+
+            // Load x_j from the input array and add them to the map.
+            for (int j = 0; j < N; ++j)
+                code.Decl(x0[j].Left, LinqExpr.ArrayAccess(_x0, LinqExpr.Constant(j)));
+
+            LinqExpr error = code.Decl<double>("error");
+
+            // Compile the expressions to assign J.
             for (int i = 0; i < M; ++i)
             {
-                _J[i] = new Delegate[N + 1];
-
-                List<ParamExpr> args = x0.Select(j => LinqExpr.Parameter(typeof(double), j.Left.ToString())).ToList();
-                Dictionary<Expression, LinqExpr> map = Enumerable.Range(0, N).ToDictionary(j => x0[j].Left, j => (LinqExpr)args[j]);
-                
+                LinqExpr _i = LinqExpr.Constant(i);
                 for (int j = 0; j < N; ++j)
-                    _J[i][j] = LinqExpr.Lambda(J[i][x0[j].Left].Compile(map), args).Compile();
-                _J[i][N] = LinqExpr.Lambda(F[i].Compile(map), args).Compile();
+                    code.Add(LinqExpr.Assign(
+                        LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(_J, _i), LinqExpr.Constant(j)), 
+                        J[i][x0[j].Left].Compile(code)));
+                LinqExpr e = code.ReDecl<double>("e", F[i].Compile(code));
+                code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(_J, _i), LinqExpr.Constant(N)), e));
+                // error += e * e
+                code.Add(LinqExpr.AddAssign(error, LinqExpr.Multiply(e, e)));
             }
+
+            // return error
+            code.Return<double>(error);
+
+            Func<double[][], double[], double> EvalJ = code.Compile<Func<double[][], double[], double>>().Compile();
             
             double[][] JxF = new double[M][];
             for (int i = 0; i < M; ++i)
@@ -80,20 +97,12 @@ namespace SyMath
                 dx[j] = 0.0;
             }
 
+            double epsilon = Epsilon * Epsilon * N;
+
             for (int n = 0; n < MaxIterations; ++n)
             {
                 // Evaluate JxF and F.
-                double error = 0.0;
-                for (int i = 0; i < M; ++i)
-                {
-                    object[] _x = x.Cast<object>().ToArray();
-                    for (int j = 0; j < N; ++j)
-                        JxF[i][j] = (double)_J[i][j].DynamicInvoke(_x);
-                    double e = (double)_J[i][N].DynamicInvoke(_x);
-                    JxF[i][N] = e;
-                    error += e * e;
-                }
-                if (error < Epsilon * Epsilon * N)
+                if (EvalJ(JxF, x) < epsilon)
                     return Enumerable.Range(0, N).Select(i => Arrow.New(x0[i].Left, x[i])).ToList();
 
                 // solve for dx.
