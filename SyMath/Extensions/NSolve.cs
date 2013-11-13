@@ -152,32 +152,34 @@ namespace SyMath
         // Use homotopy method with newton's method to find a solution for F(x) = 0.
         private static List<Arrow> NSolve(List<Expression> F, List<Arrow> x0, double Epsilon, int MaxIterations)
         {
-            List<Expression> F0 = F.Select(i => i - i.Evaluate(x0)).ToList();
+            List<Expression> F0 = F.Select(i => i.Evaluate(x0)).ToList();
 
             // Remember where we last succeeded/failed.
             double s0 = 0.0;
             double s1 = 1.0;
             do
             {
-                // H(F, s) = s*F + (1 - s)*F0
-                List<Expression> H = F.Zip(F0, (i, i0) => s1 * i + (1 - s1) * i0).ToList();
-
                 try
                 {
+                    Real s = s0;
+                    // H(F, s) = F + s*F0
+                    List<Expression> H = F.Zip(F0, (i, i0) => i - s * i0).ToList();
                     x0 = NewtonsMethod(H, x0, Epsilon, MaxIterations);
+
                     // Success at this s!
-                    s0 = s1;
+                    s1 = s0;
                     // Go near the goal.
-                    s1 = Lerp(s1, 1.0, 0.9);
+                    s0 = Lerp(s0, 0.0, 0.9);
                 }
                 catch (AlgebraException)
                 {
                     // Go near the last success.
-                    s1 = Lerp(s0, s1, 0.1);
+                    s0 = Lerp(s0, s1, 0.9);
                 }
-            } while (s1 < 1.0 && s1 >= s0 + 1e-6);
+            } while (s0 > 0.0 && s1 >= s0 + 1e-6);
 
-            if (s1 != 1.0)
+            // Make sure the last solution is at F itself.
+            if (s0 != 0.0)
                 x0 = NewtonsMethod(F, x0, Epsilon, MaxIterations);
 
             return x0;
