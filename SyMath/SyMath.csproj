@@ -62,7 +62,7 @@
     <Compile Include="Extensions\Simplify.cs" />
     <Compile Include="Namespace\GlobalNamespace.cs" />
     <Compile Include="Namespace\Namespace.cs" />
-    <Compile Include="Expression\Function.cs" />
+    <Compile Include="Expression\Functions\Function.cs" />
     <Compile Include="Extensions\DSolve.cs" />
     <Compile Include="Extensions\Matrix.cs" />
     <Compile Include="Expression\Sum\Polynomial.cs" />
