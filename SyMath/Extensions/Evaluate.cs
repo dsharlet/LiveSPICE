@@ -80,6 +80,7 @@ namespace SyMath
             }
             else if (!C.IsOne())
             {
+                // Find a sum term to distribute the constant through. TODO: Try to remove this.
                 KeyValuePair<Expression, Real> A = Terms.FirstOrDefault(i => i.Key is Sum && Real.Abs(i.Value).IsOne());
                 if (!ReferenceEquals(A.Key, null))
                 {
