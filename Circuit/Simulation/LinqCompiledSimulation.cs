@@ -106,9 +106,9 @@ namespace Circuit
             Log.WriteLine(MessageType.Verbose, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Verbose, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Verbose, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
-            LinqExprs.LambdaExpression lambda = DefineProcessFunction(T, Oversample, Iterations, Input, Output, Parameters);
+            LinqCodeGen lambda = DefineProcessFunction(T, Oversample, Iterations, Input, Output, Parameters);
             Log.WriteLine(MessageType.Info, "[{0}] Compiling sample processing function...", time);
-            d = lambda.Compile();
+            d = lambda.Compile().Compile();
             Log.WriteLine(MessageType.Info, "[{0}] Done.", time);
 
             return compiled[hash] = d;
@@ -117,7 +117,7 @@ namespace Circuit
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
         //  { ... }
-        private LinqExprs.LambdaExpression DefineProcessFunction(double T, int Oversample, int Iterations, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
+        private LinqCodeGen DefineProcessFunction(double T, int Oversample, int Iterations, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             // Map expressions to identifiers in the syntax tree.
             Dictionary<Expression, LinqExpr> inputs = new Dictionary<Expression, LinqExpr>();
@@ -248,10 +248,10 @@ namespace Circuit
                                     for (int x = 0; x < deltas.Length; ++x)
                                         code.Add(LinqExpr.Assign(
                                             LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(x)),
-                                            code.Compile(eqs[i][deltas[x]])));
+                                            eqs[i][deltas[x]].Compile(code)));
                                     code.Add(LinqExpr.Assign(
                                         LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(deltas.Length)),
-                                        code.Compile(eqs[i][1])));
+                                        eqs[i][1].Compile(code)));
                                 }
                                                                 
                                 // Gaussian elimination on this turd.
@@ -397,7 +397,7 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 code.Add(LinqExpr.Assign(i.Value, code[i.Key]));
 
-            return code.CreateLambda();
+            return code;
         }
         
         // If x fails to compile, return 0. 

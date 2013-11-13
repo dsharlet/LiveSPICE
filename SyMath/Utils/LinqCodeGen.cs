@@ -38,7 +38,7 @@ namespace SyMath
         /// </summary>
         /// <param name="Parameters"></param>
         /// <returns></returns>
-        public LinqExprs.LambdaExpression CreateLambda()
+        public LinqExprs.LambdaExpression Compile()
         {
             // If the return target has been created, append it to the body.
             IEnumerable<LinqExpr> body = target;
@@ -48,11 +48,16 @@ namespace SyMath
             return LinqExpr.Lambda(LinqExpr.Block(locals, body), parameters);
         }
 
-        public LinqExpr Compile(Expression Expr)
+        public LinqExprs.Expression<T> Compile<T>()
         {
-            return Expr.Compile(this);
-        }
+            // If the return target has been created, append it to the body.
+            IEnumerable<LinqExpr> body = target;
+            if (ret != null)
+                body = body.Append(LinqExpr.Label(ret, ret.Type.IsValueType ? LinqExpr.Constant(Activator.CreateInstance(ret.Type)) : null));
 
+            return LinqExpr.Lambda<T>(LinqExpr.Block(locals, body), parameters);
+        }
+        
         /// <summary>
         /// Add some instructions to the codegen.
         /// </summary>
@@ -63,9 +68,9 @@ namespace SyMath
         /// Generate a return statement.
         /// </summary>
         /// <param name="Value"></param>
-        public void Return(LinqExpr Value)
+        public void Return<T>(LinqExpr Value)
         {
-            if (ret == null) ret = LinqExpr.Label("ret");
+            if (ret == null) ret = LinqExpr.Label(typeof(T), "ret");
             target.Add(LinqExpr.Return(ret, Value));
         }
 
@@ -359,7 +364,7 @@ namespace SyMath
             Add(LinqExpr.Assign(d, Init));
             return d;
         }
-        public ParamExpr Decl(Expression Expr, Expression Init) { return Decl(Expr, Compile(Init)); }
+        public ParamExpr Decl(Expression Expr, Expression Init) { return Decl(Expr, Init.Compile(this)); }
 
         public ParamExpr DeclParameter(string Name, Expression Expr) { return Decl(Scope.Parameter, Name, Expr); }
         public ParamExpr DeclParameter(Expression Expr) { return Decl(Scope.Parameter, Expr); }
