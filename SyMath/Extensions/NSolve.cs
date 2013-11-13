@@ -45,12 +45,9 @@ namespace SyMath
             return Jacobian(F, x.Select(i => Arrow.New(i, i)));
         }
         
-        private const int MaxIterations = 1000;
-
-        private static List<Arrow> NSolve(List<Equal> f, List<Arrow> x0, double Epsilon)
+        // Use neton's method to solve F(x) = 0, with initial guess x0.
+        private static List<Arrow> NewtonsMethod(List<Expression> F, List<Arrow> x0, double Epsilon, int MaxIterations)
         {
-            List<Expression> F = f.Select(i => i.Left - i.Right).ToList();
-            
             // Numerically approximate the solution of F = 0 with Newton's method, 
             // i.e. solve JF(x0)*(x - x0) = -F(x0) for x.
             List<LinearCombination> J = Jacobian(F, x0.Select(i => i.Left));
@@ -92,7 +89,7 @@ namespace SyMath
                     object[] _x = x.Cast<object>().ToArray();
                     for (int j = 0; j < N; ++j)
                         JxF[i][j] = (double)_J[i][j].DynamicInvoke(_x);
-                    double e = (double)_J[i][N].DynamicInvoke(_x);;
+                    double e = (double)_J[i][N].DynamicInvoke(_x);
                     JxF[i][N] = e;
                     error += e * e;
                 }
@@ -152,24 +149,68 @@ namespace SyMath
 
         private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
 
+        // Use homotopy method with newton's method to find a solution for F(x) = 0.
+        private static List<Arrow> NSolve(List<Expression> F, List<Arrow> x0, double Epsilon, int MaxIterations)
+        {
+            List<Expression> F0 = F.Select(i => i - i.Evaluate(x0)).ToList();
+
+            // Remember where we last succeeded/failed.
+            double s0 = 0.0;
+            double s1 = 1.0;
+            do
+            {
+                // H(F, s) = s*F + (1 - s)*F0
+                List<Expression> H = F.Zip(F0, (i, i0) => s1 * i + (1 - s1) * i0).ToList();
+
+                try
+                {
+                    x0 = NewtonsMethod(H, x0, Epsilon, MaxIterations);
+                    // Success at this s!
+                    s0 = s1;
+                    // Go near the goal.
+                    s1 = Lerp(s1, 1.0, 0.9);
+                }
+                catch (AlgebraException)
+                {
+                    // Go near the last success.
+                    s1 = Lerp(s0, s1, 0.1);
+                }
+            } while (s1 < 1.0 && s1 >= s0 + 1e-6);
+
+            if (s1 != 1.0)
+                x0 = NewtonsMethod(F, x0, Epsilon, MaxIterations);
+
+            return x0;
+        }
+
+        private static double Lerp(double a, double b, double t) { return a + (b - a) * t; }
+
         /// <summary>
-        /// Solve a system of equations numerically.
+        /// Numerically solve a system of equations implicitly equal to 0.
         /// </summary>
-        /// <param name="f">System of equations to solve.</param>
+        /// <param name="f">System of equations to solve for 0.</param>
         /// <param name="x">List of variables to solve for, with an initial guess.</param>
         /// <param name="Epsilon">Threshold for convergence.</param>
         /// <returns></returns>
-        public static List<Arrow> NSolve(this IEnumerable<Equal> f, IEnumerable<Arrow> x, double Epsilon)
+        public static List<Arrow> NSolve(this IEnumerable<Expression> f, IEnumerable<Arrow> x, double Epsilon, int MaxIterations)
         {
-            return NSolve(f.AsList(), x.AsList(), Epsilon);
+            return NSolve(f.Select(i => EqualToZero(i)).AsList(), x.AsList(), Epsilon, MaxIterations);
         }
 
         /// <summary>
-        /// Solve a system of equations numerically.
+        /// Numerically solve a system of equations implicitly equal to 0.
         /// </summary>
-        /// <param name="f">System of equations to solve.</param>
+        /// <param name="f">System of equations to solve for 0.</param>
         /// <param name="x">List of variables to solve for, with an initial guess.</param>
         /// <returns></returns>
-        public static List<Arrow> NSolve(this IEnumerable<Equal> f, IEnumerable<Arrow> x) { return NSolve(f, x, 1e-6); }
+        public static List<Arrow> NSolve(this IEnumerable<Expression> f, IEnumerable<Arrow> x) { return NSolve(f, x, 1e-6, 64); }
+
+        private static Expression EqualToZero(Expression i)
+        {
+            if (i is Equal)
+                return ((Equal)i).Left - ((Equal)i).Right;
+            else
+                return i;
+        }
     }
 }
