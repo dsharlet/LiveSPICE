@@ -120,26 +120,29 @@ namespace Circuit
         private LinqExprs.LambdaExpression DefineProcessFunction(double T, int Oversample, int Iterations, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             // Map expressions to identifiers in the syntax tree.
-            Dictionary<Expression, LinqExpr> map = new Dictionary<Expression, LinqExpr>();
             Dictionary<Expression, LinqExpr> inputs = new Dictionary<Expression, LinqExpr>();
             List<KeyValuePair<Expression, LinqExpr>> outputs = new List<KeyValuePair<Expression, LinqExpr>>();
             
-            // Lambda definition objects.
-            List<ParamExpr> parameters = new List<ParamExpr>();
-            List<ParamExpr> locals = new List<ParamExpr>();
-            List<LinqExpr> body = new List<LinqExpr>();
+            // Lambda code generator.
+            LinqCodeGen code = new LinqCodeGen();
 
             // Create parameters for the basic simulation info (N, t, T, Oversample, Iterations).
-            ParamExpr SampleCount = Declare<int>(parameters, "SampleCount");
-            ParamExpr t0 = Declare<double>(parameters, map, Simulation.t0);
+            ParamExpr SampleCount = code.DeclParameter<int>("SampleCount");
+            ParamExpr t0 = code.DeclParameter(Simulation.t0);
             // Create buffer parameters for each input, output.
             foreach (Expression i in Input)
-                Declare<double[]>(parameters, inputs, i);
+            {
+                ParamExpr p = code.DeclParameter<double[]>(i.ToString());
+                inputs.Add(i, p);
+            }
             foreach (Expression i in Output)
-                Declare<double[]>(parameters, outputs, i);
+            {
+                ParamExpr p = code.DeclParameter<double[]>(i.ToString());
+                outputs.Add(new KeyValuePair<Expression, LinqExpr>(i, p));
+            }
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
-                Declare<double>(parameters, map, i);
+                code.DeclParameter(i);
 
             // Create globals to store previous values of input.
             foreach (Expression i in Input)
@@ -151,66 +154,66 @@ namespace Circuit
             LinqExpr Zero = LinqExpr.Constant(0);
 
             // double t = t0
-            ParamExpr t = Declare<double>(locals, map, Simulation.t);
-            body.Add(LinqExpr.Assign(t, t0));
+            ParamExpr t = code.Decl(Simulation.t);
+            code.Add(LinqExpr.Assign(t, t0));
 
             // double h = T / Oversample
             LinqExpr h = LinqExpr.Constant((double)T / (double)Oversample);
 
             // Load the globals to local variables and add them to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Key), i.Value));
+                code.Add(LinqExpr.Assign(code.Decl(i.Key), i.Value));
 
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
-                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Key), map[i.Key.Evaluate(t_t0)]));
+                code.Add(LinqExpr.Assign(code.Decl(i.Key), code[i.Key.Evaluate(t_t0)]));
 
             // Create arrays for the newton's method systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
             int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Updates.Count(), 0) + 1;
-            LinqExpr JxF = Declare(locals, body, "JxF", LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
+            LinqExpr JxF = code.Decl<double[][]>("JxF", LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
             for (int j = 0; j < M; ++j)
-                body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(N))));
+                code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(N))));
 
             // for (int n = 0; n < SampleCount; ++n)
-            ParamExpr n = Declare<int>(locals, "n");
-            For(body,
-                () => body.Add(LinqExpr.Assign(n, Zero)),
+            ParamExpr n = code.Decl<int>("n");
+            code.For(
+                () => code.Add(LinqExpr.Assign(n, Zero)),
                 LinqExpr.LessThan(n, SampleCount),
-                () => body.Add(LinqExpr.PreIncrementAssign(n)),
+                () => code.Add(LinqExpr.PreIncrementAssign(n)),
                 () =>
             {
                 // Prepare input samples for oversampling interpolation.
                 Dictionary<Expression, LinqExpr> dVi = new Dictionary<Expression, LinqExpr>();
                 foreach (Expression i in Input)
                 {
-                    LinqExpr Va = map[i];
+                    LinqExpr Va = code[i];
                     LinqExpr Vb = LinqExpr.ArrayAccess(inputs[i], n);
 
                     // dVi = (Vb - Va) / Oversample
-                    body.Add(LinqExpr.Assign(
-                        Declare<double>(locals, dVi, i, "d" + i.ToString().Replace("[t]", "")),
+                    code.Add(LinqExpr.Assign(
+                        Decl<double>(code, dVi, i, "d" + i.ToString().Replace("[t]", "")),
                         LinqExpr.Multiply(LinqExpr.Subtract(Vb, Va), LinqExpr.Constant(1.0 / (double)Oversample))));
                 }
 
                 // Prepare output sample accumulators for low pass filtering.
                 Dictionary<Expression, LinqExpr> Vo = new Dictionary<Expression, LinqExpr>();
                 foreach (Expression i in Output.Distinct())
-                    body.Add(LinqExpr.Assign(
-                        Declare<double>(locals, Vo, i, i.ToString().Replace("[t]", "")),
+                    code.Add(LinqExpr.Assign(
+                        Decl<double>(code, Vo, i, i.ToString().Replace("[t]", "")),
                         LinqExpr.Constant(0.0)));
                 
                 // int ov = Oversample; 
                 // do { -- ov; } while(ov > 0)
-                ParamExpr ov = Declare<int>(locals, "ov");
-                body.Add(LinqExpr.Assign(ov, LinqExpr.Constant(Oversample)));
-                DoWhile(body, () =>
+                ParamExpr ov = code.Decl<int>("ov");
+                code.Add(LinqExpr.Assign(ov, LinqExpr.Constant(Oversample)));
+                code.DoWhile(() =>
                 {
                     // t += h
-                    body.Add(LinqExpr.AddAssign(t, h));
+                    code.Add(LinqExpr.AddAssign(t, h));
 
                     // Interpolate the input samples.
                     foreach (Expression i in Input)
-                        body.Add(LinqExpr.AddAssign(map[i], dVi[i]));
+                        code.Add(LinqExpr.AddAssign(code[i], dVi[i]));
 
                     // Compile all of the SolutionSets in the solution.
                     foreach (SolutionSet ss in Solution.Solutions)
@@ -220,7 +223,7 @@ namespace Circuit
                             // Linear solutions are easy.
                             LinearSolutions S = (LinearSolutions)ss;
                             foreach (Arrow i in S.Solutions)
-                                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
+                                code.Decl(i.Left, i.Right);
                         }
                         else if (ss is NewtonIteration)
                         {
@@ -231,24 +234,24 @@ namespace Circuit
 
                             // Start with the initial guesses from the solution.
                             foreach (Arrow i in S.Guesses)
-                                body.Add(LinqExpr.Assign(Declare<double>(locals, map, i.Left), i.Right.Compile(map)));
+                                code.Decl(i.Left, i.Right);
                             
                             // int it = iterations
-                            ParamExpr it = Redeclare(locals, body, "it", LinqExpr.Constant(Iterations));
+                            ParamExpr it = code.ReDecl("it", Iterations);
                             // do { ... --it } while(it > 0)
-                            DoWhile(body, (Break) =>
+                            code.DoWhile((Break) =>
                             {
                                 // Initialize the matrix.
                                 for (int i = 0; i < eqs.Length; ++i)
                                 {
-                                    LinqExpr JxFi = Redeclare(locals, body, "JxFi", LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i)));
+                                    LinqExpr JxFi = code.ReDecl<double[]>("JxFi", LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i)));
                                     for (int x = 0; x < deltas.Length; ++x)
-                                        body.Add(LinqExpr.Assign(
+                                        code.Add(LinqExpr.Assign(
                                             LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(x)),
-                                            eqs[i][deltas[x]].Compile(map)));
-                                    body.Add(LinqExpr.Assign(
+                                            code.Compile(eqs[i][deltas[x]])));
+                                    code.Add(LinqExpr.Assign(
                                         LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(deltas.Length)),
-                                        eqs[i][1].Compile(map)));
+                                        code.Compile(eqs[i][1])));
                                 }
                                                                 
                                 // Gaussian elimination on this turd.
@@ -257,11 +260,11 @@ namespace Circuit
                                 for (int j = 0; j < deltas.Length; ++j)
                                 {
                                     LinqExpr _j = LinqExpr.Constant(j);
-                                    LinqExpr JxFj = Redeclare(locals, body, "JxFj", LinqExpr.ArrayAccess(JxF, _j));
+                                    LinqExpr JxFj = code.ReDecl<double[]>("JxFj", LinqExpr.ArrayAccess(JxF, _j));
                                     // int pi = j
-                                    LinqExpr pi = Redeclare(locals, body, "pi", _j);
+                                    LinqExpr pi = code.ReDecl<int>("pi", _j);
                                     // double max = |JxF[j][j]|
-                                    LinqExpr max = Redeclare(locals, body, "max", Abs(LinqExpr.ArrayAccess(JxFj, _j)));
+                                    LinqExpr max = code.ReDecl<double>("max", Abs(LinqExpr.ArrayAccess(JxFj, _j)));
                                     
                                     // Find a pivot row for this variable.
                                     for (int i = j + 1; i < eqs.Length; ++i)
@@ -269,8 +272,8 @@ namespace Circuit
                                         LinqExpr _i = LinqExpr.Constant(i);
 
                                         // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
-                                        LinqExpr maxj = Redeclare(locals, body, "maxj", Abs(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(JxF, _i), _j)));
-                                        body.Add(LinqExpr.IfThen(
+                                        LinqExpr maxj = code.ReDecl<double>("maxj", Abs(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(JxF, _i), _j)));
+                                        code.Add(LinqExpr.IfThen(
                                             LinqExpr.GreaterThan(maxj, max),
                                             LinqExpr.Block(
                                                 LinqExpr.Assign(pi, _i), 
@@ -278,34 +281,34 @@ namespace Circuit
                                     }
                                     
                                     // (Maybe) swap the pivot row with the current row.
-                                    LinqExpr JxFpi = Redeclare<double[]>(locals, "JxFpi");
-                                    body.Add(LinqExpr.IfThen(
+                                    LinqExpr JxFpi = code.ReDecl<double[]>("JxFpi");
+                                    code.Add(LinqExpr.IfThen(
                                         LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
                                             new[] { LinqExpr.Assign(JxFpi, LinqExpr.ArrayAccess(JxF, pi)) }.Concat(
                                             Enumerable.Range(j, deltas.Length + 1 - j).Select(x => Swap(
                                                 LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(x)),
                                                 LinqExpr.ArrayAccess(JxFpi, LinqExpr.Constant(x)),
-                                                Redeclare<double>(locals, "swap")))))));
+                                                code.ReDecl<double>("swap")))))));
 
                                     //// It's hard to believe this swap isn't faster than the above...
-                                    //body.Add(LinqExpr.IfThen(LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
-                                    //    Swap(LinqExpr.ArrayAccess(JxF, _j), LinqExpr.ArrayAccess(JxF, pi), Redeclare<double[]>(locals, "temp")),
+                                    //code.Add(LinqExpr.IfThen(LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
+                                    //    Swap(LinqExpr.ArrayAccess(JxF, _j), LinqExpr.ArrayAccess(JxF, pi), Redeclare<double[]>(code, "temp")),
                                     //    LinqExpr.Assign(JxFj, LinqExpr.ArrayAccess(JxF, _j)))));
                                     
                                     // Eliminate the rows after the pivot.
-                                    LinqExpr p = Redeclare(locals, body, "p", LinqExpr.ArrayAccess(JxFj, _j));
+                                    LinqExpr p = code.ReDecl<double>("p", LinqExpr.ArrayAccess(JxFj, _j));
                                     for (int i = j + 1; i < eqs.Length; ++i)
                                     {
                                         LinqExpr _i = LinqExpr.Constant(i);
-                                        LinqExpr JxFi = Redeclare(locals, body, "JxFi", LinqExpr.ArrayAccess(JxF, _i));
+                                        LinqExpr JxFi = code.ReDecl<double[]>("JxFi", LinqExpr.ArrayAccess(JxF, _i));
 
                                         // s = JxF[i][j] / p
-                                        LinqExpr s = Redeclare(locals, body, "scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxFi, _j), p));
+                                        LinqExpr s = code.ReDecl<double>("scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxFi, _j), p));
                                         // JxF[i] -= JxF[j] * s
                                         for (int ji = j + 1; ji < deltas.Length + 1; ++ji)
                                         {
                                             LinqExpr _ji = LinqExpr.Constant(ji);
-                                            body.Add(LinqExpr.SubtractAssign(
+                                            code.Add(LinqExpr.SubtractAssign(
                                                 LinqExpr.ArrayAccess(JxFi, _ji),
                                                 LinqExpr.Multiply(LinqExpr.ArrayAccess(JxFj, _ji), s)));
                                         }
@@ -316,79 +319,75 @@ namespace Circuit
                                 for (int j = deltas.Length - 1; j >= 0; --j)
                                 {
                                     LinqExpr _j = LinqExpr.Constant(j);
-                                    LinqExpr JxFj = Redeclare(locals, body, "JxFj", LinqExpr.ArrayAccess(JxF, _j));
+                                    LinqExpr JxFj = code.ReDecl<double[]>("JxFj", LinqExpr.ArrayAccess(JxF, _j));
 
                                     LinqExpr r = LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(deltas.Length));
                                     for (int ji = j + 1; ji < deltas.Length; ++ji)
-                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(ji)), map[deltas[ji]]));
-                                    body.Add(LinqExpr.Assign(
-                                        Declare<double>(locals, map, deltas[j]),
-                                        LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(JxFj, _j))));
+                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(ji)), code[deltas[ji]]));
+                                    code.Decl(deltas[j], LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(JxFj, _j)));
                                 }
 
                                 // Compile the pre-solved solutions.
                                 if (S.Solved != null)
                                     foreach (Arrow i in S.Solved)
-                                        body.Add(LinqExpr.Assign(
-                                            Declare<double>(locals, map, i.Left), 
-                                            i.Right.Compile(map)));
+                                        code.Decl(i.Left, i.Right);
 
                                 // bool done = true
-                                LinqExpr done = Redeclare(locals, body, "done", LinqExpr.Constant(true));
+                                LinqExpr done = code.ReDecl("done", true);
                                 foreach (Expression i in S.Unknowns)
                                 {
-                                    LinqExpr v = map[i];
-                                    LinqExpr dv = map[NewtonIteration.Delta(i)];
+                                    LinqExpr v = code[i];
+                                    LinqExpr dv = code[NewtonIteration.Delta(i)];
 
                                     // done &= (|dv| < |v|*epsilon)
-                                    body.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(Abs(dv), LinqExpr.Constant(1e4)), Abs(v))));
+                                    code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(Abs(dv), LinqExpr.Constant(1e4)), Abs(v))));
                                     // v += dv
-                                    body.Add(LinqExpr.AddAssign(v, dv));
+                                    code.Add(LinqExpr.AddAssign(v, dv));
                                 }
                                 // if (done) break
-                                body.Add(LinqExpr.IfThen(done, Break));
+                                code.Add(LinqExpr.IfThen(done, Break));
                                 
                                 // --it;
-                                body.Add(LinqExpr.PreDecrementAssign(it));
+                                code.Add(LinqExpr.PreDecrementAssign(it));
                             }, LinqExpr.GreaterThan(it, Zero));
                             
                             //// bool failed = false
-                            //LinqExpr failed = Declare(locals, body, "failed", LinqExpr.Constant(false));
+                            //LinqExpr failed = Decl(code, code, "failed", LinqExpr.Constant(false));
                             //for (int i = 0; i < eqs.Length; ++i)
                             //    // failed |= |JxFi| > epsilon
-                            //    body.Add(LinqExpr.OrAssign(failed, LinqExpr.GreaterThan(Abs(eqs[i].ToExpression().Compile(map)), LinqExpr.Constant(1e-3))));
+                            //    code.Add(LinqExpr.OrAssign(failed, LinqExpr.GreaterThan(Abs(eqs[i].ToExpression().Compile(map)), LinqExpr.Constant(1e-3))));
 
-                            //body.Add(LinqExpr.IfThen(failed, ThrowSimulationDiverged(n)));
+                            //code.Add(LinqExpr.IfThen(failed, ThrowSimulationDiverged(n)));
                         }
                     }
 
                     // Update the previous timestep variables.
                     foreach (SolutionSet S in Solution.Solutions)
                         foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
-                            body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
+                            code.Add(LinqExpr.Assign(code[i.Evaluate(t_t0)], code[i]));
 
                     // t0 = t
-                    body.Add(LinqExpr.Assign(t0, t));
+                    code.Add(LinqExpr.Assign(t0, t));
 
                     // Vo += i
                     foreach (Expression i in Output.Distinct())
-                        body.Add(LinqExpr.AddAssign(Vo[i], CompileOrWarn(i, map)));
+                        code.Add(LinqExpr.AddAssign(Vo[i], CompileOrWarn(i, code)));
                     
                     // Vi_t0 = Vi
                     foreach (Expression i in Input)
-                        body.Add(LinqExpr.Assign(map[i.Evaluate(t_t0)], map[i]));
+                        code.Add(LinqExpr.Assign(code[i.Evaluate(t_t0)], code[i]));
 
                     // --ov;
-                    body.Add(LinqExpr.PreDecrementAssign(ov));
+                    code.Add(LinqExpr.PreDecrementAssign(ov));
                 }, LinqExpr.GreaterThan(ov, Zero));
                 
                 // Output[i][n] = Vo / Oversample
                 foreach (KeyValuePair<Expression, LinqExpr> i in outputs)
-                    body.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], LinqExpr.Constant(1.0 / (double)Oversample))));
+                    code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], LinqExpr.Constant(1.0 / (double)Oversample))));
 
                 // Every 256 samples, check for divergence.
                 if (Vo.Any())
-                    body.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), Zero),
+                    code.Add(LinqExpr.IfThen(LinqExpr.Equal(LinqExpr.And(n, LinqExpr.Constant(0xFF)), Zero),
                         LinqExpr.Block(Vo.Select(i => LinqExpr.IfThenElse(IsNotReal(i.Value),
                             ThrowSimulationDiverged(n),
                             LinqExpr.Assign(i.Value, RoundDenormToZero(i.Value)))))));
@@ -396,10 +395,9 @@ namespace Circuit
 
             // Copy the global state variables back to the globals.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                body.Add(LinqExpr.Assign(i.Value, map[i.Key]));
+                code.Add(LinqExpr.Assign(i.Value, code[i.Key]));
 
-            // Put it all together.
-            return LinqExpr.Lambda(LinqExpr.Block(locals, body), parameters);
+            return code.CreateLambda();
         }
         
         // If x fails to compile, return 0. 
@@ -421,206 +419,17 @@ namespace Circuit
         {
             return LinqExpr.Throw(LinqExpr.New(typeof(SimulationDiverged).GetConstructor(new Type[] { At.Type }), At));
         }
-
-        // Generate a for loop given the header and body expressions.
-        private static void For(
-            IList<LinqExpr> Target,
-            Action Init,
-            LinqExpr Condition,
-            Action Step,
-            Action<LinqExpr, LinqExpr> Body)
+                        
+        private static ParamExpr Decl<T>(LinqCodeGen Target, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr, string Name)
         {
-            string name = Target.Count.ToString();
-            LinqExprs.LabelTarget begin = LinqExpr.Label("for_" + name + "_begin");
-            LinqExprs.LabelTarget end = LinqExpr.Label("for_" + name + "_end");
-
-            // Generate the init code.
-            Init();
-
-            // Check the condition, exit if necessary.
-            Target.Add(LinqExpr.Label(begin));
-            Target.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
-
-            // Generate the body code.
-            Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
-
-            // Generate the step code.
-            Step();
-            Target.Add(LinqExpr.Goto(begin));
-
-            // Exit point.
-            Target.Add(LinqExpr.Label(end));
-        }
-
-        // Generate a for loop given the header and body expressions.
-        private static void For(
-            IList<LinqExpr> Target,
-            Action Init,
-            LinqExpr Condition,
-            Action Step,
-            Action<LinqExpr> Body)
-        {
-            For(Target, Init, Condition, Step, (end, y) => Body(end));
-        }
-
-        // Generate a for loop given the header and body expressions.
-        private static void For(
-            IList<LinqExpr> Target,
-            Action Init,
-            LinqExpr Condition,
-            Action Step,
-            Action Body)
-        {
-            For(Target, Init, Condition, Step, (x, y) => Body());
-        }
-
-        // Generate a while loop given the condition and body expressions.
-        private static void While(
-            IList<LinqExpr> Target,
-            LinqExpr Condition,
-            Action<LinqExpr, LinqExpr> Body)
-        {
-            string name = (Target.Count + 1).ToString();
-            LinqExprs.LabelTarget begin = LinqExpr.Label("while_" + name + "_begin");
-            LinqExprs.LabelTarget end = LinqExpr.Label("while_" + name + "_end");
-
-            // Check the condition, exit if necessary.
-            Target.Add(LinqExpr.Label(begin));
-            Target.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
-
-            // Generate the body code.
-            Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
-
-            // Loop.
-            Target.Add(LinqExpr.Goto(begin));
-
-            // Exit label.
-            Target.Add(LinqExpr.Label(end));
-        }
-
-        // Generate a while loop given the condition and body expressions.
-        private static void While(
-            IList<LinqExpr> Target,
-            LinqExpr Condition,
-            Action<LinqExpr> Body)
-        {
-            While(Target, Condition, (end, y) => Body(end));
-        }
-
-        // Generate a while loop given the condition and body expressions.
-        private static void While(
-            IList<LinqExpr> Target,
-            LinqExpr Condition,
-            Action Body)
-        {
-            While(Target, Condition, (x, y) => Body());
-        }
-
-        // Generate a do-while loop given the condition and body expressions.
-        private static void DoWhile(
-            IList<LinqExpr> Target,
-            Action<LinqExpr, LinqExpr> Body,
-            LinqExpr Condition)
-        {
-            string name = (Target.Count + 1).ToString();
-            LinqExprs.LabelTarget begin = LinqExpr.Label("do_" + name + "_begin");
-            LinqExprs.LabelTarget end = LinqExpr.Label("do_" + name + "_end");
-
-            // Check the condition, exit if necessary.
-            Target.Add(LinqExpr.Label(begin));
-
-            // Generate the body code.
-            Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
-
-            // Loop.
-            Target.Add(LinqExpr.IfThen(Condition, LinqExpr.Goto(begin)));
-
-            // Exit label.
-            Target.Add(LinqExpr.Label(end));
-        }
-
-        // Generate a do-while loop given the condition and body expressions.
-        private static void DoWhile(
-            IList<LinqExpr> Target,
-            Action<LinqExpr> Body,
-            LinqExpr Condition)
-        {
-            DoWhile(Target, (end, y) => Body(end), Condition);
-        }
-
-        // Generate a do-while loop given the condition and body expressions.
-        private static void DoWhile(
-            IList<LinqExpr> Target,
-            Action Body,
-            LinqExpr Condition)
-        {
-            DoWhile(Target, (x, y) => Body(), Condition);
-        }
-                
-        private static ParamExpr Declare<T>(IList<ParamExpr> Scope, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr, string Name)
-        {
-            ParamExpr p = LinqExpr.Parameter(typeof(T), Name);
-            Scope.Add(p);
-            if (Map != null)
-                Map.Add(new KeyValuePair<Expression, LinqExpr>(Expr, p));
+            ParamExpr p = Target.Decl<T>(Name);
+            Map.Add(new KeyValuePair<Expression, LinqExpr>(Expr, p));
             return p;
         }
 
-        private static ParamExpr Declare<T>(IList<ParamExpr> Scope, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr)
+        private static ParamExpr Decl<T>(LinqCodeGen Target, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr)
         {
-            return Declare<T>(Scope, Map, Expr, Expr.ToString());
-        }
-
-        private static ParamExpr Redeclare<T>(IList<ParamExpr> Scope, IDictionary<Expression, LinqExpr> Map, Expression Expr)
-        {
-            LinqExpr decl;
-            if (Map.TryGetValue(Expr, out decl))
-                return (ParamExpr)decl;
-            else
-                return Declare<T>(Scope, Map, Expr, Expr.ToString());
-        }
-
-        private static ParamExpr Redeclare<T>(IList<ParamExpr> Scope, IList<LinqExpr> Target, IDictionary<Expression, LinqExpr> Map, Expression Expr, LinqExpr Init)
-        {
-            LinqExpr decl;
-            if (!Map.TryGetValue(Expr, out decl))
-                decl = Declare<T>(Scope, Map, Expr, Expr.ToString());
-            Target.Add(LinqExpr.Assign(decl, Init));
-            return (ParamExpr)decl;
-        }
-
-        private static ParamExpr Declare<T>(IList<ParamExpr> Scope, string Name)
-        {
-            return Declare<T>(Scope, null, null, Name);
-        }
-
-        private static ParamExpr Redeclare<T>(IList<ParamExpr> Scope, string Name)
-        {
-            ParamExpr def = Scope.FirstOrDefault(i => i.Name == Name && i.Type == typeof(T));
-            if (def != null)
-                return def;
-            else
-                return Declare<T>(Scope, null, null, Name);
-        }
-
-        private static ParamExpr Declare(IList<ParamExpr> Scope, IList<LinqExpr> Target, string Name, LinqExpr Init)
-        {
-            ParamExpr p = LinqExpr.Parameter(Init.Type, Name);
-            Scope.Add(p);
-            Target.Add(LinqExpr.Assign(p, Init));
-            return p;
-        }
-
-        private static ParamExpr Redeclare(IList<ParamExpr> Scope, IList<LinqExpr> Target, string Name, LinqExpr Init)
-        {
-            ParamExpr p = Scope.FirstOrDefault(i => i.Name == Name && i.Type == Init.Type);
-            if (p == null)
-            {
-                p = LinqExpr.Parameter(Init.Type, Name);
-                Scope.Add(p);
-            }
-            Target.Add(LinqExpr.Assign(p, Init));
-            return p;
+            return Decl<T>(Target, Map, Expr, Expr.ToString());
         }
 
         private static LinqExpr ConstantExpr(double x, Type T)
