@@ -129,10 +129,11 @@ namespace SyMath
         /// <returns></returns>
         public Expression Solve(Expression v)
         {
+            int vh = v.GetHashCode();
             // Subtract independent terms.
-            Expression R = Sum.New(terms.Where(x => !x.b.Equals(v)).Select(x => Unary.Negate(x.Ab)));
+            Expression R = Sum.New(terms.Where(x => vh != x.bh || !x.b.Equals(v)).Select(x => x.Ab));
             // Divide coefficient from dependent term.
-            return R / this[v];
+            return R / Unary.Negate(this[v]);
         }
         public Expression SolveForPivot() { return Solve(PivotVariable); }
 

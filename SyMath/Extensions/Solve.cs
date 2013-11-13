@@ -31,7 +31,7 @@ namespace SyMath
             return candidates.ArgMax(i => 
             {
                 if (i.PivotCoefficient is Constant && i.Basis.All(j => !i[j].DependsOn(j)))
-                    return (double)Real.Abs(((Constant)i.PivotCoefficient).Value);
+                    return Math.Abs((double)((Constant)i.PivotCoefficient).Value);
                 return -1.0;
             });
         }
@@ -48,12 +48,12 @@ namespace SyMath
                 LinearCombination i1 = FindPivot(S, j);
                 if (i1 == null)
                     continue;
-                Expression scale = i1.PivotCoefficient;
+                Expression scale = -i1.PivotCoefficient;
 
                 // Cancel the pivot variable from other rows.
                 foreach (LinearCombination i2 in S.Except(i1).Where(i => j.Equals(i.PivotVariable)))
                 {
-                    i2.AddScaled(-i2.PivotCoefficient / scale, i1);
+                    i2.AddScaled(i2.PivotCoefficient / scale, i1);
                     // This really should be 0 already, but due to numerical/symbolic issues, it might not be.
                     i2[j] = 0;
                 }
@@ -70,11 +70,11 @@ namespace SyMath
             foreach (LinearCombination i in S.Where(i => x.Contains(i.PivotVariable)))
             {
                 Expression pivot = i.PivotVariable;
-                Expression scale = i.PivotCoefficient;
+                Expression scale = -i.PivotCoefficient;
 
                 // Eliminate non-pivot variables from other rows.
                 foreach (LinearCombination r in S.Except(i).Where(r => !r[pivot].IsZero()))
-                    r.AddScaled(-r[pivot] / scale, i);
+                    r.AddScaled(r[pivot] / scale, i);
             }
         }
 
