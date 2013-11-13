@@ -26,30 +26,27 @@ namespace SyMath
 
             // Accumulate constants and sum coefficient of each term.
             Real C = 0;
-            foreach (Expression i in A.Terms)
+            foreach (Expression i in A.Terms.SelectMany(i => Sum.TermsOf(Visit(i))))
             {
-                foreach (Expression Vi in Sum.TermsOf(Visit(i)))
+                if (i is Constant)
                 {
-                    if (Vi is Constant)
-                    {
-                        C += (Real)Vi;
-                    }
-                    else
-                    {
-                        // Find constant term.
-                        Expression Coefficient = Product.TermsOf(Vi).FirstOrDefault(j => j is Constant);
-                        Expression Term = Product.New(Product.TermsOf(Vi).ExceptUnique(Coefficient, Expression.RefComparer));
-                        Terms[Term] += AsReal(Coefficient, 1);
-                    }
+                    C += (Real)i;
+                }
+                else
+                {
+                    // Find constant term.
+                    Expression Coefficient = Product.TermsOf(i).FirstOrDefault(j => j is Constant);
+                    Expression Term = Product.New(Product.TermsOf(i).ExceptUnique(Coefficient, Expression.RefComparer));
+                    Terms[Term] += AsReal(Coefficient, 1);
                 }
             }
 
             // Build a new expression with the accumulated terms.
-            if (C != 0)
+            if (!C.IsZero())
                 Terms.Add(Constant.New(C), (Real)1);
             return Sum.New(Terms
-                .Where(i => (i.Value != 0))
-                .Select(i => i.Value != 1 ? Product.New(i.Key, Constant.New(i.Value)) : i.Key));
+                .Where(i => !i.Value.IsZero())
+                .Select(i => !i.Value.IsOne() ? Product.New(i.Key, Constant.New(i.Value)) : i.Key));
         }
         
         // Combine like terms and multiply constants.
@@ -60,34 +57,31 @@ namespace SyMath
 
             // Accumulate constants and sum exponent of each term.
             Real C = 1;
-            foreach (Expression i in M.Terms)
+            foreach (Expression i in M.Terms.SelectMany(i => Product.TermsOf(Visit(i))))
             {
-                foreach (Expression Vi in Product.TermsOf(Visit(i)))
+                if (i is Constant)
                 {
-                    if (Vi is Constant)
-                    {
-                        C *= (Real)Vi;
-                    }
+                    C *= (Real)i;
+                }
+                else
+                {
+                    Power Pi = i as Power;
+                    if (!ReferenceEquals(Pi, null) && Pi.Right is Constant)
+                        Terms[Pi.Left] += (Real)Pi.Right;
                     else
-                    {
-                        Power PVi = Vi as Power;
-                        if (!ReferenceEquals(PVi, null) && PVi.Right is Constant)
-                            Terms[PVi.Left] += (Real)PVi.Right;
-                        else
-                            Terms[Vi] += 1;
-                    }
+                        Terms[i] += 1;
                 }
             }
 
             // Build a new expression with the accumulated terms.
-            if (C == 0)
+            if (C.IsZero())
             {
                 return 0;
             }
-            else if (C != 1)
+            else if (!C.IsOne())
             {
                 Expression CE = Constant.New(C);
-                KeyValuePair<Expression, Real> A = Terms.FirstOrDefault(i => i.Key is Sum && Real.Abs(i.Value) == 1);
+                KeyValuePair<Expression, Real> A = Terms.FirstOrDefault(i => i.Key is Sum && Real.Abs(i.Value).IsOne());
                 if (!ReferenceEquals(A.Key, null))
                 {
                     Terms.Remove(A.Key);
@@ -99,8 +93,8 @@ namespace SyMath
                 }
             }
             return Product.New(Terms
-                .Where(i => i.Value != 0)
-                .Select(i => i.Value != 1 ? Power.New(i.Key, Constant.New(i.Value)) : i.Key));
+                .Where(i => !i.Value.IsZero())
+                .Select(i => !i.Value.IsOne() ? Power.New(i.Key, Constant.New(i.Value)) : i.Key));
         }
 
         protected override Expression VisitCall(Call C)
@@ -246,10 +240,10 @@ namespace SyMath
                 return Default;
         }
 
-        protected static bool IsZero(Real? R) { return R != null ? R.Value == 0 : false; }
-        protected static bool IsOne(Real? R) { return R != null ? R.Value == 1 : false; }
-        protected static bool IsTrue(Real? R) { return R != null ? R.Value != 0 : false; }
-        protected static bool IsFalse(Real? R) { return R != null ? R.Value == 0 : false; }
+        protected static bool IsZero(Real? R) { return R != null ? R.Value.IsZero() : false; }
+        protected static bool IsOne(Real? R) { return R != null ? R.Value.IsOne() : false; }
+        protected static bool IsTrue(Real? R) { return R != null ? !R.Value.IsZero() : false; }
+        protected static bool IsFalse(Real? R) { return R != null ? R.Value.IsZero() : false; }
     }
 
     public static class EvaluateExtension
