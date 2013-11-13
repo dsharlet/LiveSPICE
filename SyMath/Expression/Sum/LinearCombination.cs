@@ -105,7 +105,7 @@ namespace SyMath
         /// <summary>
         /// Create an Expression equal to this linear combination.
         /// </summary>
-        public Expression ToExpression() { return Sum.New(terms.Select(i => i.Ab).Except(0)); }
+        public Expression ToExpression() { return Sum.New(terms.Select(i => i.Ab).Where(i => !i.IsZero())); }
 
         public bool DependsOn(IEnumerable<Expression> x) { return ToExpression().DependsOn(x); }
         public bool DependsOn(params Expression[] x) { return DependsOn(x.AsEnumerable()); }
@@ -148,6 +148,6 @@ namespace SyMath
                 this[i] = this[i] + Binary.Multiply(S[i], M);
         }
 
-        public override string ToString() { return terms.Select(i => i.Ab).Except(0).UnSplit(" + "); }
+        public override string ToString() { return terms.Select(i => i.Ab).Where(i => !i.IsZero()).UnSplit(" + "); }
     }
 }

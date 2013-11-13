@@ -51,7 +51,7 @@ namespace SyMath
                 if (contains.Count > 1)
                     return Sum.New(
                         Product.New(factor, Sum.New(contains.Select(i => Product.New(Product.TermsOf(i).Except(factor))))),
-                        Sum.New(terms.ExceptUnique(contains))).Factor();
+                        Sum.New(terms.Except(contains, Expression.RefComparer))).Factor();
             }
 
             return f;

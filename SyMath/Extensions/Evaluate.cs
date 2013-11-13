@@ -80,16 +80,15 @@ namespace SyMath
             }
             else if (!C.IsOne())
             {
-                Expression CE = Constant.New(C);
                 KeyValuePair<Expression, Real> A = Terms.FirstOrDefault(i => i.Key is Sum && Real.Abs(i.Value).IsOne());
                 if (!ReferenceEquals(A.Key, null))
                 {
                     Terms.Remove(A.Key);
-                    Terms[ExpandExtension.Distribute(CE ^ A.Value, A.Key)] += A.Value;
+                    Terms[ExpandExtension.Distribute(C ^ A.Value, A.Key)] += A.Value;
                 }
                 else
                 {
-                    Terms.Add(CE, (Real)1);
+                    Terms.Add(C, 1);
                 }
             }
             return Product.New(Terms
