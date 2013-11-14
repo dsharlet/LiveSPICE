@@ -11,7 +11,7 @@ namespace SyMath
         public static Expression Distribute(Expression x, Expression A)
         {
             if (A is Sum || x is Sum)
-                return Sum.New(Sum.TermsOf(A).Select(i => Distribute(i, x))).Evaluate();
+                return EvaluateVisitor.EvaluateSum(Sum.TermsOf(A).SelectMany(i => Sum.TermsOf(Distribute(i, x))));
             else
                 return Product.New(A, x).Evaluate();
         }

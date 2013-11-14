@@ -18,15 +18,15 @@ namespace SyMath
 
         // In the case of revisiting an expression, just return it to avoid stack overflow.
         protected override Expression Revisit(Expression E) { return E; }
-        
-        protected override Expression VisitSum(Sum A)
+
+        public static Expression EvaluateSum(IEnumerable<Expression> Terms)
         {
             // Map terms to their coefficients.
-            DefaultDictionary<Expression, Real> Terms = new DefaultDictionary<Expression, Real>(0);
+            DefaultDictionary<Expression, Real> terms = new DefaultDictionary<Expression, Real>(0);
 
             // Accumulate constants and sum coefficient of each term.
             Real C = 0;
-            foreach (Expression i in A.Terms.SelectMany(i => Sum.TermsOf(Visit(i))))
+            foreach (Expression i in Terms)
             {
                 if (i is Constant)
                 {
@@ -35,25 +35,32 @@ namespace SyMath
                 else
                 {
                     // Find constant term.
-                    Expression Coefficient = Product.TermsOf(i).FirstOrDefault(j => j is Constant);
-                    Expression Term = Product.New(Product.TermsOf(i).ExceptUnique(Coefficient, Expression.RefComparer));
-                    Terms[Term] += AsReal(Coefficient, 1);
+                    Constant coeff = Product.TermsOf(i).OfType<Constant>().FirstOrDefault();
+                    if (!ReferenceEquals(coeff, null))
+                        terms[Product.New(Product.TermsOf(i).ExceptUnique(coeff, Expression.RefComparer))] += (Real)coeff;
+                    else
+                        terms[i] += 1;
                 }
             }
 
             // Build a new expression with the accumulated terms.
             if (!C.IsZero())
-                Terms.Add(Constant.New(C), (Real)1);
-            return Sum.New(Terms
+                terms.Add(Constant.New(C), (Real)1);
+            return Sum.New(terms
                 .Where(i => !i.Value.IsZero())
                 .Select(i => !i.Value.IsOne() ? Product.New(i.Key, Constant.New(i.Value)) : i.Key));
+        }
+
+        protected override Expression VisitSum(Sum A)
+        {
+            return EvaluateSum(A.Terms.SelectMany(i => Sum.TermsOf(Visit(i))));
         }
         
         // Combine like terms and multiply constants.
         protected override Expression VisitProduct(Product M)
         {
             // Map terms to exponents.
-            DefaultDictionary<Expression, Real> Terms = new DefaultDictionary<Expression, Real>(0);
+            DefaultDictionary<Expression, Real> terms = new DefaultDictionary<Expression, Real>(0);
 
             // Accumulate constants and sum exponent of each term.
             Real C = 1;
@@ -67,9 +74,9 @@ namespace SyMath
                 {
                     Power Pi = i as Power;
                     if (!ReferenceEquals(Pi, null) && Pi.Right is Constant)
-                        Terms[Pi.Left] += (Real)Pi.Right;
+                        terms[Pi.Left] += (Real)Pi.Right;
                     else
-                        Terms[i] += 1;
+                        terms[i] += 1;
                 }
             }
 
@@ -80,19 +87,19 @@ namespace SyMath
             }
             else if (!C.IsOne())
             {
-                // Find a sum term to distribute the constant through. TODO: Try to remove this.
-                KeyValuePair<Expression, Real> A = Terms.FirstOrDefault(i => i.Key is Sum && Real.Abs(i.Value).IsOne());
+                // Find a sum term that has a constant term to distribute into.
+                KeyValuePair<Expression, Real> A = terms.FirstOrDefault(i => Real.Abs(i.Value).IsOne() && i.Key is Sum);
                 if (!ReferenceEquals(A.Key, null))
                 {
-                    Terms.Remove(A.Key);
-                    Terms[ExpandExtension.Distribute(C ^ A.Value, A.Key)] += A.Value;
+                    terms.Remove(A.Key);
+                    terms[ExpandExtension.Distribute(C ^ A.Value, A.Key)] += A.Value;
                 }
                 else
                 {
-                    Terms.Add(C, 1);
+                    terms.Add(C, 1);
                 }
             }
-            return Product.New(Terms
+            return Product.New(terms
                 .Where(i => !i.Value.IsZero())
                 .Select(i => !i.Value.IsOne() ? Power.New(i.Key, Constant.New(i.Value)) : i.Key));
         }
