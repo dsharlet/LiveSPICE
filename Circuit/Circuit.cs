@@ -47,33 +47,39 @@ namespace Circuit
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
-            // The default circuit layout is a box with the terminals alternating up the sides.
-            List<Port> ports = Components.OfType<Port>().ToList();
+            // Get the ports to add to the symbol.
+            List<Port> ports = Components.OfType<Port>().OrderBy(i => i.Name).ToList();
 
+            int number = (Math.Max(ports.Max(i => i.Number), ports.Count()) + 1) & ~1;
+            
             int w = 40;
-            int h = Math.Max(
-                Math.Max(ports.OfType<InputPort>().Max(i => i.Number), ports.OfType<InputPort>().Count()),
-                Math.Max(ports.OfType<OutputPort>().Max(i => i.Number), ports.OfType<OutputPort>().Count())) * 10;
+            int h = (number / 2) * 10;
 
             Sym.DrawText(() => PartNumber, new Coord(0, h + 2), Alignment.Center, Alignment.Near);
             Sym.AddRectangle(EdgeType.Black, new Coord(-w, -h), new Coord(w, h));
             Sym.DrawText(() => Name, new Coord(0, -h - 2), Alignment.Center, Alignment.Far);
 
-            int number = 0;
-            foreach (Port i in ports.OfType<InputPort>())
+            // Draw a notch at the top of the IC. Port slots are numbered counter-clockwise from here.
+            int r = 5;
+            Sym.DrawFunction(EdgeType.Black, t => t, t => h - Math.Sqrt(r * r - t * t), -r, r, 12);
+
+            // Remember which port slots are open for the unnumbered terminals.
+            List<int> open = Enumerable.Range(1, number + 1).ToList();
+            foreach (Port i in ports.OrderBy(i => i.Number > 0 ? 0 : 1))
             {
+                int n = i.Number > 0 ? i.Number : open.First();
+
                 Terminal t = i.External;
-                int y = h - (i.Number != -1 ? i.Number : number++) * 20 - 10;
-                Sym.AddTerminal(t, new Coord(-w, y));
-                Sym.DrawText(() => t.Name, new Coord(-w + 3, y), Alignment.Near, Alignment.Center);
-            }
-            number = 0;
-            foreach (Port i in ports.OfType<OutputPort>())
-            {
-                Terminal t = i.External;
-                int y = h - (i.Number != -1 ? i.Number : number++) * 20 - 10;
-                Sym.AddTerminal(t, new Coord(w, y));
-                Sym.DrawText(() => t.Name, new Coord(w - 3, y), Alignment.Far, Alignment.Center);
+                Coord x;
+                if (n <= number / 2)
+                    x = new Coord(-w, h - n * 20 + 10);
+                else
+                    x = new Coord(w, n * 20 - 3 * h - 10);
+
+                Sym.AddTerminal(t, x);
+                Sym.DrawText(() => t.Name, new Coord(x.x - Math.Sign(x.x) * 3, x.y), x.x < 0 ? Alignment.Near : Alignment.Far, Alignment.Center);
+
+                open.Remove(n);
             }
         }
 

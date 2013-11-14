@@ -18,7 +18,7 @@ namespace Circuit
 
         private int number = -1;
         [Serialize]
-        [Description("Index of this port.")]
+        [Description("If this terminal is being laid out on an IC, the index of this port. Zero will lay out the port in any unused index.")]
         public int Number { get { return number; } set { number = value; NotifyChanged("Number"); } }
 
         // Use the name of the external terminal as the name of this port.
