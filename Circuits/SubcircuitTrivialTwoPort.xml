@@ -12,16 +12,16 @@
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-50,-90">
     <Component _Type="Circuit.Circuit, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" DisplayName="Trivial" Description="" Category="User" Name="X2" PartNumber="">
-      <Component _Type="Circuit.InputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X1" PartNumber="">
+      <Component _Type="Circuit.InputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="1" Name="X1" PartNumber="">
         <Terminal Name="X1" ConnectedTo="_v1" />
       </Component>
-      <Component _Type="Circuit.OutputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X2" PartNumber="">
+      <Component _Type="Circuit.OutputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="4" Name="X2" PartNumber="">
         <Terminal Name="X2" ConnectedTo="_v1" />
       </Component>
-      <Component _Type="Circuit.InputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X3" PartNumber="">
+      <Component _Type="Circuit.InputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="2" Name="X3" PartNumber="">
         <Terminal Name="X3" ConnectedTo="_v2" />
       </Component>
-      <Component _Type="Circuit.OutputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X4" PartNumber="">
+      <Component _Type="Circuit.OutputPort, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="3" Name="X4" PartNumber="">
         <Terminal Name="X4" ConnectedTo="_v2" />
       </Component>
     </Component>
