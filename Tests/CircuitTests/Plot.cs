@@ -105,8 +105,8 @@ namespace CircuitTests
         {
             if (y1 - y0 <= 0)
             {
-                y0 = Series.Min(i => i.Value.MinY);
-                y1 = Series.Max(i => i.Value.MaxY);
+                y0 = Series.Min(i => i.Value.MinY) - 1e-6;
+                y1 = Series.Max(i => i.Value.MaxY) + 1e-6;
                 double y = (y0 + y1) / 2.0;
 
                 y0 = (y0 - y) * 1.25 + y;
