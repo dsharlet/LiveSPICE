@@ -45,7 +45,7 @@ namespace SyMath
                         unknowns.Add(Ai);
                     }
 
-                    terms.Add(Binary.Divide(unknown, Power.New(e, j)));
+                    terms.Add(Product.New(unknown, Power.New(e, -j)));
                 }
                 basis.Add(i);
             }
@@ -56,8 +56,8 @@ namespace SyMath
             Polynomial r = Polynomial.New(D, x);
 
             // Equate terms of equal degree and solve for the unknowns.
-            List<Equal> eqs = new List<Equal>();
             int degree = Math.Max(l.Degree, r.Degree);
+            List<Equal> eqs = new List<Equal>(degree + 1);
             for (int i = 0; i <= degree; ++i)
                 eqs.Add(Equal.New(l[i], r[i]));
             List<Arrow> A = eqs.Solve(unknowns);
