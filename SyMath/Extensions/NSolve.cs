@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SyMath.LinqCompiler;
 using LinqExprs = System.Linq.Expressions;
 using LinqExpr = System.Linq.Expressions.Expression;
 using ParamExpr = System.Linq.Expressions.ParameterExpression;
@@ -56,14 +57,14 @@ namespace SyMath
             int N = x0.Count;
 
             // Define a function to evaluate JxF(x0).
-            LinqCodeGen code = new LinqCodeGen();
+            LinqCompiler.CodeGen code = new LinqCompiler.CodeGen();
 
-            ParamExpr _J = code.DeclParameter<double[][]>("J");
-            ParamExpr _x0 = code.DeclParameter<double[]>("x0");
+            ParamExpr _J = code.Decl<double[][]>(Scope.Parameter, "J");
+            ParamExpr _x0 = code.Decl<double[]>(Scope.Parameter, "x0");
 
             // Load x_j from the input array and add them to the map.
             for (int j = 0; j < N; ++j)
-                code.Decl(x0[j].Left, LinqExpr.ArrayAccess(_x0, LinqExpr.Constant(j)));
+                code.DeclInit(x0[j].Left, LinqExpr.ArrayAccess(_x0, LinqExpr.Constant(j)));
 
             LinqExpr error = code.Decl<double>("error");
 
@@ -74,8 +75,8 @@ namespace SyMath
                 for (int j = 0; j < N; ++j)
                     code.Add(LinqExpr.Assign(
                         LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(_J, _i), LinqExpr.Constant(j)), 
-                        J[i][x0[j].Left].Compile(code)));
-                LinqExpr e = code.ReDecl<double>("e", F[i].Compile(code));
+                        code.Compile(J[i][x0[j].Left])));
+                LinqExpr e = code.Compile(F[i]);
                 code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(_J, _i), LinqExpr.Constant(N)), e));
                 // error += e * e
                 code.Add(LinqExpr.AddAssign(error, LinqExpr.Multiply(e, e)));
@@ -84,7 +85,7 @@ namespace SyMath
             // return error
             code.Return<double>(error);
 
-            Func<double[][], double[], double> EvalJ = code.Compile<Func<double[][], double[], double>>().Compile();
+            Func<double[][], double[], double> EvalJ = code.Build<Func<double[][], double[], double>>().Compile();
             
             double[][] JxF = new double[M][];
             for (int i = 0; i < M; ++i)
