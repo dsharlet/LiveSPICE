@@ -22,30 +22,22 @@ namespace SyMath
         public override Expression Call(IEnumerable<Expression> Args)
         {
             Expression[] args = Args.ToArray();
+
+            // If both branches are equal, just return one of them as the result.
             if (args[1].Equals(args[2]))
                 return args[1];
+
+            // Try to evaluate the condition.
             if (args[0].IsTrue())
                 return args[1];
             else if (args[0].IsFalse())
                 return args[2];
-            else
-                throw new ArgumentException();
+
+            // Couldn't evaluate with these arguments.
+            throw new ArgumentException();
         }
 
-        public override bool CanCall(IEnumerable<Expression> Args)
-        {
-            return parameters.Count() == Args.Count();
-        }
-
-        public override bool CanCall()
-        {
-            return true;
-        }
-
-        public override LinqExpression CompileCall(IEnumerable<LinqExpression> Args, IEnumerable<Type> Libraries)
-        {
-            LinqExpression[] args = Args.ToArray();
-            return LinqExpression.Condition(args[0], args[1], args[2]);
-        }
+        public override bool CanCall(IEnumerable<Expression> Args) { return parameters.Count() == Args.Count(); }
+        public override bool CanCall() { return true; }
     }
 }

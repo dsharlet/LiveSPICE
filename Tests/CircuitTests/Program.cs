@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using SyMath;
+using SyMath.LinqCompiler;
 using Circuit;
 using LinqExpressions = System.Linq.Expressions;
 using LinqExpression = System.Linq.Expressions.Expression;
@@ -16,7 +17,7 @@ namespace CircuitTests
     {
         static readonly Variable t = Component.t;
 
-        static Quantity SampleRate = new Quantity(48000, Units.Hz);
+        static Quantity SampleRate = new Quantity(44100, Units.Hz);
         static int Samples = 100000;
         static int Oversample = 8;
         static int Iterations = 8;
@@ -45,7 +46,7 @@ namespace CircuitTests
                 try
                 {
                     double perf = Run(File, Vin);
-                    performance.Add(Name + ":\t" + Quantity.ToString(perf, Units.Hz));
+                    performance.Add(Name + ":\t" + Quantity.ToString(perf, Units.Hz) + " (" + (perf / (double)SampleRate).ToString("G3") + "x real time)");
                 }
                 catch (Exception ex) 
                 {
@@ -143,15 +144,9 @@ namespace CircuitTests
             Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
             foreach (KeyValuePair<Expression, double[]> i in output)
                 plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
-
-            double max = 0.0;
-            for (int i = 0; i < vs.Length; ++i)
-                max = Math.Max(max, Math.Abs(vs[i] - output.First().Value[i]));
-            System.Console.WriteLine("Max error {0}", max);
-
+            
             System.Console.WriteLine("Performance {0}", Quantity.ToString(N / time, Units.Hz));
 
-            IEnumerable<double[]> series = input.Concat(output).Select(i => i.Value);
             Plot p = new Plot(
                 Name, 
                 800, 400, 
