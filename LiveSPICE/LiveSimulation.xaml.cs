@@ -160,8 +160,11 @@ namespace LiveSPICE
                 circuit = schematic.Schematic.Schematic.Build(Log);
                 IEnumerable<Circuit.Component> components = circuit.Components;
 
-                inputChannels = InitChannels(inputs, Inputs, components.OfType<Circuit.Input>().Select(j => new ComboBoxItem() { Content = j.Name, Tag = Circuit.Component.DependentVariable(j.Name, Circuit.Component.t) }));
-                outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>().Select(j => new ComboBoxItem() { Content = j.Name, Tag = j.V }));
+                inputChannels = InitChannels(inputs, Inputs, components.OfType<Circuit.Input>()
+                    .Select(j => new ComboBoxItem() { Content = j.Name, Tag = Circuit.Component.DependentVariable(j.Name, Circuit.Component.t) }));
+                outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>()
+                    .Select(j => new ComboBoxItem() { Content = j.Name, Tag = j.V })
+                    .DefaultIfEmpty(new ComboBoxItem() { Content = "0", Tag = (SyMath.Expression)0 }));
 
                 Parameters.ParameterChanged += (o, e) => arguments[e.Changed.Name] = e.Value;
 
