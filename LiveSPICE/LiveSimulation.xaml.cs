@@ -63,26 +63,7 @@ namespace LiveSPICE
         protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
 
         protected Audio.Stream stream = null;
-
-        protected class Channel : INotifyPropertyChanged
-        {
-            private SyMath.Expression signal;
-            public SyMath.Expression Signal { get { return signal; } set { signal = value; NotifyChanged("Signal"); } }
-
-            public TextBlock Level;
-
-            public double gain = 1.0;
-            public double Gain { get { return (int)Math.Round(20 * Math.Log(gain, 10)); } set { gain = Math.Pow(10, value / 20.0); NotifyChanged("Gain"); } }
-            
-            // INotifyPropertyChanged.
-            private void NotifyChanged(string p)
-            {
-                if (PropertyChanged != null)
-                    PropertyChanged(this, new PropertyChangedEventArgs(p));
-            }
-            public event PropertyChangedEventHandler PropertyChanged;
-        }
-
+        
         protected Channel[] inputChannels, outputChannels;
 
         private Channel[] InitChannels(Panel Target, Audio.Channel[] Channels, IEnumerable<ComboBoxItem> Signals)
@@ -90,55 +71,8 @@ namespace LiveSPICE
             Channel[] channels = new Channel[Channels.Length];
             for (int i = 0; i < Channels.Length; ++i)
             {
-                channels[i] = new Channel();
-
-                channels[i].Level = new TextBlock() 
-                {
-                    Width = 45,
-                    Margin = new Thickness(1),
-                    TextAlignment = TextAlignment.Center, 
-                    FontWeight = FontWeights.Bold, 
-                };
-                channels[i].Level.SetBinding(TextBlock.TextProperty, new Binding("Gain") { Source = channels[i], StringFormat = "{0:+#;-#;+0} dB" });
-                
-                TextBlock name = new TextBlock() 
-                { 
-                    Width = 50,
-                    Margin = new Thickness(0, 0, 8, 0),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Text = Channels[i].Name, 
-                    ToolTip = Channels[i].Name,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                };
-
-                ComboBox signal = new ComboBox()
-                {
-                    Width = 36,
-                    ItemsSource = Signals,
-                    SelectedValuePath = "Tag",
-                };
-                signal.SetBinding(ComboBox.SelectedValueProperty, new Binding("Signal") { Source = channels[i] });
-                signal.SetBinding(ComboBox.ToolTipProperty, new Binding("Signal") { Source = channels[i] });
-                if (Signals.Any())
-                    channels[i].Signal = (SyMath.Expression)Signals.First().Tag;
-
-                Slider gain = new Slider() { Minimum = -20, Maximum = 20 };
-                gain.SetBinding(Slider.ValueProperty, new Binding("Gain") { Source = channels[i] });
-
-                UIElement level = channels[i].Level;
-
-                Panel panel = new DockPanel() { LastChildFill = true, Tag = channels[i] };
-                panel.Children.Add(name);
-                panel.Children.Add(signal);
-                panel.Children.Add(level);
-                panel.Children.Add(gain);
-
-                DockPanel.SetDock(name, Dock.Left);
-                DockPanel.SetDock(signal, Dock.Left);
-                DockPanel.SetDock(level, Dock.Right);
-                DockPanel.SetDock(gain, Dock.Right);
-
-                Target.Children.Add(panel);
+                channels[i] = new Channel(Channels[i], Signals);
+                Target.Children.Add(channels[i]);
             }
             return channels;
         }
@@ -244,7 +178,7 @@ namespace LiveSPICE
             {
                 Channel ch = inputChannels[i];
                 double peak = In[i].Amplify(ch.gain * inputGain);
-                Dispatcher.InvokeAsync(() => ch.Level.Background = MapSignalToBrush(peak));
+                Dispatcher.InvokeAsync(() => ch.SignalStatus = MapSignalToBrush(peak));
             }
 
             RunSimulation(Count, In, Out, Rate);
@@ -254,7 +188,7 @@ namespace LiveSPICE
             {
                 Channel ch = outputChannels[i];
                 double peak = Out[i].Amplify(ch.gain * outputGain);
-                Dispatcher.InvokeAsync(() => ch.Level.Background = MapSignalToBrush(peak));
+                Dispatcher.InvokeAsync(() => ch.SignalStatus = MapSignalToBrush(peak));
             }
 
             // Tick oscilloscope.
