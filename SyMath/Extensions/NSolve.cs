@@ -57,9 +57,9 @@ namespace SyMath
             int N = x0.Count;
 
             // Define a function to evaluate JxF(x0).
-            LinqCompiler.CodeGen code = new LinqCompiler.CodeGen();
+            CodeGen code = new CodeGen();
 
-            ParamExpr _J = code.Decl<double[][]>(Scope.Parameter, "J");
+            ParamExpr _J = code.Decl<double[,]>(Scope.Parameter, "J");
             ParamExpr _x0 = code.Decl<double[]>(Scope.Parameter, "x0");
 
             // Load x_j from the input array and add them to the map.
@@ -74,10 +74,10 @@ namespace SyMath
                 LinqExpr _i = LinqExpr.Constant(i);
                 for (int j = 0; j < N; ++j)
                     code.Add(LinqExpr.Assign(
-                        LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(_J, _i), LinqExpr.Constant(j)), 
+                        LinqExpr.ArrayAccess(_J, _i, LinqExpr.Constant(j)), 
                         code.Compile(J[i][x0[j].Left])));
                 LinqExpr e = code.Compile(F[i]);
-                code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(_J, _i), LinqExpr.Constant(N)), e));
+                code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(_J, _i, LinqExpr.Constant(N)), e));
                 // error += e * e
                 code.Add(LinqExpr.AddAssign(error, LinqExpr.Multiply(e, e)));
             }
@@ -85,11 +85,9 @@ namespace SyMath
             // return error
             code.Return<double>(error);
 
-            Func<double[][], double[], double> EvalJ = code.Build<Func<double[][], double[], double>>().Compile();
+            Func<double[,], double[], double> EvalJ = code.Build<Func<double[,], double[], double>>().Compile();
             
-            double[][] JxF = new double[M][];
-            for (int i = 0; i < M; ++i)
-                JxF[i] = new double[N + 1];
+            double[,] JxF = new double[M, N + 1];
             double[] x = new double[N];
             double[] dx = new double[N];
             for (int j = 0; j < N; ++j)
@@ -111,13 +109,13 @@ namespace SyMath
                 for (int j = 0; j < N; ++j)
                 {
                     int pi = j;
-                    double max = Math.Abs(JxF[j][j]);
+                    double max = Math.Abs(JxF[j, j]);
 
                     // Find a pivot row for this variable.
                     for (int i = j + 1; i < M; ++i)
                     {
                         // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
-                        double maxj = Math.Abs(JxF[i][j]);
+                        double maxj = Math.Abs(JxF[i, j]);
                         if (maxj > max)
                         {
                             pi = i;
@@ -128,26 +126,26 @@ namespace SyMath
                     // Swap pivot row with the current row.
                     if (pi != j)
                         for (int ij = j; ij <= N; ++ij)
-                            Swap(ref JxF[j][ij], ref JxF[pi][ij]);
+                            Swap(ref JxF[j, ij], ref JxF[pi, ij]);
 
                     // Eliminate the rows after the pivot.
-                    double p = JxF[j][j];
+                    double p = JxF[j, j];
                     for (int i = j + 1; i < M; ++i)
                     {
-                        double s = JxF[i][j] / p;
+                        double s = JxF[i, j] / p;
                         for (int ij = j + 1; ij <= N; ++ij)
-                            JxF[i][ij] -= JxF[j][ij] * s;
+                            JxF[i, ij] -= JxF[j, ij] * s;
                     }
                 }
 
                 // JxF is now upper triangular, solve it.
                 for (int j = N - 1; j >= 0; --j)
                 {
-                    double r = JxF[j][N];
+                    double r = JxF[j, N];
                     for (int ji = j + 1; ji < N; ++ji)
-                        r += JxF[j][ji] * dx[ji];
+                        r += JxF[j, ji] * dx[ji];
 
-                    double dxj = -r / JxF[j][j];
+                    double dxj = -r / JxF[j, j];
                     dx[j] = dxj;
                     x[j] += dxj;
                 }
