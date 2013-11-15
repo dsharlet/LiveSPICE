@@ -115,6 +115,7 @@
     <Compile Include="Utils\MenuItemIcon.cs" />
     <Compile Include="Utils\ImageButton.cs" />
     <Compile Include="Controls\Scope\SignalDisplay.cs" />
+    <Compile Include="Utils\NullStream.cs" />
     <Compile Include="Windows\AudioConfig.xaml.cs">
       <DependentUpon>AudioConfig.xaml</DependentUpon>
     </Compile>
