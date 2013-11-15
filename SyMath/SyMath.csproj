@@ -78,6 +78,7 @@
     <Compile Include="Utils\BigRational.cs" />
     <Compile Include="Utils\Combinatorics.cs" />
     <Compile Include="LinqCompiler\StandardMath.cs" />
+    <Compile Include="Utils\RealConverter.cs" />
     <Compile Include="Utils\DictionaryExtensions.cs" />
     <Compile Include="Utils\EnumerableExtensions.cs" />
     <Compile Include="Utils\Exceptions.cs" />

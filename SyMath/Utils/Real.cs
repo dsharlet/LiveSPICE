@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ namespace SyMath
     /// <summary>
     /// Arbitrary precision real number. Represents numbers as close to exactly as possible.
     /// </summary>
+    [TypeConverter(typeof(RealConverter))]
     public struct Real : IComparable<Real>, IEquatable<Real>
     {
         private BigRational r;
@@ -33,6 +35,8 @@ namespace SyMath
             else
                 r = x;
         }
+
+        public static Real Parse(string s) { return new Real(double.Parse(s)); }
 
         public static readonly Real Infinity = new Real(PositiveInfinity);
 
