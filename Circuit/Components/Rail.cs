@@ -42,7 +42,7 @@ namespace Circuit
         {
             base.LayoutSymbol(Sym);
 
-            Sym.InBounds(new Coord(-20, 20), new Coord(20, 0));
+            Sym.InBounds(new Coord(-20, 10), new Coord(20, 0));
             Sym.AddLine(EdgeType.Black, new Coord(-15, 0), new Coord(15, 0));
             Sym.DrawText(() => Voltage.ToString(), new Point(0, 2), Alignment.Center, Alignment.Near);
         }

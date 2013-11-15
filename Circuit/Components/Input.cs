@@ -11,7 +11,7 @@ namespace Circuit
     /// Ideal voltage source.
     /// </summary>
     [Category("Standard")]
-    [DisplayName("Input Voltage Source")]
+    [DisplayName("Input")]
     [DefaultProperty("Voltage")]
     [Description("Ideal voltage source representing an input port.")]
     public class Input : TwoTerminal
