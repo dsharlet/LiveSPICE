@@ -45,33 +45,34 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", Base.V - Collector.V);
-            Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", Base.V - Emitter.V);
-
-            double aR = BR / (1 + BR);
-            double aF = BF / (1 + BF);
-
-            Expression iBE = (Expression)IS * (Call.Exp(Vbe / VT) - 1);
-            Expression iBC = (Expression)IS * (Call.Exp(Vbc / VT) - 1);
-
-            Expression ie = iBE - aR * iBC;
-            Expression ic = -iBC + aF * iBE;
-            Expression ib = (1 - aF) * iBE + (1 - aR) * iBC;
-
             int sign;
             switch (Structure)
             {
                 case BJTStructure.NPN: sign = 1; break;
                 case BJTStructure.PNP: sign = -1; break;
-                default: 
-                    throw new NotSupportedException("Unknown BJT structure.");
+                default: throw new NotSupportedException("Unknown BJT structure.");
             }
 
-            ic = Mna.AddNewUnknownEqualTo("i" + Name + "c", sign * ic);
-            ib = Mna.AddNewUnknownEqualTo("i" + Name + "b", sign * ib);
-            Mna.AddTerminal(Collector, ic);
-            Mna.AddTerminal(Base, ib);
-            Mna.AddTerminal(Emitter, -(ic + ib));
+            Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", sign * (Base.V - Collector.V));
+            Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", sign * (Base.V - Emitter.V));
+
+            double aR = BR / (1 + BR);
+            double aF = BF / (1 + BF);
+
+            Expression iF = (Expression)IS * (Call.Exp(Vbe / VT) - 1);
+            Expression iR = (Expression)IS * (Call.Exp(Vbc / VT) - 1);
+            
+            // TODO: Algebraically rearranging these results in dramatically different stability behavior. 
+            // It would be nice to understand this.
+            //Expression ie = iF - aR * iR;
+            Expression ic = aF * iF - iR;
+            Expression ib = (1 - aF) * iF + (1 - aR) * iR;
+
+            ic = Mna.AddNewUnknownEqualTo("i" + Name + "c", ic);
+            ib = Mna.AddNewUnknownEqualTo("i" + Name + "b", ib);
+            Mna.AddTerminal(Collector, sign * ic);
+            Mna.AddTerminal(Base, sign * ib);
+            Mna.AddTerminal(Emitter, -sign * (ic + ib));
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, BJTStructure Structure, Terminal C, Terminal B, Terminal E, Func<string> Name, Func<string> Part)
