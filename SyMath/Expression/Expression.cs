@@ -134,7 +134,6 @@ namespace SyMath
             Expression E = obj as Expression;
             return ReferenceEquals(E, null) ? false : Equals(E);
         }
-        public override int GetHashCode() { throw new NotImplementedException(GetType().ToString() + ".GetHashCode"); }
         
         /// <summary>
         /// Get an ordered list of the atomic Expression elements in this expression.
@@ -165,7 +164,5 @@ namespace SyMath
         }
         
         public static readonly ReferenceEqualityComparer<Expression> RefComparer = new ReferenceEqualityComparer<Expression>();
-                
-        public bool IsA(Type T) { return T.IsInstanceOfType(this); }
     }
 }
