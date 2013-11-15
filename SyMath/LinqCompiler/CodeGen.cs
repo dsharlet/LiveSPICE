@@ -28,7 +28,7 @@ namespace SyMath.LinqCompiler
 
         private LinqExprs.LabelTarget ret = null;
 
-        private List<LinqExpr> target = new List<LinqExpr>();
+        private List<LinqExpr> code = new List<LinqExpr>();
         private List<ParamExpr> parameters = new List<ParamExpr>();
         private ScopeDeclContext scope;
 
@@ -51,7 +51,7 @@ namespace SyMath.LinqCompiler
         /// Add some instructions to the codegen.
         /// </summary>
         /// <param name="Instructions"></param>
-        public void Add(params LinqExpr[] Instructions) { target.AddRange(Instructions); }
+        public void Add(params LinqExpr[] Instructions) { code.AddRange(Instructions); }
 
         /// <summary>
         /// Create a lambda with the generated code.
@@ -61,7 +61,7 @@ namespace SyMath.LinqCompiler
         public LinqExprs.LambdaExpression Build()
         {
             // If the return target has been created, append it to the body.
-            IEnumerable<LinqExpr> body = target;
+            IEnumerable<LinqExpr> body = code;
             if (ret != null)
                 body = body.Append(LinqExpr.Label(ret, ret.Type.IsValueType ? LinqExpr.Constant(Activator.CreateInstance(ret.Type)) : null));
 
@@ -71,7 +71,7 @@ namespace SyMath.LinqCompiler
         public LinqExprs.Expression<T> Build<T>()
         {
             // If the return target has been created, append it to the body.
-            IEnumerable<LinqExpr> body = target;
+            IEnumerable<LinqExpr> body = code;
             if (ret != null)
                 body = body.Append(LinqExpr.Label(ret, ret.Type.IsValueType ? LinqExpr.Constant(Activator.CreateInstance(ret.Type)) : null));
 
@@ -87,7 +87,7 @@ namespace SyMath.LinqCompiler
             // Create the return label if it doesn't already exist.
             if (ret == null)
                 ret = LinqExpr.Label(typeof(T), "ret");
-            target.Add(LinqExpr.Return(ret, Value));
+            code.Add(LinqExpr.Return(ret, Value));
         }
 
         public void Return()
@@ -95,7 +95,7 @@ namespace SyMath.LinqCompiler
             // Create the return label if it doesn't already exist.
             if (ret == null)
                 ret = LinqExpr.Label("ret");
-            target.Add(LinqExpr.Return(ret));
+            code.Add(LinqExpr.Return(ret));
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace SyMath.LinqCompiler
         ///    
         /// the intermediate for Exp[t] from compiling x will not be re-used when compiling y.
         /// </summary>
-        public void SyncPoint() { intermediates = new Dictionary<Expression, LinqExpr>(); }
+        public void SyncPoint() { intermediates.Clear(); }
 
         /// <summary>
         /// Look up an existing expression in the map and intermediates.
@@ -222,14 +222,14 @@ namespace SyMath.LinqCompiler
         public ParamExpr DeclInit<T>(Scope Scope, string Name, LinqExpr Init)
         {
             ParamExpr p = Decl(Scope, typeof(T), Name);
-            target.Add(LinqExpr.Assign(p, Init));
+            code.Add(LinqExpr.Assign(p, Init));
             return p;
         }
 
         public ParamExpr DeclInit<T>(Scope Scope, string Name, T Init)
         {
             ParamExpr p = Decl(Scope.Local, typeof(T), Name);
-            target.Add(LinqExpr.Assign(p, LinqExpr.Constant(Init)));
+            code.Add(LinqExpr.Assign(p, LinqExpr.Constant(Init)));
             return p;
         }
 
@@ -249,14 +249,14 @@ namespace SyMath.LinqCompiler
         public LinqExpr ReDeclInit<T>(string Name, LinqExpr Init)
         {
             LinqExpr p = ReDecl(typeof(T), Name);
-            target.Add(LinqExpr.Assign(p, Init));
+            code.Add(LinqExpr.Assign(p, Init));
             return p;
         }
 
         public LinqExpr ReDeclInit<T>(string Name, T Init)
         {
             LinqExpr p = ReDecl(typeof(T), Name);
-            target.Add(LinqExpr.Assign(p, LinqExpr.Constant(Init)));
+            code.Add(LinqExpr.Assign(p, LinqExpr.Constant(Init)));
             return p;
         }
 
@@ -295,7 +295,7 @@ namespace SyMath.LinqCompiler
         public ParamExpr Decl(Expression Expr) { return Decl(Scope.Local, "_" + AnonymousName(), Expr); }
         public ParamExpr DeclInit(Expression Expr, LinqExpr Init) { return DeclInit(Scope.Local, Expr, Init); }
         public ParamExpr DeclInit(Expression Expr, Expression Init) { return DeclInit(Scope.Local, Expr, Init); }
-
+        
         /// <summary>
         /// Generate a for loop with the given code generator functions.
         /// </summary>
@@ -311,47 +311,32 @@ namespace SyMath.LinqCompiler
         {
             PushScope();
 
-            // Generate the init code.
+            // Generate the loop header code.
             Init();
 
-            string name = LoopName();
+            string name = LabelName();
             LinqExprs.LabelTarget begin = LinqExpr.Label("for_" + name + "_begin");
             LinqExprs.LabelTarget end = LinqExpr.Label("for_" + name + "_end");
 
             // Check the condition, exit if necessary.
-            target.Add(LinqExpr.Label(begin));
-            target.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
+            code.Add(LinqExpr.Label(begin));
+            code.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
 
             // Generate the body code.
             Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
 
             // Generate the step code.
             Step();
-            target.Add(LinqExpr.Goto(begin));
+            code.Add(LinqExpr.Goto(begin));
 
             // Exit point.
-            target.Add(LinqExpr.Label(end));
+            code.Add(LinqExpr.Label(end));
 
             PopScope();
         }
-
-        public void For(
-            Action Init,
-            LinqExpr Condition,
-            Action Step,
-            Action<LinqExpr> Body)
-        {
-            For(Init, Condition, Step, (end, y) => Body(end));
-        }
-
-        public void For(
-            Action Init,
-            LinqExpr Condition,
-            Action Step,
-            Action Body)
-        {
-            For(Init, Condition, Step, (x, y) => Body());
-        }
+        
+        public void For(Action Init, LinqExpr Condition, Action Step, Action<LinqExpr> Body) { For(Init, Condition, Step, (end, y) => Body(end)); }
+        public void For(Action Init, LinqExpr Condition, Action Step, Action Body) { For(Init, Condition, Step, (x, y) => Body()); }
 
         /// <summary>
         /// Generate a while loop with the given code generator functions.
@@ -362,132 +347,92 @@ namespace SyMath.LinqCompiler
             LinqExpr Condition,
             Action<LinqExpr, LinqExpr> Body)
         {
-            string name = LoopName();
+            string name = LabelName();
             LinqExprs.LabelTarget begin = LinqExpr.Label("while_" + name + "_begin");
             LinqExprs.LabelTarget end = LinqExpr.Label("while_" + name + "_end");
 
             PushScope();
 
             // Check the condition, exit if necessary.
-            target.Add(LinqExpr.Label(begin));
-            target.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
+            code.Add(LinqExpr.Label(begin));
+            code.Add(LinqExpr.IfThen(LinqExpr.Not(Condition), LinqExpr.Goto(end)));
 
             // Generate the body code.
             Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
 
             // Loop.
-            target.Add(LinqExpr.Goto(begin));
+            code.Add(LinqExpr.Goto(begin));
 
             // Exit label.
-            target.Add(LinqExpr.Label(end));
+            code.Add(LinqExpr.Label(end));
 
             PopScope();
         }
 
-        public void While(
-            LinqExpr Condition,
-            Action<LinqExpr> Body)
-        {
-            While(Condition, (end, y) => Body(end));
-        }
-
-        public void While(
-            LinqExpr Condition,
-            Action Body)
-        {
-            While(Condition, (x, y) => Body());
-        }
+        public void While(LinqExpr Condition, Action<LinqExpr> Body) { While(Condition, (end, y) => Body(end)); }
+        public void While(LinqExpr Condition, Action Body) { While(Condition, (x, y) => Body()); }
 
         /// <summary>
         /// Generate an infinite loop with the given code generator functions.
         /// </summary>
         /// <param name="Condition"></param>
         /// <param name="Body"></param>
-        public void Loop(
-            Action<LinqExpr, LinqExpr> Body)
+        public void Loop(Action<LinqExpr, LinqExpr> Body)
         {
-            string name = LoopName();
+            string name = LabelName();
             LinqExprs.LabelTarget begin = LinqExpr.Label("while_" + name + "_begin");
             LinqExprs.LabelTarget end = LinqExpr.Label("while_" + name + "_end");
 
             PushScope();
 
-            target.Add(LinqExpr.Label(begin));
+            code.Add(LinqExpr.Label(begin));
 
             // Generate the body code.
             Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
 
             // Loop.
-            target.Add(LinqExpr.Goto(begin));
+            code.Add(LinqExpr.Goto(begin));
 
             // Exit label.
-            target.Add(LinqExpr.Label(end));
+            code.Add(LinqExpr.Label(end));
 
             PopScope();
         }
 
-        public void Loop(
-            Action<LinqExpr> Body)
-        {
-            Loop((end, y) => Body(end));
-        }
+        public void Loop(Action<LinqExpr> Body) { Loop((end, y) => Body(end)); }
 
         /// <summary>
         /// Generate a do-while loop with the given code generator functions.
         /// </summary>
         /// <param name="Body"></param>
         /// <param name="Condition"></param>
-        public void DoWhile(
-            Action<LinqExpr, LinqExpr> Body,
-            LinqExpr Condition)
+        public void DoWhile(Action<LinqExpr, LinqExpr> Body, LinqExpr Condition)
         {
-            string name = LoopName();
+            string name = LabelName();
             LinqExprs.LabelTarget begin = LinqExpr.Label("do_" + name + "_begin");
             LinqExprs.LabelTarget end = LinqExpr.Label("do_" + name + "_end");
 
             PushScope();
 
             // Check the condition, exit if necessary.
-            target.Add(LinqExpr.Label(begin));
+            code.Add(LinqExpr.Label(begin));
 
             // Generate the body code.
             Body(LinqExpr.Goto(end), LinqExpr.Goto(begin));
 
             // Loop.
-            target.Add(LinqExpr.IfThen(Condition, LinqExpr.Goto(begin)));
+            code.Add(LinqExpr.IfThen(Condition, LinqExpr.Goto(begin)));
 
             // Exit label.
-            target.Add(LinqExpr.Label(end));
+            code.Add(LinqExpr.Label(end));
 
             PopScope();
         }
 
-        // Generate a do-while loop given the condition and body expressions.
-        public void DoWhile(
-            Action<LinqExpr> Body,
-            LinqExpr Condition)
-        {
-            DoWhile((end, y) => Body(end), Condition);
-        }
+        public void DoWhile(Action<LinqExpr> Body, LinqExpr Condition) { DoWhile((end, y) => Body(end), Condition); }
+        public void DoWhile(Action Body, LinqExpr Condition) { DoWhile((x, y) => Body(), Condition); }
 
-        // Generate a do-while loop given the condition and body expressions.
-        public void DoWhile(
-            Action Body,
-            LinqExpr Condition)
-        {
-            DoWhile((x, y) => Body(), Condition);
-        }
-
-        private string LoopName()
-        {
-            if (target.Any())
-                return target.Last().ToString();
-            return "loop";
-        }
-
-        private string AnonymousName()
-        {
-            return (++anonymous).ToString();
-        }
+        private string LabelName() { return (++anonymous).ToString(); }
+        private string AnonymousName() { return "!" + (++anonymous).ToString(); }
     }
 }
