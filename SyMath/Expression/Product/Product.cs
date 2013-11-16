@@ -25,7 +25,7 @@ namespace SyMath
         public override bool Matches(Expression E, MatchContext Matched)
         {
             // if E is zero, any term can match to zero to succeed.
-            if (E.IsZero())
+            if (E.EqualsZero())
                 return Terms.Any(i => i.Matches(0, Matched));
 
             // Move the constants in this pattern to E.

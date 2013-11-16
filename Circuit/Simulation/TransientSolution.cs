@@ -233,7 +233,7 @@ namespace Circuit
 
                 // If there is no pivot in this position, find any row with a non-zero coefficient of j.
                 if (i == null)
-                    i = S.FirstOrDefault(s => !s[j].IsZero());
+                    i = S.FirstOrDefault(s => !s[j].EqualsZero());
 
                 // Solve the row for i.
                 if (i != null)

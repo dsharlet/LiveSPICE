@@ -45,10 +45,10 @@ namespace SyMath
             }
 
             // x^0 = 1.
-            if (E.IsOne() && Right.Matches(0, Matched))
+            if (E.EqualsOne() && Right.Matches(0, Matched))
                 return true;
             // 0^x = 0.
-            if (E.IsZero() && Left.Matches(0, Matched))
+            if (E.EqualsZero() && Left.Matches(0, Matched))
                 return true;
 
             Binary PE = E as Power;

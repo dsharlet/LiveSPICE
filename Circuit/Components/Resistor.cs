@@ -26,7 +26,7 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode, Expression R)
         {
             // i = V/R
-            if (R.IsZero())
+            if (R.EqualsZero())
             {
                 return Conductor.Analyze(Mna, Name, Anode, Cathode);
             }

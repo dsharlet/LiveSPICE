@@ -14,32 +14,10 @@ namespace SyMath
 
         private static readonly Constant One = new Constant(1);
         private static readonly Constant Zero = new Constant(0);
-        private static readonly Constant NegativeOne = new Constant(-1);
 
-        public static Constant New(int x) 
-        {
-            //switch (x)
-            //{
-            //    case -1: return NegativeOne;
-            //    case 0: return Zero;
-            //    case 1: return One;
-            //}
-            return new Constant(new Real(x));
-        }
-        public static Constant New(double x)
-        {
-            //if (x == -1.0d) return NegativeOne;
-            //if (x == 0.0d) return Zero;
-            //if (x == 1.0d) return One;
-            return new Constant(new Real(x));
-        }
-        public static Constant New(decimal x)
-        {
-            //if (x == -1m) return NegativeOne;
-            //if (x == 0m) return Zero;
-            //if (x == 1m) return One;
-            return new Constant(new Real(x));
-        }
+        public static Constant New(int x) { return new Constant(x); }
+        public static Constant New(double x) { return new Constant(x); }
+        public static Constant New(decimal x) { return new Constant(x); }
         public static Constant New(Real x) { return new Constant(x); }
         public static Constant New(bool x) { return x ? One : Zero; }
         public static Expression New(object x) 
@@ -52,10 +30,10 @@ namespace SyMath
             throw new InvalidCastException();
         }
 
-        public override bool IsZero() { return x.IsZero(); }
-        public override bool IsOne() { return x.IsOne(); }
-        public override bool IsFalse() { return x.IsZero(); }
-        public override bool IsTrue() { return !x.IsZero(); }
+        public override bool EqualsZero() { return x.EqualsZero(); }
+        public override bool EqualsOne() { return x.EqualsOne(); }
+        public override bool IsFalse() { return x.EqualsZero(); }
+        public override bool IsTrue() { return !x.EqualsZero(); }
 
         public static implicit operator Real(Constant x) { return x.x; }
 

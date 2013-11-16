@@ -24,7 +24,7 @@ namespace SyMath
                 if (i is Product)
                     foreach (Expression j in FlattenTerms(((Product)i).Terms))
                         yield return j;
-                else if (!i.IsOne())
+                else if (!i.EqualsOne())
                     yield return i;
             }
         }

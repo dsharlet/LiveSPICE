@@ -44,11 +44,11 @@ namespace SyMath
             }
 
             // Build a new expression with the accumulated terms.
-            if (!C.IsZero())
+            if (!C.EqualsZero())
                 terms.Add(Constant.New(C), (Real)1);
             return Sum.New(terms
-                .Where(i => !i.Value.IsZero())
-                .Select(i => !i.Value.IsOne() ? Product.New(i.Key, Constant.New(i.Value)) : i.Key));
+                .Where(i => !i.Value.EqualsZero())
+                .Select(i => !i.Value.EqualsOne() ? Product.New(i.Key, Constant.New(i.Value)) : i.Key));
         }
 
         protected override Expression VisitSum(Sum A)
@@ -81,14 +81,14 @@ namespace SyMath
             }
 
             // Build a new expression with the accumulated terms.
-            if (C.IsZero())
+            if (C.EqualsZero())
             {
                 return 0;
             }
-            else if (!C.IsOne())
+            else if (!C.EqualsOne())
             {
                 // Find a sum term that has a constant term to distribute into.
-                KeyValuePair<Expression, Real> A = terms.FirstOrDefault(i => Real.Abs(i.Value).IsOne() && i.Key is Sum);
+                KeyValuePair<Expression, Real> A = terms.FirstOrDefault(i => Real.Abs(i.Value).EqualsOne() && i.Key is Sum);
                 if (!ReferenceEquals(A.Key, null))
                 {
                     terms.Remove(A.Key);
@@ -100,8 +100,8 @@ namespace SyMath
                 }
             }
             return Product.New(terms
-                .Where(i => !i.Value.IsZero())
-                .Select(i => !i.Value.IsOne() ? Power.New(i.Key, Constant.New(i.Value)) : i.Key));
+                .Where(i => !i.Value.EqualsZero())
+                .Select(i => !i.Value.EqualsOne() ? Power.New(i.Key, Constant.New(i.Value)) : i.Key));
         }
 
         protected override Expression VisitCall(Call C)
@@ -142,12 +142,12 @@ namespace SyMath
 
             // Handle identities.
             Real? LR = AsReal(L);
-            if (IsZero(LR)) return 0;
-            if (IsOne(LR)) return 1;
+            if (EqualsZero(LR)) return 0;
+            if (EqualsOne(LR)) return 1;
 
             Real? RR = AsReal(R);
-            if (IsZero(RR)) return 1;
-            if (IsOne(RR)) return L;
+            if (EqualsZero(RR)) return 1;
+            if (EqualsOne(RR)) return L;
 
             // Evaluate result.
             if (LR != null && RR != null)
@@ -186,15 +186,15 @@ namespace SyMath
             switch (B.Operator)
             {
                 case Operator.And:
-                    if (IsFalse(LR) || IsFalse(RR))
+                    if (EqualsFalse(LR) || EqualsFalse(RR))
                         return Constant.New(false);
-                    else if (IsTrue(LR) && IsTrue(RR))
+                    else if (EqualsTrue(LR) && EqualsTrue(RR))
                         return Constant.New(true);
                     break;
                 case Operator.Or:
-                    if (IsTrue(LR) || IsTrue(RR))
+                    if (EqualsTrue(LR) || EqualsTrue(RR))
                         return Constant.New(true);
-                    else if (IsFalse(LR) && IsFalse(RR))
+                    else if (EqualsFalse(LR) && EqualsFalse(RR))
                         return Constant.New(false);
                     break;
 
@@ -219,9 +219,9 @@ namespace SyMath
             switch (U.Operator)
             {
                 case Operator.Not:
-                    if (IsTrue(C))
+                    if (EqualsTrue(C))
                         return Constant.New(false);
-                    else if (IsFalse(C))
+                    else if (EqualsFalse(C))
                         return Constant.New(true);
                     break;
             }
@@ -247,10 +247,10 @@ namespace SyMath
                 return Default;
         }
 
-        protected static bool IsZero(Real? R) { return R != null ? R.Value.IsZero() : false; }
-        protected static bool IsOne(Real? R) { return R != null ? R.Value.IsOne() : false; }
-        protected static bool IsTrue(Real? R) { return R != null ? !R.Value.IsZero() : false; }
-        protected static bool IsFalse(Real? R) { return R != null ? R.Value.IsZero() : false; }
+        protected static bool EqualsZero(Real? R) { return R != null ? R.Value.EqualsZero() : false; }
+        protected static bool EqualsOne(Real? R) { return R != null ? R.Value.EqualsOne() : false; }
+        protected static bool EqualsTrue(Real? R) { return R != null ? !R.Value.EqualsZero() : false; }
+        protected static bool EqualsFalse(Real? R) { return R != null ? R.Value.EqualsZero() : false; }
     }
 
     public static class EvaluateExtension

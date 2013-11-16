@@ -24,7 +24,7 @@ namespace SyMath
                 if (i is Sum)
                     foreach (Expression j in FlattenTerms(((Sum)i).Terms))
                         yield return j;
-                else if (!i.IsZero())
+                else if (!i.EqualsZero())
                     yield return i;
             }
         }

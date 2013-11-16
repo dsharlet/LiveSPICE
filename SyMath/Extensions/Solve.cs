@@ -73,7 +73,7 @@ namespace SyMath
                 Expression scale = -i.PivotCoefficient;
 
                 // Eliminate non-pivot variables from other rows.
-                foreach (LinearCombination r in S.Except(i).Where(r => !r[pivot].IsZero()))
+                foreach (LinearCombination r in S.Except(i).Where(r => !r[pivot].EqualsZero()))
                     r.AddScaled(r[pivot] / scale, i);
             }
         }
@@ -105,7 +105,7 @@ namespace SyMath
 
                 // If there is no pivot in this position, find any row with a non-zero coefficient of j.
                 if (i == null)
-                    i = S.FirstOrDefault(s => !s[j].IsZero());
+                    i = S.FirstOrDefault(s => !s[j].EqualsZero());
 
                 // Solve the row for i.
                 if (i != null)

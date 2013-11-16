@@ -66,10 +66,10 @@ namespace SyMath
             return Matches(Expr, PreMatch.AsEnumerable());
         }
         
-        public virtual bool IsZero() { return false; }
-        public virtual bool IsOne() { return false; }
-        public virtual bool IsFalse() { return IsZero(); }
-        public virtual bool IsTrue() { return IsOne(); }
+        public virtual bool EqualsZero() { return false; }
+        public virtual bool EqualsOne() { return false; }
+        public virtual bool IsFalse() { return EqualsZero(); }
+        public virtual bool IsTrue() { return EqualsOne(); }
 
         /// <summary>
         /// Parse an expression from a string.

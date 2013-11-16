@@ -70,8 +70,8 @@ namespace SyMath
         public static Real operator ^(Real a, Real b) { return new Real(a.r ^ b.r); }
         public static Real operator -(Real x) { return new Real(-x.r); }
 
-        public bool IsZero() { return r.IsZero(); }
-        public bool IsOne() { return r.IsOne(); }
+        public bool EqualsZero() { return r.IsZero(); }
+        public bool EqualsOne() { return r.IsOne(); }
         
         // Math functions
         public static Real Abs(Real x) { return new Real(BigRational.Abs(x.r)); }

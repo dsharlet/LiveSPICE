@@ -18,9 +18,9 @@ namespace SyMath
             { 
                 get 
                 {
-                    if (b.IsOne())
+                    if (b.EqualsOne())
                         return A;
-                    if (A.IsZero())
+                    if (A.EqualsZero())
                         return 0;
                     return Product.New(A, b);
                 } 
@@ -99,13 +99,13 @@ namespace SyMath
             terms = new List<Term>();
             foreach (Expression i in NewBasis)
                 terms.Add(old.Single(j => j.b.Equals(i)));
-            terms.Add(old.Single(i => i.b.IsOne()));
+            terms.Add(old.Single(i => i.b.EqualsOne()));
         }
 
         /// <summary>
         /// Create an Expression equal to this linear combination.
         /// </summary>
-        public Expression ToExpression() { return Sum.New(terms.Select(i => i.Ab).Where(i => !i.IsZero())); }
+        public Expression ToExpression() { return Sum.New(terms.Select(i => i.Ab).Where(i => !i.EqualsZero())); }
 
         public bool DependsOn(IEnumerable<Expression> x) { return ToExpression().DependsOn(x); }
         public bool DependsOn(params Expression[] x) { return DependsOn(x.AsEnumerable()); }
@@ -113,14 +113,14 @@ namespace SyMath
         /// <summary>
         /// The pivot is the first term in this expression.
         /// </summary>
-        private Term Pivot { get { return terms.FirstOrDefault(i => !i.A.IsZero() && !i.b.IsOne()); } }
+        private Term Pivot { get { return terms.FirstOrDefault(i => !i.A.EqualsZero() && !i.b.EqualsOne()); } }
         public Expression PivotCoefficient { get { return Pivot != null ? Pivot.A : null; } }
         public Expression PivotVariable { get { return Pivot != null ? Pivot.b : null; } }
 
         /// <summary>
         /// Column index of the pivot in the linear combination.
         /// </summary>
-        public int PivotPosition { get { return terms.FindIndex(i => !i.A.IsZero()); } }
+        public int PivotPosition { get { return terms.FindIndex(i => !i.A.EqualsZero()); } }
 
         /// <summary>
         /// Solve the expression for the variable v.
@@ -149,6 +149,6 @@ namespace SyMath
                 this[i] = this[i] + Binary.Multiply(S[i], M);
         }
 
-        public override string ToString() { return terms.Select(i => i.Ab).Where(i => !i.IsZero()).UnSplit(" + "); }
+        public override string ToString() { return terms.Select(i => i.Ab).Where(i => !i.EqualsZero()).UnSplit(" + "); }
     }
 }

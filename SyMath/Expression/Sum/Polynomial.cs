@@ -54,7 +54,7 @@ namespace SyMath
         {
             int n = 0;
             foreach (Expression i in Coefficients)
-                if (!i.IsZero())
+                if (!i.EqualsZero())
                     coefficients[n++] = i;
             variable = Variable;
         }
@@ -103,7 +103,7 @@ namespace SyMath
         public Expression Factor(Expression x)
         {
             // Check if there is a simple factor of x.
-            if (this[0].IsZero())
+            if (this[0].EqualsZero())
                 return x * new Polynomial(Coefficients.Where(i => i.Key != 0).ToDictionary(i => i.Key - 1, i => i.Value), x).Factor(x);
 
             DefaultDictionary<Expression, int> factors = new DefaultDictionary<Expression, int>(0);

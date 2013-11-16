@@ -216,7 +216,7 @@ namespace SyMath
                     // Find pivot row.
                     int p;
                     for (p = i; p < N; ++p)
-                        if (!A_[p, i].IsZero())
+                        if (!A_[p, i].EqualsZero())
                             break;
                     if (p >= N)
                         throw new ArgumentException("Singular matrix");

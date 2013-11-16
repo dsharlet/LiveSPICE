@@ -68,7 +68,7 @@ namespace SyMath
                 return base.Visit(E);
         }
 
-        protected override Expression VisitSum(Sum A) { return Sum.New(A.Terms.Select(i => Visit(i)).Where(i => !i.IsZero())); }
+        protected override Expression VisitSum(Sum A) { return Sum.New(A.Terms.Select(i => Visit(i)).Where(i => !i.EqualsZero())); }
 
         protected Expression ProductRule(Expression L, IEnumerable<Expression> R)
         {
