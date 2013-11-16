@@ -24,7 +24,40 @@ namespace LiveSPICE
     {
         static ComponentButton() { DefaultStyleKeyProperty.OverrideMetadata(typeof(ComponentButton), new FrameworkPropertyMetadata(typeof(ComponentButton))); }
 
-        public Circuit.Component Component { get { return (Circuit.Component)Tag; } set { Tag = value; } }
+        public ComponentButton(Circuit.Component C)
+        {
+            StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
+
+            // Add image to the button.
+            ComponentControl symbol = new ComponentControl(C)
+            {
+                Width = 16,
+                Height = 16,
+                ShowText = false,
+                Margin = new Thickness(1),
+            };
+            content.Children.Add(symbol);
+
+            TextBlock name = new TextBlock()
+            {
+                Text = C.GetDisplayName(),
+                Width = 96,
+                Margin = new Thickness(3, 0, 3, 0),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                FontWeight = FontWeights.Normal,
+                FontSize = FontSize,
+            };
+            content.Children.Add(name);
+
+            Tag = C;
+            ToolTip = C.GetDescription() != "" ? C.GetDescription() : null;
+            Content = content;
+            BorderBrush = null;
+        }
+
+        public Circuit.Component Component { get { return (Circuit.Component)Tag; } }
     }
 
     /// <summary>
@@ -204,38 +237,7 @@ namespace LiveSPICE
             {
                 string DisplayName = C.GetDisplayName();
 
-                StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
-
-                // Add image to the button.
-                ComponentControl symbol = new ComponentControl(C)
-                {
-                    Width = 16,
-                    Height = 16,
-                    ShowText = false,
-                    Margin = new Thickness(1),
-                };
-                content.Children.Add(symbol);
-
-                TextBlock name = new TextBlock()
-                {
-                    Text = DisplayName,
-                    Width = 96,
-                    Margin = new Thickness(3, 0, 3, 0),
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    FontWeight = FontWeights.Normal,
-                    FontSize = FontSize,
-                };
-                content.Children.Add(name);
-
-                ComponentButton button = new ComponentButton()
-                {
-                    Component = C,
-                    ToolTip = C.GetDescription() != "" ? C.GetDescription() : null,
-                    Content = content,
-                    BorderBrush = null,
-                };
+                ComponentButton button = new ComponentButton(C);
                 button.Click += OnComponentClick;
 
                 Group.Children.Add(button);
