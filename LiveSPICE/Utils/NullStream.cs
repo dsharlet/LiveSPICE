@@ -33,7 +33,6 @@ namespace LiveSPICE
             Audio.SampleBuffer[] input = new Audio.SampleBuffer[] { };
             Audio.SampleBuffer[] output = new Audio.SampleBuffer[] { };
 
-            double t = 0.0;
             long t0 = Circuit.Timer.Counter;
             while (run)
             {
