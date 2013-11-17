@@ -216,7 +216,7 @@ namespace LiveSPICE
                             outputs[i] = new KeyValuePair<SyMath.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true));
 
                         // Process the samples!
-                        simulation.Run(Count, inputs, signals.Concat(outputs), Iterations);
+                        simulation.Run(Count, inputs, signals.Concat(outputs), arguments, Iterations);
 
                         // Show the samples on the oscilloscope.
                         long clock = Scope.Signals.Clock;

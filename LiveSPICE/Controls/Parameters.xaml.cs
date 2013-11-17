@@ -81,9 +81,13 @@ namespace LiveSPICE
         {
             foreach (Circuit.Parameter i in Parameters)
             {
+                if (controls.Children.OfType<FrameworkElement>().Select(j => (Circuit.Parameter)j.Tag).Any(j => j.Name == i.Name))
+                    continue;
+
                 StackPanel row = new StackPanel() { Orientation = Orientation.Horizontal, Tag = i, Margin = new Thickness(4) };
                 row.Children.Add(new TextBlock() { Text = i.Name.ToString(), Width = 60, TextAlignment = TextAlignment.Right });
                 row.Children.Add(CreateControl(i));
+                row.Tag = i;
                 controls.Children.Add(row);
             }
         }

@@ -275,10 +275,14 @@ namespace Circuit
                     def = (double)match[MatchDefault];
                 if (match.ContainsKey(MatchLog))
                     log = match[MatchLog].IsTrue();
-                Parameters.Add(new RangeParameter(param.ToString(), def, log));
 
                 // Replace the parameter description with a variable.
-                substitutions[match.Matched] = param;
+                if (!substitutions.ContainsKey(match.Matched))
+                {
+                    substitutions[match.Matched] = param;
+
+                    Parameters.Add(new RangeParameter(param.ToString(), def, log));
+                }
             }
 
             return Mna.Evaluate(substitutions).Cast<Equal>().ToList();
