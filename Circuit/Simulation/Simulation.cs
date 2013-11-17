@@ -85,6 +85,22 @@ namespace Circuit
         }
 
         /// <summary>
+        /// Substitute a new solution and Oversample factor. The new solution should be sufficiently similar
+        /// such that the current simulation can serve as the initial conditions to the new solution.
+        /// </summary>
+        /// <param name="Solution"></param>
+        /// <param name="Oversample"></param>
+        public virtual void Update(TransientSolution Solution, int Oversample)
+        {
+            solution = Solution;
+            oversample = Oversample;
+            Flush();
+        }
+
+        // Any cached solution processing should be flushed here.
+        protected virtual void Flush() { }
+
+        /// <summary>
         /// Reset the simulation to the initial conditions of the solution.
         /// </summary>
         public virtual void Reset()

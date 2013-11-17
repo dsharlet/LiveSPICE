@@ -43,6 +43,13 @@ namespace Circuit
             Reset();
         }
 
+        protected override void Flush()
+        {
+            base.Flush();
+
+            compiled.Clear();
+        }
+
         public override void Reset()
         {
             base.Reset();
@@ -62,12 +69,13 @@ namespace Circuit
             IEnumerable<KeyValuePair<Expression, double>> Arguments,
             int Oversample, int Iterations)
         {
-            Delegate processor = Compile(T, Oversample, Iterations, Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Key));
+            Delegate processor = Compile(T, Oversample, Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Key));
 
             // Build parameter list for the processor.
             List<object> parameters = new List<object>(3 + Input.Count() + Output.Count() + Arguments.Count());
             parameters.Add(N);
             parameters.Add((double)n * T);
+            parameters.Add(Iterations);
             foreach (KeyValuePair<Expression, double[]> i in Input)
                 parameters.Add(i.Value);
             foreach (KeyValuePair<Expression, double[]> i in Output)
@@ -87,12 +95,11 @@ namespace Circuit
         
         // Compile and cache delegates for processing various IO configurations for this simulation.
         private Dictionary<int, Delegate> compiled = new Dictionary<int, Delegate>();
-        private Delegate Compile(double T, int Oversample, int Iterations, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
+        private Delegate Compile(double T, int Oversample, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             int hash = OrderedHashCode(
                 T.GetHashCode(),
                 Oversample.GetHashCode(),
-                Iterations.GetHashCode(),
                 Input.OrderedHashCode(), 
                 Output.OrderedHashCode(), 
                 Parameters.OrderedHashCode());
@@ -107,7 +114,7 @@ namespace Circuit
             Log.WriteLine(MessageType.Verbose, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Verbose, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Verbose, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
-            CodeGen code = DefineProcessFunction(T, Oversample, Iterations, Input, Output, Parameters);
+            CodeGen code = DefineProcessFunction(T, Oversample, Input, Output, Parameters);
             Log.WriteLine(MessageType.Info, "[{0}] Building sample processing function...", time);
             LinqExprs.LambdaExpression lambda = code.Build();
             Log.WriteLine(MessageType.Info, "[{0}] Compiling sample processing function...", time);
@@ -120,7 +127,7 @@ namespace Circuit
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ..., double Parameter0 ...)
         //  { ... }
-        private CodeGen DefineProcessFunction(double T, int Oversample, int Iterations, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
+        private CodeGen DefineProcessFunction(double T, int Oversample, IEnumerable<Expression> Input, IEnumerable<Expression> Output, IEnumerable<Expression> Parameters)
         {
             // Map expressions to identifiers in the syntax tree.
             List<KeyValuePair<Expression, LinqExpr>> inputs = new List<KeyValuePair<Expression, LinqExpr>>();
@@ -129,9 +136,10 @@ namespace Circuit
             // Lambda code generator.
             CodeGen code = new CodeGen();
 
-            // Create parameters for the basic simulation info (N, t, T, Oversample, Iterations).
+            // Create parameters for the basic simulation info (N, t, Iterations).
             ParamExpr SampleCount = code.Decl<int>(Scope.Parameter, "SampleCount");
             ParamExpr t0 = code.Decl(Scope.Parameter, Simulation.t0);
+            ParamExpr Iterations = code.Decl<int>(Scope.Parameter, "Iterations");
             // Create buffer parameters for each input, output.
             foreach (Expression i in Input)
             {
@@ -149,7 +157,8 @@ namespace Circuit
 
             // Create globals to store previous values of input.
             foreach (Expression i in Input.Distinct())
-                globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(0.0);
+                if (!globals.ContainsKey(i.Evaluate(t_t0)))
+                    globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(0.0);
 
             // Define lambda body.
 
@@ -244,7 +253,7 @@ namespace Circuit
                                 code.DeclInit(i.Left, i.Right);
                             
                             // int it = iterations
-                            LinqExpr it = code.ReDeclInit("it", Iterations);
+                            LinqExpr it = code.ReDeclInit<int>("it", Iterations);
                             // do { ... --it } while(it > 0)
                             code.DoWhile((Break) =>
                             {
