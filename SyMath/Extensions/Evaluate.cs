@@ -186,15 +186,15 @@ namespace SyMath
             switch (B.Operator)
             {
                 case Operator.And:
-                    if (EqualsFalse(LR) || EqualsFalse(RR))
+                    if (IsFalse(LR) || IsFalse(RR))
                         return Constant.New(false);
-                    else if (EqualsTrue(LR) && EqualsTrue(RR))
+                    else if (IsTrue(LR) && IsTrue(RR))
                         return Constant.New(true);
                     break;
                 case Operator.Or:
-                    if (EqualsTrue(LR) || EqualsTrue(RR))
+                    if (IsTrue(LR) || IsTrue(RR))
                         return Constant.New(true);
-                    else if (EqualsFalse(LR) && EqualsFalse(RR))
+                    else if (IsFalse(LR) && IsFalse(RR))
                         return Constant.New(false);
                     break;
 
@@ -219,9 +219,9 @@ namespace SyMath
             switch (U.Operator)
             {
                 case Operator.Not:
-                    if (EqualsTrue(C))
+                    if (IsTrue(C))
                         return Constant.New(false);
-                    else if (EqualsFalse(C))
+                    else if (IsFalse(C))
                         return Constant.New(true);
                     break;
             }
@@ -249,8 +249,8 @@ namespace SyMath
 
         protected static bool EqualsZero(Real? R) { return R != null ? R.Value.EqualsZero() : false; }
         protected static bool EqualsOne(Real? R) { return R != null ? R.Value.EqualsOne() : false; }
-        protected static bool EqualsTrue(Real? R) { return R != null ? !R.Value.EqualsZero() : false; }
-        protected static bool EqualsFalse(Real? R) { return R != null ? R.Value.EqualsZero() : false; }
+        protected static bool IsTrue(Real? R) { return R != null ? !R.Value.EqualsZero() : false; }
+        protected static bool IsFalse(Real? R) { return R != null ? R.Value.EqualsZero() : false; }
     }
 
     public static class EvaluateExtension
