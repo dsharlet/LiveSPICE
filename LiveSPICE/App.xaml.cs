@@ -20,6 +20,8 @@ namespace LiveSPICE
     {
         public static new App Current { get { return (App)Application.Current; } }
 
+        public new MainWindow MainWindow { get { return (MainWindow)base.MainWindow; } }
+
         private Settings settings = new Settings();
         public Settings Settings { get { return settings; } }
 
