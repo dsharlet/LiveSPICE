@@ -23,11 +23,11 @@ namespace Circuit
             }
         }
         [Browsable(false)]
-        public Terminal P { get { return p; } }
+        public Terminal Plate { get { return p; } }
         [Browsable(false)]
-        public Terminal G { get { return g; } }
+        public Terminal Grid { get { return g; } }
         [Browsable(false)]
-        public Terminal K { get { return k; } }
+        public Terminal Cathode { get { return k; } }
         
         public Triode()
         {

@@ -32,11 +32,11 @@ namespace Circuit
             } 
         }
         [Browsable(false)]
-        public Terminal S { get { return s; } }
+        public Terminal Source { get { return s; } }
         [Browsable(false)]
-        public Terminal G { get { return g; } }
+        public Terminal Gate { get { return g; } }
         [Browsable(false)]
-        public Terminal D { get { return d; } }
+        public Terminal Drain { get { return d; } }
         
         private JfetType type = JfetType.N;
         [Description("JFET structure.")]
@@ -84,6 +84,6 @@ namespace Circuit
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Type, S, G, D, () => Name, () => PartNumber); }
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Type, Source, Gate, Drain, () => Name, () => PartNumber); }
     }
 }

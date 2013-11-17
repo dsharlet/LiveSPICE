@@ -32,30 +32,26 @@ namespace Circuit
             } 
         }
         [Browsable(false)]
-        public Terminal C { get { return c; } }
+        public Terminal Collector { get { return c; } }
         [Browsable(false)]
-        public Terminal E { get { return e; } }
+        public Terminal Emitter { get { return e; } }
         [Browsable(false)]
-        public Terminal B { get { return b; } }
+        public Terminal Base { get { return b; } }
         
         private BjtType type = BjtType.NPN;
-        [Description("BJT structure.")]
-        [Serialize]
+        [Serialize, Description("BJT structure.")]
         public BjtType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
 
         protected Quantity _is = new Quantity(1e-12m, Units.A);
-        [Description("Saturation current.")]
-        [Serialize]
+        [Serialize, Description("Saturation current.")]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
         private double bf = 100;
-        [Description("Forward common emitter current gain.")]
-        [Serialize]
+        [Serialize, Description("Forward common emitter current gain.")]
         public double BF { get { return bf; } set { bf = value; NotifyChanged("BF"); } }
 
         private double br = 1;
-        [Description("Reverse common emitter current gain.")]
-        [Serialize]
+        [Serialize, Description("Reverse common emitter current gain.")]
         public double BR { get { return br; } set { br = value; NotifyChanged("BR"); } }
 
         public BipolarJunctionTransistor()
@@ -76,8 +72,8 @@ namespace Circuit
                 default: throw new NotSupportedException("Unknown BJT structure.");
             }
 
-            Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", sign * (B.V - C.V));
-            Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", sign * (B.V - E.V));
+            Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", sign * (Base.V - Collector.V));
+            Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", sign * (Base.V - Emitter.V));
 
             double aR = BR / (1 + BR);
             double aF = BF / (1 + BF);
@@ -93,9 +89,9 @@ namespace Circuit
 
             ic = Mna.AddNewUnknownEqualTo("i" + Name + "c", ic);
             ib = Mna.AddNewUnknownEqualTo("i" + Name + "b", ib);
-            Mna.AddTerminal(C, sign * ic);
-            Mna.AddTerminal(B, sign * ib);
-            Mna.AddTerminal(E, -sign * (ic + ib));
+            Mna.AddTerminal(Collector, sign * ic);
+            Mna.AddTerminal(Base, sign * ib);
+            Mna.AddTerminal(Emitter, -sign * (ic + ib));
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, BjtType Type, Terminal C, Terminal B, Terminal E, Func<string> Name, Func<string> Part)
@@ -128,6 +124,6 @@ namespace Circuit
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Type, C, B, E, () => Name, () => PartNumber); }
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Type, Collector, Base, Emitter, () => Name, () => PartNumber); }
     }
 }
