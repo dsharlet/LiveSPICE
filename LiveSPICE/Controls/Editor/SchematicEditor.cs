@@ -26,7 +26,7 @@ namespace LiveSPICE
     /// </summary>
     public class SchematicEditor : SchematicControl
     {
-        public const string FileExtension = ".xml";
+        public const string FileExtension = "schx";
 
         public SchematicEditor() : this(new Circuit.Schematic()) { }
         public SchematicEditor(string FileName) : this(Circuit.Schematic.Load(FileName))
@@ -85,7 +85,7 @@ namespace LiveSPICE
             {
                 InitialDirectory = filepath != null ? System.IO.Path.GetDirectoryName(filepath) : App.Current.UserDocuments.FullName,
                 FileName = Title,
-                Filter = "Circuit Schematics|*" + FileExtension,
+                Filter = "Circuit Schematics|*." + FileExtension + "|XML Files|*.xml|All Files|*.*",
                 DefaultExt = FileExtension
             };
             dlg.CustomPlaces.Add(new FileDialogCustomPlace(App.Current.UserDocuments.FullName));

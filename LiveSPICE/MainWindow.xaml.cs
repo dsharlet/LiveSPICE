@@ -144,7 +144,7 @@ namespace LiveSPICE
                 OpenFileDialog dlg = new OpenFileDialog()
                 {
                     //InitialDirectory = App.Current.UserDocuments.FullName,
-                    Filter = "Circuit Schematics|*" + SchematicEditor.FileExtension,
+                    Filter = "Circuit Schematics|*." + SchematicEditor.FileExtension + "|XML Files|*.xml|All Files|*.*",
                     DefaultExt = SchematicEditor.FileExtension,
                     Multiselect = true
                 };

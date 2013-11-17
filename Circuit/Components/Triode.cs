@@ -23,11 +23,11 @@ namespace Circuit
             }
         }
         [Browsable(false)]
-        public Terminal Plate { get { return p; } }
+        public Terminal P { get { return p; } }
         [Browsable(false)]
-        public Terminal Grid { get { return g; } }
+        public Terminal G { get { return g; } }
         [Browsable(false)]
-        public Terminal Cathode { get { return k; } }
+        public Terminal K { get { return k; } }
         
         public Triode()
         {
@@ -53,11 +53,11 @@ namespace Circuit
             Mna.AddTerminal(k, -(ip + ig));
         }
 
-        public void ConnectTo(Node A, Node G, Node C)
+        public void ConnectTo(Node P, Node G, Node K)
         {
-            p.ConnectTo(A);
+            p.ConnectTo(P);
             g.ConnectTo(G);
-            k.ConnectTo(C);
+            k.ConnectTo(K);
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, Terminal P, Terminal G, Terminal K, Func<string> Name, Func<string> Part)
