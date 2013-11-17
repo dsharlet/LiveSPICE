@@ -134,15 +134,5 @@ namespace Circuit
         public override string GetDisplayName() { return DisplayName != "" ? DisplayName : PartNumber; }
         public override string GetDescription() { return Description; }
         public override string GetCategory() { return Category; }
-
-        /// <summary>
-        /// Create a circuit from a SPICE netlist.
-        /// </summary>
-        /// <param name="Filename"></param>
-        /// <returns></returns>
-        public static Circuit FromNetlist(string Filename)
-        {
-            return Netlist.Parse(Filename);
-        }
     };
 }
