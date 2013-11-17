@@ -22,17 +22,9 @@ namespace Circuit
         [Browsable(false)]
         public NodeCollection Nodes { get { return nodes; } }
 
-        private string displayName = "";
-        [Serialize, DefaultValue("")]
-        public string DisplayName { get { return displayName; } set { displayName = value; NotifyChanged("DisplayName"); } }
-
         private string description = "";
         [Serialize, DefaultValue("")]
         public string Description { get { return description; } set { description = value; NotifyChanged("Description"); } }
-
-        private string category = "";
-        [Serialize, DefaultValue("")]
-        public string Category { get { return category; } set { category = value; NotifyChanged("Category"); } }
 
         /// <summary>
         /// External terminals (ports) in this circuit.
@@ -130,9 +122,5 @@ namespace Circuit
                 Components.Add(component);
             }
         }
-
-        public override string GetDisplayName() { return DisplayName != "" ? DisplayName : PartNumber; }
-        public override string GetDescription() { return Description; }
-        public override string GetCategory() { return Category; }
     };
 }

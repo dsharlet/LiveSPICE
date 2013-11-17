@@ -24,8 +24,13 @@ namespace LiveSPICE
     {
         static ComponentButton() { DefaultStyleKeyProperty.OverrideMetadata(typeof(ComponentButton), new FrameworkPropertyMetadata(typeof(ComponentButton))); }
 
-        public ComponentButton(Circuit.Component C)
+        private string name;
+        public new string Name { get { return name; } }
+
+        public ComponentButton(Circuit.Component C, string Name, string Description)
         {
+            name = Name;
+
             StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
 
             // Add image to the button.
@@ -39,8 +44,8 @@ namespace LiveSPICE
 
             content.Children.Add(new TextBlock()
             {
-                Text = C.GetDisplayName(),
-                Width = 96,
+                Text = Name,
+                Width = 80,
                 Margin = new Thickness(3, 0, 3, 0),
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -50,7 +55,8 @@ namespace LiveSPICE
             });
 
             Tag = C;
-            ToolTip = C.GetDescription() != "" ? C.GetDescription() : null;
+            if (Description != "")
+                ToolTip = Description;
             Content = content;
             BorderBrush = null;
         }
@@ -58,12 +64,58 @@ namespace LiveSPICE
         public Circuit.Component Component { get { return (Circuit.Component)Tag; } }
     }
 
+    public interface ICategory
+    {
+        IEnumerable<Category> SubCategories { get; }
+        Category SubCategory(string Name);
+
+        void AddItem(UIElement Item);
+    }
+
+    public class Category : Expander, ICategory
+    {
+        private StackPanel children = new StackPanel() { Margin = new Thickness(10, 0, 0, 0) };
+        private WrapPanel items = new WrapPanel() { Margin = new Thickness(10, 0, 0, 0) };
+
+        public Category(string Name)
+        {
+            Header = Name;
+            Focusable = false;
+            FontWeight = FontWeights.Bold;
+            FontSize = 14;
+
+            StackPanel content = new StackPanel();
+            content.Children.Add(children);
+            content.Children.Add(items);
+            Content = content;
+        }
+
+        public new string Name { get { return (string)Header; } }
+
+        public IEnumerable<Category> SubCategories { get { return children.Children.OfType<Category>(); } }
+        public IEnumerable<UIElement> Items { get { return items.Children.OfType<UIElement>(); } }
+
+        public Category SubCategory(string Name)
+        {
+            Category category = SubCategories.SingleOrDefault(i => (string)i.Header == Name);
+            if (category == null)
+            {
+                category = new Category(Name);
+                children.Children.Add(category);
+            }
+
+            return category;
+        }
+
+        public void AddItem(UIElement Item) { items.Children.Add(Item); }
+    }
+
     /// <summary>
     /// Interaction logic for ComponentLibrary.xaml
     /// </summary>
-    public partial class ComponentLibrary : UserControl, INotifyPropertyChanged
+    public partial class ComponentLibrary : UserControl, INotifyPropertyChanged, ICategory
     {
-        private static List<Type> CommonTypes = new List<Type>()
+        private static List<Type> Common = new List<Type>()
         {
             typeof(Circuit.Conductor),
             typeof(Circuit.Ground),
@@ -85,89 +137,102 @@ namespace LiveSPICE
             { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
         };
 
-        private static IEnumerable<Circuit.Component> LoadLibrary(string Library, string Category)
+        private void AddLibrary(ICategory Category, string Library)
         {
+            string name = System.IO.Path.GetFileNameWithoutExtension(Library);
+
             try
             {
                 XDocument doc = XDocument.Load(Library);
-                List<Circuit.Component> ret = new List<Circuit.Component>();
-                if (doc.Element("Components") != null)
+                XElement library = doc.Element("Library");
+                if (library != null)
                 {
-                    foreach (XElement i in doc.Element("Components").Elements("Component"))
-                        ret.Add(Circuit.Component.Deserialize(i));
+                    XAttribute category = library.Attribute("Category");
+                    Category = Category.SubCategory(category != null ? category.Value : name);
+
+                    foreach (XElement i in library.Elements("Component"))
+                    {
+                        Circuit.Component C = Circuit.Component.Deserialize(i);
+                        AddItem(Category, C);
+                    }
                 }
                 else if (doc.Element("Schematic") != null)
                 {
                     Circuit.Schematic S = Circuit.Schematic.Deserialize(doc.Element("Schematic"));
-                    if (S.Circuit.Category == "")
-                        S.Circuit.Category = Category;
-                    ret.Add(S.Build());
+                    Circuit.Circuit C = S.Build();
+                    AddItem(Category, C, name, C.Description);
                 }
-                return ret;
             }
             catch (System.Xml.XmlException)
             {
                 try
                 {
-                    Circuit.Spice.Statements directives = new Circuit.Spice.Statements(Library);
-
-                    return directives.OfType<Circuit.Component>();
+                    Circuit.Spice.Statements statements = new Circuit.Spice.Statements(Library);
+                    Category = Category.SubCategory(name);
+                    foreach (Circuit.Spice.Model i in statements.OfType<Circuit.Spice.Model>().Where(i => i.Component != null))
+                        AddItem(Category, i.Component, i.Component.PartNumber, i.Description);
                 }
                 catch (Exception Ex)
                 {
                     //Log.WriteLine(Circuit.MessageType.Error, "Error loading component library '{0}': {1}", Library, Ex.Message);
-                    return new Circuit.Component[0];
                 }
             }
             catch (Exception Ex)
             {
                 //Log.WriteLine(Circuit.MessageType.Error, "Error loading component library '{0}': {1}", Library, Ex.Message);
-                return new Circuit.Component[0];
-            }
-        }
-
-        private static IEnumerable<Circuit.Component> LoadLibrary(string Library) { return LoadLibrary(Library, "Uncategorized"); }
-
-        private static List<Circuit.Component> LoadStandardLibraries()
-        {
-            // Look next to the app, or up a bit.
-            string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            List<Circuit.Component> lib = GetFiles(System.IO.Path.Combine(app, "Components"), "*.xml").SelectMany(i => LoadLibrary(i)).ToList();
-            if (lib.Count == 0)
-                lib = GetFiles(System.IO.Path.Combine(app, @"..\..\..\Components"), "*.xml").SelectMany(i => LoadLibrary(i)).ToList();
-
-            return lib;
-        }
-
-        private static IEnumerable<Circuit.Component> Components
-        {
-            get
-            {
-                Type root = typeof(Circuit.Component);
-                IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(i => i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)));
-
-                foreach (Type i in types)
-                {
-                    // Enumerate the component itself.
-                    Circuit.Component C;
-                    try { C = (Circuit.Component)Activator.CreateInstance(i); }
-                    catch (Exception) { continue; }
-
-                    if (C.IsImplemented)
-                        yield return C;
-                }
-
-                // Load the component libraries and enumerate them.
-                foreach (Circuit.Component i in LoadStandardLibraries())
-                    yield return i;
-
-                string docs = App.Current.UserDocuments.FullName;
-                foreach (Circuit.Component i in GetFiles(System.IO.Path.Combine(docs, "Components"), "*").SelectMany(i => LoadLibrary(i)))
-                    yield return i;
             }
         }
         
+        private void AddLibraries(ICategory Category, string Path)
+        {
+            foreach (string i in System.IO.Directory.GetDirectories(Path))
+                AddLibraries(Category.SubCategory(System.IO.Path.GetFileName(i)), i);
+
+            foreach (string i in System.IO.Directory.GetFiles(Path))
+                AddLibrary(Category, i);
+        }
+
+        private void LoadComponents()
+        {
+            categories.Children.Clear();
+            filtered.Children.Clear();
+
+            // Add types identified in Common.
+            Category common = SubCategory("Common");
+            foreach (Type i in Common)
+                AddItem(common, (Circuit.Component)Activator.CreateInstance(i));
+
+            // Add generic types to the Standard category.
+            Category standard = SubCategory("Standard");
+            Type root = typeof(Circuit.Component);
+            foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (Type j in i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)))
+                {
+                    try
+                    {
+                        Circuit.Component c = (Circuit.Component)Activator.CreateInstance(j);
+                        AddItem(standard, j);
+                    }
+                    catch (Exception) { }
+                }
+            }
+
+            // Load standard libraries.
+            string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            string[] search =
+            {
+                System.IO.Path.Combine(app, "Components"),
+                System.IO.Path.Combine(app, @"..\..\..\Components"),
+            };
+            string path = search.FirstOrDefault(i => System.IO.Directory.Exists(i));
+            if (path != null)
+                AddLibraries(this, path);
+
+            // Load components from the user docs folder.
+            AddLibraries(this, System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components"));
+        }
+
         public ComponentLibrary()
         {
             InitializeComponent();
@@ -193,17 +258,15 @@ namespace LiveSPICE
                 if (f == "")
                 {
                     categories.Visibility = Visibility.Visible;
-                    filtered.Visibility = Visibility.Hidden;
+                    filtered.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    categories.Visibility = Visibility.Hidden;
+                    categories.Visibility = Visibility.Collapsed;
                     filtered.Visibility = Visibility.Visible;
 
-                    f = f.ToUpper();
-
                     foreach (ComponentButton i in filtered.Children)
-                        i.Visibility = i.Component.GetDisplayName().ToUpper().IndexOf(f) != -1 ? Visibility.Visible : Visibility.Collapsed;
+                        i.Visibility = i.Name.ToUpper().IndexOf(f) != -1 ? Visibility.Visible : Visibility.Collapsed;
                 }
                 NotifyChanged("Filter");
             }
@@ -221,96 +284,66 @@ namespace LiveSPICE
                 i(C);
         }
         private void OnComponentClick(object sender, RoutedEventArgs e) { RaiseComponentClick(((ComponentButton)sender).Component); }
-
-
-        private void LoadComponents()
-        {
-            categories.Children.Clear();
-            filtered.Children.Clear();
-
-            List<Circuit.Component> components = Components.OrderBy(i => i.GetDisplayName()).ToList();
-
-            Panel common = GetCategory("Common");
-            foreach (Circuit.Component i in components.Where(i => CommonTypes.Contains(i.GetType())))
-                AddItem(common, i, CommandBindings);
-
-            foreach (Circuit.Component i in components)
-                AddItem(GetCategory(i.GetCategory()), i, Window.GetWindow(this).CommandBindings);
-
-            foreach (Circuit.Component i in components)
-                AddItem(filtered, i, null);
-        }
-
-        private void Refresh_Click(object sender, EventArgs e) { LoadComponents(); }
         
-        private void AddItem(Panel Group, Circuit.Component C, CommandBindingCollection CommandBindings)
+        private void Refresh_Click(object sender, EventArgs e) { LoadComponents(); }
+
+        private ComponentButton NewComponentButton(Circuit.Component C, string Name, string Description)
         {
-            try
-            {
-                string DisplayName = C.GetDisplayName();
+            ComponentButton button = new ComponentButton(C, Name, Description);
+            button.Click += OnComponentClick;
 
-                ComponentButton button = new ComponentButton(C);
-                button.Click += OnComponentClick;
+            // Append tooltip if there is a shortcut key.
+            KeyGesture[] keys;
+            if (ShortcutKeys.TryGetValue(C.GetType(), out keys))
+                button.ToolTip = (string)button.ToolTip + " (" + keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
 
-                Group.Children.Add(button);
-
-                // Append tooltip if there is a shortcut key.
-                KeyGesture[] keys;
-                if (CommandBindings != null && ShortcutKeys.TryGetValue(C.GetType(), out keys))
-                    button.ToolTip = (string)button.ToolTip + " (" + keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
-            }
-            catch (System.Exception) { }
+            return button;
         }
 
+        private void AddItem(ICategory Group, Circuit.Component C, string Name, string Description)
+        {
+            Group.AddItem(NewComponentButton(C, Name, Description));
+            filtered.Children.Add(NewComponentButton(C, Name, Description));
+        }
+        private void AddItem(ICategory Group, Circuit.Component C)
+        {
+            DescriptionAttribute desc = C.GetType().GetCustomAttribute<DescriptionAttribute>();
+            AddItem(Group, C, C.TypeName, desc != null ? desc.Description : null); 
+        }
+        private void AddItem(ICategory Group, Type T) { AddItem(Group, (Circuit.Component)Activator.CreateInstance(T)); }
+
+        // Setup the shortcut key command bindings on the target.
         private void InitShortcutKeys(CommandBindingCollection Target)
         {
             foreach (KeyValuePair<Type, KeyGesture[]> i in ShortcutKeys)
             {
                 Circuit.Component C = (Circuit.Component)Activator.CreateInstance(i.Key);
 
-                RoutedCommand command = new RoutedCommand(C.GetDisplayName(), GetType());
+                RoutedCommand command = new RoutedCommand(C.TypeName, GetType());
                 command.InputGestures.AddRange(i.Value);
 
                 Target.Add(new CommandBinding(command, (x, y) => RaiseComponentClick(C)));
             }
         }
 
-        private Panel GetCategory(string Category)
+        // ICategory interface.
+        public IEnumerable<Category> SubCategories { get { return categories.Children.OfType<Category>(); } }
+        public Category SubCategory(string Category)
         {
             if (Category == "")
                 Category = "Uncategorized";
 
-            IEnumerable<Expander> expanders = categories.Children.OfType<Expander>();
-            Expander category = expanders.SingleOrDefault(i => (string)i.Header == Category);
+            Category category = SubCategories.SingleOrDefault(i => i.Name == Category);
             if (category == null)
             {
-                category = new Expander()
-                {
-                    Header = Category,
-                    Content = new WrapPanel(),
-                    Focusable = false,
-                    FontWeight = FontWeights.Bold,
-                    FontSize = 14,
-                    IsExpanded = !expanders.Any(),
-                };
+                category = new Category(Category) { IsExpanded = !SubCategories.Any() };
                 categories.Children.Add(category);
             }
 
-            return (Panel)category.Content;
+            return category;
         }
-
-        private static IEnumerable<string> GetFiles(string Path, string Filter)
-        {
-            try
-            {
-                return System.IO.Directory.GetFiles(Path, Filter);
-            }
-            catch (Exception)
-            {
-                return new string[0];
-            }
-        }
-
+        public void AddItem(UIElement Item) { throw new NotImplementedException("Item must be a child of a category."); }
+        
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {

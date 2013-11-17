@@ -21,23 +21,27 @@ namespace Circuit.Spice
         {
             text = Line.ToString().TrimEnd();
 
-            foreach (string i in text.ToUpper().Split(Whitespace))
+            foreach (string i in text.Split(Whitespace))
             {
+                string tok = i.Trim().ToUpper();
+                if (tok.Length == 0)
+                    continue;
+
                 // * at the beginning of the line is a comment.
-                if (i.StartsWith("*") && Count == 0)
+                if (tok.StartsWith("*") && Count == 0)
                     return;
 
                 // Truncate tokens at semicolon comments.
-                int semi = i.IndexOf(';');
+                int semi = tok.IndexOf(';');
                 if (semi > 0)
                 {
-                    Add(i.Substring(0, semi));
+                    Add(tok.Substring(0, semi));
                     return;
                 }
                 else if (semi == 0)
                     return;
 
-                Add(i);
+                Add(tok);
             }
         }
 

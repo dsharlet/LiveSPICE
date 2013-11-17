@@ -67,9 +67,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\CenterTapTransformer.cs" />
+    <Compile Include="Components\JunctionFieldEffectTransistor.cs" />
     <Compile Include="Components\Input.cs" />
-    <Compile Include="ModelSpecialization.cs" />
-    <Compile Include="Components\Transistor.cs" />
+    <Compile Include="Specialization.cs" />
     <Compile Include="Components\KorenTriode.cs" />
     <Compile Include="Components\ChildLangmuirTriode.cs" />
     <Compile Include="Components\Transformer.cs" />
@@ -93,12 +93,13 @@
     <Compile Include="Schematic\Schematic.cs" />
     <Compile Include="Schematic\ElementCollection.cs" />
     <Compile Include="Schematic\Wire.cs" />
+    <Compile Include="Spice\Model.cs" />
     <Compile Include="Spice\TokenList.cs" />
     <Compile Include="Spice\Statement.cs" />
     <Compile Include="Spice\Statements.cs" />
     <Compile Include="Utils\ComponentCollection.cs" />
     <Compile Include="Components\BaseComponents.cs" />
-    <Compile Include="Components\EbersMollTransistor.cs" />
+    <Compile Include="Components\BipolarJunctionTransistor.cs" />
     <Compile Include="Components\Triode.cs" />
     <Compile Include="Components\Output.cs" />
     <Compile Include="Components\Switch.cs" />
@@ -128,7 +129,7 @@
     <Compile Include="Components\Resistor.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Components\ShockleyDiode.cs" />
+    <Compile Include="Components\Diode.cs" />
     <Compile Include="Terminal.cs" />
     <Compile Include="Utils\Quantity.cs" />
     <Compile Include="Components\VoltageSource.cs" />

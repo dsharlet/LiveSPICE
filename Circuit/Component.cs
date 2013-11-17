@@ -136,39 +136,25 @@ namespace Circuit
         }
 
         /// <summary>
-        /// Create a deep copy of this component.
+        /// Create a deep copy of this component via serialization.
         /// </summary>
         /// <returns></returns>
         public virtual Component Clone() { return Deserialize(Serialize()); }
 
-        public virtual string GetDisplayName() 
-        { 
-            DisplayNameAttribute attr = GetType().GetCustomAttribute<DisplayNameAttribute>(false);
-            return attr != null ? attr.DisplayName : "";
-        }
-        public virtual string GetDescription() 
+        /// <summary>
+        /// The name of the type of this component.
+        /// </summary>
+        public virtual string TypeName
         {
-            DescriptionAttribute attr = GetType().GetCustomAttribute<DescriptionAttribute>(false);
-            return attr != null ? attr.Description : "";
+            get
+            {
+                DisplayNameAttribute attr = GetType().GetCustomAttribute<DisplayNameAttribute>(false);
+                return attr != null ? attr.DisplayName : GetType().Name;
+            }
         }
-        public virtual string GetCategory()
-        {
-            CategoryAttribute attr = GetType().GetCustomAttribute<CategoryAttribute>(false);
-            return attr != null ? attr.Category : "";
-        }
-        [Browsable(false)]
-        public virtual bool IsImplemented { get { return Terminals.Any(); } }
-        
-        // This is too useful not to have.
-        protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
-        // Make a variable Name dependent on On.
-        public static Expression DependentVariable(string Name, params Expression[] Args) 
-        { 
-            return Call.New(ExprFunction.New(Name, Args.Select((i, j) => Variable.New(j.ToString()))), Args); 
-        }
-
+                
         // object interface.
-        public override string ToString() { return GetDisplayName() + " " + Name; }
+        public override string ToString() { return TypeName + " " + Name; }
 
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
@@ -177,5 +163,13 @@ namespace Circuit
                 PropertyChanged(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
+
+        // This is too useful not to have.
+        protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
+        // Make a variable Name dependent on On.
+        public static Expression DependentVariable(string Name, params Expression[] Args)
+        {
+            return Call.New(ExprFunction.New(Name, Args.Select((i, j) => Variable.New(j.ToString()))), Args);
+        }
     }
 }

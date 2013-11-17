@@ -69,7 +69,7 @@ namespace LiveSPICE
 
             Circuit.Component component = Symbol.Component;
 
-            text.Inlines.Add(new Bold(new Run(component.GetDisplayName())));
+            text.Inlines.Add(new Bold(new Run(component.ToString())));
 
             foreach (PropertyInfo i in component.GetType().GetProperties().Where(j =>
                 j.GetCustomAttribute<Circuit.Serialize>() != null &&

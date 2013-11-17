@@ -10,7 +10,6 @@ namespace Circuit
 {
     public abstract class Decoration : Component
     {
-        public override bool IsImplemented { get { return true; } }
         public override sealed void Analyze(Analysis Mna) { }
     }
 

@@ -1,0 +1,88 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using SyMath;
+using System.ComponentModel;
+
+namespace Circuit
+{
+    public enum DiodeType
+    {
+        Diode,
+        LED,
+        Zener,
+    }
+
+    /// <summary>
+    /// Shockley diode model: http://en.wikipedia.org/wiki/Diode_modelling#Shockley_diode_model
+    /// </summary>
+    [Category("Diodes")]
+    [DisplayName("Diode")]
+    [Description("Diode implemented using the Shockley diode model.")]
+    public class Diode : TwoTerminal
+    {
+        protected Quantity _is = new Quantity(1e-12m, Units.A);
+        [Description("Saturation current.")]
+        [Serialize]
+        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
+
+        protected double _n = 1.0;
+        [Description("Idealization factor.")]
+        [Serialize]
+        public double n { get { return _n; } set { _n = value; NotifyChanged("n"); } }
+
+        protected DiodeType type = DiodeType.Diode;
+        [Description("Type of this diode. This property only affects the schematic symbol, it does not affect the simulation.")]
+        [Serialize]
+        public DiodeType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
+        
+        public Diode() { Name = "D1"; }
+
+        public override void Analyze(Analysis Mna)
+        {
+            // V = Va - Vc
+            Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
+
+            // Evaluate the model.
+            Expression i = (Expression)IS * (Call.Exp(Vac / (n * VT)) - 1);
+
+            Mna.AddPassiveComponent(Name, Anode, Cathode, Mna.AddNewUnknownEqualTo("i" + Name, i));
+        }
+
+        public static void LayoutSymbol(SymbolLayout Sym, Terminal A, Terminal C, DiodeType Type, Func<string> Name, Func<string> Part)
+        {
+            Sym.AddTerminal(A, new Coord(0, 20));
+            Sym.AddWire(A, new Coord(0, 10));
+
+            Sym.AddTerminal(C, new Coord(0, -20));
+            Sym.AddWire(C, new Coord(0, -10));
+
+            Sym.AddLoop(EdgeType.Black,
+                new Coord(-10, 10),
+                new Coord(10, 10),
+                new Coord(0, -10));
+            Sym.AddLine(EdgeType.Black, new Coord(-10, -10), new Coord(10, -10));
+            
+            switch (Type)
+            {
+                case DiodeType.LED:
+                    Sym.DrawArrow(EdgeType.Black, new Coord(-12, 5), new Coord(-20, -3), 0.2);
+                    Sym.DrawArrow(EdgeType.Black, new Coord(-8, -2), new Coord(-16, -10), 0.2);
+                    break;
+                case DiodeType.Zener:
+                    Sym.AddLine(EdgeType.Black, new Coord(-10, -10), new Coord(-10, -5));
+                    Sym.AddLine(EdgeType.Black, new Coord(10, -10), new Coord(10, -15));
+                    break;
+                default:
+                    break;
+            }
+
+            if (Part != null)
+                Sym.DrawText(Part, new Coord(12, 4), Alignment.Near, Alignment.Near);
+            Sym.DrawText(Name, new Coord(12, -4), Alignment.Near, Alignment.Far);
+        }
+
+        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Anode, Cathode, Type, () => Name, () => PartNumber); }
+    }
+}

@@ -332,8 +332,6 @@ namespace Circuit
         {
             XDocument doc = XDocument.Load(FileName);
             Schematic S = Schematic.Deserialize(doc.Root, Log);
-            if (S.Circuit.DisplayName == "")
-                S.Circuit.DisplayName = System.IO.Path.GetFileNameWithoutExtension(FileName);
             Log.WriteLine(MessageType.Info, "Schematic loaded from '" + FileName + "'");
             S.LogComponents();
             return S;
@@ -345,9 +343,7 @@ namespace Circuit
         {
             XElement x = new XElement("Schematic");
             x.SetAttributeValue("Name", Circuit.Name);
-            x.SetAttributeValue("DisplayName", Circuit.DisplayName);
             x.SetAttributeValue("Description", Circuit.Description);
-            x.SetAttributeValue("Category", Circuit.Category);
             x.SetAttributeValue("PartNumber", Circuit.PartNumber);
             foreach (Element i in Elements)
                 x.Add(i.Serialize());
@@ -359,9 +355,7 @@ namespace Circuit
             Schematic s = new Schematic(Log);
             s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
             s.Circuit.Name = Value(X.Attribute("Name"));
-            s.Circuit.DisplayName = Value(X.Attribute("DisplayName"));
             s.Circuit.Description = Value(X.Attribute("Description"));
-            s.Circuit.Category = Value(X.Attribute("Category"));
             s.Circuit.PartNumber = Value(X.Attribute("PartNumber"));
             return s;
         }

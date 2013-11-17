@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Components>
-  <Component _Type="Circuit.ModelSpecialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="X1" PartNumber="4558" Category="Op-Amps" DisplayName="4558" Description="http://www.fairchildsemi.com/ds/KA/KA4558.pdf">
+<Library Category="Op-Amps">
+  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="http://www.fairchildsemi.com/ds/KA/KA4558.pdf">
     <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rin="50 MΩ" Rout="100 Ω" Aol="200 k" Name="X1" PartNumber="4558" />
   </Component>
-</Components>
+</Library>

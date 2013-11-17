@@ -119,6 +119,9 @@
     <Compile Include="Utils\ImageButton.cs" />
     <Compile Include="Controls\Scope\SignalDisplay.cs" />
     <Compile Include="Utils\NullStream.cs" />
+    <Compile Include="Windows\About.xaml.cs">
+      <DependentUpon>About.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\AudioConfig.xaml.cs">
       <DependentUpon>AudioConfig.xaml</DependentUpon>
     </Compile>
@@ -178,8 +181,8 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Scope\Oscilloscope.cs" />
-    <Compile Include="Windows\About.xaml.cs">
-      <DependentUpon>About.xaml</DependentUpon>
+    <Compile Include="Windows\BackgroundProcess.xaml.cs">
+      <DependentUpon>BackgroundProcess.xaml</DependentUpon>
     </Compile>
     <Page Include="Controls\Simulation\Channel.xaml">
       <SubType>Designer</SubType>
@@ -192,6 +195,10 @@
     <Page Include="Themes\Theme.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\About.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\AudioConfig.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -249,9 +256,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Windows\About.xaml">
-      <Generator>MSBuild:Compile</Generator>
+    <Page Include="Windows\BackgroundProcess.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
