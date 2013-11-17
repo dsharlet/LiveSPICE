@@ -26,6 +26,17 @@ namespace Circuit
     {
         void ILog.WriteLine(MessageType Type, string Text, params object[] Format) { }
     }
+    
+    /// <summary>
+    /// Log implementation targetting a StringBuilder.
+    /// </summary>
+    public class TextLog : ILog
+    {
+        private StringBuilder text = new StringBuilder();
+        public StringBuilder Text { get { return text; } set { text = value; } }
+
+        void ILog.WriteLine(MessageType Type, string Text, params object[] Format) { text.AppendFormat(Text, Format); }
+    }
 
     /// <summary>
     /// System.Console ILog implementation.
