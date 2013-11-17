@@ -42,7 +42,7 @@ namespace Circuit
             // Get the ports to add to the symbol.
             List<Port> ports = Components.OfType<Port>().OrderBy(i => i.Name).ToList();
 
-            int number = (Math.Max(ports.Max(i => i.Number), ports.Count()) + 1) & ~1;
+            int number = (Math.Max(ports.Max(i => i.Number, 0), ports.Count()) + 1) & ~1;
             
             int w = 40;
             int h = (number / 2) * 10;
