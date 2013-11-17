@@ -213,19 +213,16 @@ namespace LiveSPICE
             }
         }
 
-        private void component_Click(object s, RoutedEventArgs e) 
+        private void component_Click(Circuit.Component C) 
         {
             SchematicEditor active = ActiveEditor;
             if (active == null)
                 active = (SchematicEditor)New().Schematic;
 
-            e.Handled = true;
-
-            Circuit.Component C = ((ComponentButton)s).Component.Clone();
             if (C is Circuit.Conductor)
                 active.Tool = new WireTool(active);
             else
-                active.Tool = new SymbolTool(active, C);
+                active.Tool = new SymbolTool(active, C.Clone());
 
             active.Focus();
             Keyboard.Focus(active);

@@ -29,16 +29,15 @@ namespace LiveSPICE
             StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
 
             // Add image to the button.
-            ComponentControl symbol = new ComponentControl(C)
+            content.Children.Add(new ComponentControl(C)
             {
                 Width = 16,
                 Height = 16,
                 ShowText = false,
                 Margin = new Thickness(1),
-            };
-            content.Children.Add(symbol);
+            });
 
-            TextBlock name = new TextBlock()
+            content.Children.Add(new TextBlock()
             {
                 Text = C.GetDisplayName(),
                 Width = 96,
@@ -48,8 +47,7 @@ namespace LiveSPICE
                 VerticalAlignment = VerticalAlignment.Center,
                 FontWeight = FontWeights.Normal,
                 FontSize = FontSize,
-            };
-            content.Children.Add(name);
+            });
 
             Tag = C;
             ToolTip = C.GetDescription() != "" ? C.GetDescription() : null;
@@ -87,42 +85,48 @@ namespace LiveSPICE
             { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
         };
 
-        private static IEnumerable<Circuit.Component> LoadLibrary(string Library)
+        private static IEnumerable<Circuit.Component> LoadLibrary(string Library, string Category)
         {
             try
             {
                 XDocument doc = XDocument.Load(Library);
-                List<Circuit.Component> components = new List<Circuit.Component>();
-                foreach (XElement i in doc.Element("Components").Elements("Component"))
-                    components.Add(Circuit.Component.Deserialize(i));
-                return components;
+                List<Circuit.Component> ret = new List<Circuit.Component>();
+                if (doc.Element("Components") != null)
+                {
+                    foreach (XElement i in doc.Element("Components").Elements("Component"))
+                        ret.Add(Circuit.Component.Deserialize(i));
+                }
+                else if (doc.Element("Schematic") != null)
+                {
+                    Circuit.Schematic S = Circuit.Schematic.Deserialize(doc.Element("Schematic"));
+                    if (S.Circuit.Category == "")
+                        S.Circuit.Category = Category;
+                    ret.Add(S.Build());
+                }
+                return ret;
+            }
+            catch (System.Xml.XmlException)
+            {
+                try
+                {
+                    Circuit.Spice.Statements directives = new Circuit.Spice.Statements(Library);
+
+                    return directives.OfType<Circuit.Component>();
+                }
+                catch (Exception Ex)
+                {
+                    //Log.WriteLine(Circuit.MessageType.Error, "Error loading component library '{0}': {1}", Library, Ex.Message);
+                    return new Circuit.Component[0];
+                }
             }
             catch (Exception Ex)
             {
-                MessageBox.Show("Error loading component library '" + Library + "': " + Ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                //Log.WriteLine(Circuit.MessageType.Error, "Error loading component library '{0}': {1}", Library, Ex.Message);
                 return new Circuit.Component[0];
             }
         }
 
-        private static IEnumerable<Circuit.Component> LoadSchematics(string Folder, string Category)
-        {
-            List<Circuit.Component> components = new List<Circuit.Component>();
-            foreach (string i in GetFiles(Folder, "*.xml"))
-            {
-                try
-                {
-                    Circuit.Schematic S = Circuit.Schematic.Load(i);
-                    if (S.Circuit.Category == "")
-                        S.Circuit.Category = Category;
-                    components.Add(S.Build());
-                }
-                catch (Exception Ex)
-                {
-                    MessageBox.Show("Error loading component '" + i + "': " + Ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            return components;
-        }
+        private static IEnumerable<Circuit.Component> LoadLibrary(string Library) { return LoadLibrary(Library, "Uncategorized"); }
 
         private static List<Circuit.Component> LoadStandardLibraries()
         {
@@ -159,16 +163,23 @@ namespace LiveSPICE
                     yield return i;
 
                 string docs = App.Current.UserDocuments.FullName;
-                foreach (Circuit.Component i in GetFiles(System.IO.Path.Combine(docs, "Components"), "*.xml").SelectMany(i => LoadLibrary(i)))
-                    yield return i;
-                foreach (Circuit.Component i in LoadSchematics(System.IO.Path.Combine(docs, "User Components"), "User Components"))
+                foreach (Circuit.Component i in GetFiles(System.IO.Path.Combine(docs, "Components"), "*").SelectMany(i => LoadLibrary(i)))
                     yield return i;
             }
         }
-
+        
         public ComponentLibrary()
         {
             InitializeComponent();
+
+            Loaded += OnLoaded;
+        }
+
+        private void OnLoaded(object sender, EventArgs e)
+        {
+            InitShortcutKeys(Window.GetWindow(this).CommandBindings);
+            
+            LoadComponents();
         }
 
         private string filter = "";
@@ -198,18 +209,19 @@ namespace LiveSPICE
             }
         }
 
-        private List<RoutedEventHandler> componentClick = new List<RoutedEventHandler>();
-        public event RoutedEventHandler ComponentClick
+        private List<Action<Circuit.Component>> componentClick = new List<Action<Circuit.Component>>();
+        public event Action<Circuit.Component> ComponentClick
         {
-            add { componentClick.Add(value); LoadComponents(); }
+            add { componentClick.Add(value); }
             remove { componentClick.Remove(value); }
         }
-
-        private void OnComponentClick(object sender, RoutedEventArgs e)
+        private void RaiseComponentClick(Circuit.Component C)
         {
-            foreach (RoutedEventHandler i in componentClick)
-                i(sender, e);
+            foreach (Action<Circuit.Component> i in componentClick)
+                i(C);
         }
+        private void OnComponentClick(object sender, RoutedEventArgs e) { RaiseComponentClick(((ComponentButton)sender).Component); }
+
 
         private void LoadComponents()
         {
@@ -218,12 +230,12 @@ namespace LiveSPICE
 
             List<Circuit.Component> components = Components.OrderBy(i => i.GetDisplayName()).ToList();
 
-            Panel common = AddCategory("Common");
+            Panel common = GetCategory("Common");
             foreach (Circuit.Component i in components.Where(i => CommonTypes.Contains(i.GetType())))
                 AddItem(common, i, CommandBindings);
 
             foreach (Circuit.Component i in components)
-                AddItem(AddCategory(i.GetCategory()), i, Window.GetWindow(this).CommandBindings);
+                AddItem(GetCategory(i.GetCategory()), i, Window.GetWindow(this).CommandBindings);
 
             foreach (Circuit.Component i in components)
                 AddItem(filtered, i, null);
@@ -242,26 +254,28 @@ namespace LiveSPICE
 
                 Group.Children.Add(button);
 
-                // Bind input gestures to a command and add it to the command bindings.
+                // Append tooltip if there is a shortcut key.
                 KeyGesture[] keys;
                 if (CommandBindings != null && ShortcutKeys.TryGetValue(C.GetType(), out keys))
-                {
                     button.ToolTip = (string)button.ToolTip + " (" + keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
-
-                    if (!CommandBindings.OfType<RoutedCommand>().Any(i => i.OwnerType == GetType() && i.Name == DisplayName))
-                    {
-                        RoutedCommand command = new RoutedCommand(DisplayName, GetType());
-                        command.InputGestures.AddRange(keys);
-
-                        CommandBinding binding = new CommandBinding(command, (o, e) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
-                        CommandBindings.Add(binding);
-                    }
-                }
             }
             catch (System.Exception) { }
         }
-        
-        private Panel AddCategory(string Category)
+
+        private void InitShortcutKeys(CommandBindingCollection Target)
+        {
+            foreach (KeyValuePair<Type, KeyGesture[]> i in ShortcutKeys)
+            {
+                Circuit.Component C = (Circuit.Component)Activator.CreateInstance(i.Key);
+
+                RoutedCommand command = new RoutedCommand(C.GetDisplayName(), GetType());
+                command.InputGestures.AddRange(i.Value);
+
+                Target.Add(new CommandBinding(command, (x, y) => RaiseComponentClick(C)));
+            }
+        }
+
+        private Panel GetCategory(string Category)
         {
             if (Category == "")
                 Category = "Uncategorized";
