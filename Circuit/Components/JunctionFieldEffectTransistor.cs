@@ -53,7 +53,7 @@ namespace Circuit
             s = new Terminal(this, "S");
             g = new Terminal(this, "G");
             d = new Terminal(this, "D");
-            Name = "Q1"; 
+            Name = "J1"; 
         }
 
         public override void Analyze(Analysis Mna)
