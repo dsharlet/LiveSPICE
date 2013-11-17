@@ -43,7 +43,7 @@ namespace LiveSPICE
             Dispatcher.InvokeAsync(() =>
                 {
                     bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
-                    text.AppendText(Message + "\r\n");
+                    text.AppendText(String.Format(Message, Format) + "\r\n");
                     if (atEnd)
                         text.ScrollToEnd();
                 });
@@ -51,7 +51,7 @@ namespace LiveSPICE
 
         void Circuit.ILog.WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
         {
-            WriteLine(Type, String.Format(Message, Format));
+            WriteLine(Type, Message, Format);
         }
 
         // INotifyPropertyChanged.
