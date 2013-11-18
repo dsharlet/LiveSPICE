@@ -30,24 +30,37 @@ namespace Circuit
         /// <param name="Log">Log for simulation output.</param>
         public LinqCompiledSimulation(TransientSolution Solution, int Oversample, ILog Log) : base(Solution, Oversample, Log)
         {
+            Update(Solution, Oversample);
+
+            Reset();
+        }
+
+        public override void Update(TransientSolution Solution, int Oversample)
+        {
+            base.Update(Solution, Oversample);
+
             foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
             {
                 // If any system depends on the previous value of i, we need a global variable for it.
                 if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
-                    globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
+                    AddGlobal(i.Evaluate(t, t0));
             }
             // Also need globals for any Newton's method unknowns.
             foreach (Expression i in Solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
-                globals[i.Evaluate(t, t0)] = new GlobalExpr<double>(0.0);
-
-            Reset();
+                AddGlobal(i.Evaluate(t, t0));
         }
 
         protected override void Flush()
         {
             base.Flush();
-
+            
             compiled.Clear();
+        }
+
+        private void AddGlobal(Expression Name)
+        {
+            if (!globals.ContainsKey(Name))
+                globals.Add(Name, new GlobalExpr<double>(0.0));
         }
 
         public override void Reset()
