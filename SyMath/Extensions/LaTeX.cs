@@ -77,8 +77,8 @@ namespace SyMath
         protected override string VisitCall(Call F)
         {
             // Special case for differentiate.
-            if (F.Target.Name == "D" && F.Arguments.Count == 2)
-                return @"\frac{d}{d" + Visit(F.Arguments[1]) + "}[" + Visit(F.Arguments[0]) + "]";
+            if (F.Target.Name == "D" && F.Arguments.Count() == 2)
+                return @"\frac{d}{d" + Visit(F.Arguments.ElementAt(1)) + "}[" + Visit(F.Arguments.ElementAt(0)) + "]";
 
             return Visit(F.Target) + @"(" + F.Arguments.Select(i => Visit(i)).UnSplit(", ") + @")";
         }

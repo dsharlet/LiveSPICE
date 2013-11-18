@@ -16,7 +16,7 @@ namespace SyMath
         public Function Target { get { return target; } }
 
         protected List<Expression> arguments;
-        public ReadOnlyCollection<Expression> Arguments { get { return new ReadOnlyCollection<Expression>(arguments); } }
+        public IEnumerable<Expression> Arguments { get { return arguments; } }
 
         protected Call(Function Target, IEnumerable<Expression> Args) 
         {

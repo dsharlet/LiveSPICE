@@ -260,7 +260,7 @@ namespace Circuit
         {
             Call C = f as Call;
             if (!ReferenceEquals(C, null))
-                return C.Target.Name == "D" && C.Arguments[1].Equals(x);
+                return C.Target.Name == "D" && C.Arguments.ElementAt(1).Equals(x);
             return false;
         }
 

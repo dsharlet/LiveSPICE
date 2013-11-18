@@ -15,7 +15,7 @@ namespace SyMath
         /// <summary>
         /// Elements contained in this set.
         /// </summary>
-        public ReadOnlyCollection<Expression> Members { get { return new ReadOnlyCollection<Expression>(members); } }
+        public IEnumerable<Expression> Members { get { return members; } }
 
         protected Set(IEnumerable<Expression> Members) { members = Members.OrderBy(i => i).ToList(); }
 
