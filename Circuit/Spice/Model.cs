@@ -25,7 +25,7 @@ namespace Circuit.Spice
         /// </summary>
         public string Description { get { return desc; } }
 
-        public Model(Component Component, string Description) { component = Component; desc = Description; }
+        public Model(Component Component, string Description) { component = new Specialization(Component); desc = Description; }
         public Model(Component Component) : this(Component, "") { }
 
         /// <summary>
