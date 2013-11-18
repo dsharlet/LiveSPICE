@@ -52,7 +52,11 @@ namespace LiveSPICE
 
         public void WriteException(Exception Ex)
         {
-            WriteLine(Circuit.MessageType.Error, "Exception: " + (Debugger.IsAttached ? Ex.ToString() : Ex.Message));
+#if DEBUG
+            WriteLine(Circuit.MessageType.Error, "Exception: " + Ex.ToString());
+#else
+            WriteLine(Circuit.MessageType.Error, "Exception: " + Ex.Message);
+#endif
         }
 
         void Circuit.ILog.WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
