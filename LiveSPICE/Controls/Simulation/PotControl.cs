@@ -82,10 +82,10 @@ namespace LiveSPICE
             }
         }
 
-        private double VectorToValue(Vector dx) { return Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 2 / 3 + 0.5; }
+        private double VectorToValue(Vector dx) { return Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 3 / 5 + 0.5; }
         private Vector ValueToVector(double V)
         {
-            double th = (V - 0.5) * Math.PI * 3 / 2;
+            double th = (V - 0.5) * Math.PI * 5 / 3;
             return new Vector(Math.Sin(th), -Math.Cos(th));
         }
 
@@ -120,7 +120,7 @@ namespace LiveSPICE
                     DC.DrawText(label, (Point)(Center + dx * r * 1.15 - new Vector(label.Width, label.Height) * 0.5));
                 }
             }
-            DrawNotch(DC, new Pen(Brushes.Red, 1.5), ValueToVector(Value), r * 0.7, r * 1.05);
+            DrawNotch(DC, new Pen(Brushes.Red, 1.5), ValueToVector(Value), r * 0.7, r * 1.15);
         }
 
         // INotifyPropertyChanged interface.
