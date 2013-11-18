@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,6 +48,11 @@ namespace LiveSPICE
                     if (atEnd)
                         text.ScrollToEnd();
                 });
+        }
+
+        public void WriteException(Exception Ex)
+        {
+            WriteLine(Circuit.MessageType.Error, "Exception: " + (Debugger.IsAttached ? Ex.ToString() : Ex.Message));
         }
 
         void Circuit.ILog.WriteLine(Circuit.MessageType Type, string Message, params object[] Format)

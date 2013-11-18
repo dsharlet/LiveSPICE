@@ -31,7 +31,6 @@
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Scope" IsChecked="{Binding ElementName=scope, Path=IsVisible}" Click="ViewScope_Click" />
-                <MenuItem Header="Parameters" IsChecked="{Binding ElementName=parameters, Path=IsVisible}" Click="ViewParameters_Click" />
                 <MenuItem Header="Audio" IsChecked="{Binding ElementName=audio, Path=IsVisible}" Click="ViewAudio_Click" />
                 <MenuItem Header="Log" IsChecked="{Binding ElementName=log, Path=IsVisible}" Click="ViewLog_Click" />
             </MenuItem>
@@ -109,10 +108,6 @@
                                         </ScrollViewer>
                                     </Border>
                                 </StackPanel>
-                            </xcad:LayoutAnchorable>
-                            <!-- Parameters -->
-                            <xcad:LayoutAnchorable x:Name="parameters" Title="Parameters" AutoHideWidth="240">
-                                <ls:Parameters />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
 

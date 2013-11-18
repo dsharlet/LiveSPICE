@@ -115,6 +115,7 @@
     <Compile Include="Controls\Simulation\Channel.xaml.cs">
       <DependentUpon>Channel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Simulation\PotControl.cs" />
     <Compile Include="Utils\MenuItemIcon.cs" />
     <Compile Include="Utils\ImageButton.cs" />
     <Compile Include="Controls\Scope\SignalDisplay.cs" />
@@ -134,9 +135,6 @@
     <Compile Include="Controls\Scope\Signal.cs" />
     <Compile Include="Controls\Simulation\ProbeTool.cs" />
     <Compile Include="Controls\Simulation\SimulationSchematic.cs" />
-    <Compile Include="Controls\Parameters.xaml.cs">
-      <DependentUpon>Parameters.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\Editor\EditorTool.cs" />
     <Compile Include="Controls\Schematic\WireControl.cs" />
     <Compile Include="Controls\SchematicViewer.xaml.cs">
@@ -181,8 +179,8 @@
     <Compile Include="Utils\Commands.cs" />
     <Compile Include="Utils\Edit.cs" />
     <Compile Include="Controls\Scope\Oscilloscope.cs" />
-    <Compile Include="Windows\BackgroundProcess.xaml.cs">
-      <DependentUpon>BackgroundProcess.xaml</DependentUpon>
+    <Compile Include="Windows\ProgressDialog.xaml.cs">
+      <DependentUpon>ProgressDialog.xaml</DependentUpon>
     </Compile>
     <Page Include="Controls\Simulation\Channel.xaml">
       <SubType>Designer</SubType>
@@ -203,10 +201,6 @@
     <Page Include="Windows\AudioConfig.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Controls\Parameters.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\PropertyGrid.xaml">
       <SubType>Designer</SubType>
@@ -256,7 +250,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Windows\BackgroundProcess.xaml">
+    <Page Include="Windows\ProgressDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

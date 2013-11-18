@@ -7,6 +7,13 @@ using System.ComponentModel;
 
 namespace Circuit
 {
+    public enum SweepType
+    {
+        Linear,
+        Logarithmic,
+        ReverseLogarithmic,
+    }
+
     /// <summary>
     /// Resistor is a linear component with V = R*i.
     /// </summary>
@@ -14,7 +21,7 @@ namespace Circuit
     [DisplayName("Potentiometer")]
     [DefaultProperty("Resistance")]
     [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")] 
-    public class Potentiometer : Component
+    public class Potentiometer : Component, IControl
     {
         protected Terminal anode, cathode, wiper;
         [Browsable(false)]
@@ -42,15 +49,21 @@ namespace Circuit
         }
 
         protected Quantity resistance = new Quantity(100, Units.Ohm);
-        [Description("Resistance of this potentiometer.")]
-        [Serialize]
+        [Serialize, Description("Resistance of this potentiometer.")]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
-        protected Expression wipe = 0.5m; // RangeParameter.New(Name, 0.5m, false);
-        [Description("Position of the wiper, between 0 and 1.")]
-        [Serialize]
-        public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
-        
+        protected double wipe = 0.5;
+        [Serialize, Description("Position of the wiper, between 0 and 1.")]
+        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+
+        //protected SweepType sweep = SweepType.Linear;
+        //[Serialize, Description("Sweep mapping of the wiper.")]
+        //public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
+
+        // IControl implementation.
+        [Browsable(false)]
+        public double Value { get { return Wipe; } set { Wipe = value; } }
+
         public void ConnectTo(Node A, Node C, Node W)
         {
             Anode.ConnectTo(A);
@@ -84,8 +97,8 @@ namespace Circuit
 
             Resistor.Draw(Sym, -10, -16, 16, 7);
 
-            Sym.DrawText(() => resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
-            Sym.DrawText(() => wipe.ToString(), new Coord(-4, 4), Alignment.Near, Alignment.Near);
+            Sym.DrawText(() => Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Wipe.ToString("G3"), new Coord(-4, 4), Alignment.Near, Alignment.Near);
             Sym.DrawText(() => Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
         }
     }

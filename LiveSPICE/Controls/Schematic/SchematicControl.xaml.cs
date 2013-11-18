@@ -50,16 +50,7 @@ namespace LiveSPICE
         public SchematicControl(Circuit.Schematic Schematic)
         {
             InitializeComponent();
-
-            MouseDown += OnMouseDown;
-            MouseUp += OnMouseUp;
-            MouseMove += OnMouseMove;
-            MouseLeave += OnMouseLeave;
-            MouseEnter += OnMouseEnter;
-
-            KeyDown += OnKeyDown;
-            KeyUp += OnKeyUp;
-            
+                        
             schematic = Schematic;
 
             schematic.Elements.ItemAdded += ElementAdded;
@@ -119,7 +110,7 @@ namespace LiveSPICE
         protected static Circuit.Coord Ceiling(Circuit.Coord x, int p) { return new Circuit.Coord(Ceiling(x.x, p), Ceiling(x.y, p)); }
         protected static Circuit.Coord Round(Circuit.Coord x, int p) { return new Circuit.Coord(Round(x.x, p), Round(x.y, p)); }
         public Circuit.Coord SnapToGrid(Circuit.Coord x) { return new Circuit.Coord(Round(x.x, Grid), Round(x.y, Grid)); }
-        public Circuit.Coord SnapToGrid(Point x) { return new Circuit.Coord(Round(x.X, Grid), Round(x.Y, Grid)); }
+        public Circuit.Coord SnapToGrid(Point x) { return new Circuit.Coord(Round(x.X, Grid), Round(x.Y, Grid)) - origin; }
 
         public Point ToPoint(Circuit.Coord x) { return new Point(x.x + origin.x, x.y + origin.y); }
 
@@ -251,14 +242,14 @@ namespace LiveSPICE
         public void Highlight(params Circuit.Element[] ToHighlight) { Highlight(ToHighlight.AsEnumerable()); }
 
         // Keyboard events.
-        protected virtual void OnKeyDown(object sender, KeyEventArgs e) 
+        protected override void OnKeyDown(KeyEventArgs e)
         {
             if ((e.KeyboardDevice.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) != 0)
                 return;
             if (Tool != null) 
                 e.Handled = Tool.KeyDown(e);
         }
-        protected virtual void OnKeyUp(object sender, KeyEventArgs e) 
+        protected override void OnKeyUp(KeyEventArgs e)
         {
             if ((e.KeyboardDevice.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) != 0)
                 return;
@@ -267,11 +258,11 @@ namespace LiveSPICE
         }
 
         // Mouse events.
-        protected virtual void OnMouseDown(object sender, MouseButtonEventArgs e)
+        protected override void OnMouseDown(MouseButtonEventArgs e)
         {
             Focus();
             Keyboard.Focus(this);
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root));
             if (e.ChangedButton == MouseButton.Left)
             {
                 CaptureMouse();
@@ -292,9 +283,9 @@ namespace LiveSPICE
 
             e.Handled = true;
         }
-        protected virtual void OnMouseUp(object sender, MouseButtonEventArgs e)
+        protected override void OnMouseUp(MouseButtonEventArgs e)
         {
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root));
             if (e.ChangedButton == MouseButton.Left)
             {
                 if (Tool != null)
@@ -313,12 +304,12 @@ namespace LiveSPICE
             e.Handled = true;
         }
         private Circuit.Coord? mouse = null;
-        protected virtual void OnMouseMove(object sender, MouseEventArgs e)
+        protected override void OnMouseMove(MouseEventArgs e)
         {
             Point x = e.GetPosition(root);
             if (IsMouseCaptured)
                 BringIntoView(new Rect(x - AutoScrollBorder, x + AutoScrollBorder));
-            Circuit.Coord at = SnapToGrid(x) - origin;
+            Circuit.Coord at = SnapToGrid(x);
             if (!mouse.HasValue || mouse.Value != at)
             {
                 mouse = at;
@@ -328,17 +319,17 @@ namespace LiveSPICE
             }
         }
 
-        protected virtual void OnMouseEnter(object sender, MouseEventArgs e)
+        protected override void OnMouseEnter(MouseEventArgs e)
         {
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root));
             mouse = at;
             if (Tool != null) 
                 Tool.MouseEnter(at);
             e.Handled = true;
         }
-        protected virtual void OnMouseLeave(object sender, MouseEventArgs e)
+        protected override void OnMouseLeave(MouseEventArgs e)
         {
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root)) - origin;
+            Circuit.Coord at = SnapToGrid(e.GetPosition(root));
             mouse = null;
             if (Tool != null) 
                 Tool.MouseLeave(at);

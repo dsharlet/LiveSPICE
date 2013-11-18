@@ -25,12 +25,6 @@ namespace Circuit
         /// </summary>
         public Quantity TimeStep { get { return h; } }
         
-        private List<Expression> nodes;
-        /// <summary>
-        /// The nodes this contains a solution for.
-        /// </summary>
-        public IEnumerable<Expression> Nodes { get { return nodes; } }
-
         private List<SolutionSet> solutions;
         /// <summary>
         /// Ordered list of SolutionSet objects that describe the overall solution. If SolutionSet
@@ -44,24 +38,14 @@ namespace Circuit
         /// </summary>
         public IEnumerable<Arrow> InitialConditions { get { return initialConditions; } }
 
-        private List<Parameter> parameters = new List<Parameter>();
-        /// <summary>
-        /// Enumerate the parameters found in this circuit.
-        /// </summary>
-        public IEnumerable<Parameter> Parameters { get { return parameters; } }
-
         public TransientSolution(
             Quantity TimeStep,
-            IEnumerable<Expression> Nodes,
             IEnumerable<SolutionSet> Solutions,
-            IEnumerable<Arrow> InitialConditions,
-            IEnumerable<Parameter> Parameters)
+            IEnumerable<Arrow> InitialConditions)
         {
             h = TimeStep;
-            nodes = Nodes.ToList();
             solutions = Solutions.ToList();
             initialConditions = InitialConditions.ToList();
-            parameters = Parameters.ToList();
         }
 
         /// <summary>
@@ -74,56 +58,52 @@ namespace Circuit
         /// <summary>
         /// Solve the circuit for transient simulation.
         /// </summary>
-        /// <param name="Circuit">Circuit to solve.</param>
+        /// <param name="Analysis">Analysis from the circuit to solve.</param>
         /// <param name="TimeStep">Discretization timestep.</param>
         /// <param name="Log">Where to send output.</param>
         /// <returns>TransientSolution describing the solution of the circuit.</returns>
-        public static TransientSolution SolveCircuit(Circuit Circuit, Quantity TimeStep, ILog Log)
+        public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, bool InitialConditions, ILog Log)
         {
             Timer time = new Timer();
 
             Expression h = TimeStep;
 
-            Log.WriteLine(MessageType.Info, "Building solution for circuit '{0}', h={1}", Circuit.Name, TimeStep.ToString());
-
-            Log.WriteLine(MessageType.Info, "[{0}] Performing MNA on circuit...", time);
-
+            Log.WriteLine(MessageType.Info, "Building solution for h={0}", TimeStep.ToString());
+            
             // Analyze the circuit to get the MNA system and unknowns.
-            Analysis Mna = Circuit.Analyze();
-            List<Equal> mna = Mna.Equations.ToList();
-            List<Expression> y = Mna.Unknowns.ToList();
+            List<Equal> mna = Analysis.Equations.ToList();
+            List<Expression> y = Analysis.Unknowns.ToList();
             LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
             
-            // Find and replace the parameters of the simulation.
-            List<Parameter> parameters = new List<Parameter>();
-            mna = FindParameters(mna, y, parameters);
-            Log.WriteLine(MessageType.Verbose, "Found " + parameters.Count + " simulation parameters = {{" + parameters.UnSplit(", ") + "}}");
-
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
 
             // Find steady state solution for initial conditions.
-            Log.WriteLine(MessageType.Info, "[{0}] Performing steady state analysis...", time);
-            List<Equal> dc = mna
-                // Derivatives are zero in the steady state.
-                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)))
-                // t = 0 and t0 = 0
-                .Evaluate(Arrow.New(t, 0), Arrow.New(t0, 0))
-                // Use the initial conditions from MNA.
-                .Evaluate(Mna.InitialConditions)
-                // Use default parameter values.
-                .Evaluate(parameters.Select(i => Arrow.New(i.Name, i.Default)))
-                .OfType<Equal>().ToList();
-            List<Arrow> initial;
-            try
+            List<Arrow> initial = new List<Arrow>();
+            if (InitialConditions)
             {
-                initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
-                LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
+                Log.WriteLine(MessageType.Info, "[{0}] Performing steady state analysis...", time);
+                List<Equal> dc = mna
+                    // Derivatives are zero in the steady state.
+                    .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)))
+                    // t = 0 and t0 = 0
+                    .Evaluate(Arrow.New(t, 0), Arrow.New(t0, 0))
+                    // Use the initial conditions from MNA.
+                    .Evaluate(Analysis.InitialConditions)
+                    .OfType<Equal>().ToList();
+                try
+                {
+                    initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
+                    LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
+                }
+                catch (AlgebraException)
+                {
+                    Log.WriteLine(MessageType.Warning, "Failed to find steady state for initial conditions, circuit may be unstable.");
+                }
             }
-            catch (AlgebraException)
+            else
             {
-                initial = new List<Arrow>();
-                Log.WriteLine(MessageType.Warning, "Failed to find steady state for initial conditions, circuit may be unstable.");
+                Log.WriteLine(MessageType.Info, "Skipping steady state analysis.");
             }
             
             // Transient analysis of the system.
@@ -215,10 +195,12 @@ namespace Circuit
             
             return new TransientSolution(
                 h,
-                Circuit.Nodes.Select(i => (Expression)i.V),
                 solutions,
-                initial,
-                parameters);
+                initial);
+        }
+        public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, ILog Log)
+        {
+            return Solve(Analysis, TimeStep, true, Log);
         }
 
         // Solve S for x, removing the rows of S that are used for a solution.
@@ -256,38 +238,7 @@ namespace Circuit
             foreach (Expression i in x.Basis.Append(1))
                 x[i] = x[i].Factor();
         }
-
-        // Finds and replaces the parameter expressions in Mna with their variables.
-        private static readonly Variable MatchName = Variable.New("name");
-        private static readonly Variable MatchDefault = Variable.New("def");
-        private static readonly Variable MatchLog = Variable.New("log");
-        private static readonly IEnumerable<Expression> MatchP = new Expression[] { "P[name]", "P[name, def]", "P[name, def, log]" };
-        private static List<Equal> FindParameters(List<Equal> Mna, List<Expression> y, List<Parameter> Parameters)
-        {
-            Dictionary<Expression, Expression> substitutions = new Dictionary<Expression, Expression>();
-            foreach (MatchContext match in Mna.SelectMany(i => i.FindMatches(MatchP)).Where(i => !y.Contains(i.Matched)))
-            {
-                // Build the parameter description.
-                Expression param = match[MatchName];
-                double def = 1.0;
-                bool log = false;
-                if (match.ContainsKey(MatchDefault))
-                    def = (double)match[MatchDefault];
-                if (match.ContainsKey(MatchLog))
-                    log = match[MatchLog].IsTrue();
-
-                // Replace the parameter description with a variable.
-                if (!substitutions.ContainsKey(match.Matched))
-                {
-                    substitutions[match.Matched] = param;
-
-                    Parameters.Add(new RangeParameter(param.ToString(), def, log));
-                }
-            }
-
-            return Mna.Evaluate(substitutions).Cast<Equal>().ToList();
-        }
-
+        
         // Filters the solutions in S that are dependent on x if evaluated in order.
         private static IEnumerable<Arrow> IndependentSolutions(IEnumerable<Arrow> S, IEnumerable<Expression> x)
         {

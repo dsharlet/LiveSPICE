@@ -9,8 +9,22 @@ using SyMath;
 
 namespace Circuit
 {
+    /// <summary>
+    /// Indicates the property should be serialized.
+    /// </summary>
     public class Serialize : Attribute { };
-    
+
+    /// <summary>
+    /// Indicates a property is a user control.
+    /// </summary>
+    public interface IControl
+    {
+        /// <summary>
+        /// Value of the control.
+        /// </summary>
+        double Value { get; set; }
+    }
+
     /// <summary>
     /// Components are capable of performing MNA to produce a set of equations and unknowns describing their behavior.
     /// </summary>

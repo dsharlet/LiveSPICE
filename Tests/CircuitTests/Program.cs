@@ -69,31 +69,30 @@ namespace CircuitTests
         public static double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
-            long a = Timer.Counter;
-            TransientSolution TS = TransientSolution.SolveCircuit(C, 1 / (SampleRate * Oversample), Log);
-            analysisTime += Timer.Delta(a);
-            Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
-            System.Console.WriteLine("");
-            
-            if (Samples > 0) 
-                return RunTest(
-                    C, S,
-                    C.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault(), 
-                    C.Nodes.Select(i => i.V),
-                    TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
-                    Vin,
-                    Samples,
-                    System.IO.Path.GetFileNameWithoutExtension(FileName));
-            else
-                return 0.0;
+            C.Name = System.IO.Path.GetFileNameWithoutExtension(FileName);
+            return Run(
+                C, 
+                Vin, 
+                C.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault(), 
+                C.Nodes.Select(i => i.V));
         }
 
         public static double Run(string FileName, Func<double, double> Vin, Expression Input, IEnumerable<Expression> Plots)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
+            C.Name = System.IO.Path.GetFileNameWithoutExtension(FileName);
+            return Run(C, Vin, Input, Plots);
+        }
+
+        public static double Run(Circuit.Circuit C, Func<double, double> Vin, Expression Input, IEnumerable<Expression> Plots)
+        {
             long a = Timer.Counter;
-            TransientSolution TS = TransientSolution.SolveCircuit(C, 1 / (SampleRate * Oversample), Log);
+
+            Analysis analysis = C.Analyze();
+            TransientSolution TS = TransientSolution.Solve(analysis, 1 / (SampleRate * Oversample), Log);
+
             analysisTime += Timer.Delta(a);
+            
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
             System.Console.WriteLine("");
             if (Samples > 0)
@@ -101,15 +100,14 @@ namespace CircuitTests
                     C, S,
                     Input,
                     Plots,
-                    TS.Parameters.ToDictionary(i => i.Name, i => i.Default),
                     Vin,
                     Samples,
-                    System.IO.Path.GetFileNameWithoutExtension(FileName));
+                    C.Name);
             else
                 return 0.0;
         }
 
-        public static double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int N, string Name)
+        public static double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, Func<double, double> Vin, int N, string Name)
         {            
             double t0 = (double)S.Time;
             
@@ -122,14 +120,14 @@ namespace CircuitTests
             Dictionary<Expression, double[]> output = Outputs.ToDictionary(i => i, i => new double[vs.Length]);
             
             // Ensure that the simulation is cached before benchmarking.
-            S.Run(1, input, output, Arguments, Iterations);
+            S.Run(1, input, output, Iterations);
             S.Reset();
 
             double time = 0.0;
             try
             {
                 long a = Timer.Counter;
-                S.Run(vs.Length, input, output, Arguments, Iterations);
+                S.Run(vs.Length, input, output, Iterations);
                 time = Timer.Delta(a);
                 simulateTime += time;
             }

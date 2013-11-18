@@ -83,9 +83,7 @@
     <Compile Include="Components\VariableResistor.cs" />
     <Compile Include="Components\Conductor.cs" />
     <Compile Include="Analysis.cs" />
-    <Compile Include="Simulation\Parameter.cs" />
     <Compile Include="Simulation\SolutionSet.cs" />
-    <Compile Include="Simulation\ReferenceSimulation.cs" />
     <Compile Include="Simulation\TransientSolution.cs" />
     <Compile Include="Simulation\LinqCompiledSimulation.cs" />
     <Compile Include="Schematic\Element.cs" />

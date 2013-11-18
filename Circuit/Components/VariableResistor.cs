@@ -11,17 +11,23 @@ namespace Circuit
     [DisplayName("Variable Resistor")]
     [DefaultProperty("Resistance")]
     [Description("Variable resistor.")]
-    public class VariableResistor : TwoTerminal
+    public class VariableResistor : TwoTerminal, IControl
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
-        [Description("Resistance of this variable resistor.")]
-        [Serialize]
+        [Serialize, Description("Resistance of this variable resistor.")]
         public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
 
-        protected Expression wipe = 0.5m;
-        [Serialize]
-        [Description("Position of the wiper on this variable resistor, between 0 and 1.")]
-        public Expression Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+        protected double wipe = 0.5;
+        [Serialize, Description("Position of the wiper on this variable resistor, between 0 and 1.")]
+        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+
+        //protected SweepType sweep = SweepType.Linear;
+        //[Serialize, Description("Sweep mapping of the wiper.")]
+        //public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
+
+        // IControl implementation.
+        [Browsable(false)]
+        public double Value { get { return Wipe; } set { Wipe = value; } }
 
         public VariableResistor() { Name = "R1"; }
 
@@ -42,8 +48,8 @@ namespace Circuit
 
             Resistor.Draw(Sym, 0, -16, 16, 7);
 
-            Sym.DrawText(() => resistance.ToString(), new Coord(-7, 0), Alignment.Far, Alignment.Center);
-            Sym.DrawText(() => wipe.ToString(), new Coord(9, 3), Alignment.Near, Alignment.Near);
+            Sym.DrawText(() => Resistance.ToString(), new Coord(-7, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Wipe.ToString("G3"), new Coord(9, 3), Alignment.Near, Alignment.Near);
             Sym.DrawText(() => Name, new Coord(9, -3), Alignment.Near, Alignment.Far);
         }
     }
