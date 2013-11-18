@@ -194,43 +194,46 @@ namespace LiveSPICE
 
         private void LoadComponents()
         {
-            categories.Children.Clear();
-            filtered.Children.Clear();
-
-            // Add types identified in Common.
-            Category common = SubCategory("Common");
-            foreach (Type i in Common)
-                AddItem(common, (Circuit.Component)Activator.CreateInstance(i));
-
-            // Add generic types to the Standard category.
-            Category standard = SubCategory("Standard");
-            Type root = typeof(Circuit.Component);
-            foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies())
+            ProgressDialog.Run(Window.GetWindow(this), "Loading component library...", () =>
             {
-                foreach (Type j in i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)))
+                categories.Children.Clear();
+                filtered.Children.Clear();
+
+                // Add types identified in Common.
+                Category common = SubCategory("Common");
+                foreach (Type i in Common)
+                    AddItem(common, (Circuit.Component)Activator.CreateInstance(i));
+
+                // Add generic types to the Standard category.
+                Category standard = SubCategory("Standard");
+                Type root = typeof(Circuit.Component);
+                foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    try
+                    foreach (Type j in i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)))
                     {
-                        Circuit.Component c = (Circuit.Component)Activator.CreateInstance(j);
-                        AddItem(standard, j);
+                        try
+                        {
+                            Circuit.Component c = (Circuit.Component)Activator.CreateInstance(j);
+                            AddItem(standard, j);
+                        }
+                        catch (Exception) { }
                     }
-                    catch (Exception) { }
                 }
-            }
 
-            // Load standard libraries.
-            string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            string[] search =
-            {
-                System.IO.Path.Combine(app, "Components"),
-                System.IO.Path.Combine(app, @"..\..\..\Components"),
-            };
-            string path = search.FirstOrDefault(i => System.IO.Directory.Exists(i));
-            if (path != null)
-                AddLibraries(this, path);
+                // Load standard libraries.
+                string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                string[] search =
+                {
+                    System.IO.Path.Combine(app, "Components"),
+                    System.IO.Path.Combine(app, @"..\..\..\Components"),
+                };
+                string path = search.FirstOrDefault(i => System.IO.Directory.Exists(i));
+                if (path != null)
+                    AddLibraries(this, path);
 
-            // Load components from the user docs folder.
-            AddLibraries(this, System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components"));
+                // Load components from the user docs folder.
+                AddLibraries(this, System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components"));
+            });
         }
 
         public ComponentLibrary()

@@ -129,7 +129,7 @@ namespace LiveSPICE
                 simulation = null;
                 try
                 {
-                    ProgressDialog.Run(this, "Building simulation...", () =>
+                    ProgressDialog.RunAsync(this, "Building simulation...", () =>
                     {
                         Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
                         solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
