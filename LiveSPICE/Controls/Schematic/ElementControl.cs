@@ -71,8 +71,6 @@ namespace LiveSPICE
 
         protected ElementControl(Circuit.Element E)
         {
-            Debug.Assert(element.Tag == null);
-
             element = E;
             element.Tag = this;
 

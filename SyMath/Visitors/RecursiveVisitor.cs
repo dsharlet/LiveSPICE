@@ -23,7 +23,6 @@ namespace SyMath
                 if (ReferenceEquals(Vi, null)) return null;
                 list.Add(Vi);
 
-                Debug.Assert(Vi.Equals(i) == ReferenceEquals(Vi, i));
                 Equal = Equal && ReferenceEquals(Vi, i);
             }
             return Equal ? List : list;
@@ -34,10 +33,7 @@ namespace SyMath
             Expression L = Visit(B.Left);
             Expression R = Visit(B.Right);
             if (ReferenceEquals(L, null) || ReferenceEquals(R, null)) return null;
-
-            Debug.Assert(L.Equals(B.Left) == ReferenceEquals(L, B.Left));
-            Debug.Assert(R.Equals(B.Right) == ReferenceEquals(R, B.Right));
-
+            
             if (ReferenceEquals(L, B.Left) && ReferenceEquals(R, B.Right))
                 return B;
             else
@@ -48,9 +44,7 @@ namespace SyMath
         {
             Expression O = Visit(U.Operand);
             if (ReferenceEquals(O, null)) return null;
-
-            Debug.Assert(O.Equals(U.Operand) == ReferenceEquals(O, U.Operand));
-
+            
             if (ReferenceEquals(O, U.Operand))
                 return U;
             else
