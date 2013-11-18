@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,9 +54,8 @@ namespace LiveSPICE
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                Vector dx = e.GetPosition(this) - Center;
-                Value = Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 2 / 3 + 0.5;
                 CaptureMouse();
+                Value = VectorToValue(e.GetPosition(this) - Center);
                 e.Handled = true;
             }
         }
@@ -64,8 +64,7 @@ namespace LiveSPICE
         {
             if (IsMouseCaptured)
             {
-                Vector dx = e.GetPosition(this) - Center;
-                Value = Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 2 / 3 + 0.5;
+                Value = VectorToValue(e.GetPosition(this) - Center);
                 InvalidateVisual();
                 e.Handled = true;
             }
@@ -78,17 +77,21 @@ namespace LiveSPICE
                 ReleaseMouseCapture();
 
                 Vector dx = e.GetPosition(this) - Center;
-                Value = Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 2 / 3 + 0.5;
+                Value = VectorToValue(dx);
                 e.Handled = true;
             }
         }
 
-        private void DrawNotch(DrawingContext DC, Pen Pen, double Th, double r1, double r2)
+        private double VectorToValue(Vector dx) { return Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 2 / 3 + 0.5; }
+        private Vector ValueToVector(double V)
         {
-            Vector dx = new Vector(Math.Sin(Th), -Math.Cos(Th));
+            double th = (V - 0.5) * Math.PI * 3 / 2;
+            return new Vector(Math.Sin(th), -Math.Cos(th));
+        }
 
+        private void DrawNotch(DrawingContext DC, Pen Pen, Vector dx, double r1, double r2)
+        {
             Point c = Center;
-
             DC.DrawLine(Pen, (Point)(c + dx * r1), (Point)(c + dx * r2));
         }
 
@@ -102,12 +105,22 @@ namespace LiveSPICE
 
             for (int i = 0; i <= n; ++i)
             {
-                double vi = (double)i / n;
-                double th = (vi - 0.5) * Math.PI * 3 / 2;
-                DrawNotch(DC, pen, th, r * (i == 0 || i == n ? 0.8 : 0.9), r * 1.0);
+                double v = (double)i / n;
+                Vector dx = ValueToVector(v);
+
+                DrawNotch(DC, pen, dx, r * 0.9, r * 1.0);
+                if (i == 0 || i == n)
+                {
+                    FormattedText label = new FormattedText(
+                        v.ToString("G3"),
+                        CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+                        new Typeface(FontFamily, FontStyles.Normal, FontWeight, FontStretches.Normal), FontSize,
+                        Brushes.Black);
+
+                    DC.DrawText(label, (Point)(Center + dx * r * 1.15 - new Vector(label.Width, label.Height) * 0.5));
+                }
             }
-            double v = (Value - 0.5) * Math.PI * 3 / 2;
-            DrawNotch(DC, new Pen(Brushes.Red, 1.5), v, r * 0.7, r * 1.05);
+            DrawNotch(DC, new Pen(Brushes.Red, 1.5), ValueToVector(Value), r * 0.7, r * 1.05);
         }
 
         // INotifyPropertyChanged interface.
