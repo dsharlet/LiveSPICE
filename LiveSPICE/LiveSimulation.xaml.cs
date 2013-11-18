@@ -151,7 +151,8 @@ namespace LiveSPICE
             Circuit.Analysis analysis = circuit.Analyze();
             Task update = new Task(() => 
             {
-                lock (sync) simulation.Update(Circuit.TransientSolution.Solve(analysis, h, false, new Circuit.NullLog()), ov);
+                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(analysis, h, solution.InitialConditions, new Circuit.NullLog());
+                lock (sync) simulation.Update(s, ov);
             });
 
             update.Start();
