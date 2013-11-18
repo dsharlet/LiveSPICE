@@ -1,7 +1,8 @@
 ﻿<Window x:Class="LiveSPICE.ProgressDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LiveSPICE" Height="120" Width="400" WindowStartupLocation="CenterOwner" Style="{StaticResource ResourceKey=Window}">
+        Title="LiveSPICE" Height="120" Width="400" WindowStartupLocation="CenterOwner" 
+        Style="{StaticResource ResourceKey=Window}" WindowStyle="ToolWindow">
     <StackPanel Margin="5">
         <TextBlock x:Name="task" Text="Working..." Margin="10"/>
         <DockPanel LastChildFill="True" Margin="10">

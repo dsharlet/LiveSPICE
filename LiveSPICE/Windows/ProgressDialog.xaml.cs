@@ -23,10 +23,16 @@ namespace LiveSPICE
     {
         private BackgroundWorker worker;
 
-        public ProgressDialog(string Task, Action<Func<bool>, Action<double>> Callback, bool SupportsCancel, bool SupportsProgress)
+        public ProgressDialog(string Task)
         {
             InitializeComponent();
             task.Text = Task;
+
+            Closing += (o, e) => e.Cancel = worker.IsBusy;
+        }
+
+        public ProgressDialog(string Task, Action<Func<bool>, Action<double>> Callback, bool SupportsCancel, bool SupportsProgress) : this(Task)
+        {
             if (SupportsCancel)
                 cancel.Click += (o, e) => worker.CancelAsync();
             else
@@ -48,10 +54,8 @@ namespace LiveSPICE
             worker.RunWorkerAsync();
         }
 
-        public ProgressDialog(string Task, Action Callback)
+        public ProgressDialog(string Task, Action Callback) : this(Task)
         {
-            InitializeComponent();
-            task.Text = Task;
             cancel.Visibility = Visibility.Collapsed;
 
             progress.IsIndeterminate = true;
@@ -59,9 +63,8 @@ namespace LiveSPICE
             worker = new BackgroundWorker();
             worker.DoWork += (o, e) => Dispatcher.InvokeAsync(() => Callback());
 
-            worker.WorkerSupportsCancellation = true;
-            worker.WorkerReportsProgress = true;
-            worker.ProgressChanged += (o, e) => progress.Value = e.ProgressPercentage;
+            worker.WorkerSupportsCancellation = false;
+            worker.WorkerReportsProgress = false;
             worker.RunWorkerCompleted += (o, e) => Close();
 
             worker.RunWorkerAsync();
