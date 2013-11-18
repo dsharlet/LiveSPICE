@@ -62,7 +62,7 @@ namespace Circuit
         /// <param name="TimeStep">Discretization timestep.</param>
         /// <param name="Log">Where to send output.</param>
         /// <returns>TransientSolution describing the solution of the circuit.</returns>
-        public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, bool InitialConditions, ILog Log)
+        public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, IEnumerable<Arrow> InitialConditions, ILog Log)
         {
             Timer time = new Timer();
 
@@ -79,31 +79,24 @@ namespace Circuit
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
 
             // Find steady state solution for initial conditions.
-            List<Arrow> initial = new List<Arrow>();
-            if (InitialConditions)
+            List<Arrow> initial = InitialConditions.ToList();
+            Log.WriteLine(MessageType.Info, "[{0}] Performing steady state analysis...", time);
+            List<Equal> dc = mna
+                // Derivatives are zero in the steady state.
+                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)))
+                // t = 0 and t0 = 0
+                .Evaluate(Arrow.New(t, 0), Arrow.New(t0, 0))
+                // Use the initial conditions from MNA.
+                .Evaluate(Analysis.InitialConditions)
+                .OfType<Equal>().ToList();
+            try
             {
-                Log.WriteLine(MessageType.Info, "[{0}] Performing steady state analysis...", time);
-                List<Equal> dc = mna
-                    // Derivatives are zero in the steady state.
-                    .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)))
-                    // t = 0 and t0 = 0
-                    .Evaluate(Arrow.New(t, 0), Arrow.New(t0, 0))
-                    // Use the initial conditions from MNA.
-                    .Evaluate(Analysis.InitialConditions)
-                    .OfType<Equal>().ToList();
-                try
-                {
-                    initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
-                    LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
-                }
-                catch (AlgebraException)
-                {
-                    Log.WriteLine(MessageType.Warning, "Failed to find steady state for initial conditions, circuit may be unstable.");
-                }
+                initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
+                LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
             }
-            else
+            catch (AlgebraException)
             {
-                Log.WriteLine(MessageType.Info, "Skipping steady state analysis.");
+                Log.WriteLine(MessageType.Warning, "Failed to find steady state for initial conditions, circuit may be unstable.");
             }
             
             // Transient analysis of the system.
@@ -200,7 +193,7 @@ namespace Circuit
         }
         public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, ILog Log)
         {
-            return Solve(Analysis, TimeStep, true, Log);
+            return Solve(Analysis, TimeStep, new Arrow[] { }, Log);
         }
 
         // Solve S for x, removing the rows of S that are used for a solution.
