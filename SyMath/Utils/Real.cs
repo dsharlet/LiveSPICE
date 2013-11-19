@@ -101,9 +101,9 @@ namespace SyMath
         public static Real Csch(Real x) { return 1 / Sinh(x); }
         public static Real Coth(Real x) { return 1 / Tanh(x); }
 
-        public static Real ArcSinh(Real x) { throw new NotImplementedException(); }
-        public static Real ArcCosh(Real x) { throw new NotImplementedException(); }
-        public static Real ArcTanh(Real x) { throw new NotImplementedException(); }
+        public static Real ArcSinh(Real x) { return Ln(x + Sqrt(x * x + 1)); }
+        public static Real ArcCosh(Real x) { return Ln(x + Sqrt(x * x - 1)); }
+        public static Real ArcTanh(Real x) { return (Ln(1 + x) - Ln(1 - x)) / 2; }
         public static Real ArcSech(Real x) { return ArcCosh(1 / x); }
         public static Real ArcCsch(Real x) { return ArcSinh(1 / x); }
         public static Real ArcCoth(Real x) { return ArcTanh(1 / x); }
