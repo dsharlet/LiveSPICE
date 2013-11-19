@@ -10,7 +10,7 @@ namespace SyMathTests
     {
         static bool Test(Expression Expr, Expression Result)
         {
-            Expression T = Equal.New(Expr, Result);
+            Expression T = Binary.ApproxEqual(Expr, Result);
             Expression TE = T.Evaluate();
 
             bool passed = TE.IsTrue();
@@ -61,6 +61,18 @@ namespace SyMathTests
                 KV("Cos[0]", "1"), 
                 KV("Sin[0]", "0"), 
                 KV("Sqrt[4]", "2"),
+                KV("ArcSin[Sin[Pi/6]]", "Pi/6"),
+                KV("ArcCos[Cos[Pi/6]]", "Pi/6"),
+                KV("ArcTan[Tan[Pi/6]]", "Pi/6"),
+                KV("ArcSec[Sec[Pi/6]]", "Pi/6"),
+                KV("ArcCsc[Csc[Pi/6]]", "Pi/6"),
+                KV("ArcCot[Cot[Pi/6]]", "Pi/6"),
+                KV("ArcSinh[Sinh[Pi/6]]", "Pi/6"),
+                KV("ArcCosh[Cosh[Pi/6]]", "Pi/6"),
+                KV("ArcTanh[Tanh[Pi/6]]", "Pi/6"),
+                KV("ArcSech[Sech[Pi/6]]", "Pi/6"),
+                KV("ArcCsch[Csch[Pi/6]]", "Pi/6"),
+                KV("ArcCoth[Coth[Pi/6]]", "Pi/6"),
                 KV("-1.0", "-1"),
                 KV("-1.2e1", "-12"),
                 KV("Abs[e - 2.7183] < 0.01", "1"),

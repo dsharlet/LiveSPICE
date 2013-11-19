@@ -37,6 +37,7 @@ namespace SyMath
         Less,
         GreaterEqual,
         LessEqual,
+        ApproxEqual,
 
         // Substitutions
         Arrow,

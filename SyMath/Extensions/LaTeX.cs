@@ -107,6 +107,7 @@ namespace SyMath
                 case Operator.NotEqual: return @"\neq ";
                 case Operator.GreaterEqual: return @"\geq ";
                 case Operator.LessEqual: return @"\leq ";
+                case Operator.ApproxEqual: return @"\approx ";
                 case Operator.Arrow: return @"\to ";
                 default: return Binary.ToString(Op);
             }

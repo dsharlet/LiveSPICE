@@ -83,6 +83,7 @@ namespace SyMath
                 case "<": op = Operator.Less; return true;
                 case ">=": op = Operator.GreaterEqual; return true;
                 case "<=": op = Operator.LessEqual; return true;
+                case "~=": op = Operator.ApproxEqual; return true;
                 default: return false;
             }
         }
@@ -289,28 +290,44 @@ namespace SyMath
                 {
                     tokens.Consume();
                     List<Expression> args = L(",", "]");
-                    Function target;
-                    try
-                    {
-                        target = context.Resolve(tok, args);
-                    }
-                    catch (UnresolvedName)
-                    {
-                        target = ExprFunction.New(tok, args.Select(i => Variable.New("")));
-                    }
-                    return Call.New(target, args);
+                    return Call.New(Resolve(tok, args), args);
+                }
+                else if (tokens.Tok == "(")
+                {
+                    tokens.Consume();
+                    List<Expression> args = L(",", ")");
+                    return Call.New(Resolve(tok, args), args);
                 }
                 else
                 {
-                    try
-                    {
-                        return context.Resolve(tok);
-                    }
-                    catch (UnresolvedName)
-                    {
-                        return Variable.New(tok);
-                    }
+                    return Resolve(tok);
                 }
+            }
+        }
+
+        private Function Resolve(string Token, IEnumerable<Expression> Args)
+        {
+            try
+            {
+                return context.Resolve(Token, Args);
+            }
+            catch (UnresolvedName)
+            {
+                // If the token is unresolved, make a new undefined function.
+                return ExprFunction.New(Token, Args.Select(i => Variable.New("")));
+            }
+        }
+
+        private Expression Resolve(string Token)
+        {
+            try
+            {
+                return context.Resolve(Token);
+            }
+            catch (UnresolvedName)
+            {
+                // If the token is unresolved, make a new variable.
+                return Variable.New(Token);
             }
         }
     }

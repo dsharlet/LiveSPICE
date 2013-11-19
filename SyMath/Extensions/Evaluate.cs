@@ -179,6 +179,9 @@ namespace SyMath
                     case Operator.Greater: return Constant.New(LR.Value <= RR.Value);
                     case Operator.LessEqual: return Constant.New(LR.Value > RR.Value);
                     case Operator.GreaterEqual: return Constant.New(LR.Value >= RR.Value);
+                    case Operator.ApproxEqual: return Constant.New(
+                        LR.Value == RR.Value || 
+                        Real.Abs(LR.Value - RR.Value) < 1e-12 * Real.Max(Real.Abs(LR.Value), Real.Abs(RR.Value)));
                 }
             }
 
@@ -199,6 +202,7 @@ namespace SyMath
                     break;
 
                 case Operator.Equal:
+                case Operator.ApproxEqual:
                     if (L.Equals(R))
                         return Constant.New(true);
                     break;

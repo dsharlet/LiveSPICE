@@ -49,6 +49,7 @@ namespace SyMath
         static public Binary Less(Expression L, Expression R) { return new Binary(Operator.Less, L, R); }
         static public Binary GreaterEqual(Expression L, Expression R) { return new Binary(Operator.GreaterEqual, L, R); }
         static public Binary LessEqual(Expression L, Expression R) { return new Binary(Operator.LessEqual, L, R); }
+        static public Binary ApproxEqual(Expression L, Expression R) { return new Binary(Operator.ApproxEqual, L, R); }
         static public Expression New(Operator Op, Expression L, Expression R)
         {
             switch (Op)
@@ -66,6 +67,7 @@ namespace SyMath
                 case Operator.Less: return Less(L, R);
                 case Operator.GreaterEqual: return GreaterEqual(L, R);
                 case Operator.LessEqual: return LessEqual(L, R);
+                case Operator.ApproxEqual: return ApproxEqual(L, R);
                 case Operator.Arrow: return Arrow(L, R);
                 case Operator.Substitute: return Substitute(L, R);
                 default: return new Binary(Op, L, R);
@@ -93,6 +95,7 @@ namespace SyMath
                 case Operator.Less: return " < ";
                 case Operator.GreaterEqual: return " >= ";
                 case Operator.LessEqual: return " <= ";
+                case Operator.ApproxEqual: return " ~= ";
 
                 case Operator.Arrow: return " -> ";
                 case Operator.Substitute: return ":";
