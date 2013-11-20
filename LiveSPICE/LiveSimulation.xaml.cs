@@ -154,10 +154,17 @@ namespace LiveSPICE
                 {
                     ProgressDialog.RunAsync(this, "Building simulation...", () =>
                     {
-                        Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
-                        solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
+                        try
+                        {
+                            Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
+                            solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
 
-                        simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, Log);
+                            simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, Log);
+                        }
+                        catch (Exception Ex)
+                        {
+                            Log.WriteException(Ex);
+                        }
                     });
                 }
                 catch (Exception Ex)
