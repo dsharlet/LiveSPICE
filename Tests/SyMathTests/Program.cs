@@ -32,7 +32,7 @@ namespace SyMathTests
         }
 
         static KeyValuePair<Expression, Expression> KV(Expression K, Expression V) { return new KeyValuePair<Expression, Expression>(K, V); }
-
+            
         static void Main(string[] args)
         {
             List<KeyValuePair<Expression, Expression>> Tests = new List<KeyValuePair<Expression, Expression>>()
@@ -61,18 +61,6 @@ namespace SyMathTests
                 KV("Cos[0]", "1"), 
                 KV("Sin[0]", "0"), 
                 KV("Sqrt[4]", "2"),
-                KV("ArcSin[Sin[Pi/6]]", "Pi/6"),
-                KV("ArcCos[Cos[Pi/6]]", "Pi/6"),
-                KV("ArcTan[Tan[Pi/6]]", "Pi/6"),
-                KV("ArcSec[Sec[Pi/6]]", "Pi/6"),
-                KV("ArcCsc[Csc[Pi/6]]", "Pi/6"),
-                KV("ArcCot[Cot[Pi/6]]", "Pi/6"),
-                KV("ArcSinh[Sinh[Pi/6]]", "Pi/6"),
-                KV("ArcCosh[Cosh[Pi/6]]", "Pi/6"),
-                KV("ArcTanh[Tanh[Pi/6]]", "Pi/6"),
-                KV("ArcSech[Sech[Pi/6]]", "Pi/6"),
-                KV("ArcCsch[Csch[Pi/6]]", "Pi/6"),
-                KV("ArcCoth[Coth[Pi/6]]", "Pi/6"),
                 KV("-1.0", "-1"),
                 KV("-1.2e1", "-12"),
                 KV("Abs[e - 2.7183] < 0.01", "1"),
@@ -85,7 +73,13 @@ namespace SyMathTests
                 KV("x + y : {x->1, y->2}", "3"),
                 KV("D[f[x], x] : x->0", "D[f[x], x] : x->0"),
                 KV("D[Cos[x], x] : x->0", "0"),
-                
+
+                // Functional equivalents.
+                KV("Ln[x]", "Log[x, e]"),
+                KV("Sqrt[x]", "x^(1/2)"),
+                KV("Exp[x]", "e^x"),
+
+
                 // Basic arithmetic.
                 KV("x + x", "2*x"),
                 KV("2*-x", "-2*x"),
@@ -124,7 +118,24 @@ namespace SyMathTests
                 KV("Factor[A*Exp[x] + B*Exp[x] + C*Sin[x] + D*Sin[x]]", "(A + B)*Exp[x] + (C + D)*Sin[x]"),
                 KV("Factor[A*Exp[x] + B*Exp[x] + A*Sin[x] + B*Sin[x]]", "(A + B)*(Exp[x] + Sin[x])"),
 
+                // Exponential functions.
+                KV("Ln[Exp[2]]", "2"),
+                KV("Log[10^3, 10]", "3"),
+                KV("Ln[a^b]/b", "Ln[a]"),
+                KV("Ln[Exp[x]]", "x"),
+                KV("Log[b^x, b]", "x"),
+                KV("Log[x, 3]", "Ln[x]/Ln[3]"),
+                KV("Ln[x*y]", "Ln[x] + Ln[y]"),
+                KV("Ln[x/y]", "Ln[x] - Ln[y]"),
+                KV("Ln[x*y^2]", "Ln[x] - 2*Ln[y]"),
+
                 //// Hyperbolic functions.
+                KV("ArcSinh[Sinh[Pi/6]]", "Pi/6"),
+                KV("ArcCosh[Cosh[Pi/6]]", "Pi/6"),
+                KV("ArcTanh[Tanh[Pi/6]]", "Pi/6"),
+                KV("ArcSech[Sech[Pi/6]]", "Pi/6"),
+                KV("ArcCsch[Csch[Pi/6]]", "Pi/6"),
+                KV("ArcCoth[Coth[Pi/6]]", "Pi/6"),
                 //KV("Exp[x] + Exp[-x]", "2*Cosh[x]"),
                 //KV("Exp[2*x] - Exp[-2*x]", "2*Sinh[2*x]"),
                 //KV("(Exp[x] - Exp[-x])/(Exp[x] + Exp[-x])", "Tanh[x]"),
@@ -133,6 +144,12 @@ namespace SyMathTests
                 //KV("3/(Exp[2*x] - Exp[-2*x])", "1.5*Csch[2*x]"),
 
                 //// Trig functions.
+                KV("ArcSin[Sin[Pi/6]]", "Pi/6"),
+                KV("ArcCos[Cos[Pi/6]]", "Pi/6"),
+                KV("ArcTan[Tan[Pi/6]]", "Pi/6"),
+                KV("ArcSec[Sec[Pi/6]]", "Pi/6"),
+                KV("ArcCsc[Csc[Pi/6]]", "Pi/6"),
+                KV("ArcCot[Cot[Pi/6]]", "Pi/6"),
                 //KV("Sin[x]/Cos[x]", "Tan[x]"),
                 //KV("Cos[x^2]/Sin[x^2]", "Cot[x^2]"),
                 //KV("Tan[x]*Cos[x]", "Sin[x]"),

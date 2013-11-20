@@ -107,7 +107,6 @@
     <Compile Include="Extensions\PrettyString.cs" />
     <Compile Include="Extensions\DependsOn.cs" />
     <Compile Include="Extensions\Solve.cs" />
-    <Compile Include="Extensions\Complexity.cs" />
     <Compile Include="Extensions\Parse.cs" />
     <Compile Include="Transform\Transform.cs" />
     <Compile Include="Extensions\Factor.cs" />
