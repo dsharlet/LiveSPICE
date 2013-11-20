@@ -20,7 +20,7 @@ namespace LiveSPICE
     /// </summary>
     public partial class SchematicViewer : UserControl
     {
-        protected double MaxZoom = 4;
+        protected double MaxZoom = 8;
         protected Point? mouse;
 
         protected ScaleTransform scale = new ScaleTransform();
