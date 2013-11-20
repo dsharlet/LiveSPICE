@@ -88,28 +88,25 @@ namespace LiveSPICE
             ToolTip = new ToolTip() { Content = text };
         }
 
-        protected override Size MeasureOverride(Size constraint)
+        protected override Size ArrangeOverride(Size arrangeBounds)
         {
             Circuit.Symbol sym = Symbol;
             Point b1 = ToPoint(sym.LowerBound - sym.Position);
             Point b2 = ToPoint(sym.UpperBound - sym.Position);
-            return new Size(
-                Math.Min(Math.Abs(b2.X - b1.X), constraint.Width),
-                Math.Min(Math.Abs(b2.Y - b1.Y), constraint.Height));
+            return new Size(Math.Abs(b2.X - b1.X), Math.Abs(b2.Y - b1.Y));
         }
 
         protected Matrix Transform
         {
             get
             {
-                Circuit.Coord offset = layout.LowerBound + layout.UpperBound;
-                double scale = Math.Min(Math.Min(ActualWidth / Symbol.Width, ActualHeight / Symbol.Height), 1.0);
+                Circuit.Coord offset = (layout.LowerBound + layout.UpperBound) / 2;
 
                 Matrix transform = new Matrix();
-                transform.Translate(-offset.x * 0.5, -offset.y * 0.5);
-                transform.Scale(scale, Symbol.Flip ? scale : -scale);
+                transform.Translate(-offset.x, -offset.y);
+                transform.Scale(1.0, Symbol.Flip ? 1.0 : -1.0);
                 transform.Rotate(Symbol.Rotation * -90);
-                transform.Translate(ActualWidth / 2, ActualHeight / 2);
+                transform.Translate(Symbol.Width / 2, Symbol.Height / 2);
                 return transform;
             }
         }
