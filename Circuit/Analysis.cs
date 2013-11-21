@@ -7,6 +7,11 @@ using SyMath;
 
 namespace Circuit
 {
+    public class AnalysisException : Exception
+    {
+        public AnalysisException(string Message) : base(Message) { }
+    }
+
     /// <summary>
     /// Helper class for building a system of MNA equations and unknowns.
     /// </summary>
