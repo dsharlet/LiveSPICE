@@ -29,7 +29,10 @@ namespace SyMath
 
         public override Expression Call(IEnumerable<Expression> Args)
         {
-            return body.Evaluate(parameters.Zip(Args, (a, b) => Arrow.New(a, b)));
+            if (!ReferenceEquals(body, null))
+                return body.Evaluate(parameters.Zip(Args, (a, b) => Arrow.New(a, b)));
+            else
+                throw new UnresolvedName("Cannot call undefined function '" + Name + "'.");
         }
 
         public override bool CanCall(IEnumerable<Expression> Args)
