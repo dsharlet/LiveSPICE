@@ -135,6 +135,7 @@ namespace SyMath
             Expression E = obj as Expression;
             return ReferenceEquals(E, null) ? false : Equals(E);
         }
+        public abstract override int GetHashCode();
         
         /// <summary>
         /// Get an ordered list of the atomic Expression elements in this expression.
