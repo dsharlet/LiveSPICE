@@ -28,7 +28,7 @@ namespace SyMathTests
 
             if (!passed)
                 System.Console.WriteLine("{0}", Arrow.New(T, TE).ToPrettyString());
-            return TE.IsTrue();
+            return passed;
         }
 
         static KeyValuePair<Expression, Expression> KV(Expression K, Expression V) { return new KeyValuePair<Expression, Expression>(K, V); }
