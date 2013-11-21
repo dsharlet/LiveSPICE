@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -19,16 +20,27 @@ namespace SyMath
         public static List<LinearCombination> InTermsOf(this IEnumerable<Equal> f, IEnumerable<Expression> x)
         {
             // Convert f to a system of linear equations.
-            return f.Select(i => new LinearCombination(x, i.Left - i.Right)).ToList();
+            return f.Select(i => LinearCombination.New(x, i.Left - i.Right)).ToList();
         }
 
-        public static LinearCombination FindPivot(this IEnumerable<LinearCombination> S, Expression x)
+
+        private static LinearCombination Scale(LinearCombination L, Expression R)
+        {
+            return LinearCombination.New(L.Basis.Select(i => new KeyValuePair<Expression, Expression>(i, L[i] * R)));
+        }
+
+        private static LinearCombination AddScale(LinearCombination L, LinearCombination R, Expression s)
+        {
+            return LinearCombination.New(L.Basis.Union(R.Basis).Select(i => new KeyValuePair<Expression, Expression>(i, L[i] + Binary.Multiply(R[i], s))));
+        }
+
+        public static LinearCombination FindPivot(this IList<LinearCombination> S, Expression x)
         {
             IEnumerable<LinearCombination> candidates = S.Where(i => x.Equals(i.PivotVariable));
             if (candidates.Empty())
                 return null;
 
-            return candidates.ArgMax(i => 
+            return candidates.ArgMax(i =>
             {
                 if (i.PivotCoefficient is Constant && i.Basis.All(j => !i[j].DependsOn(j)))
                     return Math.Abs((double)((Constant)i.PivotCoefficient).Value);
@@ -36,56 +48,99 @@ namespace SyMath
             });
         }
 
+        public static int FindPivotRow(this IList<LinearCombination> S, int i, Expression x)
+        {
+            int r = -1;
+            double p = 0.0;
+
+            for (; i < S.Count; ++i)
+            {
+                Expression Six = S[i][x];
+                // If we don't already have a pivot row, use this non-zero pivot position row.
+                if (!Six.EqualsZero() && r == -1)
+                {
+                    r = i;
+                    p = 0.0;
+                }
+
+                // Check if this is the largest pivot position term.
+                if (Six is Constant)
+                {
+                    double cSix = (double)Six;
+                    if (Math.Abs(cSix) > Math.Abs(p))
+                    {
+                        r = i;
+                        p = cSix;
+                    }
+                }
+            }
+            return r;
+        }
+
         /// <summary>
         /// Compute the row-echelon form of the system S in terms of x. This function modifies S in place.
         /// </summary>
         /// <param name="S"></param>
         /// <param name="x"></param>
-        public static void RowReduce(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
+        public static void RowReduce(this IList<LinearCombination> S, IEnumerable<Expression> x)
         {
+            int r = 0;
             foreach (Expression j in x)
             {
-                LinearCombination i1 = FindPivot(S, j);
-                if (i1 == null)
+                int i = FindPivotRow(S, r, j);
+                // If there is no pivot row, all of the entries in this column are already eliminated.
+                if (i == -1)
                     continue;
-                Expression scale = -i1.PivotCoefficient;
+                // If the pivot row isn't the current row, swap them.
+                if (i != r)
+                    Swap(S, i, r);
+
+                Expression scale = -S[r][j];
 
                 // Cancel the pivot variable from other rows.
-                foreach (LinearCombination i2 in S.Except(i1).Where(i => j.Equals(i.PivotVariable)))
+                for (i = r + 1; i < S.Count; ++i)
                 {
-                    i2.AddScaled(i2.PivotCoefficient / scale, i1);
-                    // This really should be 0 already, but due to numerical/symbolic issues, it might not be.
-                    i2[j] = 0;
+                    Expression Sij = S[i][j];
+                    if (!Sij.EqualsZero())
+                    {
+                        S[i] = AddScale(S[i], S[r], Sij / scale);
+                        Debug.Assert(S[i][j].EqualsZero());
+                    }
                 }
+
+                ++r;
             }
         }
 
+        private static void Swap(IList<LinearCombination> S, int a, int b)
+        {
+            LinearCombination t = S[a];
+            S[a] = S[b];
+            S[b] = t;
+        }
+
         /// <summary>
-        /// Given a row-echelon form 
+        /// Given a row-echelon form system of x, eliminate the upper triangular terms.
         /// </summary>
         /// <param name="S"></param>
         /// <returns></returns>
-        public static void BackSubstitute(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
+        public static void BackSubstitute(this IList<LinearCombination> S, IEnumerable<Expression> x)
         {
-            foreach (LinearCombination i in S.Where(i => x.Contains(i.PivotVariable)))
+            int r = S.Count - 1;
+            foreach (Expression j in x.Reverse())
             {
-                Expression pivot = i.PivotVariable;
-                Expression scale = -i.PivotCoefficient;
-
+                // Check if we have a pivot for j, if not skip it.
+                if (S[r][j].EqualsZero())
+                    continue;
+                
                 // Eliminate non-pivot variables from other rows.
-                foreach (LinearCombination r in S.Except(i).Where(r => !r[pivot].EqualsZero()))
-                    r.AddScaled(r[pivot] / scale, i);
-            }
-        }
+                Expression scale = -S[r][j];
+                for (int i = r - 1; i >= 0; --i)
+                    S[i] = AddScale(S[i], S[r], S[i][j] / scale);
 
-        /// <summary>
-        /// Return the pivot variables of the system S.
-        /// </summary>
-        /// <param name="S"></param>
-        /// <returns></returns>
-        public static List<Expression> Pivots(this List<LinearCombination> S)
-        {
-            return S.Where(i => !ReferenceEquals(i.PivotVariable, null)).Select(i => i.PivotVariable).Distinct().ToList();
+                // Move to the next row.
+                --r;
+            }
         }
 
         /// <summary>
@@ -94,21 +149,22 @@ namespace SyMath
         /// <param name="S"></param>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static List<Arrow> Solve(this IEnumerable<LinearCombination> S, IEnumerable<Expression> x)
+        public static List<Arrow> Solve(this IList<LinearCombination> S, IEnumerable<Expression> x, bool Remove)
         {
+            int r = S.Count - 1;
             // Solve for the variables in x.
             List<Arrow> result = new List<Arrow>();
             foreach (Expression j in x.Reverse())
             {
-                // Find the row with the pivot variable in this position.
-                LinearCombination i = S.FindPivot(j);
+                LinearCombination i = S[r];
 
                 // If there is no pivot in this position, find any row with a non-zero coefficient of j.
-                if (i == null)
-                    i = S.FirstOrDefault(s => !s[j].EqualsZero());
+                if (!i[j].EqualsZero())
+                    --r;
+                else
+                    i = S.FirstOrDefault(a => !a[j].EqualsZero());
 
-                // Solve the row for i.
-                if (i != null)
+                if (!ReferenceEquals(i, null))
                     result.Add(Arrow.New(j, i.Solve(j)));
             }
             return result;
@@ -136,38 +192,18 @@ namespace SyMath
         }
 
         /// <summary>
-        /// Solve a linear equation or system of linear equations.
+        /// Partially solve a linear equation or system of linear equations. Back substitution is not performed, equations that are solved
+        /// are removed from the system.
         /// </summary>
         /// <param name="f">Equation or set of equations to solve.</param>
         /// <param name="x">Variable of set of variables to solve for.</param>
         /// <returns>The solved values of x, including non-independent solutions.</returns>
-        public static List<Arrow> Solve(this IEnumerable<Equal> f, params Expression[] x) { return f.Solve(x.AsEnumerable()); }
-        
-
-        /// <summary>
-        /// Partially solve a linear equation or system of linear equations. Back substitution is not performed.
-        /// </summary>
-        /// <param name="f">Equation or set of equations to solve.</param>
-        /// <param name="x">Variable of set of variables to solve for.</param>
-        /// <returns>The solved values of x, including non-independent solutions.</returns>
-        public static List<Arrow> PartialSolve(this IEnumerable<Equal> f, IEnumerable<Expression> x)
+        public static List<Arrow> PartialSolve(this IList<LinearCombination> S, IEnumerable<Expression> x)
         {
-            // Convert f to a system of linear equations.
-            List<LinearCombination> S = f.InTermsOf(x);
-
             // Get row-echelon form of S.
             S.RowReduce(x);
-            
-            // Solve for the variables.
+
             return S.Solve(x);
         }
-
-        /// <summary>
-        /// Partially solve a linear equation or system of linear equations. Back substitution is not performed.
-        /// </summary>
-        /// <param name="f">Equation or set of equations to solve.</param>
-        /// <param name="x">Variable of set of variables to solve for.</param>
-        /// <returns>The solved values of x, including non-independent solutions.</returns>
-        public static List<Arrow> PartialSolve(this IEnumerable<Equal> f, params Expression[] x) { return f.PartialSolve(x.AsEnumerable()); }
     }
 }

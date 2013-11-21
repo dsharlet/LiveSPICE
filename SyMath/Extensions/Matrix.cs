@@ -173,36 +173,104 @@ namespace SyMath
             return SB.ToString();
         }
 
-        private static void SwapRows(Matrix A, int i1, int i2)
+        private void SwapRows(int i1, int i2)
         {
             if (i1 == i2)
                 return;
 
-            int N = A.N;
             for (int j = 0; j < N; ++j)
             {
-                Expression t = A[i1, j];
-                A[i1, j] = A[i2, j];
-                A[i2, j] = t;
+                Expression t = m[i1, j];
+                m[i1, j] = m[i2, j];
+                m[i2, j] = t;
             }
         }
-        private static void ScaleRow(Matrix A, int i, Expression s)
+        private void ScaleRow(int i, Expression s)
         {
-            int N = A.N;
             for (int j = 0; j < N; ++j)
-                A[i, j] *= s;
+                m[i, j] *= s;
         }
-        private static void ScaleAddRow(Matrix A, int i1, Expression s, int i2)
+        private void ScaleAddRow(int i1, Expression s, int i2)
         {
-            int N = A.N;
             for (int j = 0; j < N; ++j)
-                A[i2, j] += A[i1, j] * s;
+                m[i2, j] += m[i1, j] * s;
+        }
+
+        private int FindPivotRow(int i, int j)
+        {
+            int p = -1;
+            Real max = 0;
+            for (; i < M; ++i)
+            {
+                Expression mij = m[i, j];
+                if (!mij.EqualsZero())
+                {
+                    if (mij is Constant)
+                    {
+                        if (Real.Abs((Real)mij) > max)
+                        {
+                            p = i;
+                            max = Real.Abs((Real)mij);
+                        }
+                    }
+                    else if (p == -1)
+                    {
+                        p = i;  
+                    }
+                }
+            }
+            return p;
+        }
+
+        private int FindPivotColumn(int i, int j)
+        {
+            for (; j < N; ++j)
+                if (!m[i, j].EqualsZero())
+                    return j;
+            return -1;
+        }
+
+        public void RowReduce()
+        {
+            int i = 0;
+            for (int j = 0; j < N; ++j)
+            {
+                int p = FindPivotRow(i, j);
+                // If there is no pivot in this column, skip it without moving down a row.
+                if (p < 0)
+                    continue;
+
+                // Swap pivot row with row i.
+                if (i != p)
+                    SwapRows(i, p);
+
+                // Eliminate the pivot column below the pivot row.
+                for (int i2 = i + 1; i2 < N; ++i2)
+                    if (!m[i2, j].EqualsZero())
+                        ScaleAddRow(i, -m[i2, j] / m[i, j], i2);
+
+                // Move to the next row.
+                i += 1;
+            }
+        }
+
+        public void BackSubstitute()
+        {
+            for (int i = M - 1; i >= 0; --i)
+            {
+                int j = FindPivotColumn(i, i);
+                if (j != -1)
+                {
+                    for (int i2 = i; i2 >= 0; --i2)
+                        ScaleAddRow(i, -m[i2, j] / m[i, j], i2);
+                }
+            }
         }
 
         public static Matrix operator ^(Matrix A, int B)
         {
             if (A.M != A.N)
-                throw new ArgumentException("Non-square matrix");
+                throw new ArgumentException("Non-square matrix.");
 
             int N = A.N;
             if (B < 0)
@@ -214,21 +282,18 @@ namespace SyMath
                 for (int i = 0; i < N; ++i)
                 {
                     // Find pivot row.
-                    int p;
-                    for (p = i; p < N; ++p)
-                        if (!A_[p, i].EqualsZero())
-                            break;
-                    if (p >= N)
-                        throw new ArgumentException("Singular matrix");
+                    int p = A_.FindPivotRow(i, i);
+                    if (p < 0)
+                        throw new ArgumentException("Singular matrix.");
 
                     // Swap pivot row with row i.
-                    SwapRows(A_, i, p);
-                    SwapRows(Inv, i, p);
+                    A_.SwapRows(i, p);
+                    Inv.SwapRows(i, p);
 
                     // Put a 1 in the pivot position.
                     Expression s = 1 / A_[i, i];
-                    ScaleRow(A_, i, s);
-                    ScaleRow(Inv, i, s);
+                    A_.ScaleRow(i, s);
+                    Inv.ScaleRow(i, s);
 
                     // Zero the pivot column elsewhere.
                     for (p = 0; p < N; ++p)
@@ -236,8 +301,8 @@ namespace SyMath
                         if (i != p)
                         {
                             Expression a = -A_[p, i];
-                            ScaleAddRow(A_, i, a, p);
-                            ScaleAddRow(Inv, i, a, p);
+                            A_.ScaleAddRow(i, a, p);
+                            Inv.ScaleAddRow(i, a, p);
                         }
                     }
                 }

@@ -108,30 +108,6 @@ namespace SyMath
                 .Solve(y);
         }
 
-        /// <summary>
-        /// Partially solve a linear system of differential equations for y[t] at t = t0 + h in terms of y[t0]. See SolveExtensions.PartialSolve for more information.
-        /// </summary>
-        /// <param name="f">Equations to solve.</param>
-        /// <param name="y">Functions to solve for.</param>
-        /// <param name="t">Independent variable.</param>
-        /// <param name="t0">Previous timestep.</param>
-        /// <param name="h">Step size.</param>
-        /// <param name="method">Integration method to use for differential equations.</param>
-        /// <returns>Expressions for y[t0 + h].</returns>
-        public static List<Arrow> NDPartialSolve(this IEnumerable<Equal> f, IEnumerable<Expression> y, Expression t, Expression t0, Expression h, IntegrationMethod method)
-        {
-            // Find y' in terms of y.
-            List<Arrow> dy_dt = f.Solve(y.Select(i => D(i, t)));
-
-            // If dy/dt appears on the right side of the system, the differential equation is not linear. Can't handle these.
-            if (dy_dt.Any(i => i.Right.DependsOn(dy_dt.Select(j => j.Left))))
-                throw new AlgebraException("Differential equation is singular or not linear.");
-
-            return NDIntegrate(dy_dt, t, t0, h, method)
-                .Select(i => Equal.New(i.Left, i.Right))
-                .PartialSolve(y);
-        }
-
         // Get the expression that x is a derivative of.
         private static Expression DOf(Expression x)
         {

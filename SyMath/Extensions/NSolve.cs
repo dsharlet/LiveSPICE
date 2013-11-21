@@ -13,45 +13,15 @@ namespace SyMath
     /// Extensions for solving equations.
     /// </summary>
     public static class NSolveExtension
-    {
-        /// <summary>
-        /// Compute the Jacobian of F(x).
-        /// </summary>
-        /// <param name="F"></param>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        public static List<LinearCombination> Jacobian(this IEnumerable<Expression> F, IEnumerable<Arrow> x)
-        {
-            List<Expression> B = x.Select(i => i.Right).ToList();
-            List<LinearCombination> J = new List<LinearCombination>();
-            foreach (Expression i in F)
-            {
-                LinearCombination Ji = new LinearCombination(B);
-                Ji.Tag = i;
-                foreach (Arrow j in x)
-                    Ji[j.Right] = i.Differentiate(j.Left);
-                J.Add(Ji);
-            }
-            return J;
-        }
-
-        /// <summary>
-        /// Compute the Jacobian of F(x).
-        /// </summary>
-        /// <param name="F"></param>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        public static List<LinearCombination> Jacobian(this IEnumerable<Expression> F, IEnumerable<Expression> x)
-        {
-            return Jacobian(F, x.Select(i => Arrow.New(i, i)));
-        }
-        
+    {        
         // Use neton's method to solve F(x) = 0, with initial guess x0.
         private static List<Arrow> NewtonsMethod(List<Expression> F, List<Arrow> x0, double Epsilon, int MaxIterations)
         {
             // Numerically approximate the solution of F = 0 with Newton's method, 
             // i.e. solve JF(x0)*(x - x0) = -F(x0) for x.
-            List<LinearCombination> J = Jacobian(F, x0.Select(i => i.Left));
+            List<LinearCombination> J = new List<LinearCombination>();
+            foreach (Expression i in F)
+                J.Add(LinearCombination.New(x0.Select(j => new KeyValuePair<Expression, Expression>(j.Left, i.Differentiate(j.Left)))));
 
             int M = F.Count;
             int N = x0.Count;

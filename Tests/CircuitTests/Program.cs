@@ -25,7 +25,7 @@ namespace CircuitTests
         static double analysisTime = 0.0;
         static double simulateTime = 0.0;
 
-        static ConsoleLog Log = new ConsoleLog(MessageType.Info);
+        static ConsoleLog Log = new ConsoleLog(MessageType.Verbose);
 
         static Expression V1 = Harmonics(t, 0.5, 82, 2);
         
@@ -40,7 +40,7 @@ namespace CircuitTests
             //Run("BossSD1NoBuffer.xml", Vin, "V1[t]", new Expression[] { "_v15[t]", "_v11[t]" });
             //return;
             
-            foreach (string File in System.IO.Directory.EnumerateFiles(@".", "*.schx"))
+            foreach (string File in System.IO.Directory.EnumerateFiles(@".", "Floating Diode*.schx"))
             {
                 string Name = System.IO.Path.GetFileNameWithoutExtension(File);
                 try
@@ -48,10 +48,15 @@ namespace CircuitTests
                     double perf = Run(File, Vin);
                     performance.Add(Name + ":\t" + Quantity.ToString(perf, Units.Hz) + " (" + (perf / (double)SampleRate).ToString("G3") + "x real time)");
                 }
-                catch (Exception ex) 
+                catch (SimulationDiverged Ex)
                 {
-                    errors.Add(Name + ":\t" + ex.Message);
-                    System.Console.WriteLine(ex.Message);
+                    errors.Add(Name + ":\t" + Ex.Message);
+                    System.Console.WriteLine(Ex.Message);
+                }
+                catch (AnalysisException Ex)
+                {
+                    errors.Add(Name + ":\t" + Ex.Message);
+                    System.Console.WriteLine(Ex.Message);
                 }
             }
 
