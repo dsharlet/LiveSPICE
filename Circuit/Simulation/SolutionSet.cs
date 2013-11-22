@@ -88,6 +88,14 @@ namespace Circuit
             guesses = Guesses.ToList();
         }
 
+        public NewtonIteration(IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Updates, IEnumerable<Arrow> Guesses)
+        {
+            solved = new List<Arrow>();
+            equations = Equations.ToList();
+            updates = Updates.ToList();
+            guesses = Guesses.ToList();
+        }
+
         public override bool DependsOn(Expression x) 
         {
             if (solved != null && solved.Any(i => i.Right.DependsOn(x)))
