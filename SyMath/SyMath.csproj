@@ -55,6 +55,7 @@
     <Compile Include="Expression\Equal.cs" />
     <Compile Include="Expression\Product\Multiply.cs" />
     <Compile Include="Extensions\AlgebraicEquivalents.cs" />
+    <Compile Include="Extensions\SystemOfEquations.cs" />
     <Compile Include="LinqCompiler\CompileExtension.cs" />
     <Compile Include="LinqCompiler\CompileVisitor.cs" />
     <Compile Include="Extensions\FindMatches.cs" />

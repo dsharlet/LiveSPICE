@@ -57,9 +57,6 @@ namespace SyMath
         /// <returns></returns>
         public Expression this[Expression b] { get { return terms[b]; } }
 
-        private object tag;
-        public object Tag { get { return tag; } set { tag = value; } }
-
         private LinearCombination() { }
         private LinearCombination(IEnumerable<KeyValuePair<Expression, Expression>> Terms)
         {

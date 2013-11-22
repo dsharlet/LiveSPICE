@@ -102,32 +102,21 @@ namespace Circuit
             // Transient analysis of the system.
             Log.WriteLine(MessageType.Info, "[{0}] Performing transient analysis...", time);
 
-            // Separate mna into differential and algebraic equations.
-            List<LinearCombination> diffeq = mna.Where(i => i.DependsOn(dy_dt)).InTermsOf(dy_dt).ToList();
-            mna = mna.Where(i => !i.DependsOn(dy_dt)).ToList();
-            LogList(Log, MessageType.Verbose, "Differential equations:", diffeq.Select(i => i.ToString()));
+            SystemOfEquations system = new SystemOfEquations(mna, dy_dt.Concat(y));
 
             // Solve the diff eq for dy/dt and integrate the results.
-            diffeq.RowReduce(dy_dt);
-            diffeq.BackSubstitute(dy_dt);
-            List<Equal> integrated = diffeq.PartialSolve(dy_dt)
+            List<Equal> integrated = system.Solve(dy_dt)
                 .NDIntegrate(t, t0, h, IntegrationMethod.Trapezoid)
                 .Select(i => Equal.New(i.Left, i.Right)).ToList();
-            mna.AddRange(integrated);
+            system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
-
-            // The remaining equations from the system of diff eqs should be algebraic.
-            mna.AddRange(diffeq.Select(i => Equal.New(i.ToExpression(), 0)));
-            LogExpressions(Log, MessageType.Verbose, "Discretized system:", mna);
+            LogExpressions(Log, MessageType.Verbose, "Discretized system:", system.Equations.Select(i => Equal.New(i, 0)));
 
             // Solving the system...
             List<SolutionSet> solutions = new List<SolutionSet>();
 
             // Find linear solutions for y and substitute them into the system. Linear circuits should be completely solved here.
-            List<Arrow> linear = mna.Solve(y);
-            linear.RemoveAll(i => i.Right.DependsOn(y));
-            mna = mna.Evaluate(linear).OfType<Equal>().ToList();
-            y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
+            List<Arrow> linear = system.Solve();
             if (linear.Any())
             {
                 // Factor the solution to minimize arithmetic.
@@ -138,50 +127,59 @@ namespace Circuit
             }
 
             // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
-            if (y.Any())
+            if (system.Unknowns.Any())
             {
                 // The variables of this system are the newton iteration updates.
-                List<Expression> dy = y.Select(i => NewtonIteration.Delta(i)).ToList();
-
-                // Rearrange the MNA system to be F[y] == 0.
-                List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
-                // Compute JxF*dy + F(y0) == 0.
-                List<LinearCombination> J = new List<LinearCombination>();
-                foreach (Expression i in F)
-                {
-                    LinearCombination Ji = LinearCombination.New(y
-                        .Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j), i.Differentiate(j)))
-                        .Append(new KeyValuePair<Expression, Expression>(1, i)));
-                    Ji.Tag = i;
-                    J.Add(Ji);
-                }
-
-                // ly is the subset of y that can be found linearly.
-                List<Expression> ly = dy.Where(j => !J.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
-                // Swap the columns such that ly appear first.
-                dy = dy.Except(ly).ToList();
-                // If there is only one variable to be solved for, just do it now.
-                if (dy.Count == 1)
-                {
-                    ly.Add(dy[0]);
-                    dy.Clear();
-                }
-
-                // Compute the row-echelon form of the linear part of the Jacobian.
-                J.RowReduce(ly);
-                // Solutions for each linear update equation.
-                List<Arrow> solved = J.PartialSolve(ly);
+                List<Expression> dy = system.Unknowns.Select(i => NewtonIteration.Delta(i)).ToList();
 
                 // Initial guess for y(t) = y(t0).
-                List<Arrow> guess = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+                List<Arrow> guess = system.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
-                // Factor the solution to minimize arithmetic.
-                Factor(solved);
-                Factor(J);
+                SystemOfEquations nonlinear = new SystemOfEquations(system.Equations.Select(
+                    i => LinearCombination.New(
+                        dy.Select(j => new KeyValuePair<Expression, Expression>(j, i.Differentiate(j)))
+                        .Append(new KeyValuePair<Expression, Expression>(1, i)))), 
+                    dy);
 
-                solutions.Add(new NewtonIteration(solved, J, dy, guess));
-                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", dy.UnSplit(", ")), J.Select(i => i.ToString() + " == 0"));
+                List<Arrow> solved = new List<Arrow>();
+
+                solutions.Add(new NewtonIteration(solved, nonlinear.Equations, dy, guess));
+                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", dy.UnSplit(", ")), system.Equations.Select(i => i.ToString() + " == 0"));
                 LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
+
+                //// Rearrange the MNA system to be F[y] == 0.
+                //List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
+                //// Compute JxF*dy + F(y0) == 0.
+                //List<LinearCombination> J = new List<LinearCombination>();
+                //foreach (Expression i in F)
+                //{
+                //    LinearCombination Ji = LinearCombination.New(y
+                //        .Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j), i.Differentiate(j)))
+                //        .Append(new KeyValuePair<Expression, Expression>(1, i)));
+                //    Ji.Tag = i;
+                //    J.Add(Ji);
+                //}
+
+                //// ly is the subset of y that can be found linearly.
+                //List<Expression> ly = dy.Where(j => !J.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
+                //// Swap the columns such that ly appear first.
+                //dy = dy.Except(ly).ToList();
+                //// If there is only one variable to be solved for, just do it now.
+                //if (dy.Count == 1)
+                //{
+                //    ly.Add(dy[0]);
+                //    dy.Clear();
+                //}
+
+                //// Compute the row-echelon form of the linear part of the Jacobian.
+                //J.RowReduce(ly);
+                //// Solutions for each linear update equation.
+                //List<Arrow> solved = J.PartialSolve(ly);
+                
+                //// Factor the solution to minimize arithmetic.
+                //Factor(solved);
+                //Factor(J);
+
             }
 
             Log.WriteLine(MessageType.Info, "[{0}] System solved, {1} solution sets for {2} unknowns.", 
