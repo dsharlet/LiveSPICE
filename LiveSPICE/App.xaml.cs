@@ -30,6 +30,8 @@ namespace LiveSPICE
             if (e.Args.Contains("clearsettings"))
                 settings.Reset();
 
+            Dispatcher.UnhandledException += Dispatcher_UnhandledException;
+
             base.OnStartup(e);
             EventManager.RegisterClassHandler(typeof(TextBox), TextBox.KeyDownEvent, new KeyEventHandler(TextBox_KeyDown));
             EventManager.RegisterClassHandler(typeof(ComboBox), ComboBox.KeyDownEvent, new KeyEventHandler(ComboBox_KeyDown));
@@ -37,10 +39,16 @@ namespace LiveSPICE
             LoadAssemblies();
         }
 
+        void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            if (UnhandledException.Show(e.Exception))
+                e.Handled = true;
+        }
+
         public DirectoryInfo UserDocuments 
         { 
             get 
-            { 
+            {
                 string docs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LiveSPICE");
                 return Directory.CreateDirectory(docs);
             } 
@@ -57,6 +65,7 @@ namespace LiveSPICE
             TextBox textbox = (TextBox)sender;
             if (e.Key == Key.Enter & textbox.AcceptsReturn == false)
             {
+                throw new NotImplementedException("Test");
                 BindingExpression be = textbox.GetBindingExpression(TextBox.TextProperty);
                 if (be != null)
                     be.UpdateSource();

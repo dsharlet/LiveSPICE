@@ -1,0 +1,27 @@
+﻿<Window x:Class="LiveSPICE.UnhandledException"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Unhandled Exception in LiveSPICE" Height="400" Width="400" WindowStartupLocation="CenterScreen" Topmost="True" 
+        Style="{StaticResource ResourceKey=Window}" WindowStyle="ToolWindow">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="32" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" x:Name="info" TextWrapping="Wrap" Margin="8" VerticalAlignment="Center" Text="Unhandled exception:" />
+        <TextBlock Grid.Row="1" TextWrapping="Wrap"  Margin="8" VerticalAlignment="Center">Please report the information below to the <Hyperlink NavigateUri="https://github.com/dsharlet/LiveSPICE/issues" RequestNavigate="Hyperlink_RequestNavigate">LiveSPICE issues</Hyperlink> page.</TextBlock>
+        <TextBox Grid.Row="2" x:Name="ex" Margin="4" FontFamily="Courier New" IsReadOnly="True" 
+                 Background="LightGray" VerticalAlignment="Stretch"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" />
+        <DockPanel Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" LastChildFill="True">
+            <Button DockPanel.Dock="Left" Content="Copy to Clipboard" Width="120" Margin="4" Click="Copy_Click" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Abort" Width="80" Margin="4" Click="Abort_Click" IsDefault="True" />
+                <Button Content="Continue" Width="80" Margin="4" Click="Continue_Click" />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>
