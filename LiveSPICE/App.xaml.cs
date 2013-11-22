@@ -43,6 +43,8 @@ namespace LiveSPICE
         {
             if (UnhandledException.Show(e.Exception))
                 e.Handled = true;
+            else
+                settings.Reset();
         }
 
         public DirectoryInfo UserDocuments 
