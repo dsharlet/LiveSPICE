@@ -65,7 +65,6 @@ namespace LiveSPICE
             TextBox textbox = (TextBox)sender;
             if (e.Key == Key.Enter & textbox.AcceptsReturn == false)
             {
-                throw new NotImplementedException("Test");
                 BindingExpression be = textbox.GetBindingExpression(TextBox.TextProperty);
                 if (be != null)
                     be.UpdateSource();
