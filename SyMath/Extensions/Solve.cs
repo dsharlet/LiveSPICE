@@ -149,7 +149,7 @@ namespace SyMath
         /// <param name="S"></param>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static List<Arrow> Solve(this IList<LinearCombination> S, IEnumerable<Expression> x, bool Remove)
+        public static List<Arrow> Solve(this IList<LinearCombination> S, IEnumerable<Expression> x)
         {
             int r = S.Count - 1;
             // Solve for the variables in x.
