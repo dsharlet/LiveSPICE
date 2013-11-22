@@ -16,7 +16,7 @@ namespace Audio
     /// </summary>
     public abstract class Device
     {
-        private string name;
+        protected string name;
         public string Name { get { return name; } }
 
         protected Channel[] inputs;
@@ -24,10 +24,9 @@ namespace Audio
         protected Channel[] outputs;
         public Channel[] OutputChannels { get { return outputs; } }
 
+        protected Device() { }
         protected Device(string Name) { name = Name; }
 
         public abstract Stream Open(Stream.SampleHandler Callback, Channel[] Input, Channel[] Output);
-
-        public virtual void ShowControlPanel() { }
     }
 }

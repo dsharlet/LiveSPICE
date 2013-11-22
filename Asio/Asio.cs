@@ -190,13 +190,17 @@ namespace Asio
     class AsioObject : IDisposable
     {
         private VTable vtbl;
+        private Guid clsid;
+        public Guid ClassId { get { return clsid; } }
         private IntPtr _this = IntPtr.Zero;
 
-        public AsioObject(Guid ClsId)
+        public AsioObject(Guid ClassId)
         {
+            clsid = ClassId;
+
             const uint CLSCTX_INPROC_SERVER = 1;
 
-            int hr = CoCreateInstance(ref ClsId, null, CLSCTX_INPROC_SERVER, ref ClsId, out _this);
+            int hr = CoCreateInstance(ref ClassId, null, CLSCTX_INPROC_SERVER, ref ClassId, out _this);
             if (hr != 0)
                 throw new COMException("CoCreateInstance failed", hr);
 

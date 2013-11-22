@@ -30,7 +30,7 @@ namespace Asio
         private double sampleRate;
         public override double SampleRate { get { return sampleRate; } }
 
-        private AsioObject instance;
+        private AsioObject asio;
         private Audio.Stream.SampleHandler callback;
         private Buffer[] input;
         private Buffer[] output;
@@ -97,13 +97,14 @@ namespace Asio
 
         private IntPtr OnBufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess) { return _params; }
                 
-        public Stream(AsioObject Instance, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
+        public Stream(Guid DeviceId, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
             : base(Input, Output)
         {
-            instance = Instance;
+            asio = new AsioObject(DeviceId);
+            asio.Init(IntPtr.Zero);
             callback = Callback;
 
-            buffer = instance.BufferSize.Preferred;
+            buffer = asio.BufferSize.Preferred;
             ASIOBufferInfo[] infos = new ASIOBufferInfo[Input.Length + Output.Length];
             for (int i = 0; i < Input.Length; ++i)
             {
@@ -123,7 +124,7 @@ namespace Asio
                 asioMessage = OnAsioMessage,
                 bufferSwitchTimeInfo = OnBufferSwitchTimeInfo
             };
-            instance.CreateBuffers(infos, buffer, callbacks);
+            asio.CreateBuffers(infos, buffer, callbacks);
 
             input = new Buffer[Input.Length];
             for (int i = 0; i < Input.Length; ++i)
@@ -132,14 +133,16 @@ namespace Asio
             for (int i = 0; i < Output.Length; ++i)
                 output[i] = new Buffer(infos[Input.Length + i], Output[i].Type, buffer);
 
-            sampleRate = instance.SampleRate;
-            instance.Start();
+            sampleRate = asio.SampleRate;
+            asio.Start();
         }
 
         public override void Stop()
         {
-            instance.Stop();
-            instance.DisposeBuffers();
+            asio.Stop();
+            asio.DisposeBuffers();
+            asio.Dispose();
+            asio = null;
         }
 
         private static void ConvertSamples(IntPtr In, IntPtr Out, ASIOSampleType Type, int Count)

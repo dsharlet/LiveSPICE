@@ -115,14 +115,7 @@ namespace LiveSPICE
             if (drivers.Items.Count > 0)
                 Driver = Audio.Driver.Drivers.First();
         }
-
-        private void ShowControlPanel(object sender, EventArgs e)
-        {
-            Audio.Device d = Device;
-            if (d != null)
-                d.ShowControlPanel();
-        }
-
+        
         protected Signal signal;
 
         private void BeginTest(object sender, EventArgs e)

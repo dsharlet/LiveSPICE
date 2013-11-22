@@ -30,7 +30,7 @@ namespace Asio
                     {
                         using (RegistryKey driver = asio.OpenSubKey(i))
                         {
-                            d = new Device(new AsioObject(new Guid((string)driver.GetValue("CLSID"))));
+                            d = new Device(new Guid((string)driver.GetValue("CLSID")));
                         }
                     }
                     catch (System.Exception) { }

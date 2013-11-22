@@ -30,26 +30,27 @@ namespace Asio
 
     class Device : Audio.Device
     {
-        private AsioObject instance;
+        private Guid classid;
 
-        public Device(AsioObject Instance)
-            : base(Instance.DriverName) 
-        { 
-            instance = Instance;
-            instance.Init(IntPtr.Zero);
-            inputs = instance.InputChannels.Select(i => new Asio.Channel(i)).ToArray();
-            outputs = instance.OutputChannels.Select(i => new Asio.Channel(i)).ToArray();
+        public Device(Guid ClassId)
+        {
+            using (AsioObject obj = new AsioObject(ClassId))
+            {
+                obj.Init(IntPtr.Zero);
+                name = obj.DriverName;
+                inputs = obj.InputChannels.Select(i => new Asio.Channel(i)).ToArray();
+                outputs = obj.OutputChannels.Select(i => new Asio.Channel(i)).ToArray();
+            }
+            classid = ClassId;
         }
 
         public override Audio.Stream Open(Audio.Stream.SampleHandler Callback, Audio.Channel[] Input, Audio.Channel[] Output)
         {
             return new Stream(
-                instance,
+                classid,
                 Callback,
                 Input.Cast<Channel>().ToArray(),
                 Output.Cast<Channel>().ToArray());
         }
-
-        public override void ShowControlPanel() { instance.ShowControlPanel(); }
     }
 }
