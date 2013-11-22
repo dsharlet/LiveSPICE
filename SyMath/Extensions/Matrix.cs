@@ -222,9 +222,9 @@ namespace SyMath
             return p;
         }
 
-        private int FindPivotColumn(int i, int j)
+        private int FindPivotColumn(int i)
         {
-            for (; j < N; ++j)
+            for (int j = i; j < N; ++j)
                 if (!m[i, j].EqualsZero())
                     return j;
             return -1;
@@ -245,7 +245,7 @@ namespace SyMath
                     SwapRows(i, p);
 
                 // Eliminate the pivot column below the pivot row.
-                for (int i2 = i + 1; i2 < N; ++i2)
+                for (int i2 = i + 1; i2 < M; ++i2)
                     if (!m[i2, j].EqualsZero())
                         ScaleAddRow(i, -m[i2, j] / m[i, j], i2);
 
@@ -258,10 +258,10 @@ namespace SyMath
         {
             for (int i = M - 1; i >= 0; --i)
             {
-                int j = FindPivotColumn(i, i);
+                int j = FindPivotColumn(i);
                 if (j != -1)
                 {
-                    for (int i2 = i; i2 >= 0; --i2)
+                    for (int i2 = i - 1; i2 >= 0; --i2)
                         ScaleAddRow(i, -m[i2, j] / m[i, j], i2);
                 }
             }
