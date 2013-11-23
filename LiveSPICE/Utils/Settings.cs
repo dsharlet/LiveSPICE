@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Drawing;
 using System.Linq;
+using Util;
 
 namespace LiveSPICE
 {
@@ -66,6 +67,6 @@ namespace LiveSPICE
         public string[] AudioOutputs { get { return This("AudioOutputs", new string[0]); } set { this["AudioOutputs"] = value; } }
 
         [UserScopedSetting]
-        public Circuit.MessageType LogVerbosity { get { return This("LogVerbosity", Circuit.MessageType.Info); } set { this["LogVerbosity"] = value; } }
+        public MessageType LogVerbosity { get { return This("LogVerbosity", MessageType.Info); } set { this["LogVerbosity"] = value; } }
     }
 }

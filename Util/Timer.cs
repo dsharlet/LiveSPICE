@@ -41,6 +41,6 @@ namespace Circuit
 
         public static implicit operator double(Timer T) { return (Counter - T.begin) / Frequency; }
 
-        public override string ToString() { return Quantity.ToString((Counter - begin) / Frequency, Units.s); }
+        public override string ToString() { return ((Counter - begin) / Frequency).ToString("G3"); }
     }
 }

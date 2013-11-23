@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 
-namespace SyMath
+namespace System.Collections.Generic
 {
     public static class EnumerableExtensions
     {

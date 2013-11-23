@@ -110,13 +110,11 @@
     <Compile Include="Components\Port.cs" />
     <Compile Include="Components\Potentiometer.cs" />
     <Compile Include="Utils\RatioConverter.cs" />
-    <Compile Include="Utils\Log.cs" />
     <Compile Include="Utils\Matrix.cs" />
     <Compile Include="Utils\Point.cs" />
     <Compile Include="Utils\GlobalExpr.cs" />
     <Compile Include="Utils\NodeCollection.cs" />
     <Compile Include="Utils\Ratio.cs" />
-    <Compile Include="Utils\Timer.cs" />
     <Compile Include="Utils\Units.cs" />
     <Compile Include="Utils\QuantityConverter.cs" />
     <Compile Include="Utils\Coord.cs" />
@@ -136,6 +134,10 @@
     <ProjectReference Include="..\SyMath\SyMath.csproj">
       <Project>{2877C441-FD0B-4441-A469-E677003EE35A}</Project>
       <Name>SyMath</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Util\Util.csproj">
+      <Project>{0a3db5cb-3c02-4779-b73a-927d2e1ebe54}</Project>
+      <Name>Util</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

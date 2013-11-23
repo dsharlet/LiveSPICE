@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading;
+using Util;
 
 namespace WaveAudio
 {
@@ -54,49 +55,61 @@ namespace WaveAudio
 
         private void Proc()
         {
-            EventWaitHandle[] events = waveIn.Select(i => i.Callback).Concat(waveOut.Select(i => i.Callback)).ToArray();
+            Thread.CurrentThread.Name = "WaveAudio Stream";
 
-            Audio.SampleBuffer[] input = new Audio.SampleBuffer[waveIn.Length];
-            Audio.SampleBuffer[] output = new Audio.SampleBuffer[waveOut.Length];
-            while (!stop)
+            try
             {
-                // TODO: Why can't we use this?
-                //if (!WaitHandle.WaitAll(events, 100))
-                //    continue;
+                Log.Global.WriteLine(MessageType.Info, "Entering streaming thread");
 
-                // Read from the inputs.
-                for (int i = 0; i < waveIn.Length; ++i)
+                EventWaitHandle[] events = waveIn.Select(i => i.Callback).Concat(waveOut.Select(i => i.Callback)).ToArray();
+
+                Audio.SampleBuffer[] input = new Audio.SampleBuffer[waveIn.Length];
+                Audio.SampleBuffer[] output = new Audio.SampleBuffer[waveOut.Length];
+                while (!stop)
                 {
-                    InBuffer b = waveIn[i].GetBuffer();
-                    if (b == null)
-                        return;
-                    using (Audio.RawLock l = new Audio.RawLock(b.Samples, false, true))
-                        ConvertSamples(b.Data, format, l, l.Count);
-                    b.Record();
-                    input[i] = b.Samples;
-                }
+                    // TODO: Why can't we use this?
+                    //if (!WaitHandle.WaitAll(events, 100))
+                    //    continue;
 
-                // Get an available buffer from the outputs.
-                for (int i = 0; i < waveOut.Length; ++i)
-                {
-                    OutBuffer b = waveOut[i].GetBuffer();
-                    if (b == null)
-                        return;
-                    output[i] = b.Samples;
-                }
+                    // Read from the inputs.
+                    for (int i = 0; i < waveIn.Length; ++i)
+                    {
+                        InBuffer b = waveIn[i].GetBuffer();
+                        if (b == null)
+                            return;
+                        using (Audio.RawLock l = new Audio.RawLock(b.Samples, false, true))
+                            ConvertSamples(b.Data, format, l, l.Count);
+                        b.Record();
+                        input[i] = b.Samples;
+                    }
 
-                // Call the callback.
-                callback(buffer, input, output, format.nSamplesPerSec);
+                    // Get an available buffer from the outputs.
+                    for (int i = 0; i < waveOut.Length; ++i)
+                    {
+                        OutBuffer b = waveOut[i].GetBuffer();
+                        if (b == null)
+                            return;
+                        output[i] = b.Samples;
+                    }
 
-                // Play the results.
-                for (int i = 0; i < output.Length; ++i)
-                {
-                    OutBuffer b = (OutBuffer)output[i].Tag;
-                    using (Audio.RawLock l = new Audio.RawLock(b.Samples, true, false))
-                        ConvertSamples(l, b.Data, format, l.Count);
-                    b.Play();
+                    // Call the callback.
+                    callback(buffer, input, output, format.nSamplesPerSec);
+
+                    // Play the results.
+                    for (int i = 0; i < output.Length; ++i)
+                    {
+                        OutBuffer b = (OutBuffer)output[i].Tag;
+                        using (Audio.RawLock l = new Audio.RawLock(b.Samples, true, false))
+                            ConvertSamples(l, b.Data, format, l.Count);
+                        b.Play();
+                    }
                 }
             }
+            catch (Exception Ex)
+            {
+                Log.Global.WriteLine(MessageType.Error, "Unhandled exception '{0}': {1}", Ex.GetType().FullName, Ex.ToString());
+            }
+            Log.Global.WriteLine(MessageType.Info, "Exiting streaming thread");
         }
         
         private static void ConvertSamples(IntPtr In, WAVEFORMATEX Format, IntPtr Out, int Count)

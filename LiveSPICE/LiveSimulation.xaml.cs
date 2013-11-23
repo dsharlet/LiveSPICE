@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Xceed.Wpf.AvalonDock.Layout;
 using SyMath;
+using Util;
 
 namespace LiveSPICE
 {
@@ -150,27 +151,20 @@ namespace LiveSPICE
             lock (sync)
             {
                 simulation = null;
-                try
+                ProgressDialog.RunAsync(this, "Building simulation...", () =>
                 {
-                    ProgressDialog.RunAsync(this, "Building simulation...", () =>
+                    try
                     {
-                        try
-                        {
-                            Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
-                            solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
+                        Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
+                        solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
 
-                            simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, Log);
-                        }
-                        catch (Exception Ex)
-                        {
-                            Log.WriteException(Ex);
-                        }
-                    });
-                }
-                catch (Exception Ex)
-                {
-                    Log.WriteException(Ex);
-                }
+                        simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, Log);
+                    }
+                    catch (Exception Ex)
+                    {
+                        Log.WriteException(Ex);
+                    }
+                });
             }
         }
 
@@ -182,7 +176,7 @@ namespace LiveSPICE
             Circuit.Analysis analysis = circuit.Analyze();
             new Task(() => 
             {
-                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(analysis, h, solution.InitialConditions, new Circuit.NullLog());
+                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(analysis, h, solution.InitialConditions, new NullLog());
                 lock (sync) simulation.Update(s, ov);
             }).Start(updateScheduler);
         }
@@ -254,7 +248,7 @@ namespace LiveSPICE
             catch (Circuit.SimulationDiverged Ex)
             {
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
-                Log.WriteLine(Circuit.MessageType.Error, "Error: " + Ex.Message);
+                Log.WriteLine(MessageType.Error, "Error: " + Ex.Message);
                 if ((double)Ex.At > Rate)
                     simulation.Reset();
                 else

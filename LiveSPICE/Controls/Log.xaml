@@ -6,12 +6,13 @@
              xmlns:ls="clr-namespace:LiveSPICE"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:c="clr-namespace:Circuit;assembly=Circuit"
+             xmlns:u="clr-namespace:Util;assembly=Util"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <ObjectDataProvider x:Key="MessageType" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="c:MessageType"/>
+                <x:Type TypeName="u:MessageType"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </UserControl.Resources>

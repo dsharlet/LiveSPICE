@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Reflection;
 using SyMath;
+using Util;
 
 namespace Circuit
 {
@@ -64,8 +65,6 @@ namespace Circuit
         /// <returns>TransientSolution describing the solution of the circuit.</returns>
         public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, IEnumerable<Arrow> InitialConditions, ILog Log)
         {
-            Timer time = new Timer();
-
             Expression h = TimeStep;
 
             Log.WriteLine(MessageType.Info, "Building solution for h={0}", TimeStep.ToString());
@@ -80,7 +79,7 @@ namespace Circuit
 
             // Find steady state solution for initial conditions.
             List<Arrow> initial = InitialConditions.ToList();
-            Log.WriteLine(MessageType.Info, "[{0}] Performing steady state analysis...", time);
+            Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
             List<Equal> dc = mna
                 // Derivatives are zero in the steady state.
                 .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)))
@@ -100,7 +99,7 @@ namespace Circuit
             }
             
             // Transient analysis of the system.
-            Log.WriteLine(MessageType.Info, "[{0}] Performing transient analysis...", time);
+            Log.WriteLine(MessageType.Info, "Performing transient analysis...");
 
             // Separate mna into differential and algebraic equations.
             List<LinearCombination> diffeq = mna.Where(i => i.DependsOn(dy_dt)).InTermsOf(dy_dt).ToList();
@@ -181,8 +180,7 @@ namespace Circuit
                 LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
             }
 
-            Log.WriteLine(MessageType.Info, "[{0}] System solved, {1} solution sets for {2} unknowns.", 
-                time, 
+            Log.WriteLine(MessageType.Info, "System solved, {0} solution sets for {1} unknowns.", 
                 solutions.Count, 
                 solutions.Sum(i => i.Unknowns.Count()));
             

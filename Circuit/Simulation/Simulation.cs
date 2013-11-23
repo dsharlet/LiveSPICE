@@ -6,6 +6,7 @@ using System.Threading;
 using System.Reflection;
 using System.Reflection.Emit;
 using SyMath;
+using Util;
 
 namespace Circuit
 {
@@ -49,7 +50,7 @@ namespace Circuit
         /// </summary>
         public double TimeStep { get { return (double)(Solution.TimeStep * oversample); } }
 
-        private ILog log = new ConsoleLog();
+        private ILog log = new NullLog();
         /// <summary>
         /// Get or set the log associated with this simulation.
         /// </summary>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SyMath
+namespace System.Collections.Generic
 {
     /// <summary>
     /// Dictionary implementing behavior similar to std::map for operator [].
@@ -46,14 +46,5 @@ namespace SyMath
                     base[K] = value;
             }
         }
-    }
-
-    /// <summary>
-    /// DefaultDictionary that uses Default = 0, suitable for summing expressions.
-    /// </summary>
-    public class SumDictionary : DefaultDictionary<Expression, Expression>
-    {
-        public SumDictionary() : base(0) { }
-        public SumDictionary(IDictionary<Expression, Expression> Copy) : base(Copy, 0) { }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using Util;
 
 namespace Asio
 {
@@ -23,6 +24,8 @@ namespace Asio
             {
                 string[] names = asio.GetSubKeyNames();
 
+                Log.Global.WriteLine(MessageType.Info, "Found {0} ASIO drivers.", names.Length);
+
                 foreach (string i in names)
                 {
                     Device d = null;
@@ -31,9 +34,13 @@ namespace Asio
                         using (RegistryKey driver = asio.OpenSubKey(i))
                         {
                             d = new Device(new Guid((string)driver.GetValue("CLSID")));
+                            Log.Global.WriteLine(MessageType.Info, "Loaded ASIO driver '{0}'.", i);
                         }
                     }
-                    catch (System.Exception) { }
+                    catch (Exception Ex) 
+                    {
+                        Log.Global.WriteLine(MessageType.Warning, "Error instantiating ASIO driver '{0}': {1}", i, Ex.Message);
+                    }
                     if (d != null)
                         devices.Add(d);
                 }

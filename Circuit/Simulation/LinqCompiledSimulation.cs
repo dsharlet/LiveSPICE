@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using SyMath;
 using SyMath.LinqCompiler;
+using Util;
 using LinqExprs = System.Linq.Expressions;
 using LinqExpr = System.Linq.Expressions.Expression;
 using ParamExpr = System.Linq.Expressions.ParameterExpression;
@@ -121,18 +122,16 @@ namespace Circuit
             if (compiled.TryGetValue(hash, out d))
                 return d;
 
-            Timer time = new Timer();
-
-            Log.WriteLine(MessageType.Info, "[{0}] Defining sample processing function...", time);
+            Log.WriteLine(MessageType.Info, "Defining sample processing function...");
             Log.WriteLine(MessageType.Verbose, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Verbose, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
             Log.WriteLine(MessageType.Verbose, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
             CodeGen code = DefineProcessFunction(T, Oversample, Input, Output, Parameters);
-            Log.WriteLine(MessageType.Info, "[{0}] Building sample processing function...", time);
+            Log.WriteLine(MessageType.Info, "Building sample processing function...");
             LinqExprs.LambdaExpression lambda = code.Build();
-            Log.WriteLine(MessageType.Info, "[{0}] Compiling sample processing function...", time);
+            Log.WriteLine(MessageType.Info, "Compiling sample processing function...");
             d = lambda.Compile();
-            Log.WriteLine(MessageType.Info, "[{0}] Done.", time);
+            Log.WriteLine(MessageType.Info, "Done.");
 
             return compiled[hash] = d;
         }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading;
+using Util;
 
 namespace WaveAudio
 {
@@ -20,9 +21,11 @@ namespace WaveAudio
         public EventWaitHandle Callback { get { return callback; } }
         
         public WaveIn(int Device, WAVEFORMATEX Format, int BufferSize)
-        {   
+        {
+            Log.Global.WriteLine(MessageType.Info, "Opening wave in device '{0}'.", Device);
+
             // Construct waveIn
-            MmException.CheckThrow(Winmm.waveInOpen(out waveIn, Device, ref Format, callback.Handle, IntPtr.Zero, WaveInOpenFlags.CALLBACK_EVENT));
+            MmException.CheckThrow(Winmm.waveInOpen(out waveIn, Device, ref Format, callback.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero, WaveInOpenFlags.CALLBACK_EVENT));
 
             // Create buffers.
             buffers = new List<InBuffer>();
@@ -44,6 +47,8 @@ namespace WaveAudio
         {
             if (disposed) return;
             disposed = true;
+
+            Log.Global.WriteLine(MessageType.Info, "Closing wave in device.");
 
             if (waveIn != IntPtr.Zero)
                 Winmm.waveInStop(waveIn);

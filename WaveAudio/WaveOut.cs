@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading;
+using Util;
 
 namespace WaveAudio
 {
@@ -20,9 +21,11 @@ namespace WaveAudio
         public EventWaitHandle Callback { get { return callback; } }
 
         public WaveOut(int Device, WAVEFORMATEX Format, int BufferSize)
-        {            
+        {
+            Log.Global.WriteLine(MessageType.Info, "Opening wave out device '{0}'.", Device);
+
             // Construct waveOut
-            MmException.CheckThrow(Winmm.waveOutOpen(out waveOut, Device, ref Format, callback.Handle, IntPtr.Zero, WaveOutOpenFlags.CALLBACK_NULL));
+            MmException.CheckThrow(Winmm.waveOutOpen(out waveOut, Device, ref Format, callback.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero, WaveOutOpenFlags.CALLBACK_NULL));
 
             // Create buffers.
             buffers = new List<OutBuffer>();
@@ -39,6 +42,8 @@ namespace WaveAudio
             if (disposed) return;
             disposed = true;
 
+            Log.Global.WriteLine(MessageType.Info, "Closing wave out device.");
+            
             if (waveOut != IntPtr.Zero)
                 Winmm.waveOutReset(waveOut);
             if (buffers != null)

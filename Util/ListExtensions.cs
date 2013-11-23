@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SyMath
+namespace System.Collections.Generic
 {
     /// <summary>
     /// Extensions for List.

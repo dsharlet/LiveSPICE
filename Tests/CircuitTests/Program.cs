@@ -6,8 +6,7 @@ using System.Reflection;
 using SyMath;
 using SyMath.LinqCompiler;
 using Circuit;
-using LinqExpressions = System.Linq.Expressions;
-using LinqExpression = System.Linq.Expressions.Expression;
+using Util;
 
 // Filter design tool: http://sim.okawa-denshi.jp/en/CRtool.php
 
@@ -25,7 +24,7 @@ namespace CircuitTests
         static double analysisTime = 0.0;
         static double simulateTime = 0.0;
 
-        static ConsoleLog Log = new ConsoleLog(MessageType.Info);
+        static ConsoleLog Log = new ConsoleLog() { Verbosity = MessageType.Info };
 
         static Expression V1 = Harmonics(t, 0.5, 82, 2);
         

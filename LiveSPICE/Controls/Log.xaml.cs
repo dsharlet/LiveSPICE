@@ -14,13 +14,14 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Util;
 
 namespace LiveSPICE
 {
     /// <summary>
     /// Interaction logic for Output.xaml
     /// </summary>
-    public partial class Log : UserControl, Circuit.ILog, INotifyPropertyChanged
+    public partial class Log : UserControl, ILog, INotifyPropertyChanged
     {
         public Log()
         {
@@ -30,14 +31,14 @@ namespace LiveSPICE
         public void Clear() { text.Text = ""; }
         public void Clear_Click(object sender, EventArgs e) { Clear(); }
 
-        private Circuit.MessageType verbosity = App.Current.Settings.LogVerbosity;
-        public Circuit.MessageType Verbosity 
+        private MessageType verbosity = App.Current.Settings.LogVerbosity;
+        public MessageType Verbosity 
         {
             get { return verbosity; } 
             set { App.Current.Settings.LogVerbosity = verbosity = value; NotifyChanged("Verbosity"); } 
         }
 
-        public void WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
+        public void WriteLine(MessageType Type, string Message, params object[] Format)
         {
             if (Type > verbosity)
                 return;
@@ -53,13 +54,13 @@ namespace LiveSPICE
         public void WriteException(Exception Ex)
         {
 #if DEBUG
-            WriteLine(Circuit.MessageType.Error, "Exception: " + Ex.ToString());
+            WriteLine(MessageType.Error, "Exception: " + Ex.ToString());
 #else
-            WriteLine(Circuit.MessageType.Error, "Exception: " + Ex.Message);
+            WriteLine(MessageType.Error, "Exception: " + Ex.Message);
 #endif
         }
 
-        void Circuit.ILog.WriteLine(Circuit.MessageType Type, string Message, params object[] Format)
+        void ILog.WriteLine(MessageType Type, string Message, params object[] Format)
         {
             WriteLine(Type, Message, Format);
         }

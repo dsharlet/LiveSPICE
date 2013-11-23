@@ -172,14 +172,14 @@ namespace LiveSPICE
                     foreach (Circuit.Spice.Model i in statements.OfType<Circuit.Spice.Model>().Where(i => i.Component != null))
                         AddItem(Category, i.Component, i.Component.PartNumber, i.Description);
                 }
-                catch (Exception)
+                catch (Exception Ex)
                 {
-                    //Log.WriteLine(Circuit.MessageType.Error, "Error loading component library '{0}': {1}", Library, Ex.Message);
+                    Util.Log.Global.WriteLine(Util.MessageType.Warning, "Failed to load component libary '{0}': {1}", Library, Ex.Message);
                 }
             }
-            catch (Exception)
+            catch (Exception Ex)
             {
-                //Log.WriteLine(Circuit.MessageType.Error, "Error loading component library '{0}': {1}", Library, Ex.Message);
+                Util.Log.Global.WriteLine(Util.MessageType.Warning, "Failed to load component libary '{0}': {1}", Library, Ex.Message);
             }
         }
         

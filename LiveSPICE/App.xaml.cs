@@ -5,11 +5,13 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Data;
+using Util;
 
 namespace LiveSPICE
 {
@@ -27,6 +29,9 @@ namespace LiveSPICE
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            Thread.CurrentThread.Name = "Main";
+
+            Util.Log.Global.WriteLine(MessageType.Info, "App.OnStartup");
             if (e.Args.Contains("clearsettings"))
                 settings.Reset();
 
@@ -41,6 +46,7 @@ namespace LiveSPICE
 
         void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
+            Util.Log.Global.WriteLine(MessageType.Error, "Unhandled exception '{0}': {1}", e.Exception.GetType().FullName, e.Exception.ToString());
             if (UnhandledException.Show(e.Exception))
                 e.Handled = true;
             else
@@ -58,6 +64,7 @@ namespace LiveSPICE
 
         protected override void OnExit(ExitEventArgs e)
         {
+            Util.Log.Global.WriteLine(MessageType.Info, "App.OnExit");
             settings.Save();
             base.OnExit(e);
         }
@@ -96,8 +103,14 @@ namespace LiveSPICE
                 {
                     Assembly.LoadFile(dll);
                 }
-                catch (FileLoadException) { } 
-                catch (BadImageFormatException) { }
+                catch (FileLoadException Ex)
+                {
+                    Util.Log.Global.WriteLine(MessageType.Warning, "Failed to load assembly '{0}': {1}", dll, Ex.Message);
+                } 
+                catch (BadImageFormatException Ex)
+                {
+                    Util.Log.Global.WriteLine(MessageType.Warning, "Failed to load assembly '{0}': {1}", dll, Ex.Message);
+                }
             }
         }
     }

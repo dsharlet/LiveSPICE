@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Util;
 
 namespace Asio
 {
@@ -200,6 +201,8 @@ namespace Asio
 
             const uint CLSCTX_INPROC_SERVER = 1;
 
+            Log.Global.WriteLine(MessageType.Info, "AsioObject.AsioObject(ClassId='{0}')", ClassId);
+
             int hr = CoCreateInstance(ref ClassId, null, CLSCTX_INPROC_SERVER, ref ClassId, out _this);
             if (hr != 0)
                 throw new COMException("CoCreateInstance failed", hr);
@@ -211,7 +214,12 @@ namespace Asio
         public void Dispose() { Release(); }
         private void Release() { if (_this != IntPtr.Zero) { vtbl.Release(_this); _this = IntPtr.Zero; } }
 
-        public void Init(IntPtr SysHandle) { if (vtbl.init(_this, SysHandle) == ASIOBool.False) throw new AsioException("init failed", ASIOError.NotPresent); }
+        public void Init(IntPtr SysHandle) 
+        {
+            Log.Global.WriteLine(MessageType.Info, "AsioObject.Init");
+            if (vtbl.init(_this, SysHandle) == ASIOBool.False) 
+                throw new AsioException("init failed", ASIOError.NotPresent); 
+        }
 
         public string DriverName 
         { 
@@ -235,8 +243,16 @@ namespace Asio
 
         public int DriverVersion { get { return vtbl.getDriverVersion(_this); } }
 
-        public void Start() { Try(vtbl.start(_this)); }
-        public void Stop() { Try(vtbl.stop(_this)); }
+        public void Start()
+        {
+            Log.Global.WriteLine(MessageType.Info, "AsioObject.Start");
+            Try(vtbl.start(_this)); 
+        }
+        public void Stop()
+        {
+            Log.Global.WriteLine(MessageType.Info, "AsioObject.Stop");
+            Try(vtbl.stop(_this)); 
+        }
 
         private ASIOChannelInfo[] GetChannels(int Count, bool Input)
         {
@@ -341,10 +357,12 @@ namespace Asio
             callbacks = Marshal.AllocHGlobal(Marshal.SizeOf(Callbacks));
 
             Marshal.StructureToPtr(Callbacks, callbacks, false);
+            Log.Global.WriteLine(MessageType.Info, "AsioObject.CreateBuffers(Size={0})", Size);
             Try(vtbl.createBuffers(_this, Infos, Infos.Length, Size, callbacks)); 
         }
         public void DisposeBuffers()
-        { 
+        {
+            Log.Global.WriteLine(MessageType.Info, "AsioObject.DisposeBuffers");
             Try(vtbl.disposeBuffers(_this));
 
             Marshal.FreeHGlobal(callbacks);

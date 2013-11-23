@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using Util;
 
 namespace Audio
 {
@@ -24,8 +25,12 @@ namespace Audio
                         try
                         {
                             drivers.Add((Driver)Activator.CreateInstance(j));
+                            Log.Global.WriteLine(MessageType.Info, "Loaded Audio implementation class '{0}'.", j.FullName);
                         }
-                        catch (Exception) { }
+                        catch (Exception Ex) 
+                        {
+                            Log.Global.WriteLine(MessageType.Error, "Error instantiating Audio implementation class '{0}': {1}", j.FullName, Ex.Message);
+                        }
                     }
                 }
                 return drivers;

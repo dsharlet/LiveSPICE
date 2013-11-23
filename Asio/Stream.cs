@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+using Util;
 
 namespace Asio
 {
@@ -100,6 +100,7 @@ namespace Asio
         public Stream(Guid DeviceId, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
             : base(Input, Output)
         {
+            Log.Global.WriteLine(MessageType.Info, "Instantiating ASIO stream with {0} input channels and {1} output channels.", Input.Length, Output.Length);
             asio = new AsioObject(DeviceId);
             asio.Init(IntPtr.Zero);
             callback = Callback;

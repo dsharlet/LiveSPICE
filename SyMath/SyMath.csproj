@@ -79,12 +79,9 @@
     <Compile Include="Utils\Combinatorics.cs" />
     <Compile Include="LinqCompiler\StandardMath.cs" />
     <Compile Include="Utils\RealConverter.cs" />
-    <Compile Include="Utils\DictionaryExtensions.cs" />
-    <Compile Include="Utils\EnumerableExtensions.cs" />
     <Compile Include="Utils\Exceptions.cs" />
     <Compile Include="Utils\ExpressionConverter.cs" />
     <Compile Include="LinqCompiler\CodeGen.cs" />
-    <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Utils\MatchContext.cs" />
     <Compile Include="Utils\Real.cs" />
     <Compile Include="Utils\ReferenceEqualityComparer.cs" />
@@ -103,7 +100,7 @@
     <Compile Include="Expression\Sum\Sum.cs" />
     <Compile Include="Expression\Variable.cs" />
     <Compile Include="Extensions\Integrate.cs" />
-    <Compile Include="Utils\DefaultDictionary.cs" />
+    <Compile Include="Utils\SumDictionary.cs" />
     <Compile Include="Extensions\PrettyString.cs" />
     <Compile Include="Extensions\DependsOn.cs" />
     <Compile Include="Extensions\Solve.cs" />
@@ -118,7 +115,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions\Substitute.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Util\Util.csproj">
+      <Project>{0a3db5cb-3c02-4779-b73a-927d2e1ebe54}</Project>
+      <Name>Util</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

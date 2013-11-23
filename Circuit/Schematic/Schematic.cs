@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using SyMath;
-using System.Diagnostics;
+using Util;
 
 namespace Circuit
 {
@@ -38,7 +39,7 @@ namespace Circuit
         public Coord UpperBound { get { return elements.Any() ? new Coord(elements.Max(i => i.UpperBound.x), elements.Max(i => i.UpperBound.y)) : new Coord(0, 0); } }
         public Coord Size { get { return UpperBound - LowerBound; } }
 
-        protected ILog log = new ConsoleLog();
+        protected ILog log = new NullLog();
         /// <summary>
         /// Get or set the log for messages associated with this schematic.
         /// </summary>
@@ -47,8 +48,6 @@ namespace Circuit
         public Schematic(ILog Log) : this() { log = Log; }
         public Schematic()
         {
-            log = new NullLog();
-
             elements = new ElementCollection();
             elements.ItemAdded += OnElementAdded;
             elements.ItemRemoved += OnElementRemoved;

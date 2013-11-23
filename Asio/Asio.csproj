@@ -50,6 +50,10 @@
       <Project>{f53399e8-b038-4111-b89d-f5c4ab0ccb14}</Project>
       <Name>Audio</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Util\Util.csproj">
+      <Project>{0a3db5cb-3c02-4779-b73a-927d2e1ebe54}</Project>
+      <Name>Util</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

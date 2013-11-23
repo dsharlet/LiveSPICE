@@ -125,9 +125,9 @@ namespace LiveSPICE
                 App.Current.Settings.Used(filepath);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                MessageBox.Show(Application.Current.MainWindow, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Application.Current.MainWindow, Ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
@@ -143,7 +143,7 @@ namespace LiveSPICE
                 App.Current.Settings.Used(FileName);
                 return editor;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 App.Current.Settings.RemoveFromMru(FileName);
                 throw;
@@ -169,7 +169,7 @@ namespace LiveSPICE
                 Add(copied);
                 Select(copied, true, false);
             }
-            catch (System.Exception) { }
+            catch (Exception) { }
         }
         public void Delete() { Remove(Selected); }
 

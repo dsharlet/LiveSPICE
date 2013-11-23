@@ -132,9 +132,9 @@ namespace LiveSPICE
             {
                 Open((string)((MenuItem)e.Source).Tag);
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, Ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -208,9 +208,7 @@ namespace LiveSPICE
             {
                 dock.LoadLayout(App.Current.Settings.MainWindowLayout);
             }
-            catch (System.Exception)
-            {
-            }
+            catch (Exception) { }
         }
 
         private void component_Click(Circuit.Component C) 
