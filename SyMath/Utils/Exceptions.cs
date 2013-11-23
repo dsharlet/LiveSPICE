@@ -8,7 +8,7 @@ namespace SyMath
     /// <summary>
     /// Exception thrown for issues with algebraic manipulations.
     /// </summary>
-    public class AlgebraException : System.Exception
+    public class AlgebraException : Exception
     {
         public AlgebraException(string Message) : base(Message) { }
     }

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -16,16 +13,14 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Numerics;
-using SyMath;
 
 namespace LiveSPICE
 {
     public class SignalDisplay : Control, INotifyPropertyChanged
     {
         static SignalDisplay() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SignalDisplay), new FrameworkPropertyMetadata(typeof(SignalDisplay))); }
-        
-        protected SignalCollection signals;
+
+        protected SignalCollection signals = new SignalCollection();
         public SignalCollection Signals
         {
             get { return signals; }
@@ -48,11 +43,6 @@ namespace LiveSPICE
                 
         private Signal selected;
         public Signal SelectedSignal { get { return selected; } set { selected = value; NotifyChanged("SelectedSignal"); } }
-
-        public SignalDisplay()
-        {
-            Signals = new SignalCollection();
-        }
 
         public void Clear()
         {

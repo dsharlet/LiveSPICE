@@ -153,7 +153,7 @@ namespace Circuit
             {
                 C = Component.Deserialize(X.Element("Component"));
             }
-            catch (System.Exception Ex)
+            catch (Exception Ex)
             {
                 C = new Error(X, Ex.Message);
             }

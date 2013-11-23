@@ -50,19 +50,19 @@ namespace CircuitTests
                 catch (Exception ex) 
                 {
                     errors.Add(Name + ":\t" + ex.Message);
-                    System.Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.Message);
                 }
             }
 
-            System.Console.WriteLine("Analyze/Simulate {0}/{1}", analysisTime, simulateTime);
+            Console.WriteLine("Analyze/Simulate {0}/{1}", analysisTime, simulateTime);
 
-            System.Console.WriteLine("{0} succeeded:", performance.Count);
+            Console.WriteLine("{0} succeeded:", performance.Count);
             foreach (string i in performance)
-                System.Console.WriteLine(i);
+                Console.WriteLine(i);
 
-            System.Console.WriteLine("{0} failed:", errors.Count);
+            Console.WriteLine("{0} failed:", errors.Count);
             foreach (string i in errors)
-                System.Console.WriteLine(i);
+                Console.WriteLine(i);
         }
 
         public static double Run(string FileName, Func<double, double> Vin)
@@ -93,7 +93,7 @@ namespace CircuitTests
             analysisTime += Timer.Delta(a);
             
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
-            System.Console.WriteLine("");
+            Console.WriteLine("");
             if (Samples > 0)
                 return RunTest(
                     C, S,
@@ -142,7 +142,7 @@ namespace CircuitTests
             foreach (KeyValuePair<Expression, double[]> i in output)
                 plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
             
-            System.Console.WriteLine("Performance {0}", Quantity.ToString(N / time, Units.Hz));
+            Console.WriteLine("Performance {0}", Quantity.ToString(N / time, Units.Hz));
 
             Plot p = new Plot(
                 Name, 

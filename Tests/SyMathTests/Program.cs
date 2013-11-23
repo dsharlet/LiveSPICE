@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SyMath;
+using Util;
 
 namespace SyMathTests
 {
@@ -27,7 +28,7 @@ namespace SyMathTests
             }
 
             if (!passed)
-                System.Console.WriteLine("{0}", Arrow.New(T, TE).ToPrettyString());
+                Console.WriteLine("{0}", Arrow.New(T, TE).ToPrettyString());
             return passed;
         }
 
@@ -42,7 +43,7 @@ namespace SyMathTests
 
                     if (Math.Abs((double)fx.Evaluate("x", x) - Result(x)) > 1e-6)
                     {
-                        System.Console.WriteLine("{0} -> {1} != {2}", fx, fx.Evaluate("x", x), Result(x));
+                        Console.WriteLine("{0} -> {1} != {2}", fx, fx.Evaluate("x", x), Result(x));
                         return false;
                     }
                 }
@@ -50,7 +51,7 @@ namespace SyMathTests
             }
             catch (Exception Ex)
             {
-                System.Console.WriteLine(Ex.Message);
+                Console.WriteLine(Ex.Message);
                 return false;
             }
         }
@@ -253,8 +254,7 @@ namespace SyMathTests
                 Test("DSolve[I[y[t], t]==Sin[t] + t, y[t], y[0]->1, t]", "y[t]->Cos[t] + 1"),
             };
 
-            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-            timer.Start();
+            Timer timer = new Timer();
 
             int passed = 0;
             int total = 0;
@@ -264,10 +264,10 @@ namespace SyMathTests
                 total += 1;
             }
 
-            System.Console.WriteLine("{0} of {1} passed", passed, total);
+            Console.WriteLine("{0} of {1} passed", passed, total);
 
-            System.Console.WriteLine("{0} ms", timer.ElapsedMilliseconds);
-            System.Console.WriteLine("TransformCalls: {0}", TransformSet.TransformCalls);
+            Console.WriteLine("{0} s", timer);
+            Console.WriteLine("TransformCalls: {0}", TransformSet.TransformCalls);
             
             foreach (KeyValuePair<Expression, Func<double, double>> i in functions)
                 RunTest(i.Key, i.Value);

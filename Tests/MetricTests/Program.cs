@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Circuit;
-using SyMath;
 
 namespace MetricTests
 {
@@ -72,7 +71,7 @@ namespace MetricTests
             {
                 string s = Quantity.ToString(i.Item1, Units.V);
                 if (s != i.Item2)
-                    System.Console.WriteLine("{0} != {1}", s, i.Item2);
+                    Console.WriteLine("{0} != {1}", s, i.Item2);
             }
         }
     }
