@@ -40,7 +40,7 @@ namespace CircuitTests
             //Run("BossSD1NoBuffer.xml", Vin, "V1[t]", new Expression[] { "_v15[t]", "_v11[t]" });
             //return;
             
-            foreach (string File in System.IO.Directory.EnumerateFiles(@".", "Floating Diode*.schx"))
+            foreach (string File in System.IO.Directory.EnumerateFiles(@".", "*.schx"))
             {
                 string Name = System.IO.Path.GetFileNameWithoutExtension(File);
                 try
@@ -48,12 +48,7 @@ namespace CircuitTests
                     double perf = Run(File, Vin);
                     performance.Add(Name + ":\t" + Quantity.ToString(perf, Units.Hz) + " (" + (perf / (double)SampleRate).ToString("G3") + "x real time)");
                 }
-                catch (SimulationDiverged Ex)
-                {
-                    errors.Add(Name + ":\t" + Ex.Message);
-                    System.Console.WriteLine(Ex.Message);
-                }
-                catch (AnalysisException Ex)
+                catch (Exception Ex)
                 {
                     errors.Add(Name + ":\t" + Ex.Message);
                     System.Console.WriteLine(Ex.Message);
