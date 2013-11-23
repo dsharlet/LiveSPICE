@@ -39,10 +39,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DefaultDictionary.cs" />
-    <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="EnumerableExtensions.cs" />
-    <Compile Include="ListExtensions.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Timer.cs" />

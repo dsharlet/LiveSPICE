@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Reflection;
-using SyMath;
+using ComputerAlgebra;
 using Util;
 
 namespace Circuit
@@ -93,7 +93,7 @@ namespace Circuit
                 initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
                 LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
             }
-            catch (AlgebraException)
+            catch (Exception)
             {
                 Log.WriteLine(MessageType.Warning, "Failed to find steady state for initial conditions, circuit may be unstable.");
             }

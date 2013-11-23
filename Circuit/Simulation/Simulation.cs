@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Reflection;
 using System.Reflection.Emit;
-using SyMath;
+using ComputerAlgebra;
 using Util;
 
 namespace Circuit

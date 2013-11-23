@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SyMath;
+using ComputerAlgebra;
 using System.ComponentModel;
 using System.Xml.Linq;
 

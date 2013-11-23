@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2877C441-FD0B-4441-A469-E677003EE35A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SyMath</RootNamespace>
+    <AssemblyName>SyMath</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Expression\Arrow.cs" />
+    <Compile Include="Expression\Atom.cs" />
+    <Compile Include="Expression\Sum\Add.cs" />
+    <Compile Include="Expression\Functions\IfFunction.cs" />
+    <Compile Include="Expression\Functions\LutFunction.cs" />
+    <Compile Include="Expression\Functions\ExprFunction.cs" />
+    <Compile Include="Expression\Functions\NativeFunction.cs" />
+    <Compile Include="Expression\Substitute.cs" />
+    <Compile Include="Expression\Equal.cs" />
+    <Compile Include="Expression\Product\Multiply.cs" />
+    <Compile Include="Extensions\AlgebraicEquivalents.cs" />
+    <Compile Include="LinqCompiler\CompileExtension.cs" />
+    <Compile Include="LinqCompiler\CompileVisitor.cs" />
+    <Compile Include="Extensions\FindMatches.cs" />
+    <Compile Include="Extensions\LaTeX.cs" />
+    <Compile Include="Extensions\NSolve.cs" />
+    <Compile Include="Extensions\Simplify.cs" />
+    <Compile Include="LinqCompiler\DeclContext.cs" />
+    <Compile Include="LinqCompiler\Module.cs" />
+    <Compile Include="Namespace\GlobalNamespace.cs" />
+    <Compile Include="Namespace\Namespace.cs" />
+    <Compile Include="Expression\Functions\Function.cs" />
+    <Compile Include="Extensions\DSolve.cs" />
+    <Compile Include="Extensions\Matrix.cs" />
+    <Compile Include="Expression\Sum\Polynomial.cs" />
+    <Compile Include="Transform\AlgebraTransform.cs" />
+    <Compile Include="Transform\CachedTransform.cs" />
+    <Compile Include="Transform\TransformSet.cs" />
+    <Compile Include="Transform\SubstituteTransform.cs" />
+    <Compile Include="Transform\LinearTransform.cs" />
+    <Compile Include="Transform\PatternTransform.cs" />
+    <Compile Include="Utils\BigRational.cs" />
+    <Compile Include="Utils\Combinatorics.cs" />
+    <Compile Include="LinqCompiler\StandardMath.cs" />
+    <Compile Include="Utils\DefaultDictionary.cs" />
+    <Compile Include="Utils\DictionaryExtensions.cs" />
+    <Compile Include="Utils\EnumerableExtensions.cs" />
+    <Compile Include="Utils\ListExtensions.cs" />
+    <Compile Include="Utils\RealConverter.cs" />
+    <Compile Include="Utils\ExpressionConverter.cs" />
+    <Compile Include="LinqCompiler\CodeGen.cs" />
+    <Compile Include="Utils\MatchContext.cs" />
+    <Compile Include="Utils\Real.cs" />
+    <Compile Include="Utils\ReferenceEqualityComparer.cs" />
+    <Compile Include="Visitors\CachedRecursiveVisitor.cs" />
+    <Compile Include="Visitors\CachedVisitor.cs" />
+    <Compile Include="Visitors\RecursiveVisitor.cs" />
+    <Compile Include="Extensions\Evaluate.cs" />
+    <Compile Include="Expression\Binary.cs" />
+    <Compile Include="Expression\Power.cs" />
+    <Compile Include="Expression\Set.cs" />
+    <Compile Include="Expression\Unary.cs" />
+    <Compile Include="Expression\Constant.cs" />
+    <Compile Include="Expression\Call.cs" />
+    <Compile Include="Expression\Product\Product.cs" />
+    <Compile Include="Expression\Expression.cs" />
+    <Compile Include="Expression\Sum\Sum.cs" />
+    <Compile Include="Expression\Variable.cs" />
+    <Compile Include="Extensions\Integrate.cs" />
+    <Compile Include="Extensions\PrettyString.cs" />
+    <Compile Include="Extensions\DependsOn.cs" />
+    <Compile Include="Extensions\Solve.cs" />
+    <Compile Include="Extensions\Parse.cs" />
+    <Compile Include="Transform\Transform.cs" />
+    <Compile Include="Extensions\Factor.cs" />
+    <Compile Include="Extensions\Differentiate.cs" />
+    <Compile Include="Extensions\Expand.cs" />
+    <Compile Include="Visitors\Visitor.cs" />
+    <Compile Include="Extensions\LaplaceTransform.cs" />
+    <Compile Include="Expression\Sum\LinearCombination.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Extensions\Substitute.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

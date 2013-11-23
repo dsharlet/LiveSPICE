@@ -1,8 +1,0 @@
-RC lowpass filter
-*
-VS	1	0	AC	1	SIN(0VOFF 1VPEAK   2KHZ)
-*
-R1	1	2	1K
-C1	2	0	0.032UF
-*
-.END

@@ -100,12 +100,12 @@ namespace Util
     /// <summary>
     /// Log implementation targeting a StringBuilder.
     /// </summary>
-    public class TextLog : Log
+    public class StringLog : Log
     {
-        private StringBuilder text = new StringBuilder();
-        public StringBuilder Text { get { return text; } set { text = value; } }
+        private StringBuilder s = new StringBuilder();
+        public StringBuilder String { get { return s; } set { s = value; } }
 
-        protected override void WriteLine(string Text) { text.AppendLine(Text); }
+        protected override void WriteLine(string Text) { s.AppendLine(Text); }
     }
 
     /// <summary>

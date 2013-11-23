@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using SyMath;
+using ComputerAlgebra;
 using Util;
 
 namespace Circuit.Spice
@@ -24,7 +24,7 @@ namespace Circuit.Spice
         /// </summary>
         public string Title { get { return title; } set { title = value; } }
 
-        private ILog log = new TextLog();
+        private ILog log = new StringLog();
         /// <summary>
         /// Messages resulting from parsing the statements in this list.
         /// </summary>

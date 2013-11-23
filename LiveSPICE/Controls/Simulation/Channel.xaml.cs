@@ -31,13 +31,13 @@ namespace LiveSPICE
             name.ToolTip = name.Text = For.Name;
             this.Signals = Signals.ToList();
 
-            Signal = Signals.Select(i => (SyMath.Expression)i.Tag).FirstOrDefault();
+            Signal = Signals.Select(i => (ComputerAlgebra.Expression)i.Tag).FirstOrDefault();
         }
 
         public Brush SignalStatus { get { return level.Background; } set { level.Background = value; } }
 
-        private SyMath.Expression signal;
-        public SyMath.Expression Signal { get { return signal; } set { signal = value; NotifyChanged("Signal"); } }
+        private ComputerAlgebra.Expression signal;
+        public ComputerAlgebra.Expression Signal { get { return signal; } set { signal = value; NotifyChanged("Signal"); } }
         
         public double gain = 1.0;
         public double Gain { get { return (int)Math.Round(20 * Math.Log(gain, 10)); } set { gain = Math.Pow(10, value / 20.0); NotifyChanged("Gain"); } }

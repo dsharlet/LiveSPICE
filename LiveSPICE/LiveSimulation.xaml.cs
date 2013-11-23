@@ -15,7 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Xceed.Wpf.AvalonDock.Layout;
-using SyMath;
+using ComputerAlgebra;
 using Util;
 
 namespace LiveSPICE
@@ -61,7 +61,7 @@ namespace LiveSPICE
         protected Circuit.TransientSolution solution = null;
 
         private List<Probe> probes = new List<Probe>();
-        protected Dictionary<SyMath.Expression, double> arguments = new Dictionary<SyMath.Expression, double>();
+        protected Dictionary<ComputerAlgebra.Expression, double> arguments = new Dictionary<ComputerAlgebra.Expression, double>();
 
         private object sync = new object();
 
@@ -125,10 +125,10 @@ namespace LiveSPICE
 
                 inputChannels = InitChannels(inputs, Inputs, components.OfType<Circuit.Input>()
                     .Select(j => new ComboBoxItem() { Content = j.Name, Tag = Circuit.Component.DependentVariable(j.Name, Circuit.Component.t) })
-                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = (SyMath.Expression)0 }));
+                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = (ComputerAlgebra.Expression)0 }));
                 outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>()
                     .Select(j => new ComboBoxItem() { Content = j.Name, Tag = j.V })
-                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = (SyMath.Expression)0 }));
+                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = (ComputerAlgebra.Expression)0 }));
                
                 // Begin audio processing.
                 if (Inputs.Any() || Outputs.Any())
@@ -155,7 +155,7 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
+                        Circuit.Quantity h = new Circuit.Quantity((ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
                         solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
 
                         simulation = new Circuit.LinqCompiledSimulation(solution, Oversample, Log);
@@ -172,7 +172,7 @@ namespace LiveSPICE
         private void UpdateSimulation()
         {
             int ov = Oversample;
-            Circuit.Quantity h = new Circuit.Quantity((SyMath.Expression)1 / (stream.SampleRate * ov), Circuit.Units.s);
+            Circuit.Quantity h = new Circuit.Quantity((ComputerAlgebra.Expression)1 / (stream.SampleRate * ov), Circuit.Units.s);
             Circuit.Analysis analysis = circuit.Analyze();
             new Task(() => 
             {
@@ -225,17 +225,17 @@ namespace LiveSPICE
                     return;
                 }
 
-                KeyValuePair<SyMath.Expression, double[]>[] inputs = new KeyValuePair<SyMath.Expression, double[]>[In.Length];
+                KeyValuePair<ComputerAlgebra.Expression, double[]>[] inputs = new KeyValuePair<ComputerAlgebra.Expression, double[]>[In.Length];
                 for (int i = 0; i < In.Length; ++i)
-                    inputs[i] = new KeyValuePair<SyMath.Expression, double[]>(inputChannels[i].Signal, In[i].LockSamples(true, false));
+                    inputs[i] = new KeyValuePair<ComputerAlgebra.Expression, double[]>(inputChannels[i].Signal, In[i].LockSamples(true, false));
 
-                List<KeyValuePair<SyMath.Expression, double[]>> signals = new List<KeyValuePair<SyMath.Expression, double[]>>(probes.Count);
+                List<KeyValuePair<ComputerAlgebra.Expression, double[]>> signals = new List<KeyValuePair<ComputerAlgebra.Expression, double[]>>(probes.Count);
                 foreach (Probe i in probes)
-                    signals.Add(new KeyValuePair<SyMath.Expression, double[]>(i.V, i.AllocBuffer(Count)));
+                    signals.Add(new KeyValuePair<ComputerAlgebra.Expression, double[]>(i.V, i.AllocBuffer(Count)));
 
-                KeyValuePair<SyMath.Expression, double[]>[] outputs = new KeyValuePair<SyMath.Expression, double[]>[Out.Length];
+                KeyValuePair<ComputerAlgebra.Expression, double[]>[] outputs = new KeyValuePair<ComputerAlgebra.Expression, double[]>[Out.Length];
                 for (int i = 0; i < Out.Length; ++i)
-                    outputs[i] = new KeyValuePair<SyMath.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true));
+                    outputs[i] = new KeyValuePair<ComputerAlgebra.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true));
 
                 // Process the samples!
                 simulation.Run(Count, inputs, signals.Concat(outputs), Iterations);

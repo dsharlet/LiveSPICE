@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Xml.Linq;
-using SyMath;
+using ComputerAlgebra;
 
 namespace Circuit
 {

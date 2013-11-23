@@ -50,7 +50,6 @@
     <Compile Include="Driver.cs" />
     <Compile Include="Stream.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Audio\Audio.csproj">
       <Project>{f53399e8-b038-4111-b89d-f5c4ab0ccb14}</Project>
