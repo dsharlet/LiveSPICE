@@ -105,9 +105,13 @@ namespace Circuit
             SystemOfEquations system = new SystemOfEquations(mna, dy_dt.Concat(y));
 
             // Solve the diff eq for dy/dt and integrate the results.
+            system.RowReduce(dy_dt);
+            system.BackSubstitute(dy_dt);
             List<Equal> integrated = system.Solve(dy_dt)
                 .NDIntegrate(t, t0, h, IntegrationMethod.Trapezoid)
                 .Select(i => Equal.New(i.Left, i.Right)).ToList();
+            Debug.Assert(!integrated.DependsOn(dy_dt));
+            Debug.Assert(!system.Equations.DependsOn(dy_dt));
             system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
             LogExpressions(Log, MessageType.Verbose, "Discretized system:", system.Equations.Select(i => Equal.New(i, 0)));
@@ -116,11 +120,12 @@ namespace Circuit
             List<SolutionSet> solutions = new List<SolutionSet>();
 
             // Find linear solutions for y and substitute them into the system. Linear circuits should be completely solved here.
+            system.RowReduce();
+            system.BackSubstitute();
             List<Arrow> linear = system.Solve();
             if (linear.Any())
             {
-                // Factor the solution to minimize arithmetic.
-                Factor(linear);
+                system.Evaluate(linear);
 
                 solutions.Add(new LinearSolutions(linear));
                 LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
@@ -135,51 +140,23 @@ namespace Circuit
                 // Initial guess for y(t) = y(t0).
                 List<Arrow> guess = system.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
+                // Build a system of equations JxF*dy + F(y) = 0.
                 SystemOfEquations nonlinear = new SystemOfEquations(system.Equations.Select(
                     i => LinearCombination.New(
-                        dy.Select(j => new KeyValuePair<Expression, Expression>(j, i.Differentiate(j)))
+                        y.Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j), i.Differentiate(j)))
                         .Append(new KeyValuePair<Expression, Expression>(1, i)))), 
-                    dy);
+                    system.Unknowns.Select(i => NewtonIteration.Delta(i)));
 
-                List<Arrow> solved = new List<Arrow>();
-
-                solutions.Add(new NewtonIteration(solved, nonlinear.Equations, dy, guess));
+                // Solve where possible.
+                List<Expression> ly = dy.Where(j => !nonlinear.Equations.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
+                nonlinear.RowReduce(ly);
+                nonlinear.BackSubstitute(ly);
+                List<Arrow> solved = nonlinear.Solve(ly);
+                
+                // Add the solution.
+                solutions.Add(new NewtonIteration(solved, nonlinear.Equations, nonlinear.Unknowns, guess));
                 LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", dy.UnSplit(", ")), system.Equations.Select(i => i.ToString() + " == 0"));
                 LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
-
-                //// Rearrange the MNA system to be F[y] == 0.
-                //List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
-                //// Compute JxF*dy + F(y0) == 0.
-                //List<LinearCombination> J = new List<LinearCombination>();
-                //foreach (Expression i in F)
-                //{
-                //    LinearCombination Ji = LinearCombination.New(y
-                //        .Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j), i.Differentiate(j)))
-                //        .Append(new KeyValuePair<Expression, Expression>(1, i)));
-                //    Ji.Tag = i;
-                //    J.Add(Ji);
-                //}
-
-                //// ly is the subset of y that can be found linearly.
-                //List<Expression> ly = dy.Where(j => !J.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
-                //// Swap the columns such that ly appear first.
-                //dy = dy.Except(ly).ToList();
-                //// If there is only one variable to be solved for, just do it now.
-                //if (dy.Count == 1)
-                //{
-                //    ly.Add(dy[0]);
-                //    dy.Clear();
-                //}
-
-                //// Compute the row-echelon form of the linear part of the Jacobian.
-                //J.RowReduce(ly);
-                //// Solutions for each linear update equation.
-                //List<Arrow> solved = J.PartialSolve(ly);
-                
-                //// Factor the solution to minimize arithmetic.
-                //Factor(solved);
-                //Factor(J);
-
             }
 
             Log.WriteLine(MessageType.Info, "[{0}] System solved, {1} solution sets for {2} unknowns.", 
@@ -195,18 +172,6 @@ namespace Circuit
         public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, ILog Log)
         {
             return Solve(Analysis, TimeStep, new Arrow[] { }, Log);
-        }
-
-        private static void Factor(List<Arrow> x)
-        {
-            for (int i = 0; i < x.Count; ++i)
-                x[i] = Arrow.New(x[i].Left, x[i].Right.Factor());
-        }
-
-        private static void Factor(List<LinearCombination> x)
-        {
-            for (int i = 0; i < x.Count; ++i)
-                x[i] = LinearCombination.New(x[i].Basis.Select(j => new KeyValuePair<Expression, Expression>(j, x[i][j].Factor())));
         }
         
         // Filters the solutions in S that are dependent on x if evaluated in order.
