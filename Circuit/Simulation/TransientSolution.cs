@@ -149,8 +149,8 @@ namespace Circuit
 
                 // Solve where possible.
                 List<Expression> ly = dy.Where(j => !nonlinear.Equations.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
+
                 nonlinear.RowReduce(ly);
-                nonlinear.BackSubstitute(ly);
                 List<Arrow> solved = nonlinear.Solve(ly);
                 
                 // Add the solution.
