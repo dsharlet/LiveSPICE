@@ -2,10 +2,10 @@
 <Library>
   <!-- Diodes -->
   <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" TypeName="Germanium Diode" Description="Generic germanium diode.">
-    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 μA" n="1" IsLed="False" Name="D1" PartNumber="GeD" />
+    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 μA" n="1" IsLed="False" Name="D1" PartNumber="Ge" />
   </Component>
   <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" TypeName="Silicon Diode" Description="Generic silicon diode.">
-    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 pA" n="1" IsLed="False" Name="D1" PartNumber="SiD" />
+    <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1 pA" n="1" IsLed="False" Name="D1" PartNumber="Si" />
   </Component>
 
   <!-- BJTs -->
