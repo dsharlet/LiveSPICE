@@ -167,9 +167,13 @@ namespace LiveSPICE
                 try
                 {
                     Circuit.Spice.Statements statements = new Circuit.Spice.Statements(Library);
-                    Category = Category.SubCategory(name);
-                    foreach (Circuit.Spice.Model i in statements.OfType<Circuit.Spice.Model>().Where(i => i.Component != null))
-                        AddItem(Category, i.Component, i.Component.PartNumber, i.Description);
+                    IEnumerable<Circuit.Spice.Model> models = statements.OfType<Circuit.Spice.Model>().Where(i => i.Component != null);
+                    if (models.Any())
+                    {
+                        Category = Category.SubCategory(name);
+                        foreach (Circuit.Spice.Model i in models)
+                            AddItem(Category, i.Component, i.Component.PartNumber, i.Description);
+                    }
                 }
                 catch (Exception Ex)
                 {
@@ -224,7 +228,7 @@ namespace LiveSPICE
                 string[] search =
                 {
                     System.IO.Path.Combine(app, "Components"),
-                    System.IO.Path.Combine(app, @"..\..\..\Components"),
+                    System.IO.Path.Combine(app, @"..\..\..\Circuit\Components"),
                 };
                 string path = search.FirstOrDefault(i => System.IO.Directory.Exists(i));
                 if (path != null)
