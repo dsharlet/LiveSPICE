@@ -101,23 +101,21 @@ namespace Circuit
             // Transient analysis of the system.
             Log.WriteLine(MessageType.Info, "Performing transient analysis...");
 
-            // Separate mna into differential and algebraic equations.
-            List<LinearCombination> diffeq = mna.Where(i => i.DependsOn(dy_dt)).InTermsOf(dy_dt).ToList();
-            mna = mna.Where(i => !i.DependsOn(dy_dt)).ToList();
-            LogList(Log, MessageType.Verbose, "Differential equations:", diffeq.Select(i => i.ToString()));
+            SystemOfEquations system = new SystemOfEquations(mna, dy_dt.Concat(y));
 
             // Solve the diff eq for dy/dt and integrate the results.
-            diffeq.RowReduce(dy_dt);
-            diffeq.BackSubstitute(dy_dt);
-            List<Equal> integrated = SolveAndRemove(diffeq, dy_dt)
+            system.RowReduce(dy_dt);
+            system.BackSubstitute(dy_dt);
+            List<Equal> integrated = system.Solve(dy_dt)
                 .NDIntegrate(t, t0, h, IntegrationMethod.Trapezoid)
                 .Select(i => Equal.New(i.Left, i.Right)).ToList();
-            mna.AddRange(integrated);
+            system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
 
-            // The remaining equations from the system of diff eqs should be algebraic.
-            mna.AddRange(diffeq.Select(i => Equal.New(i.ToExpression(), 0)));
-            LogExpressions(Log, MessageType.Verbose, "Discretized system:", mna);
+            LogExpressions(Log, MessageType.Verbose, "Discretized system:", system);
+
+            mna = system.Select(i => Equal.New(i, 0)).ToList();
+            y = system.Unknowns.ToList();
 
             // Solving the system...
             List<SolutionSet> solutions = new List<SolutionSet>();
@@ -129,8 +127,8 @@ namespace Circuit
             y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
             if (linear.Any())
             {
-                // Factor the solution to minimize arithmetic.
-                Factor(linear);
+                // Factor for more efficient arithmetic.
+                linear = linear.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
 
                 solutions.Add(new LinearSolutions(linear));
                 LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
@@ -144,39 +142,34 @@ namespace Circuit
 
                 // Rearrange the MNA system to be F[y] == 0.
                 List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
+
                 // Compute JxF*dy + F(y0) == 0.
-                List<LinearCombination> J = F.Jacobian(y.Select(i => Arrow.New(i, NewtonIteration.Delta(i))));
-                foreach (LinearCombination i in J)
-                    i[1] = ((Expression)i.Tag);
+                SystemOfEquations nonlinear = new SystemOfEquations(
+                    F.Select(i => i.Gradient(y).Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j.Key), j.Value))
+                        .Append(new KeyValuePair<Expression, Expression>(1, i))),
+                    dy);
 
                 // ly is the subset of y that can be found linearly.
-                List<Expression> ly = dy.Where(j => !J.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
-                // Swap the columns such that ly appear first.
-                dy = dy.Except(ly).ToList();
-                foreach (LinearCombination i in J)
-                    i.SwapColumns(ly.Concat(dy));
-                // If there is only one variable to be solved for, just do it now.
-                if (dy.Count == 1)
-                {
+                List<Expression> ly = dy.Where(j => !nonlinear.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
+                // If there is only one non-linear solution, just solve it now anyways.
+                if (dy.Count - ly.Count == 1)
                     ly.Add(dy[0]);
-                    dy.Clear();
-                }
 
                 // Compute the row-echelon form of the linear part of the Jacobian.
-                J.RowReduce(ly);
+                nonlinear.RowReduce(ly);
                 // Solutions for each linear update equation.
-                List<Arrow> solved = SolveAndRemove(J, ly);
+                List<Arrow> solved = nonlinear.Solve(ly);
 
                 // Initial guess for y(t) = y(t0).
                 List<Arrow> guess = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
-                // Factor the solution to minimize arithmetic.
-                Factor(solved);
-                foreach (LinearCombination i in J)
-                    Factor(i);
-                
-                solutions.Add(new NewtonIteration(solved, J, dy, guess));
-                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", dy.UnSplit(", ")), J.Select(i => i.ToString() + " == 0"));
+                // Factor for more efficient arithmetic.
+                solved = solved.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
+                guess = guess.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
+                IEnumerable<LinearCombination> equations = nonlinear.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).ToList();
+
+                solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
+                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", dy.UnSplit(", ")), equations.Select(i => i.ToString() + " == 0"));
                 LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
             }
 
@@ -192,55 +185,6 @@ namespace Circuit
         public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, ILog Log)
         {
             return Solve(Analysis, TimeStep, new Arrow[] { }, Log);
-        }
-
-        // Solve S for x, removing the rows of S that are used for a solution.
-        private static List<Arrow> SolveAndRemove(IList<LinearCombination> S, IEnumerable<Expression> x)
-        {
-            // Solve for the variables in x.
-            List<Arrow> result = new List<Arrow>();
-            foreach (Expression j in x.Reverse())
-            {
-                // Find the row with the pivot variable in this position.
-                LinearCombination i = S.FindPivot(j);
-
-                // If there is no pivot in this position, find any row with a non-zero coefficient of j.
-                if (i == null)
-                    i = S.FirstOrDefault(s => !s[j].EqualsZero());
-
-                // Solve the row for i.
-                if (i != null)
-                {
-                    result.Add(Arrow.New(j, i.Solve(j)));
-                    S.Remove(i);
-                }
-            }
-            return result;
-        }
-
-        private static void Factor(List<Arrow> x)
-        {
-            for (int i = 0; i < x.Count; ++i)
-                x[i] = Arrow.New(x[i].Left, x[i].Right.Factor());
-        }
-
-        private static void Factor(LinearCombination x)
-        {
-            foreach (Expression i in x.Basis.Append(1))
-                x[i] = x[i].Factor();
-        }
-        
-        // Filters the solutions in S that are dependent on x if evaluated in order.
-        private static IEnumerable<Arrow> IndependentSolutions(IEnumerable<Arrow> S, IEnumerable<Expression> x)
-        {
-            foreach (Arrow i in S)
-            {
-                if (!i.Right.DependsOn(x))
-                {
-                    yield return i;
-                    x = x.Except(i.Left);
-                }
-            }
         }
 
         // Shorthand for df/dx.
