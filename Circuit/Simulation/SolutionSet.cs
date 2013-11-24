@@ -49,19 +49,19 @@ namespace Circuit
     /// </summary>
     public class NewtonIteration : SolutionSet
     {
-        private List<Arrow> solved;
+        private IEnumerable<Arrow> solved;
         /// <summary>
         /// Enumerate the solved Newton deltas.
         /// </summary>
         public IEnumerable<Arrow> Solved { get { return solved; } }
 
-        private List<LinearCombination> equations;
+        private IEnumerable<LinearCombination> equations;
         /// <summary>
         /// Enumerate the equations describing the unsolved part of this system.
         /// </summary>
         public IEnumerable<LinearCombination> Equations { get { return equations; } }
 
-        private List<Expression> updates;
+        private IEnumerable<Expression> updates;
         /// <summary>
         /// Enumerate the Newton deltas of the Equations system.
         /// </summary>
@@ -72,7 +72,7 @@ namespace Circuit
         /// </summary>
         public IEnumerable<Expression> Deltas { get { return solved != null ? solved.Select(i => i.Left).Concat(updates) : updates; } }
 
-        private List<Arrow> guesses;
+        private IEnumerable<Arrow> guesses;
         /// <summary>
         /// Initial guesses for the first iteration.
         /// </summary>
@@ -82,10 +82,10 @@ namespace Circuit
 
         public NewtonIteration(IEnumerable<Arrow> Solved, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Updates, IEnumerable<Arrow> Guesses)
         {
-            solved = Solved.ToList();
-            equations = Equations.ToList();
-            updates = Updates.ToList();
-            guesses = Guesses.ToList();
+            solved = Solved.Buffer();
+            equations = Equations.Buffer();
+            updates = Updates.Buffer();
+            guesses = Guesses.Buffer();
         }
 
         public override bool DependsOn(Expression x) 
