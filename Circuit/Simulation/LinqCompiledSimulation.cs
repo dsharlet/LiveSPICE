@@ -86,20 +86,23 @@ namespace Circuit
             Delegate processor = Compile(T, Oversample, Input.Select(i => i.Key), Output.Select(i => i.Key), Arguments.Select(i => i.Key));
 
             // Build parameter list for the processor.
-            List<object> parameters = new List<object>(3 + Input.Count() + Output.Count() + Arguments.Count());
-            parameters.Add(N);
-            parameters.Add((double)n * T);
-            parameters.Add(Iterations);
+            object[] parameters = new object[3 + Input.Count() + Output.Count() + Arguments.Count()];
+            int p = 0;
+
+            parameters[p++] = N;
+            parameters[p++] = (double)n * T;
+            parameters[p++] = Iterations;
+
             foreach (KeyValuePair<Expression, double[]> i in Input)
-                parameters.Add(i.Value);
+                parameters[p++] = i.Value;
             foreach (KeyValuePair<Expression, double[]> i in Output)
-                parameters.Add(i.Value);
+                parameters[p++] = i.Value;
             foreach (KeyValuePair<Expression, double> i in Arguments)
-                parameters.Add(i.Value);
+                parameters[p++] = i.Value;
 
             try
             {
-                processor.DynamicInvoke(parameters.ToArray());
+                processor.DynamicInvoke(parameters);
             }
             catch (TargetInvocationException Ex)
             {
