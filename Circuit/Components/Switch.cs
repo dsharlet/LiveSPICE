@@ -17,8 +17,7 @@ namespace Circuit
     public class Switch : TwoTerminal
     {
         protected bool closed = false;
-        [Description("Switch position.")]
-        [Serialize]
+        [Serialize, Description("Switch position.")]
         public bool Closed { get { return closed; } set { closed = value; NotifyChanged("Closed"); } }
 
         public Switch() { Name = "S1"; }

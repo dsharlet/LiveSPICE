@@ -16,13 +16,11 @@ namespace Circuit
     public class ChildLangmuirTriode : Triode
     {
         protected double mu = 100;
-        [Description("Voltage gain.")]
-        [Serialize]
+        [Serialize, Description("Voltage gain.")]
         public double Mu { get { return mu; } set { mu = value; NotifyChanged("Mu"); } }
 
         protected double k = 1.73e-6;
-        [Description("Generalized perveance.")]
-        [Serialize]
+        [Serialize, Description("Generalized perveance.")]
         public double K { get { return k; } set { k = value; NotifyChanged("K"); } }
 
         protected override void Analyze(Analysis Mna, Expression Vgk, Expression Vpk, out Expression Ip, out Expression Ig)

@@ -23,18 +23,15 @@ namespace Circuit
     public class Diode : TwoTerminal
     {
         protected Quantity _is = new Quantity(1e-12m, Units.A);
-        [Description("Saturation current.")]
-        [Serialize]
+        [Serialize, Description("Saturation current.")]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
         protected double _n = 1.0;
-        [Description("Gate coefficient.")]
-        [Serialize]
+        [Serialize, Description("Gate coefficient.")]
         public double n { get { return _n; } set { _n = value; NotifyChanged("n"); } }
 
         protected DiodeType type = DiodeType.Diode;
-        [Description("Type of this diode. This property only affects the schematic symbol, it does not affect the simulation.")]
-        [Serialize]
+        [Serialize, Description("Type of this diode. This property only affects the schematic symbol, it does not affect the simulation.")]
         public DiodeType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
         
         public Diode() { Name = "D1"; }

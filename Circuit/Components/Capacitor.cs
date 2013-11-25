@@ -17,8 +17,7 @@ namespace Circuit
     public class Capacitor : TwoTerminal
     {
         private Quantity capacitance = new Quantity(100e-6m, Units.F);
-        [Description("Capacitance of this capacitor.")]
-        [Serialize]
+        [Serialize, Description("Capacitance of this capacitor.")]
         public Quantity Capacitance { get { return capacitance; } set { if (capacitance.Set(value)) NotifyChanged("Capacitance"); } }
 
         public Capacitor() { Name = "C1"; }

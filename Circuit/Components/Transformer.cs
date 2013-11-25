@@ -30,8 +30,7 @@ namespace Circuit
         }
 
         protected Ratio turns = new Ratio(1, 1);
-        [Description("Primary:secondary turns ratio.")]
-        [Serialize]
+        [Serialize, Description("Primary:secondary turns ratio.")]
         public Ratio Turns { get { return turns; } set { turns = value; NotifyChanged("Turns"); } }
 
         public Transformer()

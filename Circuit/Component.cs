@@ -50,14 +50,11 @@ namespace Circuit
         public const double VT = 25.35e-3;
 
         private string name = "X1";
-        [Description("Unique name of this component.")]
-        [Serialize]
+        [Serialize, Description("Unique name of this component.")]
         public virtual string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
 
         private string partNumber = "";
-        [Description("Part name/number.")]
-        [DefaultValue("")]
-        [Serialize]
+        [Serialize, DefaultValue(""), Description("Part name/number.")]
         public virtual string PartNumber { get { return partNumber; } set { partNumber = value; NotifyChanged("PartNumber"); } }
 
         private object tag = null;
