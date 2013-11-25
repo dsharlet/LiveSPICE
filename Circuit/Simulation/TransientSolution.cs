@@ -25,15 +25,15 @@ namespace Circuit
         /// The length of a timestep given by this solution.
         /// </summary>
         public Quantity TimeStep { get { return h; } }
-        
-        private List<SolutionSet> solutions;
+
+        private IEnumerable<SolutionSet> solutions;
         /// <summary>
         /// Ordered list of SolutionSet objects that describe the overall solution. If SolutionSet
         /// a follows SolutionSet b in this enumeration, b's solution may depend on a's solutions.
         /// </summary>
         public IEnumerable<SolutionSet> Solutions { get { return solutions; } }
 
-        private List<Arrow> initialConditions;
+        private IEnumerable<Arrow> initialConditions;
         /// <summary>
         /// Set of expressions describing the initial conditions of the variables in this solution.
         /// </summary>
@@ -45,8 +45,8 @@ namespace Circuit
             IEnumerable<Arrow> InitialConditions)
         {
             h = TimeStep;
-            solutions = Solutions.ToList();
-            initialConditions = InitialConditions.ToList();
+            solutions = Solutions.Buffer();
+            initialConditions = InitialConditions.Buffer();
         }
 
         /// <summary>
@@ -106,37 +106,38 @@ namespace Circuit
             // Solve the diff eq for dy/dt and integrate the results.
             system.RowReduce(dy_dt);
             system.BackSubstitute(dy_dt);
-            List<Equal> integrated = system.Solve(dy_dt)
+            IEnumerable<Equal> integrated = system.Solve(dy_dt)
                 .NDIntegrate(t, t0, h, IntegrationMethod.Trapezoid)
-                .Select(i => Equal.New(i.Left, i.Right)).ToList();
+                .Select(i => Equal.New(i.Left, i.Right)).Buffer();
             system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
 
             LogExpressions(Log, MessageType.Verbose, "Discretized system:", system);
 
-            mna = system.Select(i => Equal.New(i, 0)).ToList();
-            y = system.Unknowns.ToList();
-
             // Solving the system...
             List<SolutionSet> solutions = new List<SolutionSet>();
 
+            mna = system.Select(i => Equal.New(i, 0)).ToList();
+
             // Find linear solutions for y and substitute them into the system. Linear circuits should be completely solved here.
-            List<Arrow> linear = mna.Solve(y);
-            linear.RemoveAll(i => i.Right.DependsOn(y));
-            mna = mna.Evaluate(linear).OfType<Equal>().ToList();
-            y.RemoveAll(i => linear.Any(j => j.Left.Equals(i)));
+            system.RowReduce();
+            system.BackSubstitute();
+            List<Arrow> linear = system.Solve();
             if (linear.Any())
             {
                 // Factor for more efficient arithmetic.
                 linear = linear.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
+                mna = mna.Evaluate(linear).OfType<Equal>().ToList();
 
                 solutions.Add(new LinearSolutions(linear));
                 LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
             }
 
             // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
-            if (y.Any())
+            if (system.Unknowns.Any())
             {
+                y = system.Unknowns.ToList();
+
                 // The variables of this system are the newton iteration updates.
                 List<Expression> dy = y.Select(i => NewtonIteration.Delta(i)).ToList();
 
@@ -169,7 +170,7 @@ namespace Circuit
                 IEnumerable<LinearCombination> equations = nonlinear.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).ToList();
 
                 solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
-                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", dy.UnSplit(", ")), equations.Select(i => i.ToString() + " == 0"));
+                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", nonlinear.Unknowns.UnSplit(", ")), equations.Select(i => i.ToString() + " == 0"));
                 LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
             }
 

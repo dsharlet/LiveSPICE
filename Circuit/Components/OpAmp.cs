@@ -53,6 +53,11 @@ namespace Circuit
         {
             return Call.Max(Call.Min(x, b), a);
         }
+
+        //private static Expression Saturate(Expression x) { return Call.Abs(x) * x / (1 + x * x); }
+
+        private static Expression Saturate(Expression x) { return Call.ArcTan(Pi * x) / Pi; }
+        private static Expression InvSaturate(Expression x) { return Call.Tan(x * Pi) / Pi; }
                         
         public override void Analyze(Analysis Mna)
         {
@@ -67,9 +72,13 @@ namespace Circuit
                 Expression Vmax = vpp.V - vnn.V;
                 Expression Vmid = (vpp.V + vnn.V) / 2;
 
-                Vout = Vmax * Call.ArcTan(Pi * Vout / Vmax) / Pi + Vmid;
+                Vout = Vmax * Saturate(Vout / Vmax) + Vmid;
                 Mna.AddTerminal(Out, (Vout - Out.V) / (Expression)Rout);
-                //Mna.AddEquation(Call.ArcTan(Vout / Vmax), (Out.V - Vmid) * Pi / Vmax);
+
+                //Mna.AddEquation(Saturate(Vout / Vmax), (Out.V - Vmid) / Vmax);
+                //Mna.AddTerminal(Out, Mna.AddNewUnknown("i" + Name));
+
+                //Mna.AddEquation(Vout / Vmax, InvSaturate((Out.V - Vmid) / Vmax));
                 //Mna.AddTerminal(Out, Mna.AddNewUnknown("i" + Name));
             }
             else
