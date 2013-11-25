@@ -54,11 +54,6 @@ namespace Circuit
         [Serialize, Description("Reverse common emitter current gain.")]
         public double BR { get { return br; } set { br = value; NotifyChanged("BR"); } }
 
-        /// <summary>
-        /// Thermal voltage.
-        /// </summary>
-        public const double VT = 25.35e-3;
-
         public BipolarJunctionTransistor()
         {
             c = new Terminal(this, "C");
