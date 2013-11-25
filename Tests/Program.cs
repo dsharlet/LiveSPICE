@@ -144,7 +144,9 @@ namespace Tests
                 Title = Name, 
                 Width = 800, Height = 400, 
                 x0 = t0,
-                x1 = S.TimeStep * t1
+                x1 = S.TimeStep * t1,
+                xLabel = "Time (s)",
+                yLabel = "Voltage (V)",
             };
 
             foreach (KeyValuePair<Expression, double[]> i in output)
