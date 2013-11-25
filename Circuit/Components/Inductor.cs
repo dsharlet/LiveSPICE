@@ -23,7 +23,7 @@ namespace Circuit
 
         public Inductor() { Name = "L1"; }
 
-        public static Expression Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode, Expression L)
+        public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression L)
         {
             // Define a new unknown for the current through the inductor.
             Expression i = Mna.AddNewUnknown();
@@ -33,7 +33,7 @@ namespace Circuit
 
             return i;
         }
-        public static Expression Analyze(Analysis Mna, Terminal Anode, Terminal Cathode, Expression L) { return Analyze(Mna, "", Anode, Cathode, L); }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression L) { return Analyze(Mna, "", Anode, Cathode, L); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Inductance); }
 

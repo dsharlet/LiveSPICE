@@ -28,7 +28,7 @@ namespace Circuit
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
         protected double _n = 1.0;
-        [Description("Idealization factor.")]
+        [Description("Gate coefficient.")]
         [Serialize]
         public double n { get { return _n; } set { _n = value; NotifyChanged("n"); } }
 
@@ -39,16 +39,22 @@ namespace Circuit
         
         public Diode() { Name = "D1"; }
 
-        public override void Analyze(Analysis Mna)
+        public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT)
         {
             // V = Va - Vc
-            Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, V);
+            Expression Vac = Mna.AddNewUnknownEqualTo(Anode.V - Cathode.V);
 
             // Evaluate the model.
             Expression i = (Expression)IS * (Call.Exp(Vac / (n * VT)) - 1);
+            i = Mna.AddNewUnknownEqualTo(i);
 
-            Mna.AddPassiveComponent(Name, Anode, Cathode, Mna.AddNewUnknownEqualTo("i" + Name, i));
+            Mna.AddPassiveComponent(Name, Anode, Cathode, i);
+
+            return i;
         }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT) { return Analyze(Mna, "", Anode, Cathode, IS, n, VT); }
+
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, IS, n, VT); }
 
         public static void LayoutSymbol(SymbolLayout Sym, Terminal A, Terminal C, DiodeType Type, Func<string> Name, Func<string> Part)
         {

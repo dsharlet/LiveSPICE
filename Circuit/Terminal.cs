@@ -67,6 +67,8 @@ namespace Circuit
             remove { connectionChanged.Remove(value); }
         }
 
+        public static implicit operator Node(Terminal x) { return x.ConnectedTo; }
+
         public Expression V { get { return ConnectedTo != null ? ConnectedTo.V : unconnected; } }
 
         public override string ToString() { return Description; }

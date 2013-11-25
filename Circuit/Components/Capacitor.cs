@@ -23,7 +23,7 @@ namespace Circuit
 
         public Capacitor() { Name = "C1"; }
 
-        public static Expression Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode, Expression C)
+        public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression C)
         {
             // Ensure that V is not multiple variables.
             Expression V = Mna.AddNewUnknownEqualTo(Anode.V - Cathode.V);
@@ -32,7 +32,7 @@ namespace Circuit
             Mna.AddPassiveComponent(Name, Anode, Cathode, i);
             return i;
         }
-        public static Expression Analyze(Analysis Mna, Terminal Anode, Terminal Cathode, Expression C) { return Analyze(Mna, "", Anode, Cathode, C); }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression C) { return Analyze(Mna, "", Anode, Cathode, C); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Capacitance); }
 

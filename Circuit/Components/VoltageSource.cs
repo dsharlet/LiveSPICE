@@ -26,7 +26,7 @@ namespace Circuit
         
         public VoltageSource() { Name = "V1"; }
 
-        public static void Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode, Expression V)
+        public static void Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression V)
         {
             // Unknown current.
             Mna.AddPassiveComponent(Name, Anode, Cathode, Name.Length > 0 ? Mna.AddNewUnknown("i" + Name) : Mna.AddNewUnknown());

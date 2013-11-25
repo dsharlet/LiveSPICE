@@ -32,9 +32,9 @@ namespace Circuit
         }
         private Stack<Context> contexts = new Stack<Context>();
 
-        public void PushContext(Circuit C) 
+        public void PushContext(NodeCollection Nodes) 
         {
-            nodes.AddRange(C.Nodes);
+            nodes.AddRange(Nodes);
             contexts.Push(new Context());
         }
         public void PopContext()
@@ -72,7 +72,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Node"></param>
         /// <param name="i"></param>
-        public void AddTerminal(Terminal Terminal, Expression i)
+        public void AddTerminal(Node Terminal, Expression i)
         {
             Expression v = Terminal.V;
             Expression sumi;
@@ -97,7 +97,7 @@ namespace Circuit
         /// <param name="Anode"></param>
         /// <param name="Cathode"></param>
         /// <param name="i"></param>
-        public void AddPassiveComponent(string Name, Terminal Anode, Terminal Cathode, Expression i)
+        public void AddPassiveComponent(string Name, Node Anode, Node Cathode, Expression i)
         {
             if (Name != "")
             {
@@ -114,11 +114,8 @@ namespace Circuit
         /// <param name="Anode"></param>
         /// <param name="Cathode"></param>
         /// <param name="i"></param>
-        public void AddPassiveComponent(Terminal Anode, Terminal Cathode, Expression i)
-        {
-            AddTerminal(Anode, i);
-            AddTerminal(Cathode, -i);
-        }
+        public void AddPassiveComponent(Node Anode, Node Cathode, Expression i) { AddPassiveComponent("", Anode, Cathode, i); }
+        
         
         /// <summary>
         /// Add equations to the system.

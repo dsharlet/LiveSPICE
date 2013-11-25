@@ -18,14 +18,14 @@ namespace Circuit
     {
         public Conductor() { Name = "_1"; }
 
-        public static Expression Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode)
+        public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode)
         {
             Expression i = Mna.AddNewUnknown();
             Mna.AddPassiveComponent(Name, Anode, Cathode, i);
             Mna.AddEquation(Anode.V, Cathode.V);
             return i;
         }
-        public static Expression Analyze(Analysis Mna, Terminal Anode, Terminal Cathode) { return Analyze(Mna, "", Anode, Cathode); }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode) { return Analyze(Mna, "", Anode, Cathode); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode); }
         

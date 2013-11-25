@@ -77,7 +77,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Mna.PushContext(this);
+            Mna.PushContext(Nodes);
             foreach (Component c in Components)
                 c.Analyze(Mna);
             Mna.PopContext();
