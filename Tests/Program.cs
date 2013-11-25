@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using ComputerAlgebra;
 using ComputerAlgebra.LinqCompiler;
+using ComputerAlgebra.Plotting;
 using Circuit;
 using Util;
 
@@ -26,11 +27,9 @@ namespace Tests
 
         static ConsoleLog Log = new ConsoleLog() { Verbosity = MessageType.Info };
 
-        static Expression V1 = Harmonics(t, 0.5, 82, 2);
-        
         static void Main(string[] args)
         {
-            Func<double, double> Vin = ExprFunction.New(V1, Component.t).Compile<Func<double, double>>();
+            Func<double, double> Vin = t => Harmonics(t, 0.5, 82, 2);
 
             List<string> errors = new List<string>();
             List<string> performance = new List<string>();
@@ -138,28 +137,31 @@ namespace Tests
 
             int t1 = Math.Min(N, 2000);
 
-            Dictionary<Expression, List<Arrow>> plots = new Dictionary<Expression, List<Arrow>>();
-            foreach (KeyValuePair<Expression, double[]> i in output)
-                plots.Add(i.Key, i.Value.Take(t1).Select((j, n) => Arrow.New(n * S.TimeStep, j)).ToList());
-            
             Console.WriteLine("Performance {0}", Quantity.ToString(N / time, Units.Hz));
 
-            Plot p = new Plot(
-                Name, 
-                800, 400, 
-                t0, 0, 
-                S.TimeStep * t1, 0, 
-                plots.ToDictionary(i => i.Key.ToString(), i => (Plot.Series)new Plot.Scatter(i.Value)));
+            Plot p = new Plot()
+            {
+                Title = Name, 
+                Width = 800, Height = 400, 
+                x0 = t0,
+                x1 = S.TimeStep * t1
+            };
 
+            foreach (KeyValuePair<Expression, double[]> i in output)
+            {
+                p.Series.Add(new Scatter(
+                    i.Value.Take(t1)
+                    .Select((j, n) => new KeyValuePair<double, double>(n * S.TimeStep, j)).ToArray()));
+            }
             return N / time;
         }
 
         // Generate a function with the first N harmonics of f0.
-        static Expression Harmonics(Variable t, Expression A, Expression f0, int N)
+        static double Harmonics(double t, double A, double f0, int N)
         {
-            Expression s = 0;
+            double s = 0;
             for (int i = 1; i <= N; ++i)
-                s += Call.Sin(t * f0 * 2 * 3.1415m * i) / N;
+                s += Math.Sin(t * f0 * 2 * 3.1415 * i) / N;
             return A * s;
         }
     }
