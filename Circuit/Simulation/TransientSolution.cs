@@ -79,17 +79,15 @@ namespace Circuit
 
             // Find steady state solution for initial conditions.
             List<Arrow> initial = InitialConditions.ToList();
-            Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
-            List<Equal> dc = mna
-                // Derivatives are zero in the steady state.
-                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)))
-                // t = 0 and t0 = 0
-                .Evaluate(Arrow.New(t, 0), Arrow.New(t0, 0))
-                // Use the initial conditions from MNA.
-                .Evaluate(Analysis.InitialConditions)
-                .OfType<Equal>().ToList();
             try
             {
+                Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
+                List<Equal> dc = mna
+                    // Derivatives, t, and t0 are zero in the steady state.
+                    .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(t0, 0)))
+                    // Use the initial conditions from analysis.
+                    .Evaluate(Analysis.InitialConditions)
+                    .OfType<Equal>().ToList();
                 initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
                 LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
             }
@@ -112,7 +110,7 @@ namespace Circuit
             system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
 
-            LogExpressions(Log, MessageType.Verbose, "Discretized system:", system);
+            LogExpressions(Log, MessageType.Verbose, "Discretized system:", system.Select(i => Equal.New(i, 0)));
 
             // Solving the system...
             List<SolutionSet> solutions = new List<SolutionSet>();
