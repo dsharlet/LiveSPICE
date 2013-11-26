@@ -22,14 +22,17 @@ namespace Circuit
 
         public CurrentSource() { Name = "I1"; }
 
-        public override void Analyze(Analysis Mna)
+        public static void Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression Current)
         {
             Mna.AddPassiveComponent(Name, Anode, Cathode, Current);
             // Add initial conditions, if necessary.
-            Expression i0 = Current.Value.Evaluate(t, 0);
+            Expression i0 = Current.Evaluate(t, 0);
             if (!(i0 is Constant))
                 Mna.AddInitialConditions(Arrow.New(i0, 0));
         }
+        public static void Analyze(Analysis Mna, Node Anode, Node Cathode, Expression Current) { Analyze(Mna, "", Anode, Cathode, Current); }
+
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Current.Value); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {

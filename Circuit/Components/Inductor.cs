@@ -25,14 +25,14 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression L)
         {
             // Define a new unknown for the current through the inductor.
-            Expression i = Mna.AddNewUnknown();
+            Expression i = Mna.AddNewUnknown("i" + Name);
             Mna.AddPassiveComponent(Name, Anode, Cathode, i);
             // V = L*di/dt
             Mna.AddEquation(Anode.V - Cathode.V, L * D(i, t));
 
             return i;
         }
-        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression L) { return Analyze(Mna, "", Anode, Cathode, L); }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression L) { return Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, L); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Inductance); }
 

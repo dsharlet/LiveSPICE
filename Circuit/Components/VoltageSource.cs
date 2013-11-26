@@ -28,7 +28,7 @@ namespace Circuit
         public static void Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression V)
         {
             // Unknown current.
-            Mna.AddPassiveComponent(Name, Anode, Cathode, Name.Length > 0 ? Mna.AddNewUnknown("i" + Name) : Mna.AddNewUnknown());
+            Mna.AddPassiveComponent(Name, Anode, Cathode, Mna.AddNewUnknown("i" + Name));
             // Set the voltage.
             Mna.AddEquation(Anode.V - Cathode.V, V);
             // Add initial conditions, if necessary.
@@ -36,11 +36,9 @@ namespace Circuit
             if (!(V0 is Constant))
                 Mna.AddInitialConditions(Arrow.New(V0, 0));
         }
+        public static void Analyze(Analysis Mna, Node Anode, Node Cathode, Expression V) { Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, V); }
 
-        public override void Analyze(Analysis Mna)
-        {
-            Analyze(Mna, Name, Anode, Cathode, Voltage);
-        }
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Voltage); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {

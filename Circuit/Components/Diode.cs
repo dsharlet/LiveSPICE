@@ -39,17 +39,17 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT)
         {
             // V = Va - Vc
-            Expression Vac = Mna.AddNewUnknownEqualTo(Anode.V - Cathode.V);
+            Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, Anode.V - Cathode.V);
 
             // Evaluate the model.
             Expression i = (Expression)IS * (Call.Exp(Vac / (n * VT)) - 1);
-            i = Mna.AddNewUnknownEqualTo(i);
+            i = Mna.AddNewUnknownEqualTo("i" + Name, i);
 
             Mna.AddPassiveComponent(Name, Anode, Cathode, i);
 
             return i;
         }
-        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT) { return Analyze(Mna, "", Anode, Cathode, IS, n, VT); }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT) { return Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, IS, n, VT); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, IS, n, VT); }
 

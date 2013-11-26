@@ -25,13 +25,13 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression C)
         {
             // Ensure that V is not multiple variables.
-            Expression V = Mna.AddNewUnknownEqualTo(Anode.V - Cathode.V);
+            Expression V = Mna.AddNewUnknownEqualTo("V" + Name, Anode.V - Cathode.V);
             // i = C*dV/dt
             Expression i = C * D(V, t);
             Mna.AddPassiveComponent(Name, Anode, Cathode, i);
             return i;
         }
-        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression C) { return Analyze(Mna, "", Anode, Cathode, C); }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression C) { return Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, C); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Capacitance); }
 

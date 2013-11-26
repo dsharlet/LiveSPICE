@@ -148,7 +148,7 @@ namespace Circuit
         /// <param name="Name"></param>
         /// <returns></returns>
         public Expression AddNewUnknown(string Name) 
-        { 
+        {
             Expression x = Component.DependentVariable(Name, Component.t); 
             AddUnknowns(x);
             return x;
@@ -172,13 +172,13 @@ namespace Circuit
         /// Add an anonymous unknown to the system.
         /// </summary>
         /// <returns></returns>
-        public Expression AddNewUnknown() { return AddNewUnknown("_x" + (++anon).ToString()); }
+        public Expression AddNewUnknown() { return AddNewUnknown(AnonymousName()); }
         /// <summary>
         /// Add an anonymous unknown to the system with a known equation.
         /// </summary>
         /// <param name="Eq"></param>
         /// <returns></returns>
-        public Expression AddNewUnknownEqualTo(Expression Eq) { return AddNewUnknownEqualTo("_x" + (++anon).ToString(), Eq); }
+        public Expression AddNewUnknownEqualTo(Expression Eq) { return AddNewUnknownEqualTo(AnonymousName(), Eq); }
 
         /// <summary>
         /// Add initial conditions to the system.
@@ -186,5 +186,7 @@ namespace Circuit
         /// <param name="InitialCondition"></param>
         public void AddInitialConditions(IEnumerable<Arrow> InitialConditions) { initialConditions.AddRange(InitialConditions); }
         public void AddInitialConditions(params Arrow[] InitialConditions) { initialConditions.AddRange(InitialConditions); }
+
+        public string AnonymousName() { return "_x" + (++anon).ToString(); }
     }
 }

@@ -18,7 +18,7 @@ namespace Circuit
     {
         public Input() { Name = "V1"; }
         
-        public override void Analyze(Analysis Mna) { VoltageSource.Analyze(Mna, "", Anode, Cathode, DependentVariable(Name, t)); }
+        public override void Analyze(Analysis Mna) { VoltageSource.Analyze(Mna, Anode, Cathode, DependentVariable(Name, t)); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
