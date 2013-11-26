@@ -155,22 +155,19 @@ namespace Circuit
             ParamExpr SampleCount = code.Decl<int>(Scope.Parameter, "SampleCount");
             ParamExpr t0 = code.Decl(Scope.Parameter, Simulation.t0);
             ParamExpr Iterations = code.Decl<int>(Scope.Parameter, "Iterations");
-            // Create buffer parameters for each input, output.
+            // Create buffer parameters for each input,
             foreach (Expression i in Input)
-            {
-                ParamExpr p = code.Decl<double[]>(Scope.Parameter, i.ToString());
-                inputs.Add(new KeyValuePair<Expression, LinqExpr>(i, p));
-            }
+                inputs.Add(new KeyValuePair<Expression, LinqExpr>(i, 
+                    code.Decl<double[]>(Scope.Parameter, i.ToString())));
+            // and output.
             foreach (Expression i in Output)
-            {
-                ParamExpr p = code.Decl<double[]>(Scope.Parameter, i.ToString());
-                outputs.Add(new KeyValuePair<Expression, LinqExpr>(i, p));
-            }
+                outputs.Add(new KeyValuePair<Expression, LinqExpr>(i, 
+                    code.Decl<double[]>(Scope.Parameter, i.ToString())));
             // Create constant parameters for simulation parameters.
             foreach (Expression i in Parameters)
                 code.Decl(Scope.Parameter, i);
 
-            // Create globals to store previous values of input.
+            // Create globals to store previous values inputs.
             foreach (Expression i in Input.Distinct())
                 if (!globals.ContainsKey(i.Evaluate(t_t0)))
                     globals[i.Evaluate(t_t0)] = new GlobalExpr<double>(0.0);

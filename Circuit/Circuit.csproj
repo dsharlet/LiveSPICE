@@ -90,7 +90,6 @@
     <Compile Include="Utils\RatioConverter.cs" />
     <Compile Include="Utils\Matrix.cs" />
     <Compile Include="Utils\Point.cs" />
-    <Compile Include="Utils\GlobalExpr.cs" />
     <Compile Include="Utils\NodeCollection.cs" />
     <Compile Include="Utils\Ratio.cs" />
     <Compile Include="Utils\Units.cs" />
