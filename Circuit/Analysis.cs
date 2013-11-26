@@ -22,8 +22,9 @@ namespace Circuit
         private Dictionary<Expression, Expression> kcl = new Dictionary<Expression, Expression>();
         private List<Arrow> initialConditions = new List<Arrow>();
 
-        // This renames the nodes to ensure unique unknowns among subcircuits.
+        // Ensure unique unknowns among subcircuits.
         private NodeCollection nodes = new NodeCollection();
+        private ComponentCollection components = new ComponentCollection();
         
         protected class Context
         {
@@ -32,11 +33,13 @@ namespace Circuit
         }
         private Stack<Context> contexts = new Stack<Context>();
 
-        public void PushContext(NodeCollection Nodes) 
+        public void PushContext(IEnumerable<Node> Nodes, IEnumerable<Component> Components)
         {
-            nodes.AddRange(Nodes);
-            contexts.Push(new Context());
+            DeclNodes(Nodes);
+            DeclComponents(Components);
+            PushContext();
         }
+        public void PushContext() { contexts.Push(new Context()); }
         public void PopContext()
         {
             Context context = contexts.Pop();
@@ -47,6 +50,10 @@ namespace Circuit
                     equations.Add(ei);
             }
         }
+        public void DeclNodes(IEnumerable<Node> Nodes) { nodes.AddRange(Nodes); }
+        public void DeclNodes(params Node[] Nodes) { nodes.AddRange(Nodes); }
+        public void DeclComponents(IEnumerable<Component> Components) { components.AddRange(Components); }
+        public void DeclComponents(params Component[] Components) { components.AddRange(Components); }
         
         /// <summary>
         /// Get the KCL expressions for this analysis.
