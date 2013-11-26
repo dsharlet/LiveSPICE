@@ -78,8 +78,8 @@ namespace Circuit
             double aR = BR / (1 + BR);
             double aF = BF / (1 + BF);
 
-            Expression iF = (Expression)IS * (Call.Exp(Vbe / VT) - 1);
-            Expression iR = (Expression)IS * (Call.Exp(Vbc / VT) - 1);
+            Expression iF = (Expression)IS * (Call.LinExp(Vbe / VT) - 1);
+            Expression iR = (Expression)IS * (Call.LinExp(Vbc / VT) - 1);
             
             // TODO: Algebraically rearranging these results in dramatically different stability behavior. 
             // It would be nice to understand this.
