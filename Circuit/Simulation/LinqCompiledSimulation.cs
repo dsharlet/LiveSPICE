@@ -191,7 +191,7 @@ namespace Circuit
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
                 code.Add(LinqExpr.Assign(code.Decl(i.Key), code[i.Key.Evaluate(t_t0)]));
 
-            // Create arrays for the newton's method systems.
+            // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
             int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Updates.Count(), 0) + 1;
             LinqExpr JxF = code.DeclInit<double[][]>("JxF", LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
@@ -256,9 +256,6 @@ namespace Circuit
                         else if (ss is NewtonIteration)
                         {
                             NewtonIteration S = (NewtonIteration)ss;
-                            
-                            LinearCombination[] eqs = S.Equations.ToArray();
-                            Expression[] deltas = S.Updates.ToArray();
 
                             // Start with the initial guesses from the solution.
                             foreach (Arrow i in S.Guesses)
@@ -269,91 +266,8 @@ namespace Circuit
                             // do { ... --it } while(it > 0)
                             code.DoWhile((Break) =>
                             {
-                                // Initialize the matrix.
-                                for (int i = 0; i < eqs.Length; ++i)
-                                {
-                                    LinqExpr JxFi = code.ReDeclInit<double[]>("JxFi", LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(i)));
-                                    for (int x = 0; x < deltas.Length; ++x)
-                                        code.Add(LinqExpr.Assign(
-                                            LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(x)),
-                                            code.Compile(eqs[i][deltas[x]])));
-                                    code.Add(LinqExpr.Assign(
-                                        LinqExpr.ArrayAccess(JxFi, LinqExpr.Constant(deltas.Length)),
-                                        code.Compile(eqs[i][1])));
-                                }
-                                                                
-                                // Gaussian elimination on this turd.
-
-                                // For each variable in the system...
-                                for (int j = 0; j < deltas.Length; ++j)
-                                {
-                                    LinqExpr _j = LinqExpr.Constant(j);
-                                    LinqExpr JxFj = code.ReDeclInit<double[]>("JxFj", LinqExpr.ArrayAccess(JxF, _j));
-                                    // int pi = j
-                                    LinqExpr pi = code.ReDeclInit<int>("pi", _j);
-                                    // double max = |JxF[j][j]|
-                                    LinqExpr max = code.ReDeclInit<double>("max", Abs(LinqExpr.ArrayAccess(JxFj, _j)));
-                                    
-                                    // Find a pivot row for this variable.
-                                    for (int i = j + 1; i < eqs.Length; ++i)
-                                    {
-                                        LinqExpr _i = LinqExpr.Constant(i);
-
-                                        // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
-                                        LinqExpr maxj = code.ReDeclInit<double>("maxj", Abs(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(JxF, _i), _j)));
-                                        code.Add(LinqExpr.IfThen(
-                                            LinqExpr.GreaterThan(maxj, max),
-                                            LinqExpr.Block(
-                                                LinqExpr.Assign(pi, _i), 
-                                                LinqExpr.Assign(max, maxj))));
-                                    }
-                                    
-                                    // (Maybe) swap the pivot row with the current row.
-                                    LinqExpr JxFpi = code.ReDecl<double[]>("JxFpi");
-                                    code.Add(LinqExpr.IfThen(
-                                        LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
-                                            new[] { LinqExpr.Assign(JxFpi, LinqExpr.ArrayAccess(JxF, pi)) }.Concat(
-                                            Enumerable.Range(j, deltas.Length + 1 - j).Select(x => Swap(
-                                                LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(x)),
-                                                LinqExpr.ArrayAccess(JxFpi, LinqExpr.Constant(x)),
-                                                code.ReDecl<double>("swap")))))));
-
-                                    //// It's hard to believe this swap isn't faster than the above...
-                                    //code.Add(LinqExpr.IfThen(LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
-                                    //    Swap(LinqExpr.ArrayAccess(JxF, _j), LinqExpr.ArrayAccess(JxF, pi), Redeclare<double[]>(code, "temp")),
-                                    //    LinqExpr.Assign(JxFj, LinqExpr.ArrayAccess(JxF, _j)))));
-                                    
-                                    // Eliminate the rows after the pivot.
-                                    LinqExpr p = code.ReDeclInit<double>("p", LinqExpr.ArrayAccess(JxFj, _j));
-                                    for (int i = j + 1; i < eqs.Length; ++i)
-                                    {
-                                        LinqExpr _i = LinqExpr.Constant(i);
-                                        LinqExpr JxFi = code.ReDeclInit<double[]>("JxFi", LinqExpr.ArrayAccess(JxF, _i));
-
-                                        // s = JxF[i][j] / p
-                                        LinqExpr s = code.ReDeclInit<double>("scale", LinqExpr.Divide(LinqExpr.ArrayAccess(JxFi, _j), p));
-                                        // JxF[i] -= JxF[j] * s
-                                        for (int ji = j + 1; ji < deltas.Length + 1; ++ji)
-                                        {
-                                            LinqExpr _ji = LinqExpr.Constant(ji);
-                                            code.Add(LinqExpr.SubtractAssign(
-                                                LinqExpr.ArrayAccess(JxFi, _ji),
-                                                LinqExpr.Multiply(LinqExpr.ArrayAccess(JxFj, _ji), s)));
-                                        }
-                                    }
-                                }
-
-                                // JxF is now upper triangular, solve it.
-                                for (int j = deltas.Length - 1; j >= 0; --j)
-                                {
-                                    LinqExpr _j = LinqExpr.Constant(j);
-                                    LinqExpr JxFj = code.ReDeclInit<double[]>("JxFj", LinqExpr.ArrayAccess(JxF, _j));
-
-                                    LinqExpr r = LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(deltas.Length));
-                                    for (int ji = j + 1; ji < deltas.Length; ++ji)
-                                        r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(JxFj, LinqExpr.Constant(ji)), code[deltas[ji]]));
-                                    code.DeclInit(deltas[j], LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(JxFj, _j)));
-                                }
+                                // Solve the un-solved system.
+                                Solve(code, JxF, S.Equations, S.Updates);
 
                                 // Compile the pre-solved solutions.
                                 if (S.Solved != null)
@@ -368,7 +282,7 @@ namespace Circuit
                                     LinqExpr dv = code[NewtonIteration.Delta(i)];
 
                                     // done &= (|dv| < |v|*epsilon)
-                                    code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(Abs(dv), LinqExpr.Constant(1e4)), Abs(v))));
+                                    code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(Abs(dv), LinqExpr.Constant(1e4)), LinqExpr.Add(Abs(v), LinqExpr.Constant(1e-6)))));
                                     // v += dv
                                     code.Add(LinqExpr.AddAssign(v, dv));
                                 }
@@ -427,6 +341,148 @@ namespace Circuit
 
             return code;
         }
+
+        // Solve a system of linear equations
+        private void Solve(CodeGen code, LinqExpr Ab, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Unknowns)
+        {
+            LinearCombination[] eqs = Equations.ToArray();
+            Expression[] deltas = Unknowns.ToArray();
+
+            int M = eqs.Length;
+            int N = deltas.Length;
+
+            // Initialize the matrix.
+            for (int i = 0; i < M; ++i)
+            {
+                LinqExpr Abi = code.ReDeclInit<double[]>("Abi", LinqExpr.ArrayAccess(Ab, LinqExpr.Constant(i)));
+                for (int x = 0; x < N; ++x)
+                    code.Add(LinqExpr.Assign(
+                        LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(x)),
+                        code.Compile(eqs[i][deltas[x]])));
+                code.Add(LinqExpr.Assign(
+                    LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(N)),
+                    code.Compile(eqs[i][1])));
+            }
+
+            // Gaussian elimination on this turd.
+            RowReduce(code, Ab, M, N);
+            //code.Add(LinqExpr.Call(
+            //    typeof(LinqCompiledSimulation).GetMethod("RowReduce", BindingFlags.Static | BindingFlags.NonPublic, null, new[] { typeof(double[][]), typeof(int), typeof(int) }, null), 
+            //    Ab, 
+            //    LinqExpr.Constant(M), 
+            //    LinqExpr.Constant(N)));
+
+            // Ab is now upper triangular, solve it.
+            for (int j = N - 1; j >= 0; --j)
+            {
+                LinqExpr _j = LinqExpr.Constant(j);
+                LinqExpr Abj = code.ReDeclInit<double[]>("Abj", LinqExpr.ArrayAccess(Ab, _j));
+
+                LinqExpr r = LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(N));
+                for (int ji = j + 1; ji < N; ++ji)
+                    r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(ji)), code[deltas[ji]]));
+                code.DeclInit(deltas[j], LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(Abj, _j)));
+            }
+        }
+
+        // A human readable implementation of RowReduce.
+        private static void RowReduce(double[][] Ab, int M, int N)
+        {
+            // Solve for dx.
+            // For each variable in the system...
+            for (int j = 0; j < N; ++j)
+            {
+                int pi = j;
+                double max = Math.Abs(Ab[j][j]);
+
+                // Find a pivot row for this variable.
+                for (int i = j + 1; i < M; ++i)
+                {
+                    // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
+                    double maxj = Math.Abs(Ab[i][j]);
+                    if (maxj > max)
+                    {
+                        pi = i;
+                        max = maxj;
+                    }
+                }
+
+                // Swap pivot row with the current row.
+                if (pi != j)
+                    for (int ij = j; ij <= N; ++ij)
+                        Swap(ref Ab[j][ij], ref Ab[pi][ij]);
+
+                // Eliminate the rows after the pivot.
+                double p = Ab[j][j];
+                for (int i = j + 1; i < M; ++i)
+                {
+                    double s = Ab[i][j] / p;
+                    //if (s != 0.0)
+                    for (int ij = j + 1; ij <= N; ++ij)
+                        Ab[i][ij] -= Ab[j][ij] * s;
+                }
+            }
+        }
+
+        // Generate code to perform row reduction.
+        private static void RowReduce(CodeGen code, LinqExpr Ab, int M, int N)
+        {
+            // For each variable in the system...
+            for (int j = 0; j < N; ++j)
+            {
+                LinqExpr _j = LinqExpr.Constant(j);
+                LinqExpr Abj = code.ReDeclInit<double[]>("Abj", LinqExpr.ArrayAccess(Ab, _j));
+                // int pi = j
+                LinqExpr pi = code.ReDeclInit<int>("pi", _j);
+                // double max = |Ab[j][j]|
+                LinqExpr max = code.ReDeclInit<double>("max", Abs(LinqExpr.ArrayAccess(Abj, _j)));
+
+                // Find a pivot row for this variable.
+                for (int i = j + 1; i < M; ++i)
+                {
+                    LinqExpr _i = LinqExpr.Constant(i);
+
+                    // if(|Ab[i][j]| > max) { pi = i, max = |Ab[i][j]| }
+                    LinqExpr maxj = code.ReDeclInit<double>("maxj", Abs(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(Ab, _i), _j)));
+                    code.Add(LinqExpr.IfThen(
+                        LinqExpr.GreaterThan(maxj, max),
+                        LinqExpr.Block(
+                            LinqExpr.Assign(pi, _i),
+                            LinqExpr.Assign(max, maxj))));
+                }
+
+                // (Maybe) swap the pivot row with the current row.
+                LinqExpr Abpi = code.ReDecl<double[]>("Abpi");
+                code.Add(LinqExpr.IfThen(
+                    LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
+                        new[] { LinqExpr.Assign(Abpi, LinqExpr.ArrayAccess(Ab, pi)) }.Concat(
+                        Enumerable.Range(j, N + 1 - j).Select(x => Swap(
+                            LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(x)),
+                            LinqExpr.ArrayAccess(Abpi, LinqExpr.Constant(x)),
+                            code.ReDecl<double>("swap")))))));
+
+                //// It's hard to believe this swap isn't faster than the above...
+                //code.Add(LinqExpr.IfThen(LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
+                //    Swap(LinqExpr.ArrayAccess(Ab, _j), LinqExpr.ArrayAccess(Ab, pi), Redeclare<double[]>(code, "temp")),
+                //    LinqExpr.Assign(Abj, LinqExpr.ArrayAccess(Ab, _j)))));
+
+                // Eliminate the rows after the pivot.
+                LinqExpr p = code.ReDeclInit<double>("p", LinqExpr.ArrayAccess(Abj, _j));
+                for (int i = j + 1; i < M; ++i)
+                {
+                    LinqExpr _i = LinqExpr.Constant(i);
+                    LinqExpr Abi = code.ReDeclInit<double[]>("Abi", LinqExpr.ArrayAccess(Ab, _i));
+
+                    // s = Ab[i][j] / p
+                    LinqExpr s = code.ReDeclInit<double>("scale", LinqExpr.Divide(LinqExpr.ArrayAccess(Abi, _j), p));
+                    // Ab[i] -= Ab[j] * s
+                    for (int ji = j + 1; ji < N + 1; ++ji)
+                        code.Add(LinqExpr.SubtractAssign(
+                            LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(ji)),
+                            LinqExpr.Multiply(LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(ji)), s)));
+                }
+            }
+        }
         
         // Returns a throw SimulationDiverged expression at At.
         private LinqExpr ThrowSimulationDiverged(LinqExpr At)
@@ -463,6 +519,8 @@ namespace Circuit
                 hash = hash * 33 + i;
             return hash;
         }
+
+        private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
 
         // Returns 1 / x.
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }
