@@ -193,7 +193,7 @@ namespace Circuit
 
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
-            int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Updates.Count(), 0) + 1;
+            int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.UnknownDeltas.Count(), 0) + 1;
             LinqExpr JxF = code.DeclInit<double[][]>("JxF", LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
             for (int j = 0; j < M; ++j)
                 code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(N))));
@@ -267,11 +267,11 @@ namespace Circuit
                             code.DoWhile((Break) =>
                             {
                                 // Solve the un-solved system.
-                                Solve(code, JxF, S.Equations, S.Updates);
+                                Solve(code, JxF, S.Equations, S.UnknownDeltas);
 
                                 // Compile the pre-solved solutions.
-                                if (S.Solved != null)
-                                    foreach (Arrow i in S.Solved)
+                                if (S.KnownDeltas != null)
+                                    foreach (Arrow i in S.KnownDeltas)
                                         code.DeclInit(i.Left, i.Right);
 
                                 // bool done = true
