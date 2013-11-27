@@ -149,12 +149,9 @@ namespace Tests
                 yLabel = "Voltage (V)",
             };
 
-            foreach (KeyValuePair<Expression, double[]> i in output)
-            {
-                p.Series.Add(new Scatter(
-                    i.Value.Take(t1)
-                    .Select((j, n) => new KeyValuePair<double, double>(n * S.TimeStep, j)).ToArray()));
-            }
+            p.Series.AddRange(output.Select(i => new Scatter(
+                i.Value.Take(t1)
+                .Select((j, n) => new KeyValuePair<double, double>(n * S.TimeStep, j)).ToArray()) { Name = i.Key.ToString() }));
             return N / time;
         }
 
