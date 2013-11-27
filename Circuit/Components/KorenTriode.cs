@@ -43,7 +43,7 @@ namespace Circuit
             Expression ex = Kp * (1.0 / Mu + Vgk * (Kvb + Vpk * Vpk) ^ (-0.5));
 
             // ln(1+e^x) = x for large x, and large x causes numerical issues.
-            Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + Call.LinExp(ex))) * Vpk / Kp;
+            Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + LinExp(ex))) * Vpk / Kp;
 
             Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
             Ig = Call.If(Vgk > Vg, (Vgk - (Expression)Vg) / (Expression)Rgk, 0);

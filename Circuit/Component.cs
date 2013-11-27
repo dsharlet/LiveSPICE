@@ -182,5 +182,14 @@ namespace Circuit
         {
             return Call.New(ExprFunction.New(Name, Args.Select((i, j) => Variable.New(j.ToString()))), Args);
         }
+
+        private const double LinExpKnee = 40.0;
+        /// <summary>
+        /// Similar to e^x, but uses a linear extension of e^x for large x. Useful for Shockley-type 
+        /// i-V relationships to avoid numerical problems for large x.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static Expression LinExp(Expression x) { return Call.If(x < LinExpKnee, Call.Exp(x), Math.Exp(LinExpKnee) * (1.0 + x - LinExpKnee)); }
     }
 }
