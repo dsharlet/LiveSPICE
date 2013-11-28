@@ -77,7 +77,7 @@
     <Compile Include="Components\BaseComponents.cs" />
     <Compile Include="Components\BipolarJunctionTransistor.cs" />
     <Compile Include="Components\Triode.cs" />
-    <Compile Include="Components\Output.cs" />
+    <Compile Include="Components\Controllers.cs" />
     <Compile Include="Components\Switch.cs" />
     <Compile Include="Components\CurrentSource.cs" />
     <Compile Include="Components\Ground.cs" />

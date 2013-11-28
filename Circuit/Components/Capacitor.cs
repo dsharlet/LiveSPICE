@@ -28,7 +28,7 @@ namespace Circuit
             Expression V = Mna.AddNewUnknownEqualTo("V" + Name, Anode.V - Cathode.V);
             // i = C*dV/dt
             Expression i = C * D(V, t);
-            Mna.AddPassiveComponent(Name, Anode, Cathode, i);
+            Mna.AddPassiveComponent(Anode, Cathode, i);
             return i;
         }
         public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression C) { return Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, C); }

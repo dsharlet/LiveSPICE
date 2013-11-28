@@ -26,7 +26,7 @@ namespace Circuit
         {
             // Define a new unknown for the current through the inductor.
             Expression i = Mna.AddNewUnknown("i" + Name);
-            Mna.AddPassiveComponent(Name, Anode, Cathode, i);
+            Mna.AddPassiveComponent(Anode, Cathode, i);
             // V = L*di/dt
             Mna.AddEquation(Anode.V - Cathode.V, L * D(i, t));
 

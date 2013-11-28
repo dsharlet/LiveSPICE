@@ -45,7 +45,7 @@ namespace Circuit
             Expression i = (Expression)IS * (LinExp(Vac / (n * VT)) - 1);
             i = Mna.AddNewUnknownEqualTo("i" + Name, i);
 
-            Mna.AddPassiveComponent(Name, Anode, Cathode, i);
+            Mna.AddPassiveComponent(Anode, Cathode, i);
 
             return i;
         }

@@ -21,7 +21,7 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode)
         {
             Expression i = Mna.AddNewUnknown("i" + Name);
-            Mna.AddPassiveComponent(Name, Anode, Cathode, i);
+            Mna.AddPassiveComponent(Anode, Cathode, i);
             Mna.AddEquation(Anode.V, Cathode.V);
             return i;
         }

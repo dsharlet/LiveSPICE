@@ -32,7 +32,7 @@ namespace Circuit
             else
             {
                 Expression i = (Anode.V - Cathode.V) / R;
-                Mna.AddPassiveComponent(Name, Anode, Cathode, i);
+                Mna.AddPassiveComponent(Anode, Cathode, i);
                 return i;
             }
         }
