@@ -15,7 +15,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna) 
         {
-            Mna.AddDefinition("V[" + Name + "]", Anode.V - Cathode.V); 
+            Mna.AddDefinition(DependentVariable("V", Name), Anode.V - Cathode.V); 
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
@@ -39,7 +39,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna) 
         { 
-            Mna.AddDefinition("i[" + Name + "]", Conductor.Analyze(Mna, Anode, Cathode));
+            Mna.AddDefinition(DependentVariable("i", Name), Conductor.Analyze(Mna, Anode, Cathode));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
