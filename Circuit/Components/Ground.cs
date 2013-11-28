@@ -16,13 +16,15 @@ namespace Circuit
     {
         public Ground() { Name = "GND1"; }
 
-        public override void Analyze(Analysis Mna)
+        public static void Analyze(Analysis Mna, Node G)
         {
             // Nodes connected to ground have V = 0.
-            Mna.AddEquation(Terminal.V, 0);
+            Mna.AddEquation(G.V, 0);
             // Ground doesn't care about current.
-            Mna.AddTerminal(Terminal, null);
+            Mna.AddTerminal(G, null);
         }
+
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Terminal); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {

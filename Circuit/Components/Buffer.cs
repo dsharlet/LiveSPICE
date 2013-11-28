@@ -12,13 +12,16 @@ namespace Circuit
     [Description("Ideal voltage follower.")]
     public class Buffer : TwoTerminal
     {
-        public override void Analyze(Analysis Mna)
+        public static void Analyze(Analysis Mna, string Name, Node Input, Node Output)
         {
             // Unknown output current.
-            Mna.AddTerminal(Cathode, Mna.AddNewUnknown("i" + Name));
+            Mna.AddTerminal(Output, Mna.AddNewUnknown("i" + Name));
             // Follow voltage.
-            Mna.AddEquation(Anode.V, Cathode.V);
+            Mna.AddEquation(Input.V, Output.V);
         }
+        public static void Analyze(Analysis Mna, Node Input, Node Output) { Analyze(Mna, Mna.AnonymousName(), Input, Output); }
+
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {
