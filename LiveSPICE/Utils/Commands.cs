@@ -17,6 +17,8 @@ namespace LiveSPICE
 
         public static RoutedCommand Simulate { get { return simulate; } }
 
+        public static RoutedCommand Rename { get { return rename; } }
+
         static Commands()
         {
             exit = new RoutedUICommand("Exit", "Exit", typeof(Commands));
@@ -29,11 +31,15 @@ namespace LiveSPICE
 
             simulate = new RoutedUICommand("Simulate", "Simulate", typeof(Commands));
             simulate.InputGestures.Add(new KeyGesture(Key.F5));
+
+            rename = new RoutedUICommand("Rename", "Rename", typeof(Commands));
+            rename.InputGestures.Add(new KeyGesture(Key.F2));
         }
         static RoutedCommand exit;
         static RoutedCommand saveAll;
         static RoutedCommand zoomFit;
         static RoutedCommand simulate;
+        static RoutedCommand rename;
     }
 
     public static class Images
