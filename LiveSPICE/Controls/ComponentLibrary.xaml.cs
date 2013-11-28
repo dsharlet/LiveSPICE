@@ -122,6 +122,7 @@ namespace LiveSPICE
             typeof(Circuit.Capacitor),
             typeof(Circuit.Inductor),
             typeof(Circuit.VoltageSource),
+            typeof(Circuit.CurrentSource),
             typeof(Circuit.NamedWire),
             typeof(Circuit.Label)
         };
