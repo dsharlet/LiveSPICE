@@ -58,7 +58,7 @@ namespace Circuit
         /// </summary>
         /// <param name="log"></param>
         /// <returns></returns>
-        public Circuit Build(ILog log) 
+        public Circuit Build(ILog log)
         {
             int errors = 0;
             int warnings = 0;
@@ -142,7 +142,11 @@ namespace Circuit
         protected void OnElementAdded(object sender, ElementEventArgs e)
         {
             if (e.Element is Symbol)
+            {
                 circuit.Components.Add(((Symbol)e.Element).Component);
+                if (((Symbol)e.Element).Component is NamedWire)
+                    RebuildNodes(null, true);
+            }
             OnLayoutChanged(e.Element, null);
 
             e.Element.LayoutChanged += OnLayoutChanged;
@@ -154,16 +158,23 @@ namespace Circuit
         {
             e.Element.LayoutChanged -= OnLayoutChanged;
 
-            // If the removed element is a wire, we might have to split the node it was a part of.
             if (e.Element is Symbol)
-                circuit.Components.Remove(((Symbol)e.Element).Component);
-            if (e.Element is Wire)
-                RebuildNodes(true);
-
-            foreach (Terminal i in e.Element.Terminals)
             {
-                Node n = i.ConnectedTo;
-                i.ConnectTo(null);
+                Component component = ((Symbol)e.Element).Component;
+                circuit.Components.Remove(component);
+                if (component is NamedWire)
+                    RebuildNodes(((NamedWire)component).ConnectedTo, true);
+            }
+            else if (e.Element is Wire)
+            {
+                // If the removed element is a wire, we might have to split the node it was a part of.
+                RebuildNodes(((Wire)e.Element).Node, true);
+            }
+
+            foreach (Terminal j in e.Element.Terminals)
+            {
+                Node n = j.ConnectedTo;
+                j.ConnectTo(null);
 
                 // If the node that this terminal was connected to has no more connections, remove it from the circuit.
                 if (n != null && n.Connected.Empty())
@@ -180,9 +191,8 @@ namespace Circuit
         protected void OnLayoutChanged(object sender, EventArgs e)
         {
             Element of = (Element)sender;
-
             if (of is Wire)
-                RebuildNodes((Wire)of, true);
+                RebuildNodes(((Wire)of).Node, true);
             UpdateTerminals(of);
         }
 
@@ -262,20 +272,20 @@ namespace Circuit
             return n;
         }
 
-        private void RebuildNodes(Wire At, bool MovedWire)
+        private void RebuildNodes(Node At, bool MovedWire)
         {
-            IEnumerable<Wire> wires = Wires;
-
+            // If At is not null, only rebuild the wires that are part of that node.
+            IEnumerable<Wire> wires = At != null ? Wires.Where(i => i.Node == At).Buffer() : Wires;
             while (!wires.Empty())
             {
                 // Find all the wires connected to the first wire in the list.
-                IEnumerable<Wire> connected = ConnectedTo(wires, wires.First());
+                IEnumerable<Wire> connected = ConnectedTo(wires, wires.First()).Buffer();
 
                 // Merge all the connected wires into one node.
                 Node node = MergeNode(connected);
 
                 // Remove the wires we just made into a node from the list.
-                wires = wires.Except(connected);
+                wires = wires.Except(connected).Buffer();
 
                 // Any reminaing wires cannot be connected to the new node.
                 foreach (Wire i in wires.Where(j => j.Node == node))
@@ -287,8 +297,6 @@ namespace Circuit
                     UpdateTerminals(i);
         }
 
-        private void RebuildNodes(bool MovedWire) { RebuildNodes(null, MovedWire); }
-
         private void UpdateTerminals(Element Of)
         {
             foreach (Terminal i in Of.Terminals)
@@ -296,7 +304,7 @@ namespace Circuit
 
             // If Of is a named wire, the nodes might have changed.
             if (Of is Symbol && ((Symbol)Of).Component is NamedWire)
-                RebuildNodes(false);
+                RebuildNodes(((NamedWire)((Symbol)Of).Component).ConnectedTo, false);
         }
 
         private void Connect(Terminal T, Node V)
