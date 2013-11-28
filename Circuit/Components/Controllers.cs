@@ -49,7 +49,6 @@ namespace Circuit
             Sym.AddWire(Anode, new Coord(0, 7));
             Sym.AddWire(Cathode, new Coord(0, -7));
 
-            //Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r);
             Sym.DrawArrow(EdgeType.Black, new Coord(0, -7), new Coord(0, 7), 0.2f);
 
             Sym.DrawText(() => Name, new Point(5, 0), Alignment.Near, Alignment.Center); 
