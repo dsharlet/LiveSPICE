@@ -8,11 +8,13 @@ using System.ComponentModel;
 namespace Circuit
 {
     /// <summary>
-    /// Implements a linear model operational amplifier (op-amp). This model will not saturate.
+    /// Implements an op-amp model based on techniques from the following sources:
+    /// http://www.ecircuitcenter.com/OpModels/OpampModels.htm
+    /// http://qucs.sourceforge.net/docs/opamp.pdf
     /// </summary>
     [Category("Op-Amps")]
     [DisplayName("Op-Amp")]
-    [Description("Op-amp with model for input resistance Rin, output resistance Rout, and open-loop gain Aol. If the power supply terminals are connected, the op-amp will saturate.")]
+    [Description("Generic op-amp model. Model includes a single pole frequency response and saturation.")]
     public class OpAmp : IdealOpAmp
     {
         protected Terminal vcc, vee;
@@ -36,42 +38,44 @@ namespace Circuit
         protected Quantity gain = new Quantity(1e5m, Units.None);
         [Serialize, Description("Open-loop gain.")]
         public Quantity Aol { get { return gain; } set { if (gain.Set(value)) NotifyChanged("Aol"); } }
+
+        protected Quantity gbp = new Quantity(1e6m, Units.Hz);
+        [Serialize, Description("Gain-bandwidth product, equivalent to the unity gain bandwidth.")]
+        public Quantity GBP { get { return gbp; } set { if (gbp.Set(value)) NotifyChanged("GBP"); } }
         
         public override void Analyze(Analysis Mna)
         {
             // The input terminals are connected by a resistor Rin.
             Resistor.Analyze(Mna, Negative, Positive, Rin);
+            Expression VRin = Negative.V - Positive.V;
 
-            // Compute Vout using Vout = Aol*V[Rin]
-            Expression Vout = (Expression)Aol * (Negative.V - Positive.V);
+            // Implement Voltage gain.
+            Node pp1 = new Node() { Name = "pp1" };
+            Node np1 = new Node() { Name = "np1" };
+            Expression Rp1 = 1000;
+
+            Mna.DeclNodes(pp1, np1);
+            CurrentSource.Analyze(Mna, pp1, np1, VRin * (Expression)Aol / Rp1);
+            Resistor.Analyze(Mna, pp1, np1, Rp1);
+            Capacitor.Analyze(Mna, pp1, np1, 1 / (2 * Math.PI * (Expression)(GBP / Aol) * Rp1));
+            Ground.Analyze(Mna, np1);
+
+            // Implement voltage limiter.
             if (vcc.IsConnected && vee.IsConnected)
             {
                 Node ncc = new Node() { Name = "ncc" };
                 Node nee = new Node() { Name = "nee" };
-                Node lim = new Node() { Name = "lim" };
-
-                Mna.PushContext();
-
-                // Implement voltage limiter.
-                Mna.DeclNodes(ncc, nee, lim);
+                Mna.DeclNodes(ncc, nee);
 
                 VoltageSource.Analyze(Mna, vcc, ncc, 2);
-                Diode.Analyze(Mna, lim, ncc, 8e-16, 1, VT);
+                Diode.Analyze(Mna, pp1, ncc, 8e-16, 1, VT);
 
                 VoltageSource.Analyze(Mna, vee, nee, -2);
-                Diode.Analyze(Mna, nee, lim, 8e-16, 1, VT);
-
-                Mna.AddTerminal(lim, (Vout - lim.V) / (Expression)Rout);
-
-                // Output.
-                Conductor.Analyze(Mna, lim, Out);
-
-                Mna.PopContext();
+                Diode.Analyze(Mna, nee, pp1, 8e-16, 1, VT);
             }
-            else
-            {
-                Mna.AddTerminal(Out, (Vout - Out.V) / (Expression)Rout);
-            }
+
+            // Output current is buffered.
+            Mna.AddTerminal(Out, (pp1.V - Out.V) / (Expression)Rout);
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, Terminal p, Terminal n, Terminal o, Terminal vp, Terminal vn, Func<string> Name, Func<string> Part)
