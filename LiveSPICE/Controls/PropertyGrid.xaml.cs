@@ -73,6 +73,7 @@ namespace LiveSPICE
                 }
                 NotifyChanged("Objects");
 
+                properties.SelectedObjects = null;
                 properties.SelectedObjects = value;
                 NotifyChanged("SubSelectedObject");
             }
