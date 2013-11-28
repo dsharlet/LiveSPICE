@@ -27,15 +27,15 @@ namespace Circuit
             vee = new Terminal(this, "Vcc-");
         }
 
-        protected Quantity rin = new Quantity(500e6, Units.Ohm);
+        protected Quantity rin = new Quantity(1e6, Units.Ohm);
         [Serialize, Description("Input resistance.")]
         public Quantity Rin { get { return rin; } set { if (rin.Set(value)) NotifyChanged("Rin"); } }
 
-        protected Quantity rout = new Quantity(75m, Units.Ohm);
+        protected Quantity rout = new Quantity(100m, Units.Ohm);
         [Serialize, Description("Output resistance.")]
         public Quantity Rout { get { return rout; } set { if (rout.Set(value)) NotifyChanged("Rout"); } }
 
-        protected Quantity gain = new Quantity(1e5m, Units.None);
+        protected Quantity gain = new Quantity(1e6m, Units.None);
         [Serialize, Description("Open-loop gain.")]
         public Quantity Aol { get { return gain; } set { if (gain.Set(value)) NotifyChanged("Aol"); } }
 
