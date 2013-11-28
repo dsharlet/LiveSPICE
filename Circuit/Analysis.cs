@@ -30,6 +30,7 @@ namespace Circuit
         {
             public List<Equal> Equations = new List<Equal>();
             public Dictionary<Expression, Expression> Controllers = new Dictionary<Expression, Expression>();
+            public Dictionary<Expression, Expression> Kcl = new Dictionary<Expression, Expression>();
         }
         private Stack<Context> contexts = new Stack<Context>();
 
@@ -43,12 +44,15 @@ namespace Circuit
         public void PopContext()
         {
             Context context = contexts.Pop();
+            // Evaluate the controllers from the context for the equations and add the results to the analysis.
             foreach (Equal i in context.Equations)
             {
                 Equal ei = (Equal)i.Evaluate(context.Controllers);
                 if (!equations.Contains(ei))
                     equations.Add(ei);
             }
+            foreach (KeyValuePair<Expression, Expression> i in context.Kcl)
+                AddKcl(kcl, i.Key, i.Value != null ? i.Value.Evaluate(context.Controllers) : null);
         }
         public void DeclNodes(IEnumerable<Node> Nodes) { nodes.AddRange(Nodes); }
         public void DeclNodes(params Node[] Nodes) { nodes.AddRange(Nodes); }
@@ -67,7 +71,7 @@ namespace Circuit
         /// <summary>
         /// Enumerates the unknowns in the system.
         /// </summary>
-        public IEnumerable<Expression> Unknowns { get { return unknowns; } }
+        public IEnumerable<Expression> Unknowns { get { return kcl.Keys.Concat(unknowns); } }
 
         /// <summary>
         /// Enumerates the inputs 
@@ -79,24 +83,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Node"></param>
         /// <param name="i"></param>
-        public void AddTerminal(Node Terminal, Expression i)
-        {
-            Expression v = Terminal.V;
-            Expression sumi;
-            if (kcl.TryGetValue(v, out sumi))
-            {
-                // preserve null (arbitrary current).
-                if (ReferenceEquals(i, null))
-                    kcl[v] = null;
-                else if (!ReferenceEquals(sumi, null))
-                    kcl[v] = sumi + i;
-            }
-            else
-            {
-                kcl[v] = i;
-                AddUnknowns(v);
-            }
-        }
+        public void AddTerminal(Node Terminal, Expression i) { AddKcl(contexts.Peek().Kcl, Terminal.V, i); }
 
         /// <summary>
         /// Add the current for a passive component with the given terminals.
@@ -193,6 +180,24 @@ namespace Circuit
         /// <param name="InitialCondition"></param>
         public void AddInitialConditions(IEnumerable<Arrow> InitialConditions) { initialConditions.AddRange(InitialConditions); }
         public void AddInitialConditions(params Arrow[] InitialConditions) { initialConditions.AddRange(InitialConditions); }
+
+        private void AddKcl(Dictionary<Expression, Expression> Kcl, Expression V, Expression i)
+        {
+            Expression sumi;
+            if (Kcl.TryGetValue(V, out sumi))
+            {
+                // preserve null (arbitrary current).
+                if (ReferenceEquals(i, null))
+                    Kcl[V] = null;
+                else if (!ReferenceEquals(sumi, null))
+                    Kcl[V] = sumi + i;
+            }
+            else
+            {
+                Kcl[V] = i;
+            }
+
+        }
 
         public string AnonymousName() { return "_x" + (++anon).ToString(); }
     }
