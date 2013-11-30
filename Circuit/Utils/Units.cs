@@ -23,6 +23,7 @@ namespace Circuit
         
         public static Units Parse(ref string s)
         {
+            s = s.TrimEnd();
             foreach (KeyValuePair<Units, string> i in names)
             {
                 if (s.EndsWith(i.Value))
@@ -125,18 +126,16 @@ namespace Circuit
             }
             else
             {
-                StringBuilder SB = new StringBuilder();
-
-                if (mass == 1) SB.Append("kg");
-                else if (mass != 0) SB.Append("kg^" + mass);
-                if (length == 1) SB.Append("m");
-                else if (length != 0) SB.Append("m^" + length);
-                if (time == 1) SB.Append("s");
-                else if (time != 0) SB.Append("s^" + time);
-                if (current == 1) SB.Append("A");
-                else if (current != 0) SB.Append("A^" + current);
-
-                return SB.ToString();
+                List<string> terms = new List<string>();
+                if (mass != 0)
+                    terms.Add("kg" + (mass != 1 ? "^" + mass : ""));
+                if (length != 0)
+                    terms.Add("m" + (length != 1 ? "^" + length : ""));
+                if (time != 0)
+                    terms.Add("s" + (time != 1 ? "^" + time : ""));
+                if (current != 0)
+                    terms.Add("A" + (current != 1 ? "^" + current : ""));
+                return terms.UnSplit("*");
             }
         }
     }

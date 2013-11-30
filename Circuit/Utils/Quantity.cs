@@ -50,9 +50,8 @@ namespace Circuit
                 
         public static Quantity Parse(string s)
         {
-            s = s.Trim();
             Units units = Units.Parse(ref s);
-            s = s.Trim();
+            s = s.TrimEnd();
             Expression prefix = 1;
             for (int i = 0; i < prefixes.Length; ++i)
             {
@@ -64,8 +63,7 @@ namespace Circuit
                     break;
                 }
             }
-            Expression x = Expression.Parse(s);
-            return new Quantity(prefix * x, units);
+            return new Quantity(prefix * Expression.Parse(s), units);
         }
 
         public static Quantity Parse(string s, Units ExpectedUnits)
@@ -100,7 +98,7 @@ namespace Circuit
             StringBuilder SB = new StringBuilder();
 
             Constant constant = Value as Constant;
-            if (constant != null)
+            if (constant != null && Units != Units.None)
             {
                 if (format != null && format.StartsWith("+"))
                 {
