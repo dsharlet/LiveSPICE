@@ -142,7 +142,7 @@ namespace Circuit
             }
             SB.Append(Units);
 
-            return SB.ToString();
+            return SB.ToString().Trim();
         }
 
         public static string ToString(Expression Value, Units Units, string Format) { return ToString(Value, Units, Format, null); }
