@@ -75,8 +75,8 @@ namespace Circuit
         {
             Expression P = Wipe;
 
-            Expression R1 = resistance.Value * P;
-            Expression R2 = resistance.Value * (1 - P);
+            Expression R1 = Resistance * P;
+            Expression R2 = Resistance * (1 - P);
 
             Resistor.Analyze(Mna, Cathode, Wiper, R1);
             Resistor.Analyze(Mna, Anode, Wiper, R2);

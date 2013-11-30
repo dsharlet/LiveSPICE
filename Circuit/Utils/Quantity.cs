@@ -18,10 +18,12 @@ namespace Circuit
     }
 
     [TypeConverter(typeof(QuantityConverter))]
-    public class Quantity : IEquatable<Quantity>, IFormattable, IXmlSerializable
+    public class Quantity : IEquatable<Quantity>, IFormattable
     {
         private Expression x = 0;
+
         private Units units;
+        public Units Units { get { return units; } set { units = value; } }
         
         public Quantity(Expression x, Units Units)
         {
@@ -31,13 +33,13 @@ namespace Circuit
         public Quantity() { units = null; }
 
         // Set the value of this quantity from another quantity, validating the units.
-        public bool Set(Quantity x)
+        public bool Set(Quantity Value)
         {
-            if (x.Units != units && x.Units != Units.None)
-                throw new UnitCastException(x.Units, units);
-            if (Value != x.Value)
+            if (Value.Units != units && Value.Units != Units.None)
+                throw new UnitCastException(Value.Units, units);
+            if (x != Value.x)
             {
-                Value = x.Value;
+                x = Value.x;
                 return true;
             }
             else
@@ -45,10 +47,7 @@ namespace Circuit
                 return false;
             }
         }
-
-        public Expression Value { get { return x; } set { x = value; } }
-        public Units Units { get { return units; } set { units = value; } }
-        
+                
         public static Quantity Parse(string s)
         {
             s = s.Trim();
@@ -78,33 +77,10 @@ namespace Circuit
                 throw new UnitCastException(m.Units, ExpectedUnits);
             return m;
         }
-                
-        public static Quantity operator ^(Quantity L, int R) { return new Quantity(L.x ^ R, L.units ^ R); }
-        public static Quantity operator +(Quantity L, Quantity R)
-        { 
-            if (L.units != R.units)
-                throw new UnitCastException(L.Units, R.Units); 
-            return new Quantity(L.x + R.x, L.units); 
-        }
-        public static Quantity operator -(Quantity L, Quantity R)
-        {
-            if (L.units != R.units)
-                throw new UnitCastException(L.Units, R.Units);
-            return new Quantity(L.x - R.x, L.units);
-        }
-        public static Quantity operator *(Quantity L, Quantity R) { return new Quantity(L.x * R.x, L.units * R.units); }
-        public static Quantity operator /(Quantity L, Quantity R) { return new Quantity(L.x / R.x, L.units / R.units); }
-        public static Quantity operator -(Quantity M) { return new Quantity(-M.x, M.units); }
-        public static bool operator ==(Quantity L, Quantity R) { return L.x == R.x && L.units == R.units; }
-        public static bool operator !=(Quantity L, Quantity R) { return !(L == R); }
 
-        public static implicit operator Quantity(Expression V) { return new Quantity(V, Units.None); }
-        public static implicit operator Quantity(Real V) { return new Quantity(V, Units.None); }
-        public static implicit operator Quantity(decimal V) { return new Quantity(V, Units.None); }
-
-        public static implicit operator Expression(Quantity M) { return M.Value; }
-        public static explicit operator Real(Quantity M) { return (Real)M.Value; }
-        public static explicit operator double(Quantity M) { return (double)M.Value; }
+        public static implicit operator Expression(Quantity x) { return x.x; }
+        public static explicit operator Real(Quantity x) { return (Real)x.x; }
+        public static explicit operator double(Quantity x) { return (double)x.x; }
 
         // IEquatable interface.
         public bool Equals(Quantity obj) { return this == obj; }
@@ -119,18 +95,6 @@ namespace Circuit
         private static Dictionary<string, string> aliases = new Dictionary<string, string>() { { "\u03BC", "u" } };
         public string ToString(string format, IFormatProvider formatProvider) { return ToString(x, units, format, formatProvider); }
         
-        // IXmlSerializable interface.
-        public XmlSchema GetSchema() { return null; }
-        public void WriteXml(XmlWriter w) { w.WriteString(ToString()); }
-        public void ReadXml(XmlReader r) 
-        {
-            r.ReadStartElement();
-            Quantity m = Parse(r.ReadString());
-            x = m.x;
-            units = m.units;
-            r.ReadEndElement();
-        }
-
         public static string ToString(Expression Value, Units Units, string format, IFormatProvider formatProvider)
         {
             StringBuilder SB = new StringBuilder();

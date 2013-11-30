@@ -31,7 +31,7 @@ namespace Circuit
                 Mna.AddInitialConditions(Arrow.New(i0, 0));
         }
 
-        public override void Analyze(Analysis Mna) { Analyze(Mna, Anode, Cathode, Current.Value); }
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Anode, Cathode, Current); }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {

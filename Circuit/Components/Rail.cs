@@ -30,9 +30,9 @@ namespace Circuit
             // Unknown current.
             Mna.AddTerminal(Terminal, Mna.AddNewUnknown("i" + Name));
             // Set voltage equal to the rail.
-            Mna.AddEquation(V, Voltage.Value);
+            Mna.AddEquation(V, Voltage);
             // Add initial conditions, if necessary.
-            Expression V0 = Voltage.Value.Evaluate(t, 0);
+            Expression V0 = ((Expression)Voltage).Evaluate(t, 0);
             if (!(V0 is Constant))
                 Mna.AddInitialConditions(Arrow.New(V0, 0));
         }

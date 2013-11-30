@@ -17,7 +17,7 @@ namespace Tests
     {
         static readonly Variable t = Component.t;
 
-        static Quantity SampleRate = new Quantity(44100, Units.Hz);
+        static int SampleRate = 44100;
         static int Samples = 100000;
         static int Oversample = 8;
         static int Iterations = 8;
@@ -87,7 +87,7 @@ namespace Tests
             long a = Timer.Counter;
 
             Analysis analysis = C.Analyze();
-            TransientSolution TS = TransientSolution.Solve(analysis, 1 / (SampleRate * Oversample), Log);
+            TransientSolution TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample), Log);
 
             analysisTime += Timer.Delta(a);
             

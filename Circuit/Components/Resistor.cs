@@ -62,9 +62,6 @@ namespace Circuit
 
             Draw(Sym, 0, -16, 16, 7);
             
-            if (!(resistance.Value is Constant))
-                Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
-
             Sym.DrawText(() => Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(() => resistance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
         }

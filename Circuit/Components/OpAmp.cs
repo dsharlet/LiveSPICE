@@ -55,9 +55,9 @@ namespace Circuit
             Expression Rp1 = 1000;
 
             Mna.DeclNodes(pp1, np1);
-            CurrentSource.Analyze(Mna, pp1, np1, VRin * (Expression)Aol / Rp1);
+            CurrentSource.Analyze(Mna, pp1, np1, VRin * Aol / Rp1);
             Resistor.Analyze(Mna, pp1, np1, Rp1);
-            Capacitor.Analyze(Mna, pp1, np1, 1 / (2 * Math.PI * (Expression)(GBP / Aol) * Rp1));
+            Capacitor.Analyze(Mna, pp1, np1, 1 / (2 * Math.PI * Rp1 * GBP / Aol));
             Ground.Analyze(Mna, np1);
 
             // Implement voltage limiter.
@@ -75,7 +75,7 @@ namespace Circuit
             }
 
             // Output current is buffered.
-            Mna.AddTerminal(Out, (pp1.V - Out.V) / (Expression)Rout);
+            Mna.AddTerminal(Out, (pp1.V - Out.V) / Rout);
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, Terminal p, Terminal n, Terminal o, Terminal vp, Terminal vn, Func<string> Name, Func<string> Part)

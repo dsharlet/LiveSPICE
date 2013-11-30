@@ -46,7 +46,7 @@ namespace Circuit
             Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + LinExp(ex))) * Vpk / Kp;
 
             Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
-            Ig = Call.If(Vgk > Vg, (Vgk - (Expression)Vg) / (Expression)Rgk, 0);
+            Ig = Call.If(Vgk > Vg, (Vgk - Vg) / Rgk, 0);
         }
     }
 }

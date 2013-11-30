@@ -33,7 +33,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Resistor.Analyze(Mna, Name, Anode, Cathode, Resistance.Value * Wipe);
+            Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * Wipe);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
@@ -44,9 +44,9 @@ namespace Circuit
             Sym.AddWire(Cathode, new Coord(0, -16));
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
-            Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
-
             Resistor.Draw(Sym, 0, -16, 16, 7);
+
+            Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
 
             Sym.DrawText(() => Resistance.ToString(), new Coord(-7, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => Wipe.ToString("G3"), new Coord(9, 3), Alignment.Near, Alignment.Near);

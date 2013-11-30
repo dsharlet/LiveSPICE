@@ -20,11 +20,11 @@ namespace Circuit
         // And the current timestep.
         public static readonly Variable t = Component.t;
 
-        private Quantity h;
+        private Expression h;
         /// <summary>
         /// The length of a timestep given by this solution.
         /// </summary>
-        public Quantity TimeStep { get { return h; } }
+        public Expression TimeStep { get { return h; } }
 
         private IEnumerable<SolutionSet> solutions;
         /// <summary>
@@ -40,7 +40,7 @@ namespace Circuit
         public IEnumerable<Arrow> InitialConditions { get { return initialConditions; } }
 
         public TransientSolution(
-            Quantity TimeStep,
+            Expression TimeStep,
             IEnumerable<SolutionSet> Solutions,
             IEnumerable<Arrow> InitialConditions)
         {
@@ -63,7 +63,7 @@ namespace Circuit
         /// <param name="TimeStep">Discretization timestep.</param>
         /// <param name="Log">Where to send output.</param>
         /// <returns>TransientSolution describing the solution of the circuit.</returns>
-        public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, IEnumerable<Arrow> InitialConditions, ILog Log)
+        public static TransientSolution Solve(Analysis Analysis, Expression TimeStep, IEnumerable<Arrow> InitialConditions, ILog Log)
         {
             Expression h = TimeStep;
 
@@ -181,7 +181,7 @@ namespace Circuit
                 solutions,
                 initial);
         }
-        public static TransientSolution Solve(Analysis Analysis, Quantity TimeStep, ILog Log)
+        public static TransientSolution Solve(Analysis Analysis, Expression TimeStep, ILog Log)
         {
             return Solve(Analysis, TimeStep, new Arrow[] { }, Log);
         }

@@ -71,7 +71,7 @@ namespace Circuit
         /// <summary>
         /// The sampling rate of this simulation, the sampling rate of the transient solution divided by the oversampling factor.
         /// </summary>
-        public Quantity SampleRate { get { return 1 / (Solution.TimeStep * oversample); } }
+        public Expression SampleRate { get { return 1 / (Solution.TimeStep * oversample); } }
 
         /// <summary>
         /// Create a simulation for the given system solution.

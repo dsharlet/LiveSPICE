@@ -52,7 +52,7 @@ namespace Circuit
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), r);
             Sym.DrawPositive(EdgeType.Black, new Coord(0, 7));
             Sym.DrawNegative(EdgeType.Black, new Coord(0, -7));
-            if (!(Voltage.Value is Constant))
+            if (!((Expression)Voltage is Constant))
                 Sym.DrawFunction(
                     EdgeType.Black,
                     (t) => t * r * 0.75,
