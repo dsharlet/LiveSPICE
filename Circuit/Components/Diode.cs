@@ -26,9 +26,9 @@ namespace Circuit
         [Serialize, Description("Saturation current.")]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
-        protected double _n = 1.0;
-        [Serialize, Description("Gate coefficient.")]
-        public double n { get { return _n; } set { _n = value; NotifyChanged("n"); } }
+        protected Quantity _n = new Quantity(1, Units.None);
+        [Serialize, Description("Gate emission coefficient.")]
+        public Quantity n { get { return _n; } set { if (_n.Set(value)) NotifyChanged("n"); } }
 
         protected DiodeType type = DiodeType.Diode;
         [Serialize, Description("Type of this diode. This property only affects the schematic symbol, it does not affect the simulation.")]

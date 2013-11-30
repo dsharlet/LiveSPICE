@@ -46,13 +46,13 @@ namespace Circuit
         [Serialize, Description("Saturation current.")]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
-        private double bf = 100;
+        private Quantity bf = new Quantity(100, Units.None);
         [Serialize, Description("Forward common emitter current gain.")]
-        public double BF { get { return bf; } set { bf = value; NotifyChanged("BF"); } }
+        public Quantity BF { get { return bf; } set { if (bf.Set(value)) NotifyChanged("BF"); } }
 
-        private double br = 1;
+        private Quantity br = new Quantity(1, Units.None);
         [Serialize, Description("Reverse common emitter current gain.")]
-        public double BR { get { return br; } set { br = value; NotifyChanged("BR"); } }
+        public Quantity BR { get { return br; } set { if (br.Set(value)) NotifyChanged("BR"); } }
 
         public BipolarJunctionTransistor()
         {
@@ -75,8 +75,8 @@ namespace Circuit
             Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", sign * (Base.V - Collector.V));
             Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", sign * (Base.V - Emitter.V));
 
-            double aR = BR / (1 + BR);
-            double aF = BF / (1 + BF);
+            Expression aR = BR / (1 + (Expression)BR);
+            Expression aF = BF / (1 + (Expression)BF);
 
             Expression iF = IS * (LinExp(Vbe / VT) - 1);
             Expression iR = IS * (LinExp(Vbc / VT) - 1);
