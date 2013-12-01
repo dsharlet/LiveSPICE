@@ -48,6 +48,7 @@ namespace LiveSPICE
                 Flip = overlay.Symbol.Flip,
             };
             Editor.Add(S);
+            Editor.Select(S);
             
             overlay.Pen.Brush = Brushes.Black;
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
