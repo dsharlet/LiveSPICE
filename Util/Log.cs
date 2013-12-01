@@ -67,6 +67,7 @@ namespace Util
                         Format, 
                         Args));
         }
+        public void WriteLine(string Format, params object[] Args) { WriteLine(MessageType.Info, Format, Args); }
         
         private static Log global = null;
         public static Log Global
@@ -142,7 +143,7 @@ namespace Util
     {
         protected override void WriteLine(string Text) 
         {
-            Console.WriteLine(Text, Text);
+            Console.WriteLine(Text);
         }
     }
 }
