@@ -95,9 +95,11 @@ namespace LiveSPICE
         //public event EventHandler Dirtied { add { dirtied.Add(value); } remove { dirtied.Remove(value); } }
 
         private int clean = 0;
-        public bool Dirty { get { return undo.Count != clean; } }
-
-        public void Clean() { clean = undo.Count; }
+        public bool Dirty 
+        { 
+            get { return undo.Count != clean; }
+            set { clean = value ? -1 : undo.Count; }
+        }
         
         public void Do(params Edit[] Edits)
         {

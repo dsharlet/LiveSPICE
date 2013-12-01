@@ -66,8 +66,15 @@ namespace LiveSPICE
         public EditStack Edits { get { return edits; } }
 
         // File.
+        private DateTime accessed = DateTime.Now;
         private string filepath = null;
-        private void SetFilePath(string FilePath) { filepath = FilePath; NotifyChanged("FilePath"); NotifyChanged("Title"); }
+        private void SetFilePath(string FilePath) 
+        {
+            filepath = FilePath;
+            Touch();
+            NotifyChanged("FilePath");
+            NotifyChanged("Title"); 
+        }
         public string FilePath { get { return filepath == null ? "Untitled" : filepath; } }
         public string Title { get { return filepath == null ? "<Untitled>" : System.IO.Path.GetFileNameWithoutExtension(filepath); } }
 
@@ -108,7 +115,12 @@ namespace LiveSPICE
             }
             else
             {
-                return ClosingDialog.Show(App.Current.MainWindow, this);
+                switch (MessageBox.Show(Application.Current.MainWindow, "Save '" + Title + "'?", Application.Current.MainWindow.Title, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning))
+                {
+                    case MessageBoxResult.Yes: return Save();
+                    case MessageBoxResult.No: return true;
+                    case MessageBoxResult.Cancel: return false;
+                }
             }
             return true;
         }
@@ -120,7 +132,7 @@ namespace LiveSPICE
             {
                 Schematic.Save(FileName);
                 SetFilePath(FileName);
-                Edits.Clean();
+                Edits.Dirty = false;
                 App.Current.Settings.Used(filepath);
                 return true;
             }
@@ -133,6 +145,24 @@ namespace LiveSPICE
 
         private void Save_Executed(object sender, ExecutedRoutedEventArgs e) { Save(); }
         private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e) { SaveAs(); }
+
+        public bool CheckForModifications()
+        {
+            if (filepath != null &&
+                System.IO.File.Exists(filepath) &&
+                System.IO.File.GetLastWriteTime(filepath) > accessed)
+            {
+                accessed = DateTime.Now;
+                Edits.Dirty = true;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public void Touch() { accessed = DateTime.Now; }
 
         public static SchematicEditor Open(string FileName)
         {
