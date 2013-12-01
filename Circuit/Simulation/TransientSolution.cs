@@ -20,6 +20,8 @@ namespace Circuit
         // And the current timestep.
         public static readonly Variable t = Component.t;
 
+        public static readonly Variable T = Component.T;
+
         private Expression h;
         /// <summary>
         /// The length of a timestep given by this solution.
@@ -68,11 +70,16 @@ namespace Circuit
             Expression h = TimeStep;
 
             Log.WriteLine(MessageType.Info, "Building solution for h={0}", TimeStep.ToString());
-            
+
             // Analyze the circuit to get the MNA system and unknowns.
             List<Equal> mna = Analysis.Equations.ToList();
             List<Expression> y = Analysis.Unknowns.ToList();
             LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
+
+            // Evaluate global simulation parameters.
+            Dictionary<Expression, Expression> globals = new Dictionary<Expression, Expression>();
+            globals[T] = h;
+            mna = mna.Substitute(globals).OfType<Equal>().ToList();
             
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
