@@ -25,10 +25,11 @@ namespace Circuit
         public static void Analyze(Analysis Mna, Node Anode, Node Cathode, Expression Current)
         {
             Mna.AddPassiveComponent(Anode, Cathode, Current);
-            // Add initial conditions, if necessary.
-            Expression i0 = Current.Evaluate(t, 0);
-            if (!(i0 is Constant))
-                Mna.AddInitialConditions(Arrow.New(i0, 0));
+        }
+        public static void Analyze(Analysis Mna, Node Anode, Node Cathode, Expression Current, Arrow InitialConditions)
+        {
+            Analyze(Mna, Anode, Cathode, Current);
+            Mna.AddInitialConditions(InitialConditions);
         }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Anode, Cathode, Current); }

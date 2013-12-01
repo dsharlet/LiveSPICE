@@ -31,12 +31,14 @@ namespace Circuit
             Mna.AddPassiveComponent(Anode, Cathode, Mna.AddNewUnknown("i" + Name));
             // Set the voltage.
             Mna.AddEquation(Anode.V - Cathode.V, V);
-            // Add initial conditions, if necessary.
-            Expression V0 = V.Evaluate(t, 0);
-            if (!(V0 is Constant))
-                Mna.AddInitialConditions(Arrow.New(V0, 0));
+        }
+        public static void Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression V, Arrow InitialConditions)
+        {
+            Analyze(Mna, Name, Anode, Cathode, V);
+            Mna.AddInitialConditions(InitialConditions);
         }
         public static void Analyze(Analysis Mna, Node Anode, Node Cathode, Expression V) { Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, V); }
+        public static void Analyze(Analysis Mna, Node Anode, Node Cathode, Expression V, Arrow InitialConditions) { Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, V, InitialConditions); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, Voltage); }
 
