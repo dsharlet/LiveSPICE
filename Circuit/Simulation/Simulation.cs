@@ -10,7 +10,7 @@ using Util;
 
 namespace Circuit
 {
-    public class SimulationDiverged : NotFiniteNumberException
+    public class SimulationDiverged : FailedToConvergeException
     {
         private long at;
         /// <summary>
