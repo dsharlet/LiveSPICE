@@ -47,6 +47,7 @@ namespace Circuit
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
         protected Quantity vt0 = new Quantity(-2, Units.V);
+        [Spice.ParameterAlias("VTO")]
         [Serialize, Description("Threshold voltage.")]
         public Quantity Vt0 { get { return vt0; } set { if (vt0.Set(value)) NotifyChanged("Vt0"); } }
 
@@ -77,39 +78,17 @@ namespace Circuit
             Expression Vds = Call.Abs(Drain.V - Source.V);
 
             //Vgs = Mna.AddNewUnknownEqualTo(Name + "gs", Vgs);
-            //Vds = Mna.AddNewUnknownEqualTo(Name + "ds", Vds);
 
-            Expression id = (Vgs >= Vt0) * Beta * (1 + Lambda * Vds) *
-                // Linear region.
-                Call.If(Vgs > Vds + Vt0, (Vds * (2 * (Vgs - Vt0) - Vds)),
-                // Saturation region.
-                                         (Vgs - Vt0) ^ 2);
+            Expression Vgst0 = Vgs - Vt0;
 
-            //Expression Vgs = Gate.V - Vs;
-            //Expression Vgd = Gate.V - Vd;
-
-            //Vgs = Mna.AddNewUnknownEqualTo(Name + "gs", Vgs);
-            //Vgd = Mna.AddNewUnknownEqualTo(Name + "gd", Vgd);
-
-            //Expression Vds = Gate.V - Vs;
-            //Expression Vsd = Vs - Gate.V;
-
-            //Expression id = Call.If(Vds >= 0,
-            //    // Normal mode, cutoff region.
-            //    Call.If(Vgs < Vt0, 0,
-            //    // Normal mode, linear region.
-            //    Call.If(Vgs > Vds + Vt0, Beta * (1 + Lambda * Vds) * (Vds * (2 * (Vgs - Vt0) - Vds)),
-            //    // Normal mode, saturation region.
-            //                             Beta * (1 + Lambda * Vds) * (Vgs - Vt0) ^ 2)),
-
-            //    // Inverted mode, cutoff region.
-            //    Call.If(Vgd < Vt0, 0,
-            //    // Inverted mode, linear region.
-            //    Call.If(Vgd > Vsd + Vt0, Beta * (1 + Lambda * Vsd) * (Vsd * (2 * (Vgd - Vt0) - Vsd)),
-            //    // Inverted mode, saturation region.
-            //                             Beta * (1 + Lambda * Vsd) * (Vgd - Vt0) ^ 2)));
-
-            //id = Mna.AddNewUnknownEqualTo("i" + Name + "d", id);
+            Expression id = (Vgs >= Vt0) * Beta * (1 + Lambda * Vds) * 
+                Call.If(Vds < Vgst0, 
+                    // Linear region.
+                    Vds * (2 * Vgst0 - 1), 
+                    // Saturation region.
+                    Vgst0 ^ 2);
+            
+            id = Mna.AddNewUnknownEqualTo("i" + Name + "d", id);
             CurrentSource.Analyze(Mna, Drain, Source, id);
         }
 
