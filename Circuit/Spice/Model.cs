@@ -43,8 +43,11 @@ namespace Circuit.Spice
         public static Model Parse(TokenList Tokens)
         {
             string name = Tokens[1];
+            string type = Tokens[2];
 
-            Component template = ModelTemplates[Tokens[2]];
+            Component template;
+            if (!ModelTemplates.TryGetValue(type, out template))
+                throw new NotSupportedException("Model type '" + type + "' not supported.");
 
             Component impl = template.Clone();
             impl.PartNumber = name;
