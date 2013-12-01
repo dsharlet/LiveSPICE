@@ -149,9 +149,18 @@ namespace Circuit
         /// <returns></returns>
         public Expression AddNewUnknownEqualTo(string Name, Expression Eq)
         {
-            Expression x = AddNewUnknown(Name);
-            AddEquation(x, Eq);
-            return x;
+            IEnumerable<Equal> eqs = equations.Concat(contexts.Peek().Equations);
+            Equal eq = eqs.FirstOrDefault(i => Component.IsDependentVariable(i.Left, Component.t) && i.Right.Equals(Eq));
+            if (ReferenceEquals(eq, null))
+            {
+                Expression x = AddNewUnknown(Name);
+                AddEquation(x, Eq);
+                return x;
+            }
+            else
+            {
+                return eq.Left;
+            }
         }
 
         private int anon = 0;

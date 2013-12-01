@@ -177,10 +177,32 @@ namespace Circuit
 
         // This is too useful not to have.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
-        // Make a variable Name dependent on On.
-        public static Expression DependentVariable(string Name, params Expression[] Args)
+        
+        /// <summary>
+        /// Make a dependent variable.
+        /// </summary>
+        /// <param name="Name">Name of the new dependent variable.</param>
+        /// <param name="On">Dependent expressions.</param>
+        /// <returns></returns>
+        public static Expression DependentVariable(string Name, params Expression[] On)
         {
-            return Call.New(ExprFunction.New(Name, Args.Select((i, j) => Variable.New(j.ToString()))), Args);
+            return Call.New(ExprFunction.New(Name, On.Select((i, j) => Variable.New("x" + j.ToString()))), On);
+        }
+        /// <summary>
+        /// Test if x is a dependent variable.
+        /// </summary>
+        /// <param name="x">Expression to test.</param>
+        /// <param name="On">Dependent expressions.</param>
+        /// <returns></returns>
+        public static bool IsDependentVariable(Expression x, params Expression[] On)
+        {
+            Call d = x as Call;
+            if (ReferenceEquals(d, null) || !On.SequenceEqual(d.Arguments))
+                return false;
+            ExprFunction v = d.Target as ExprFunction;
+            if (ReferenceEquals(v, null))
+                return false;
+            return ReferenceEquals(v.Body, null);
         }
 
         private const double LinExpKnee = 40.0;
