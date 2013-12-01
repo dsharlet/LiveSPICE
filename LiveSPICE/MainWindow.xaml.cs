@@ -108,14 +108,14 @@ namespace LiveSPICE
             return null;
         }
 
-        private void Open(string FileName)
+        private void Open(string FileName, bool CanClose)
         {
             SchematicViewer open = FindViewer(FileName);
             if (open != null)
             {
                 ((LayoutDocument)open.Tag).IsSelected = true;
                 // If this schematic is already open, prompt for re-open if necessary.
-                if (((SchematicEditor)open.Schematic).CanClose(true))
+                if (CanClose || ((SchematicEditor)open.Schematic).CanClose(true))
                     open.Schematic = SchematicEditor.Open(FileName);
             }
             else
@@ -124,6 +124,7 @@ namespace LiveSPICE
                 AddViewer(SchematicEditor.Open(FileName));
             }
         }
+        private void Open(string FileName) { Open(FileName, false); }
 
         private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(); }
         private void OnMruClick(object sender, RoutedEventArgs e) 
@@ -167,6 +168,30 @@ namespace LiveSPICE
                     break;
         }
 
+        private bool activating = false;
+        private void OnActivated(object sender, EventArgs e)
+        {
+            if (activating)
+                return;
+            activating = true;
+
+            // Find the schematics that have been modified outside the editor.
+            IEnumerable<SchematicEditor> modified = EditorListDialog.Show(
+                this, 
+                "The following schematics were modified outside LiveSPICE, do you want to reload them?", 
+                MessageBoxButton.YesNo, 
+                Editors.Where(i => i.CheckForModifications()).ToList());
+            
+            if (modified != null)
+            {
+                foreach (SchematicEditor i in modified)
+                    i.Touch();
+                foreach (SchematicEditor i in modified)
+                    Open(i.FilePath, true);
+            }
+            activating = false;
+        }
+
         private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveViewer != null; }
         private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { App.Current.Settings.MainWindowLayout = dock.SaveLayout(); ActiveContent.Close(); }
         
@@ -175,12 +200,27 @@ namespace LiveSPICE
         private void OnClosing(object sender, CancelEventArgs e)
         {
             // Find the schematics that have pending edits.
-            IEnumerable<SchematicEditor> dirty = Editors.Where(i => i.Edits.Dirty);
-            if (!dirty.Any()) 
-                return;
+            IEnumerable<SchematicEditor> save = EditorListDialog.Show(
+                this, 
+                "Save the following schematics?", 
+                MessageBoxButton.YesNoCancel, 
+                Editors.Where(i => i.Edits.Dirty));
 
-            if (!ClosingDialog.Show(this, dirty))
+            if (save != null)
+            {
+                foreach (SchematicEditor i in save)
+                {
+                    if (!i.Save())
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                }
+            }
+            else
+            {
                 e.Cancel = true;
+            }
         }
 
         private void schematic_SelectionChanged(object Sender, SelectionEventArgs Args)

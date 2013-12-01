@@ -8,6 +8,14 @@ using System.Threading.Tasks;
 
 namespace Circuit.Spice
 {
+    public class ParameterAlias : Attribute
+    {
+        private string alias;
+        public string Alias { get { return alias; } }
+
+        public ParameterAlias(string Alias) { alias = Alias.ToUpper(); }
+    }
+
     /// <summary>
     /// Represents the .MODEL SPICE statement.
     /// </summary>
@@ -25,7 +33,7 @@ namespace Circuit.Spice
         /// </summary>
         public string Description { get { return desc; } }
 
-        public Model(Component Component, string Description) { component = new Specialization(Component); desc = Description; }
+        public Model(Component Component, string Description) { component = Component; desc = Description; }
         public Model(Component Component) : this(Component, "") { }
 
         /// <summary>
@@ -70,8 +78,16 @@ namespace Circuit.Spice
             Name = Name.ToUpper();
 
             foreach (PropertyInfo i in Template.GetType().GetProperties())
-                if (i.Name.ToUpper() == Name)
+            {
+                // Check all the parameter aliases for this parameter.
+                foreach (ParameterAlias j in i.GetCustomAttributes<ParameterAlias>())
+                    if (Name == j.Alias)
+                        return i;
+
+                // Check the name itself.
+                if (Name == i.Name.ToUpper())
                     return i;
+            }
             return null;
         }
     }

@@ -7,7 +7,7 @@
         xmlns:ls="clr-namespace:LiveSPICE"
         Title="LiveSPICE" Icon="{StaticResource Icon}"
         Width="1200" Height="800" Closing="OnClosing" Loaded="OnLoaded" 
-        Style="{StaticResource ResourceKey=Window}">
+        Style="{StaticResource ResourceKey=Window}" Activated="OnActivated">
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="New_Executed" />
         <CommandBinding Command="ApplicationCommands.Open" Executed="Open_Executed" />
