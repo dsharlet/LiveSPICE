@@ -39,14 +39,24 @@ namespace Circuit
         public Terminal Drain { get { return d; } }
         
         private JfetType type = JfetType.N;
-        [Description("JFET structure.")]
-        [Serialize]
+        [Serialize, Description("JFET structure.")]
         public JfetType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
 
-        protected Quantity _is = new Quantity(1e-12m, Units.A);
-        [Description("Saturation current.")]
-        [Serialize]
+        protected Quantity _is = new Quantity(1e-14m, Units.A);
+        [Serialize, Description("Saturation current.")]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
+
+        protected Quantity vt0 = new Quantity(-2, Units.V);
+        [Serialize, Description("Threshold voltage.")]
+        public Quantity Vt0 { get { return vt0; } set { if (vt0.Set(value)) NotifyChanged("Vt0"); } }
+
+        private Quantity beta = new Quantity(1e-4m, Units.None);// Units.A / Units.V ^ 2);
+        [Serialize, Description("Transconductance.")]
+        public Quantity Beta { get { return beta; } set { if (beta.Set(value)) NotifyChanged("Beta"); } }
+
+        private Quantity lambda = new Quantity(0, Units.None);// Units.V ^ -1);
+        [Serialize, Description("Channel length modulation.")]
+        public Quantity Lambda { get { return lambda; } set { if (lambda.Set(value)) NotifyChanged("Lambda"); } }
 
         public JunctionFieldEffectTransistor()
         {
@@ -58,15 +68,57 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            throw new NotImplementedException("JunctionFieldEffectTransistor.Analyze");
+            Diode.Analyze(Mna, Gate, Source, IS, 1, VT);
+            Diode.Analyze(Mna, Gate, Drain, IS, 1, VT);
+
+            // The drain and source terminals are reversible in the JFET model, this 
+            // formulation is simpler than explicitly identifying normal/inverted mode.
+            Expression Vgs = Gate.V - Call.Min(Source.V, Drain.V);
+            Expression Vds = Call.Abs(Drain.V - Source.V);
+
+            //Vgs = Mna.AddNewUnknownEqualTo(Name + "gs", Vgs);
+            //Vds = Mna.AddNewUnknownEqualTo(Name + "ds", Vds);
+
+            Expression id = (Vgs >= Vt0) * Beta * (1 + Lambda * Vds) *
+                // Linear region.
+                Call.If(Vgs > Vds + Vt0, (Vds * (2 * (Vgs - Vt0) - Vds)),
+                // Saturation region.
+                                         (Vgs - Vt0) ^ 2);
+
+            //Expression Vgs = Gate.V - Vs;
+            //Expression Vgd = Gate.V - Vd;
+
+            //Vgs = Mna.AddNewUnknownEqualTo(Name + "gs", Vgs);
+            //Vgd = Mna.AddNewUnknownEqualTo(Name + "gd", Vgd);
+
+            //Expression Vds = Gate.V - Vs;
+            //Expression Vsd = Vs - Gate.V;
+
+            //Expression id = Call.If(Vds >= 0,
+            //    // Normal mode, cutoff region.
+            //    Call.If(Vgs < Vt0, 0,
+            //    // Normal mode, linear region.
+            //    Call.If(Vgs > Vds + Vt0, Beta * (1 + Lambda * Vds) * (Vds * (2 * (Vgs - Vt0) - Vds)),
+            //    // Normal mode, saturation region.
+            //                             Beta * (1 + Lambda * Vds) * (Vgs - Vt0) ^ 2)),
+
+            //    // Inverted mode, cutoff region.
+            //    Call.If(Vgd < Vt0, 0,
+            //    // Inverted mode, linear region.
+            //    Call.If(Vgd > Vsd + Vt0, Beta * (1 + Lambda * Vsd) * (Vsd * (2 * (Vgd - Vt0) - Vsd)),
+            //    // Inverted mode, saturation region.
+            //                             Beta * (1 + Lambda * Vsd) * (Vgd - Vt0) ^ 2)));
+
+            //id = Mna.AddNewUnknownEqualTo("i" + Name + "d", id);
+            CurrentSource.Analyze(Mna, Drain, Source, id);
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, JfetType Type, Terminal S, Terminal G, Terminal D, Func<string> Name, Func<string> Part)
         {
             int bx = 0;
-            Sym.AddTerminal(S, new Coord(10, 20), new Coord(10, 10), new Coord(0, 10));
+            Sym.AddTerminal(S, new Coord(10, -20), new Coord(10, -10), new Coord(0, -10));
             Sym.AddTerminal(G, new Coord(-20, 0), new Coord(-10, 0));
-            Sym.AddTerminal(D, new Coord(10, -20), new Coord(10, -10), new Coord(0, -10));
+            Sym.AddTerminal(D, new Coord(10, 20), new Coord(10, 10), new Coord(0, 10));
 
             Sym.DrawLine(EdgeType.Black, new Coord(bx, 12), new Coord(bx, -12));
             switch (Type)
