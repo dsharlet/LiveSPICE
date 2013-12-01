@@ -12,25 +12,29 @@ img {
     border-width: 0px;
 }
 
-.picturebox {
-    border-style:solid;
+.well {
+    border-radius: 0px;
+}
+
+.captionbox {
+    /*border-style:solid;
     border-color:#BBB;
     border-width:thin;
-    background-color:#EEE;
-    margin:10px;
-    padding:5px;
+    background-color:#EEE;*/
+    margin:20px;
+    padding:10px;
     font-size:smaller;
     font-style:italic;
     text-align:center;
     word-wrap:break-word;
 }
 
-div[class=picturebox] p {
-padding: 5px 5px 0px 5px;
+div[class=captionbox] p {
+    padding: 5px;
 }
 
 .affix,.navbar-fixed-top{
--webkit-transform: scale3d(1,1,1);
+    -webkit-transform: scale3d(1,1,1);
 }
 
 section { 
