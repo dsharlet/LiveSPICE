@@ -125,10 +125,10 @@ namespace LiveSPICE
 
                 inputChannels = InitChannels(inputs, Inputs, components.OfType<Circuit.Input>()
                     .Select(j => new ComboBoxItem() { Content = j.Name, Tag = Circuit.Component.DependentVariable(j.Name, Circuit.Component.t) })
-                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = (ComputerAlgebra.Expression)0 }));
+                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = Variable.New("null") }));
                 outputChannels = InitChannels(outputs, Outputs, components.OfType<Circuit.Speaker>()
                     .Select(j => new ComboBoxItem() { Content = j.Name, Tag = j.V })
-                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = (ComputerAlgebra.Expression)0 }));
+                    .DefaultIfEmpty(new ComboBoxItem() { Content = "-", Tag = Variable.New("null") }));
                
                 // Begin audio processing.
                 if (Inputs.Any() || Outputs.Any())
