@@ -107,6 +107,7 @@ namespace Tests
         public double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, Func<double, double> Vin, int Samples, string Name)
         {
             double t0 = (double)S.Time;
+            double T = S.TimeStep;
 
             int N = 353;
 
@@ -126,7 +127,7 @@ namespace Tests
             double t = 0;
             for (; samples < Samples; samples += N)
             {
-                for (int n = 0; n < N; ++n, t += S.TimeStep)
+                for (int n = 0; n < N; ++n, t += T)
                     vin[n] = Vin(t);
 
                 long a = Timer.Counter;
@@ -138,24 +139,24 @@ namespace Tests
             }
             simulateTime += time;
 
-            int t1 = Math.Min(Samples, 4000);
+            int t1 = Math.Min(samples, 4000);
 
             Log.WriteLine("Performance {0}", Quantity.ToString(samples / time, Units.Hz));
-
+                        
             Plot p = new Plot()
             {
                 Title = Name,
                 Width = 800,
                 Height = 400,
                 x0 = t0,
-                x1 = S.TimeStep * t1,
+                x1 = T * t1,
                 xLabel = "Time (s)",
                 yLabel = "Voltage (V)",
             };
 
             p.Series.AddRange(output.Select(i => new Scatter(
                 i.Value.Take(t1)
-                .Select((j, n) => new KeyValuePair<double, double>(n * S.TimeStep, j)).ToArray()) { Name = i.Key.ToString() }));
+                .Select((j, n) => new KeyValuePair<double, double>(n * T, j)).ToArray()) { Name = i.Key.ToString() }));
             return samples / time;
         }
     }
