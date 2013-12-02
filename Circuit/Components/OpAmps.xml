@@ -32,4 +32,8 @@
     <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="1 TΩ" Rout="50Ω" Aol="200k" GBP="4 MHz" Name="X1" PartNumber="TL071" />
   </Component>
+  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
+    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+               Rin="1 TΩ" Rout="50Ω" Aol="100k" GBP="4 MHz" Name="X1" PartNumber="TL081" />
+  </Component>
 </Library>
