@@ -47,21 +47,35 @@ namespace Circuit
                 return false;
             }
         }
-                
+
+        private static Expression ParsePrefix(ref string s)
+        {
+            s = s.TrimEnd();
+            if (s.Length < 2)
+                return 1;
+
+            int prefix;
+            if (Prefixes.TryGetValue(DeAliasPrefix(s[s.Length - 1].ToString()), out prefix))
+            {
+                // Make sure this isn't just part of the word before the prefix.
+                if (char.IsDigit(s[s.Length - 2]) || char.IsWhiteSpace(s[s.Length - 2]))
+                {
+                    s = s.Substring(0, s.Length - 1);
+                    return ((Real)10) ^ prefix;
+                }
+            }
+            return 1;
+        }
+
         public static Quantity Parse(string s)
         {
-            Units units = Units.Parse(ref s);
-            s = s.TrimEnd();
-            Expression prefix = 1;
-            for (int i = 0; i < prefixes.Length; ++i)
+            Expression prefix = ParsePrefix(ref s);
+            Units units = Units.None;
+            if (prefix.EqualsOne())
             {
-                string p = prefixes[i];
-                if (p != "" && s.EndsWith(p) || (aliases.ContainsKey(p) && s.EndsWith(aliases[p])))
-                {
-                    s = s.Substring(0, s.Length - p.Length);
-                    prefix = (((Real)10) ^ ((i - 5) * 3));
-                    break;
-                }
+                units = Units.Parse(ref s);
+                s = s.TrimEnd();
+                prefix = ParsePrefix(ref s);
             }
             return new Quantity(prefix * Expression.Parse(s), units);
         }
@@ -89,8 +103,30 @@ namespace Circuit
         public override string ToString() { return ToString("G3", null); }
 
         // IFormattable interface.
-        private static string[] prefixes = { "f", "p", "n", "\u03BC", "m", "", "k", "M", "G", "T" };
-        private static Dictionary<string, string> aliases = new Dictionary<string, string>() { { "\u03BC", "u" } };
+        private static Dictionary<string, int> Prefixes = new Dictionary<string, int>()
+        {
+            { "f", -15 },
+            { "p", -12 },
+            { "n", -9 },
+            { "\u03BC", -6 },
+            { "m", -3 },
+            { "", 0 },
+            { "k", 3 },
+            { "M", 6 },
+            { "G", 9 },
+            { "T", 12 },
+        };
+        private static int MinPrefix = Prefixes.Values.Min();
+        private static int MaxPrefix = Prefixes.Values.Max();
+        private static string DeAliasPrefix(string Prefix)
+        {
+            switch (Prefix)
+            {
+                case "u": return "\u03BC";
+                default: return Prefix;
+            }
+        }
+
         public string ToString(string format, IFormatProvider formatProvider) { return ToString(x, units, format, formatProvider); }
         
         public static string ToString(Expression Value, Units Units, string format, IFormatProvider formatProvider)
@@ -98,7 +134,7 @@ namespace Circuit
             StringBuilder SB = new StringBuilder();
 
             Constant constant = Value as Constant;
-            if (constant != null && Units != Units.None)
+            if (constant != null)
             {
                 if (format != null && format.StartsWith("+"))
                 {
@@ -119,16 +155,18 @@ namespace Circuit
                 
                 // Find the order of magnitude of the value.
                 Real order = Real.Log10(Real.Abs(constant.Value.IsNaN() ? 0 : constant.Value) * round);
-                int prefix = order == Real.Infinity ? 0 : (order < -20 ? 0 : (int)Real.Floor(order / 3));
-                prefix = Math.Max(Math.Min(prefix + 5, prefixes.Length - 1), 0) - 5;
+                if (order < -20) order = 0;
+                else if (order == Real.Infinity) order = 0;
 
-                Value = Value / (((Real)10) ^ (prefix * 3));
+                int prefix = Math.Max(Math.Min((int)Real.Floor(order / 3) * 3, MaxPrefix), MinPrefix);
+
+                Value = Value / (((Real)10) ^ prefix);
                 if (Value is IFormattable)
                     SB.Append(((IFormattable)Value).ToString(format, formatProvider));
                 else
                     SB.Append(Value.ToString());
                 SB.Append(" ");
-                SB.Append(prefixes[prefix + 5]);
+                SB.Append(Prefixes.Single(i => i.Value == prefix).Key);
             }
             else if (Value != null)
             {
