@@ -8,14 +8,14 @@ using ComputerAlgebra;
 namespace Circuit
 {
     [Category("Standard")]
-    [DisplayName("Voltage Controller")]
-    public class VoltageController : TwoTerminal
+    [DisplayName("Named Voltage")]
+    public class VoltageDefinition : TwoTerminal
     {
-        public VoltageController() { Name = "V1"; }
+        public VoltageDefinition() { Name = "V1"; }
 
         public override void Analyze(Analysis Mna) 
         {
-            Mna.AddDefinition(DependentVariable("V", Name), Anode.V - Cathode.V); 
+            Mna.AddDefinition(Name, Anode.V - Cathode.V); 
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
@@ -32,14 +32,14 @@ namespace Circuit
     }
 
     [Category("Standard")]
-    [DisplayName("Current Controller")]
-    public class CurrentController : TwoTerminal
+    [DisplayName("Named Current")]
+    public class CurrentDefinition : TwoTerminal
     {
-        public CurrentController() { Name = "I1"; }
+        public CurrentDefinition() { Name = "I1"; }
 
         public override void Analyze(Analysis Mna) 
         { 
-            Mna.AddDefinition(DependentVariable("i", Name), Conductor.Analyze(Mna, Anode, Cathode));
+            Mna.AddDefinition(Name, Conductor.Analyze(Mna, Anode, Cathode));
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
