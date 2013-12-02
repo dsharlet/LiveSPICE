@@ -13,7 +13,7 @@ namespace Circuit
     public class UnitCastException : InvalidCastException
     {
         public UnitCastException(Units From, Units To) 
-            : base("Cannot convert quantity from " + From.ToString() + " to " + To.ToString())
+            : base("Cannot convert quantity from '" + From.ToString() + "' to '" + To.ToString() + "'")
         { }
     }
 
