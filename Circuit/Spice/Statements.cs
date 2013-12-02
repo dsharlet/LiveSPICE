@@ -34,13 +34,15 @@ namespace Circuit.Spice
         private List<Statement> statements = new List<Statement>();
 
         // Circuits constructed.
-        private Stack<Circuit> circuits = new Stack<Circuit>(new [] { new Circuit() });
-                        
+        private Stack<Subcircuit> subcircuits = new Stack<Subcircuit>();
+
         public void Parse(System.IO.StreamReader Stream)
         {
             Dictionary<string, Action<TokenList>> handlers = new Dictionary<string, Action<TokenList>>();
 
             handlers[".MODEL"] = x => statements.Add(Model.Parse(x));
+            handlers[".SUBCKT"] = x => subcircuits.Push(new Subcircuit(x[1], x.Skip(2)));
+            handlers[".ENDS"] = x => statements.Add(subcircuits.Pop());
 
             title = Stream.ReadLine();
             int at = 1;
@@ -66,8 +68,11 @@ namespace Circuit.Spice
                     }
                     else
                     {
-                        // Parse element.
-                        Log.WriteLine(MessageType.Warning, "Warning (line {1}): Ignored element '{0}'.", tokens[0], at);
+                        Element element = Element.Parse(tokens);
+                        if (subcircuits.Any())
+                            subcircuits.Peek().Elements.Add(element);
+                        else
+                            statements.Add(element);
                     }
                 }
                 catch (Exception Ex)
@@ -75,6 +80,9 @@ namespace Circuit.Spice
                     Log.WriteLine(MessageType.Error, "Error (line {1}): {0}", Ex.Message, at);
                 }
             }
+
+            // Build circuits from statements.
+
         }
 
         public void Parse(string FileName)

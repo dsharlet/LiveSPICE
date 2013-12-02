@@ -69,6 +69,8 @@
     <Compile Include="Schematic\Schematic.cs" />
     <Compile Include="Schematic\ElementCollection.cs" />
     <Compile Include="Schematic\Wire.cs" />
+    <Compile Include="Spice\Element.cs" />
+    <Compile Include="Spice\Subcircuit.cs" />
     <Compile Include="Spice\Model.cs" />
     <Compile Include="Spice\TokenList.cs" />
     <Compile Include="Spice\Statement.cs" />
