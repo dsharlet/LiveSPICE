@@ -390,7 +390,7 @@ namespace Circuit
         {
             // Solve for dx.
             // For each variable in the system...
-            for (int j = 0; j < N; ++j)
+            for (int j = 0; j + 1 < N; ++j)
             {
                 int pi = j;
                 double max = Math.Abs(Ab[j][j]);
@@ -428,7 +428,7 @@ namespace Circuit
         private static void RowReduce(CodeGen code, LinqExpr Ab, int M, int N)
         {
             // For each variable in the system...
-            for (int j = 0; j < N; ++j)
+            for (int j = 0; j + 1 < N; ++j)
             {
                 LinqExpr _j = LinqExpr.Constant(j);
                 LinqExpr Abj = code.ReDeclInit<double[]>("Abj", LinqExpr.ArrayAccess(Ab, _j));
