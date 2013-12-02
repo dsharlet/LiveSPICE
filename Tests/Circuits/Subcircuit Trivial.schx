@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Schematic Name="X1" DisplayName="" Description="" Category="" PartNumber="">
+<Schematic Name="X1" Description="" PartNumber="">
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-50,-100">
-    <Component _Type="Circuit.Circuit, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" DisplayName="Trivial" Description="" Category="User" Name="X1" PartNumber="">
-      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X1" PartNumber="">
+    <Component _Type="Circuit.Circuit, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="X1">
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X1">
         <Terminal Name="X1" ConnectedTo="_v1" />
       </Component>
-      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X2" PartNumber="">
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="-1" Name="X2">
         <Terminal Name="X2" ConnectedTo="_v1" />
       </Component>
     </Component>
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-100,-50">
-    <Component _Type="Circuit.Input, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Voltage="V[t] V" Name="V1" PartNumber="" />
+    <Component _Type="Circuit.Input, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" />
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-50,30">
-    <Component _Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="GND1" PartNumber="" />
+    <Component _Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="GND1" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-100" B="-100,-70" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-100" B="-90,-100" />
@@ -25,6 +25,6 @@
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-30" B="-100,0" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-50,0" B="-50,30" />
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="0,-50">
-    <Component _Type="Circuit.Speaker, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Impedance="∞ Ω" Name="S1" PartNumber="" />
+    <Component _Type="Circuit.Speaker, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Impedance="∞ Ω" Name="S1" />
   </Element>
 </Schematic>
