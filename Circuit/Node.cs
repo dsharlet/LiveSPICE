@@ -18,7 +18,7 @@ namespace Circuit
         /// <summary>
         /// Name of this node.
         /// </summary>
-        public string Name { get { return v.Target.Name; } set { v = Call.New(ExprFunction.New(value, Component.t), Component.t); } }
+        public string Name { get { return v.Target.Name; } set { v = Call.New(UnknownFunction.New(value, Component.t), Component.t); } }
 
         /// <summary>
         /// Find a unique name for a component in a set of components.

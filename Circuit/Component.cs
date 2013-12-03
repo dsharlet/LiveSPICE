@@ -186,7 +186,7 @@ namespace Circuit
         /// <returns></returns>
         public static Expression DependentVariable(string Name, params Expression[] On)
         {
-            return Call.New(ExprFunction.New(Name, On.Select((i, j) => Variable.New("x" + j.ToString()))), On);
+            return Call.New(UnknownFunction.New(Name, On.Select((i, j) => Variable.New("x" + j.ToString()))), On);
         }
         /// <summary>
         /// Test if x is a dependent variable.
