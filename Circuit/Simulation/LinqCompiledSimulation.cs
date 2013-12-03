@@ -343,7 +343,7 @@ namespace Circuit
         }
 
         // Solve a system of linear equations
-        private void Solve(CodeGen code, LinqExpr Ab, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Unknowns)
+        private static void Solve(CodeGen code, LinqExpr Ab, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Unknowns)
         {
             LinearCombination[] eqs = Equations.ToArray();
             Expression[] deltas = Unknowns.ToArray();
@@ -365,12 +365,12 @@ namespace Circuit
             }
 
             // Gaussian elimination on this turd.
-            RowReduce(code, Ab, M, N);
-            //code.Add(LinqExpr.Call(
-            //    typeof(LinqCompiledSimulation).GetMethod("RowReduce", BindingFlags.Static | BindingFlags.NonPublic, null, new[] { typeof(double[][]), typeof(int), typeof(int) }, null), 
-            //    Ab, 
-            //    LinqExpr.Constant(M), 
-            //    LinqExpr.Constant(N)));
+            //RowReduce(code, Ab, M, N);
+            code.Add(LinqExpr.Call(
+                GetMethod<LinqCompiledSimulation>("RowReduce", Ab.Type, typeof(int), typeof(int)),
+                Ab,
+                LinqExpr.Constant(M),
+                LinqExpr.Constant(N)));
 
             // Ab is now upper triangular, solve it.
             for (int j = N - 1; j >= 0; --j)
@@ -398,8 +398,9 @@ namespace Circuit
                 // Find a pivot row for this variable.
                 for (int i = j + 1; i < M; ++i)
                 {
+                    double[] Abi = Ab[i];
                     // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
-                    double maxj = Math.Abs(Ab[i][j]);
+                    double maxj = Math.Abs(Abi[j]);
                     if (maxj > max)
                     {
                         pi = i;
@@ -408,18 +409,23 @@ namespace Circuit
                 }
 
                 // Swap pivot row with the current row.
+                double[] Abj = Ab[j];
                 if (pi != j)
+                {
+                    double[] Abpi = Ab[pi];
                     for (int ij = j; ij <= N; ++ij)
-                        Swap(ref Ab[j][ij], ref Ab[pi][ij]);
+                        Swap(ref Abj[ij], ref Abpi[ij]);
+                }
 
                 // Eliminate the rows after the pivot.
-                double p = Ab[j][j];
+                double p = Abj[j];
                 for (int i = j + 1; i < M; ++i)
                 {
-                    double s = Ab[i][j] / p;
-                    //if (s != 0.0)
-                    for (int ij = j + 1; ij <= N; ++ij)
-                        Ab[i][ij] -= Ab[j][ij] * s;
+                    double[] Abi = Ab[i];
+                    double s = Abi[j] / p;
+                    if (s != 0.0)
+                        for (int ij = j + 1; ij <= N; ++ij)
+                            Abi[ij] -= Abj[ij] * s;
                 }
             }
         }
@@ -438,6 +444,8 @@ namespace Circuit
                 LinqExpr max = code.ReDeclInit<double>("max", Abs(LinqExpr.ArrayAccess(Abj, _j)));
 
                 // Find a pivot row for this variable.
+                //code.For(j + 1, M, _i =>
+                //{
                 for (int i = j + 1; i < M; ++i)
                 {
                     LinqExpr _i = LinqExpr.Constant(i);
@@ -468,6 +476,8 @@ namespace Circuit
 
                 // Eliminate the rows after the pivot.
                 LinqExpr p = code.ReDeclInit<double>("p", LinqExpr.ArrayAccess(Abj, _j));
+                //code.For(j + 1, M, _i =>
+                //{
                 for (int i = j + 1; i < M; ++i)
                 {
                     LinqExpr _i = LinqExpr.Constant(i);
@@ -522,17 +532,24 @@ namespace Circuit
 
         private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
 
+        // Get a method of T with the given name/param types.
+        private static MethodInfo GetMethod(Type T, string Name, params Type[] ParamTypes) { return T.GetMethod(Name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, ParamTypes, null); }
+        private static MethodInfo GetMethod<T>(string Name, params Type[] ParamTypes) { return GetMethod(typeof(T), Name, ParamTypes); }
+
         // Returns 1 / x.
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }
         // Returns abs(x).
-        private static LinqExpr Abs(LinqExpr x) { return LinqExpr.Call(typeof(System.Math).GetMethod("Abs", new Type[] { x.Type }), x); }
+        private static LinqExpr Abs(LinqExpr x) { return LinqExpr.Call(GetMethod(typeof(Math), "Abs", x.Type), x); }
         // Returns x*x.
         private static LinqExpr Square(LinqExpr x) { return LinqExpr.Multiply(x, x); }
         
-        private static MethodInfo IsNaN = typeof(double).GetMethod("IsNaN");
-        private static MethodInfo IsInfinity = typeof(double).GetMethod("IsInfinity");
         // Returns true if x is not NaN or Inf
-        private static LinqExpr IsNotReal(LinqExpr x) { return LinqExpr.Or(LinqExpr.Call(null, IsNaN, x), LinqExpr.Call(null, IsInfinity, x)); }
+        private static LinqExpr IsNotReal(LinqExpr x) 
+        { 
+            return LinqExpr.Or(
+                LinqExpr.Call(GetMethod(x.Type, "IsNaN", x.Type), x),
+                LinqExpr.Call(GetMethod(x.Type, "IsInfinity", x.Type), x)); 
+        }
         // Round x to zero if it is sub-normal.
         private static LinqExpr RoundDenormToZero(LinqExpr x) { return x; }
         // Generate expression to swap a and b, using t as a temporary.
