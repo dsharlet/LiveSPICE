@@ -186,7 +186,7 @@ namespace Circuit
         /// <returns></returns>
         public static Expression DependentVariable(string Name, params Expression[] On)
         {
-            return Call.New(UnknownFunction.New(Name, On.Select((i, j) => Variable.New("x" + j.ToString()))), On);
+            return Call.New(Name, On);
         }
         /// <summary>
         /// Test if x is a dependent variable.
@@ -197,12 +197,10 @@ namespace Circuit
         public static bool IsDependentVariable(Expression x, params Expression[] On)
         {
             Call d = x as Call;
-            if (ReferenceEquals(d, null) || !On.SequenceEqual(d.Arguments))
-                return false;
-            ExprFunction v = d.Target as ExprFunction;
-            if (ReferenceEquals(v, null))
-                return false;
-            return ReferenceEquals(v.Body, null);
+            return
+                !ReferenceEquals(d, null) &&
+                d.Target is UnknownFunction &&
+                On.SequenceEqual(d.Arguments);
         }
 
         private const double LinExpKnee = 40.0;
