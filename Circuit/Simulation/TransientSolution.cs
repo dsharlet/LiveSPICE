@@ -76,10 +76,8 @@ namespace Circuit
             List<Expression> y = Analysis.Unknowns.ToList();
             LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
 
-            // Evaluate global simulation parameters.
-            Dictionary<Expression, Expression> globals = new Dictionary<Expression, Expression>();
-            globals[T] = h;
-            mna = mna.Substitute(globals).OfType<Equal>().ToList();
+            // Evaluate for simulation functions.
+            mna = mna.Resolve(new SimulationNamespace(h)).OfType<Equal>().ToList();
             
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();

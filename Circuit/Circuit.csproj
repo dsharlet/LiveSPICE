@@ -48,6 +48,7 @@
     <Compile Include="Components\CenterTapTransformer.cs" />
     <Compile Include="Components\JunctionFieldEffectTransistor.cs" />
     <Compile Include="Components\Input.cs" />
+    <Compile Include="Simulation\SimulationNamespace.cs" />
     <Compile Include="Specialization.cs" />
     <Compile Include="Components\KorenTriode.cs" />
     <Compile Include="Components\ChildLangmuirTriode.cs" />
