@@ -71,7 +71,7 @@
         </div>
     </div>
     
-    <div class="container">
+    <div class="container" style="max-width:1000px;">
         <div class="row">
             <div class="col-md-4">
                 <h2>Get LiveSPICE</h2>
@@ -165,7 +165,7 @@
                         <li>Small but growing <strong>library of component and part models</strong>, including op-amps, transistors, 
                             vacuum tubes, transformers, and more. Custom components can easily be added to the library by simply saving
                             them in the library.</li>
-                        <li>Support for a subset of <strong>SPICE model types</strong> enables utilization of existing SPICE component libraries.</li>
+                        <li>Support for a subset of <strong>SPICE model types</strong> (D, NPN, PNP, NJF, PJF) enables utilization of existing SPICE component libraries.</li>
                         <li><strong>Supports ASIO audio devices</strong> for ultra low latency audio processing.</li>
                         <li><strong>Dynamically adjust control components</strong> such as potentiometers and variable resistors during simulation.</li>
                     </ul>
@@ -195,6 +195,8 @@
                         <li>Not all simulations require the same oversampling rate to achieve real time performance. The oversampling factor was adjusted
                             from the default of 8x to enable real time simulation as necessary.</li>
                         <li>All of the reported performance data is measured on an Intel i5 2500 (Sandy Bridge) CPU.</li>
+                        <li>The performance data is not kept strictly up to date. Although performance is generally improving over time, some improvements have 
+                            required performance regressions. Hopefully, these are temporary when they do occur!</li>
                     </ul>
             
                     <div class="row">
@@ -268,7 +270,7 @@
                         <h4>Installing</h4>
                         <ol>
                             <li>Download the current release from <a href="https://github.com/dsharlet/LiveSPICE/releases">GitHub releases</a>.</li>
-                            <li>Run <strong>LiveSpiceSetup.exe</strong> and follow the instructions on screen.</li>
+                            <li>Run <strong>LiveSPICESetup.exe</strong> and follow the instructions on screen.</li>
                         </ol>
                     </section>
                 
@@ -297,11 +299,9 @@
 
                     <section id="tutorial">
                         <h3>Tutorial: RC low-pass filter</h3>
-                        <p>This tutorial will walk through using LiveSPICE to build and simulate a simple 
-                            passive first-order RC low-pass filter.</p>
+                        <p>This tutorial will walk through using LiveSPICE to build and simulate a simple passive first-order RC low-pass filter.</p>
                 
-                        <p>This tutorial expects that you have already 
-                            <a href="#audio-configuration">configured your audio device</a> in LiveSPICE.</p>
+                        <p>This tutorial expects that you have already <a href="#audio-configuration">configured your audio device</a> in LiveSPICE.</p>
                 
                         <p>For some background on the filter circuit to be simulated, see the
                             <a target="_blank" href="http://en.wikipedia.org/wiki/Low-pass_filter#Passive_electronic_realization">low-pass filter</a>
