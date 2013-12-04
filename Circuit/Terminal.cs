@@ -67,8 +67,16 @@ namespace Circuit
             remove { connectionChanged.Remove(value); }
         }
 
+        /// <summary>
+        /// Terminals can be implicitly converted to the node they are connected to.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
         public static implicit operator Node(Terminal x) { return x.ConnectedTo; }
 
+        /// <summary>
+        /// Get the voltage expression of the connected node.
+        /// </summary>
         public Expression V { get { return ConnectedTo != null ? ConnectedTo.V : unconnected; } }
 
         public override string ToString() { return Description; }
