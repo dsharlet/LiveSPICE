@@ -90,7 +90,7 @@ namespace Circuit
             }
             // And the KCL equations.
             foreach (KeyValuePair<Expression, Expression> i in context.Kcl)
-                AddKcl(kcl, i.Key.Evaluate(context.Definitions), Evaluate(i.Value, context.Definitions));
+                AddKcl(kcl, i.Key, Evaluate(i.Value, context.Definitions));
             // And the initial conditions.
             initialConditions.AddRange(context.InitialConditions.Evaluate(context.Definitions).OfType<Arrow>());
 
