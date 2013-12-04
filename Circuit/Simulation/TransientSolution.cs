@@ -77,7 +77,13 @@ namespace Circuit
             LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
 
             // Evaluate for simulation functions.
-            mna = mna.Resolve(new SimulationNamespace(h)).OfType<Equal>().ToList();
+            // Define T = step size.
+            Analysis.Add("T", h);
+            // Define d[t] = delta function.
+            Analysis.Add(ExprFunction.New("d", Call.If((0 <= t) & (t < h), 1, 0), t));
+            // Define u[t] = step function.
+            Analysis.Add(ExprFunction.New("u", Call.If(t >= 0, 1, 0), t));
+            mna = mna.Resolve(Analysis).OfType<Equal>().ToList();
             
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
