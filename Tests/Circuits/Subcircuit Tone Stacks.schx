@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schematic Name="X1" Description="" PartNumber="">
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="0,-50">
+    <Component _Type="Circuit.Circuit, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="X1">
+      <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="250 pF" Name="C1">
+        <Terminal Name="Anode" ConnectedTo="_v2" />
+        <Terminal Name="Cathode" ConnectedTo="_v1" />
+      </Component>
+      <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="20 nF" Name="C2">
+        <Terminal Name="Anode" ConnectedTo="_v6" />
+        <Terminal Name="Cathode" ConnectedTo="_v4" />
+      </Component>
+      <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="20 nF" Name="C3">
+        <Terminal Name="Anode" ConnectedTo="_v7" />
+        <Terminal Name="Cathode" ConnectedTo="_v4" />
+      </Component>
+      <Component _Type="Circuit.Resistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="56 kΩ" Name="R1">
+        <Terminal Name="Anode" ConnectedTo="_v1" />
+        <Terminal Name="Cathode" ConnectedTo="_v4" />
+      </Component>
+      <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="250 kΩ" Wipe="0.5" Name="Treble">
+        <Terminal Name="Anode" ConnectedTo="_v2" />
+        <Terminal Name="Cathode" ConnectedTo="_v6" />
+        <Terminal Name="Wiper" ConnectedTo="_v8" />
+      </Component>
+      <Component _Type="Circuit.VariableResistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="1 MΩ" Wipe="0.5" Name="Bass">
+        <Terminal Name="Anode" ConnectedTo="_v6" />
+        <Terminal Name="Cathode" ConnectedTo="_v5" />
+      </Component>
+      <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="25 kΩ" Wipe="0.5" Name="Mid">
+        <Terminal Name="Anode" ConnectedTo="_v5" />
+        <Terminal Name="Cathode" ConnectedTo="_v3" />
+        <Terminal Name="Wiper" ConnectedTo="_v7" />
+      </Component>
+      <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="'59 Fender Bassman tone stack" Subtext="" Name="_1" />
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="1" Name="X1">
+        <Terminal Name="X1" ConnectedTo="_v1" />
+      </Component>
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="2" Name="X2">
+        <Terminal Name="X2" ConnectedTo="_v3" />
+      </Component>
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="3" Name="X3">
+        <Terminal Name="X3" ConnectedTo="_v3" />
+      </Component>
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="4" Name="X4">
+        <Terminal Name="X4" ConnectedTo="_v8" />
+      </Component>
+    </Component>
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-100,-50">
+    <Component _Type="Circuit.Input, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="V1" />
+  </Element>
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-100" B="-100,-70" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-100" B="-60,-100" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-60,-100" B="-60,-60" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-60,-60" B="-40,-60" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-60,-40" B="-40,-40" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-60,-40" B="-60,0" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,0" B="-60,0" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-30" B="-100,0" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="140,-40" B="170,-40" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="170,-40" B="170,0" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="170,0" B="200,0" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="200,-30" B="200,0" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="200,-100" B="200,-70" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-80,30">
+    <Component _Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="GND1" />
+  </Element>
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-80,0" B="-80,30" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="200,-50">
+    <Component _Type="Circuit.Speaker, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Impedance="∞ Ω" Name="S1" />
+  </Element>
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="140,-60" B="170,-60" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="170,-100" B="170,-60" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="170,-100" B="200,-100" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="100,-50">
+    <Component _Type="Circuit.Circuit, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="X2">
+      <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="250 pF" Name="C1">
+        <Terminal Name="Anode" ConnectedTo="_v2" />
+        <Terminal Name="Cathode" ConnectedTo="_v1" />
+      </Component>
+      <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="20 nF" Name="C2">
+        <Terminal Name="Anode" ConnectedTo="_v6" />
+        <Terminal Name="Cathode" ConnectedTo="_v4" />
+      </Component>
+      <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="20 nF" Name="C3">
+        <Terminal Name="Anode" ConnectedTo="_v7" />
+        <Terminal Name="Cathode" ConnectedTo="_v4" />
+      </Component>
+      <Component _Type="Circuit.Resistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="56 kΩ" Name="R1">
+        <Terminal Name="Anode" ConnectedTo="_v1" />
+        <Terminal Name="Cathode" ConnectedTo="_v4" />
+      </Component>
+      <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="250 kΩ" Wipe="0.5" Name="Treble">
+        <Terminal Name="Anode" ConnectedTo="_v2" />
+        <Terminal Name="Cathode" ConnectedTo="_v6" />
+        <Terminal Name="Wiper" ConnectedTo="_v8" />
+      </Component>
+      <Component _Type="Circuit.VariableResistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="1 MΩ" Wipe="0.5" Name="Bass">
+        <Terminal Name="Anode" ConnectedTo="_v6" />
+        <Terminal Name="Cathode" ConnectedTo="_v5" />
+      </Component>
+      <Component _Type="Circuit.Potentiometer, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Resistance="25 kΩ" Wipe="0.5" Name="Mid">
+        <Terminal Name="Anode" ConnectedTo="_v5" />
+        <Terminal Name="Cathode" ConnectedTo="_v3" />
+        <Terminal Name="Wiper" ConnectedTo="_v7" />
+      </Component>
+      <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="'59 Fender Bassman tone stack" Subtext="" Name="_1" />
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="1" Name="X1">
+        <Terminal Name="X1" ConnectedTo="_v1" />
+      </Component>
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="2" Name="X2">
+        <Terminal Name="X2" ConnectedTo="_v3" />
+      </Component>
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="3" Name="X3">
+        <Terminal Name="X3" ConnectedTo="_v3" />
+      </Component>
+      <Component _Type="Circuit.Port, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Number="4" Name="X4">
+        <Terminal Name="X4" ConnectedTo="_v8" />
+      </Component>
+    </Component>
+  </Element>
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="40,-60" B="60,-60" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="40,-40" B="60,-40" />
+</Schematic>

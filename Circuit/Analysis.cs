@@ -15,7 +15,7 @@ namespace Circuit
     /// <summary>
     /// Helper class for building a system of MNA equations and unknowns.
     /// </summary>
-    public class Analysis
+    public class Analysis : DynamicNamespace
     {
         private List<Equal> equations = new List<Equal>();
         private List<Expression> unknowns = new List<Expression>();
@@ -34,10 +34,9 @@ namespace Circuit
         }
         private Stack<Context> contexts = new Stack<Context>();
 
-        public void PushContext(IEnumerable<Node> Nodes, IEnumerable<Component> Components)
+        public void PushContext(IEnumerable<Node> Nodes)
         {
             DeclNodes(Nodes);
-            DeclComponents(Components);
             PushContext();
         }
         public void PushContext() { contexts.Push(new Context()); }
@@ -56,8 +55,6 @@ namespace Circuit
         }
         public void DeclNodes(IEnumerable<Node> Nodes) { nodes.AddRange(Nodes); }
         public void DeclNodes(params Node[] Nodes) { nodes.AddRange(Nodes); }
-        public void DeclComponents(IEnumerable<Component> Components) { components.AddRange(Components); }
-        public void DeclComponents(params Component[] Components) { components.AddRange(Components); }
         
         /// <summary>
         /// Get the KCL expressions for this analysis.
@@ -136,7 +133,7 @@ namespace Circuit
         /// <returns></returns>
         public Expression AddNewUnknown(string Name) 
         {
-            Expression x = Component.DependentVariable(Name, Component.t); 
+            Expression x = Component.DependentVariable(UniqueName(Name), Component.t); 
             AddUnknowns(x);
             return x;
         }
@@ -163,7 +160,6 @@ namespace Circuit
             }
         }
 
-        private int anon = 0;
         /// <summary>
         /// Add an anonymous unknown to the system.
         /// </summary>
@@ -182,8 +178,24 @@ namespace Circuit
         /// <param name="InitialCondition"></param>
         public void AddInitialConditions(IEnumerable<Arrow> InitialConditions) { initialConditions.AddRange(InitialConditions); }
         public void AddInitialConditions(params Arrow[] InitialConditions) { initialConditions.AddRange(InitialConditions); }
-        
-        public string AnonymousName() { return "_x" + (++anon).ToString(); }
+
+        private DefaultDictionary<string, int> names = new DefaultDictionary<string, int>(0);
+        /// <summary>
+        /// Ensure x is a unique name in this analysis.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public string UniqueName(string x)
+        {
+            int name = names[x]++;
+            return x + (name != 0 ? "!" + name.ToString() : "");
+        }
+
+        /// <summary>
+        /// Get an anonymous variable name. It will be uniqued later.
+        /// </summary>
+        /// <returns></returns>
+        public string AnonymousName() { return "_x"; }
         
         private void AddKcl(Dictionary<Expression, Expression> Kcl, Expression V, Expression i)
         {
