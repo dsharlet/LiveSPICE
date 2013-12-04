@@ -60,22 +60,7 @@ namespace Circuit
         private object tag = null;
         [Browsable(false)]
         public object Tag { get { return tag; } set { tag = value; NotifyChanged("Tag"); } }
-
-        /// <summary>
-        /// Find a unique name for a component in a set of components.
-        /// </summary>
-        /// <param name="Components"></param>
-        /// <returns></returns>
-        public static string UniqueName(IEnumerable<Component> Components, string Prefix)
-        {
-            for (int i = 1; ; ++i)
-            {
-                string name = Prefix + i;
-                if (!Components.Any(j => j.Name == name))
-                    return name;
-            }
-        }
-
+        
         /// <summary>
         /// Access the terminals of this component.
         /// </summary>
@@ -211,5 +196,24 @@ namespace Circuit
         /// <param name="x"></param>
         /// <returns></returns>
         public static Expression LinExp(Expression x) { return Call.If(x < LinExpKnee, Call.Exp(x), Math.Exp(LinExpKnee) * (1.0 + x - LinExpKnee)); }
+
+        /// <summary>
+        /// Find a unique name among a set of names.
+        /// </summary>
+        /// <param name="Components"></param>
+        /// <returns></returns>
+        public static string UniqueName(IEnumerable<string> Names, string Name)
+        {
+            if (!Names.Contains(Name))
+                return Name;
+
+            string prefix = new string(Name.TakeWhile(i => !Char.IsDigit(i)).ToArray());
+            for (int i = 1; ; ++i)
+            {
+                string name = prefix + i;
+                if (!Names.Contains(name))
+                    return name;
+            }
+        }
     }
 }

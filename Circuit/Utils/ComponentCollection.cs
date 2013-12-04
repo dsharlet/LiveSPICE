@@ -27,8 +27,8 @@ namespace Circuit
         public bool IsReadOnly { get { return false; } }
         public void Add(Component item)
         {
-            if (x.Any(i => i.Name == item.Name))
-                item.Name = Component.UniqueName(x, GetPrefix(item.Name));
+            // Unique the name of item in this collection.
+            item.Name = Component.UniqueName(x.Select(i => i.Name), item.Name);
             x.Add(item);
         }
         public void AddRange(IEnumerable<Component> items)
@@ -46,10 +46,5 @@ namespace Circuit
         public IEnumerator<Component> GetEnumerator() { return x.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return this.GetEnumerator(); }
-
-        private static string GetPrefix(string Name)
-        {
-            return new string(Name.TakeWhile(i => !Char.IsDigit(i)).ToArray());
-        }
     }
 }
