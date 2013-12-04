@@ -23,10 +23,10 @@ namespace Circuit
         private List<Arrow> initialConditions = new List<Arrow>();
         
         // Describes the analysis of a subcircuit.
-        protected class Subcircuit
+        protected class Circuit
         {
-            private Subcircuit parent = null;
-            public Subcircuit Parent { get { return parent; } }
+            private Circuit parent = null;
+            public Circuit Parent { get { return parent; } }
 
             private string name = null;
             public string Name { get { return name; } }
@@ -51,14 +51,19 @@ namespace Circuit
             public List<Equal> Equations = new List<Equal>();
             public Dictionary<Expression, Expression> Kcl = new Dictionary<Expression, Expression>();
             public NodeCollection Nodes = new NodeCollection();
+            public List<Arrow> InitialConditions = new List<Arrow>();
 
-            public Subcircuit() { }
-            public Subcircuit(Subcircuit Parent) { parent = Parent; }
-            public Subcircuit(Subcircuit Parent, string Name) : this(Parent) { name = Name; }
+            public Circuit() { }
+            public Circuit(Circuit Parent, string Name) { parent = Parent;  name = Name; }
         }
 
-        private Subcircuit context = new Subcircuit();
+        private Circuit context = new Circuit();
 
+        /// <summary>
+        /// Begin analysis of a new context with the given nodes.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <param name="Nodes"></param>
         public void PushContext(string Name, IEnumerable<Node> Nodes)
         {
             PushContext(Name);
@@ -66,7 +71,14 @@ namespace Circuit
         }
         public void PushContext(string Name, params Node[] Nodes) { PushContext(Name, Nodes.AsEnumerable()); }
 
-        public void PushContext(string Name) { context = new Subcircuit(context, Name); }
+        /// <summary>
+        /// Begin analysis of a new context.
+        /// </summary>
+        /// <param name="Name"></param>
+        public void PushContext(string Name) { context = new Circuit(context, Name); }
+        /// <summary>
+        /// End analysis of the current context.
+        /// </summary>
         public void PopContext()
         {
             // Evaluate the definitions from the context for the equations and add the results to the analysis.
@@ -76,8 +88,11 @@ namespace Circuit
                 if (!equations.Contains(ei))
                     equations.Add(ei);
             }
+            // And the KCL equations.
             foreach (KeyValuePair<Expression, Expression> i in context.Kcl)
                 AddKcl(kcl, i.Key.Evaluate(context.Definitions), Evaluate(i.Value, context.Definitions));
+            // And the initial conditions.
+            initialConditions.AddRange(context.InitialConditions.Evaluate(context.Definitions).OfType<Arrow>());
 
             foreach (Node i in context.Nodes)
                 i.EndAnalysis();
@@ -85,6 +100,10 @@ namespace Circuit
             context = context.Parent;
         }
 
+        /// <summary>
+        /// Add Nodes to the current context.
+        /// </summary>
+        /// <param name="Nodes"></param>
         public void DeclNodes(IEnumerable<Node> Nodes)
         {
             context.Nodes.AddRange(Nodes);
@@ -215,8 +234,8 @@ namespace Circuit
         /// Add initial conditions to the system.
         /// </summary>
         /// <param name="InitialCondition"></param>
-        public void AddInitialConditions(IEnumerable<Arrow> InitialConditions) { initialConditions.AddRange(InitialConditions); }
-        public void AddInitialConditions(params Arrow[] InitialConditions) { initialConditions.AddRange(InitialConditions); }
+        public void AddInitialConditions(IEnumerable<Arrow> InitialConditions) { context.InitialConditions.AddRange(InitialConditions); }
+        public void AddInitialConditions(params Arrow[] InitialConditions) { context.InitialConditions.AddRange(InitialConditions); }
 
         /// <summary>
         /// Get an anonymous variable name. It will be uniqued later.

@@ -50,12 +50,17 @@ namespace Circuit
         { 
             get 
             {
-                if (ReferenceEquals(v, null))
+                if (!ReferenceEquals(v, null))
+                    return v;
+                else
                     return Call.New(name, Component.t);
-                return v; 
             } 
         }
 
+        /// <summary>
+        /// Begin analysis with this node in the given context.
+        /// </summary>
+        /// <param name="Context"></param>
         public void BeginAnalysis(string Context)
         {
             if (!ReferenceEquals(v, null))
@@ -64,6 +69,9 @@ namespace Circuit
             v = Call.New(Context + name, Component.t);
         }
 
+        /// <summary>
+        /// End analysis with this node.
+        /// </summary>
         public void EndAnalysis()
         {
             v = null;
