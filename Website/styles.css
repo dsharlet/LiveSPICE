@@ -1,6 +1,7 @@
 body {
     padding-top: 50px;
     padding-bottom: 20px;
+    line-height: 175%;
 }
 
 img {
@@ -27,10 +28,12 @@ img {
     font-style:italic;
     text-align:center;
     word-wrap:break-word;
+    line-height: normal;
 }
 
-div[class=captionbox] p {
-    padding: 5px;
+.captionbox p {
+    padding:8px 5px 0px 5px;
+    margin:0px;
 }
 
 .affix,.navbar-fixed-top{
