@@ -14,26 +14,11 @@ namespace Circuit
     /// </summary>
     public class Node
     {
-        protected Call v;
+        private string name;
         /// <summary>
         /// Name of this node.
         /// </summary>
-        public string Name { get { return v.Target.Name; } set { v = Call.New(UnknownFunction.New(value, Component.t), Component.t); } }
-
-        /// <summary>
-        /// Find a unique name for a component in a set of components.
-        /// </summary>
-        /// <param name="Components"></param>
-        /// <returns></returns>
-        public static string UniqueName(IEnumerable<Node> Nodes, string Prefix)
-        {
-            for (int i = 1; ; ++i)
-            {
-                string name = Prefix + i;
-                if (!Nodes.Any(j => j.Name == name))
-                    return name;
-            }
-        }
+        public string Name { get { return name; } set { name = value; } }
 
         private object tag = null;
         [Browsable(false)]
@@ -42,18 +27,48 @@ namespace Circuit
         public Node() { Name = "_v1"; }
 
         protected List<Terminal> connected = new List<Terminal>();
-        public void Disconnect(Terminal T) { connected.Remove(T); }
+        /// <summary>
+        /// Connect a terminal to this node.
+        /// </summary>
+        /// <param name="T"></param>
         public void Connect(Terminal T) { connected.Add(T); }
+        /// <summary>
+        /// Disconnect a terminal from this node.
+        /// </summary>
+        /// <param name="T"></param>
+        public void Disconnect(Terminal T) { connected.Remove(T); }
         /// <summary>
         /// Terminals connected to this node.
         /// </summary>
         public IEnumerable<Terminal> Connected { get { return connected; } }
 
+        private Call v = null;
         /// <summary>
         /// Voltage at this node.
         /// </summary>
-        public Expression V { get { return v; } }
-        
+        public Expression V 
+        { 
+            get 
+            {
+                if (ReferenceEquals(v, null))
+                    return Call.New(name, Component.t);
+                return v; 
+            } 
+        }
+
+        public void BeginAnalysis(string Context)
+        {
+            if (!ReferenceEquals(v, null))
+                throw new InvalidOperationException("Node '" + name + "' is already part of an analysis.");
+
+            v = Call.New(Context + name, Component.t);
+        }
+
+        public void EndAnalysis()
+        {
+            v = null;
+        }
+
         public override string ToString() { return Name; }
     }
 }

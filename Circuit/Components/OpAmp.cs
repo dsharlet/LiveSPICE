@@ -45,16 +45,17 @@ namespace Circuit
         
         public override void Analyze(Analysis Mna)
         {
+            // Implement Voltage gain.
+            Node pp1 = new Node() { Name = "pp1" };
+            Node np1 = new Node() { Name = "np1" };
+            Mna.PushContext(Name, pp1, np1);
+
             // The input terminals are connected by a resistor Rin.
             Resistor.Analyze(Mna, Negative, Positive, Rin);
             Expression VRin = Negative.V - Positive.V;
 
-            // Implement Voltage gain.
-            Node pp1 = new Node() { Name = "pp1" };
-            Node np1 = new Node() { Name = "np1" };
             Expression Rp1 = 1000;
 
-            Mna.DeclNodes(pp1, np1);
             CurrentSource.Analyze(Mna, pp1, np1, VRin * Aol / Rp1);
             Resistor.Analyze(Mna, pp1, np1, Rp1);
             Capacitor.Analyze(Mna, pp1, np1, 1 / (2 * Math.PI * Rp1 * GBP / Aol));
@@ -76,6 +77,8 @@ namespace Circuit
 
             // Output current is buffered.
             Mna.AddTerminal(Out, (pp1.V - Out.V) / Rout);
+
+            Mna.PopContext();
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, Terminal p, Terminal n, Terminal o, Terminal vp, Terminal vn, Func<string> Name, Func<string> Part)

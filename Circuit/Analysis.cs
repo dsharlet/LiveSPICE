@@ -21,28 +21,54 @@ namespace Circuit
         private List<Expression> unknowns = new List<Expression>();
         private Dictionary<Expression, Expression> kcl = new Dictionary<Expression, Expression>();
         private List<Arrow> initialConditions = new List<Arrow>();
-
-        // Ensure unique unknowns among subcircuits.
-        private NodeCollection nodes = new NodeCollection();
-        private ComponentCollection components = new ComponentCollection();
         
-        protected class Context
+        // Describes the analysis of a subcircuit.
+        protected class Subcircuit
         {
-            public List<Equal> Equations = new List<Equal>();
-            public Dictionary<Expression, Expression> Definitions = new Dictionary<Expression, Expression>();
-            public Dictionary<Expression, Expression> Kcl = new Dictionary<Expression, Expression>();
-        }
-        private Stack<Context> contexts = new Stack<Context>();
+            private Subcircuit parent = null;
+            public Subcircuit Parent { get { return parent; } }
 
-        public void PushContext(IEnumerable<Node> Nodes)
-        {
-            DeclNodes(Nodes);
-            PushContext();
+            private string name = null;
+            public string Name { get { return name; } }
+
+            public string Prefix
+            {
+                get
+                {
+                    string prefix = "";
+                    if (parent != null)
+                        prefix = parent.Prefix;
+                    if (name != null)
+                        prefix = prefix + name + ".";
+                    return prefix;
+                }
+            }
+
+            private int anon = 0;
+            public string AnonymousName() { return "_x" + (++anon).ToString(); }
+
+            public Dictionary<Expression, Expression> Definitions = new Dictionary<Expression, Expression>();
+            public List<Equal> Equations = new List<Equal>();
+            public Dictionary<Expression, Expression> Kcl = new Dictionary<Expression, Expression>();
+            public NodeCollection Nodes = new NodeCollection();
+
+            public Subcircuit() { }
+            public Subcircuit(Subcircuit Parent) { parent = Parent; }
+            public Subcircuit(Subcircuit Parent, string Name) : this(Parent) { name = Name; }
         }
-        public void PushContext() { contexts.Push(new Context()); }
+
+        private Subcircuit context = new Subcircuit();
+
+        public void PushContext(string Name, IEnumerable<Node> Nodes)
+        {
+            PushContext(Name);
+            DeclNodes(Nodes);
+        }
+        public void PushContext(string Name, params Node[] Nodes) { PushContext(Name, Nodes.AsEnumerable()); }
+
+        public void PushContext(string Name) { context = new Subcircuit(context, Name); }
         public void PopContext()
         {
-            Context context = contexts.Pop();
             // Evaluate the definitions from the context for the equations and add the results to the analysis.
             foreach (Equal i in context.Equations)
             {
@@ -51,10 +77,23 @@ namespace Circuit
                     equations.Add(ei);
             }
             foreach (KeyValuePair<Expression, Expression> i in context.Kcl)
-                AddKcl(kcl, i.Key, Evaluate(i.Value, context.Definitions));
+                AddKcl(kcl, i.Key.Evaluate(context.Definitions), Evaluate(i.Value, context.Definitions));
+
+            foreach (Node i in context.Nodes)
+                i.EndAnalysis();
+
+            context = context.Parent;
         }
-        public void DeclNodes(IEnumerable<Node> Nodes) { nodes.AddRange(Nodes); }
-        public void DeclNodes(params Node[] Nodes) { nodes.AddRange(Nodes); }
+
+        public void DeclNodes(IEnumerable<Node> Nodes)
+        {
+            context.Nodes.AddRange(Nodes);
+
+            string prefix = context.Prefix;
+            foreach (Node i in Nodes)
+                i.BeginAnalysis(prefix);
+        }
+        public void DeclNodes(params Node[] Nodes) { DeclNodes(Nodes.AsEnumerable()); }
         
         /// <summary>
         /// Get the KCL expressions for this analysis.
@@ -80,7 +119,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Node"></param>
         /// <param name="i"></param>
-        public void AddTerminal(Node Terminal, Expression i) { AddKcl(contexts.Peek().Kcl, Terminal.V, i); }
+        public void AddTerminal(Node Terminal, Expression i) { AddKcl(context.Kcl, Terminal.V, i); }
 
         /// <summary>
         /// Add the current for a passive component with the given terminals.
@@ -99,7 +138,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Key"></param>
         /// <param name="Value"></param>
-        public void AddDefinition(Expression Key, Expression Value) { contexts.Peek().Definitions.Add(Key, Value); }
+        public void AddDefinition(Expression Key, Expression Value) { context.Definitions.Add(Key, Value); }
 
         /// <summary>
         /// Add equations to the system.
@@ -109,7 +148,7 @@ namespace Circuit
         { 
             foreach (Equal i in Eq) 
                 if (!equations.Contains(i))
-                    contexts.Peek().Equations.Add(i); 
+                    context.Equations.Add(i); 
         }
         public void AddEquations(params Equal[] Eq) { AddEquations(Eq.AsEnumerable()); }
         public void AddEquation(Expression a, Expression b) { AddEquations(Equal.New(a, b)); }
@@ -133,7 +172,7 @@ namespace Circuit
         /// <returns></returns>
         public Expression AddNewUnknown(string Name) 
         {
-            Expression x = Component.DependentVariable(UniqueName(Name), Component.t); 
+            Expression x = Component.DependentVariable(context.Prefix + Name, Component.t); 
             AddUnknowns(x);
             return x;
         }
@@ -146,7 +185,7 @@ namespace Circuit
         /// <returns></returns>
         public Expression AddNewUnknownEqualTo(string Name, Expression Eq)
         {
-            IEnumerable<Equal> eqs = equations.Concat(contexts.Peek().Equations);
+            IEnumerable<Equal> eqs = equations.Concat(context.Equations);
             Equal eq = eqs.FirstOrDefault(i => Component.IsDependentVariable(i.Left, Component.t) && i.Right.Equals(Eq));
             if (ReferenceEquals(eq, null))
             {
@@ -179,23 +218,11 @@ namespace Circuit
         public void AddInitialConditions(IEnumerable<Arrow> InitialConditions) { initialConditions.AddRange(InitialConditions); }
         public void AddInitialConditions(params Arrow[] InitialConditions) { initialConditions.AddRange(InitialConditions); }
 
-        private DefaultDictionary<string, int> names = new DefaultDictionary<string, int>(0);
-        /// <summary>
-        /// Ensure x is a unique name in this analysis.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
-        public string UniqueName(string x)
-        {
-            int name = names[x]++;
-            return x + (name != 0 ? "!" + name.ToString() : "");
-        }
-
         /// <summary>
         /// Get an anonymous variable name. It will be uniqued later.
         /// </summary>
         /// <returns></returns>
-        public string AnonymousName() { return "_x"; }
+        public string AnonymousName() { return context.AnonymousName(); }
         
         private void AddKcl(Dictionary<Expression, Expression> Kcl, Expression V, Expression i)
         {
