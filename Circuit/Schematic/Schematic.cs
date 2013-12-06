@@ -221,14 +221,7 @@ namespace Circuit
             List<Node> nodes = Wires.Select(i => i.Node).Distinct().ToList();
 
             Node n = null;
-
-            // Only make one node for ground. This isn't strictly necessary, but it results in less log spew.
-            foreach (Ground i in Symbols.Select(j => j.Component).OfType<Ground>())
-            {
-                if (Wires.Any(j => j.IsConnectedTo(((Symbol)i.Tag).MapTerminal(i.Terminal))))
-                    n = circuit.Nodes["_v0"];
-            }
-
+            
             // If this set of wires is connected to a NamedWire, use that as the node.
             if (n == null)
             {
