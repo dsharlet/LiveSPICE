@@ -157,7 +157,15 @@ namespace Circuit
         /// </summary>
         /// <param name="Key"></param>
         /// <param name="Value"></param>
-        public void AddDefinition(Expression Key, Expression Value) { context.Definitions.Add(Key, Value); }
+        public void AddDefinition(Expression Key, Expression Value) 
+        {
+            Expression value;
+            if (!context.Definitions.TryGetValue(Key, out value))
+                context.Definitions.Add(Key, Value);
+            else if (!value.Equals(Value))
+                throw new ArgumentException("Redefinition of '" + Key.ToString() + "'.");
+        }
+        public void AddDefinition(Arrow x) { AddDefinition(x.Left, x.Right); }
 
         /// <summary>
         /// Add equations to the system.
