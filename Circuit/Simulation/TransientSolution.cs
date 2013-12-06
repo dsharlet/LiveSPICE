@@ -126,65 +126,61 @@ namespace Circuit
             // Solving the system...
             List<SolutionSet> solutions = new List<SolutionSet>();
 
-            mna = system.Select(i => Equal.New(i, 0)).ToList();
-
-            // Find linear solutions for y and substitute them into the system. Linear circuits should be completely solved here.
-            system.RowReduce();
-            system.BackSubstitute();
-            List<Arrow> linear = system.Solve();
-            if (linear.Any())
+            // Partition the system into independent systems of equations.
+            foreach (SystemOfEquations F in system.Partition())
             {
-                // Factor for more efficient arithmetic.
-                linear = linear.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
-                mna = mna.Evaluate(linear).OfType<Equal>().ToList();
+                // Find linear solutions for y and substitute them into the system. Linear systems should be completely solved here.
+                F.RowReduce();
+                List<Arrow> linear = F.Solve();
+                if (linear.Any())
+                {
+                    // Factor for more efficient arithmetic.
+                    linear = linear.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
 
-                solutions.Add(new LinearSolutions(linear));
-                LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
+                    solutions.Add(new LinearSolutions(linear));
+                    LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
+                }
+
+
+                // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
+                if (F.Unknowns.Any())
+                {
+                    // The variables of this system are the newton iteration updates.
+                    List<Expression> dy = F.Unknowns.Select(i => NewtonIteration.Delta(i)).ToList();
+                    
+                    // Compute JxF*dy + F(y0) == 0.
+                    SystemOfEquations nonlinear = new SystemOfEquations(
+                        F.Select(i => i.Gradient(F.Unknowns).Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j.Key), j.Value))
+                            .Append(new KeyValuePair<Expression, Expression>(1, i))),
+                        dy);
+
+                    // ly is the subset of y that can be found linearly.
+                    List<Expression> ly = dy.Where(j => !nonlinear.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
+                    // If there is only one non-linear solution, just solve it now anyways.
+                    if (dy.Count - ly.Count == 1)
+                        ly.Add(dy[0]);
+
+                    // Compute the row-echelon form of the linear part of the Jacobian.
+                    nonlinear.RowReduce(ly);
+                    // Solutions for each linear update equation.
+                    List<Arrow> solved = nonlinear.Solve(ly);
+
+                    // Initial guess for y(t) = y(t0).
+                    List<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+
+                    // Factor for more efficient arithmetic.
+                    solved = solved.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
+                    guess = guess.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
+                    IEnumerable<LinearCombination> equations = nonlinear.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).ToList();
+
+                    solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
+                    LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", nonlinear.Unknowns.UnSplit(", ")), equations.Select(i => i.ToString() + " == 0"));
+                    LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
+                }
             }
 
-            // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
-            if (system.Unknowns.Any())
-            {
-                y = system.Unknowns.ToList();
-
-                // The variables of this system are the newton iteration updates.
-                List<Expression> dy = y.Select(i => NewtonIteration.Delta(i)).ToList();
-
-                // Rearrange the MNA system to be F[y] == 0.
-                List<Expression> F = mna.Select(i => i.Left - i.Right).ToList();
-
-                // Compute JxF*dy + F(y0) == 0.
-                SystemOfEquations nonlinear = new SystemOfEquations(
-                    F.Select(i => i.Gradient(y).Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j.Key), j.Value))
-                        .Append(new KeyValuePair<Expression, Expression>(1, i))),
-                    dy);
-
-                // ly is the subset of y that can be found linearly.
-                List<Expression> ly = dy.Where(j => !nonlinear.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
-                // If there is only one non-linear solution, just solve it now anyways.
-                if (dy.Count - ly.Count == 1)
-                    ly.Add(dy[0]);
-
-                // Compute the row-echelon form of the linear part of the Jacobian.
-                nonlinear.RowReduce(ly);
-                // Solutions for each linear update equation.
-                List<Arrow> solved = nonlinear.Solve(ly);
-
-                // Initial guess for y(t) = y(t0).
-                List<Arrow> guess = y.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
-
-                // Factor for more efficient arithmetic.
-                solved = solved.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
-                guess = guess.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
-                IEnumerable<LinearCombination> equations = nonlinear.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).ToList();
-
-                solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
-                LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", nonlinear.Unknowns.UnSplit(", ")), equations.Select(i => i.ToString() + " == 0"));
-                LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
-            }
-
-            Log.WriteLine(MessageType.Info, "System solved, {0} solution sets for {1} unknowns.", 
-                solutions.Count, 
+            Log.WriteLine(MessageType.Info, "System solved, {0} solution sets for {1} unknowns.",
+                solutions.Count,
                 solutions.Sum(i => i.Unknowns.Count()));
             
             return new TransientSolution(
