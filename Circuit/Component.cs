@@ -13,18 +13,7 @@ namespace Circuit
     /// Indicates the property should be serialized.
     /// </summary>
     public class Serialize : Attribute { };
-
-    /// <summary>
-    /// Indicates a property is a user control.
-    /// </summary>
-    public interface IControl
-    {
-        /// <summary>
-        /// Value of the control.
-        /// </summary>
-        double Value { get; set; }
-    }
-
+    
     /// <summary>
     /// Components are capable of performing MNA to produce a set of equations and unknowns describing their behavior.
     /// </summary>
@@ -196,7 +185,7 @@ namespace Circuit
         /// <param name="x"></param>
         /// <returns></returns>
         public static Expression LinExp(Expression x) { return Call.If(x < LinExpKnee, Call.Exp(x), Math.Exp(LinExpKnee) * (1.0 + x - LinExpKnee)); }
-
+        
         /// <summary>
         /// Find a unique name among a set of names.
         /// </summary>

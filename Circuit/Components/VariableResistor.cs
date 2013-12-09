@@ -11,7 +11,7 @@ namespace Circuit
     [DisplayName("Variable Resistor")]
     [DefaultProperty("Resistance")]
     [Description("Variable resistor.")]
-    public class VariableResistor : TwoTerminal, IControl
+    public class VariableResistor : TwoTerminal
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Serialize, Description("Resistance of this variable resistor.")]
@@ -21,19 +21,17 @@ namespace Circuit
         [Serialize, Description("Position of the wiper on this variable resistor, between 0 and 1.")]
         public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
-        //protected SweepType sweep = SweepType.Linear;
-        //[Serialize, Description("Sweep mapping of the wiper.")]
-        //public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
-
-        // IControl implementation.
-        [Browsable(false)]
-        public double Value { get { return Wipe; } set { Wipe = value; } }
+        protected SweepType sweep = SweepType.Linear;
+        [Serialize, Description("Sweep mapping of the wiper.")]
+        public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
 
         public VariableResistor() { Name = "R1"; }
 
         public override void Analyze(Analysis Mna)
         {
-            Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * Wipe);
+            Expression P = Mna.AddParameter(this, Name, wipe, 1e-6, 1.0 - 1e-6, Sweep);
+
+            Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * P);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

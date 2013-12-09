@@ -88,6 +88,8 @@ namespace Tests
             Analysis analysis = C.Analyze();
             TransientSolution TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample), Log);
 
+            List<KeyValuePair<Expression, double>> arguments = analysis.Parameters.Select(i => new KeyValuePair<Expression, double>(i.Expression, (double)i.Default)).ToList();
+
             analysisTime += Timer.Delta(a);
 
             Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
@@ -97,6 +99,7 @@ namespace Tests
                     C, S,
                     Input,
                     Plots,
+                    arguments,
                     Vin,
                     Samples,
                     C.Name);
@@ -104,7 +107,7 @@ namespace Tests
                 return 0.0;
         }
 
-        public double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, Func<double, double> Vin, int Samples, string Name)
+        public double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int Samples, string Name)
         {
             double t0 = (double)S.Time;
             double T = S.TimeStep;
@@ -131,7 +134,7 @@ namespace Tests
                     vin[n] = Vin(t);
 
                 long a = Timer.Counter;
-                S.Run(N, input, buffers, Iterations);
+                S.Run(N, input, buffers, Arguments, Iterations);
                 time += Timer.Delta(a);
 
                 foreach (Expression key in output.Keys)

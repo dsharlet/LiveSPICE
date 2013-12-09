@@ -93,32 +93,53 @@ namespace LiveSPICE
                 schematic.Schematic = new SimulationSchematic(clone);
                 schematic.Schematic.SelectionChanged += OnProbeSelected;
 
-                // Add Pot controls to all the IControl symbols.
-                foreach (Circuit.Symbol i in schematic.Schematic.Symbols)
-                {
-                    SymbolControl tag = (SymbolControl)i.Tag;
-                    Circuit.IControl control = i.Component as Circuit.IControl;
-                    if (control != null)
-                    {
-                        PotControl pot = new PotControl() 
-                        { 
-                            Width = 80, Height = 80, Opacity = 0.25, 
-                            FontSize = 15, FontWeight = FontWeights.Bold 
-                        };
-                        schematic.Schematic.overlays.Children.Add(pot);
-                        Canvas.SetLeft(pot, Canvas.GetLeft(tag) - pot.Width / 2 + i.Width / 2);
-                        Canvas.SetTop(pot, Canvas.GetTop(tag) - pot.Height / 2 + i.Height / 2);
-
-                        pot.Value = control.Value;
-                        pot.ValueChanged += x => { control.Value = x; UpdateSimulation(); };
-
-                        pot.MouseEnter += (o, e) => pot.Opacity = 0.95;
-                        pot.MouseLeave += (o, e) => pot.Opacity = 0.4;
-                    }
-                }
-
                 // Build the circuit from the schematic.
                 circuit = schematic.Schematic.Schematic.Build(Log);
+                Circuit.Analysis analysis = circuit.Analyze();
+
+                foreach (Circuit.Analysis.Parameter P in analysis.Parameters)
+                {
+                    arguments[P.Expression] = (double)P.Default;
+
+                    Circuit.Symbol S = P.Of.Tag as Circuit.Symbol;
+                    if (S == null)
+                        continue;
+
+                    SymbolControl tag = (SymbolControl)S.Tag;
+
+                    if (tag != null)
+                    {
+                        if (P is Circuit.Analysis.RangeParameter)
+                        {
+                            Circuit.Analysis.RangeParameter RP = (Circuit.Analysis.RangeParameter)P;
+                            PotControl pot = new PotControl()
+                            {
+                                Width = 80,
+                                Height = 80,
+                                Opacity = 0.25,
+                                FontSize = 15,
+                                FontWeight = FontWeights.Bold,
+                            };
+                            schematic.Schematic.overlays.Children.Add(pot);
+                            Canvas.SetLeft(pot, Canvas.GetLeft(tag) - pot.Width / 2 + tag.Width / 2);
+                            Canvas.SetTop(pot, Canvas.GetTop(tag) - pot.Height / 2 + tag.Height / 2);
+
+                            pot.Value = (double)P.Default;
+                            pot.ValueChanged += x => 
+                            {
+                                lock (arguments) arguments[P.Expression] = x * (RP.Maximum - RP.Minimum) + RP.Minimum; 
+                            };
+
+                            pot.MouseEnter += (o, e) => pot.Opacity = 0.95;
+                            pot.MouseLeave += (o, e) => pot.Opacity = 0.4;
+                        }
+                    }
+                    else
+                    {
+                        // The component does not have a symbol, just use the default parameter value.
+                        arguments[P.Expression] = (double)P.Default;
+                    }
+                }
 
                 // Create the input and output controls.                
                 IEnumerable<Circuit.Component> components = circuit.Components;
@@ -238,7 +259,7 @@ namespace LiveSPICE
                     outputs[i] = new KeyValuePair<ComputerAlgebra.Expression, double[]>(outputChannels[i].Signal, Out[i].LockSamples(false, true));
 
                 // Process the samples!
-                simulation.Run(Count, inputs, signals.Concat(outputs), Iterations);
+                lock(arguments) simulation.Run(Count, inputs, signals.Concat(outputs), arguments, Iterations);
 
                 // Show the samples on the oscilloscope.
                 long clock = Scope.Signals.Clock;

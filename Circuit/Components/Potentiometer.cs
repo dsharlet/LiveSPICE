@@ -7,13 +7,6 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    public enum SweepType
-    {
-        Linear,
-        Logarithmic,
-        ReverseLogarithmic,
-    }
-
     /// <summary>
     /// Resistor is a linear component with V = R*i.
     /// </summary>
@@ -21,15 +14,13 @@ namespace Circuit
     [DisplayName("Potentiometer")]
     [DefaultProperty("Resistance")]
     [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")] 
-    public class Potentiometer : Component, IControl
+    public class Potentiometer : Component
     {
         protected Terminal anode, cathode, wiper;
-        [Browsable(false)]
-        public Terminal Anode { get { return anode; } }
-        [Browsable(false)]
-        public Terminal Cathode { get { return cathode; } }
-        [Browsable(false)]
-        public Terminal Wiper { get { return wiper; } }
+        [Browsable(false)] public Terminal Anode { get { return anode; } }
+        [Browsable(false)] public Terminal Cathode { get { return cathode; } }
+        [Browsable(false)] public Terminal Wiper { get { return wiper; } }
+
         public override IEnumerable<Terminal> Terminals 
         { 
             get 
@@ -56,14 +47,10 @@ namespace Circuit
         [Serialize, Description("Position of the wiper, between 0 and 1.")]
         public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
 
-        //protected SweepType sweep = SweepType.Linear;
-        //[Serialize, Description("Sweep mapping of the wiper.")]
-        //public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
-
-        // IControl implementation.
-        [Browsable(false)]
-        public double Value { get { return Wipe; } set { Wipe = value; } }
-
+        protected SweepType sweep = SweepType.Linear;
+        [Serialize, Description("Sweep progression of this potentiometer.")]
+        public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
+        
         public void ConnectTo(Node A, Node C, Node W)
         {
             Anode.ConnectTo(A);
@@ -73,7 +60,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = Wipe;
+            Expression P = Mna.AddParameter(this, Name, wipe, 1e-6, 1.0 - 1e-6, Sweep);
 
             Expression R1 = Resistance * P;
             Expression R2 = Resistance * (1 - P);

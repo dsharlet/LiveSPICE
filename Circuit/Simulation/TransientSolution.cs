@@ -93,7 +93,12 @@ namespace Circuit
             try
             {
                 Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
+
+                List<Arrow> arguments = Analysis.Parameters.Select(i => Arrow.New(i.Expression, i.Default)).ToList();
+
                 List<Equal> dc = mna
+                    // Substitute default arguments for the parameters.
+                    .Evaluate(arguments)
                     // Derivatives, t, and t0 are zero in the steady state.
                     .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(t0, 0)))
                     // Use the initial conditions from analysis.
@@ -129,7 +134,7 @@ namespace Circuit
             // Partition the system into independent systems of equations.
             foreach (SystemOfEquations F in system.Partition())
             {
-                // Find linear solutions for y and substitute them into the system. Linear systems should be completely solved here.
+                // Find linear solutions for y. Linear systems should be completely solved here.
                 F.RowReduce();
                 List<Arrow> linear = F.Solve();
                 if (linear.Any())
@@ -156,13 +161,9 @@ namespace Circuit
 
                     // ly is the subset of y that can be found linearly.
                     List<Expression> ly = dy.Where(j => !nonlinear.Any(i => i[j].DependsOn(NewtonIteration.DeltaOf(j)))).ToList();
-                    // If there is only one non-linear solution, just solve it now anyways.
-                    if (dy.Count - ly.Count == 1)
-                        ly.Add(dy[0]);
 
-                    // Compute the row-echelon form of the linear part of the Jacobian.
+                    // Find linear solutions for dy. 
                     nonlinear.RowReduce(ly);
-                    // Solutions for each linear update equation.
                     List<Arrow> solved = nonlinear.Solve(ly);
 
                     // Initial guess for y(t) = y(t0).
