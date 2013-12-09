@@ -39,11 +39,11 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT)
         {
             // V = Va - Vc
-            Expression Vac = Mna.AddNewUnknownEqualTo("V" + Name, Anode.V - Cathode.V);
+            Expression Vac = Mna.AddUnknownEqualTo("V" + Name, Anode.V - Cathode.V);
 
             // Evaluate the model.
             Expression i = IS * (LinExp(Vac / (n * VT)) - 1);
-            i = Mna.AddNewUnknownEqualTo("i" + Name, i);
+            i = Mna.AddUnknownEqualTo("i" + Name, i);
 
             Mna.AddPassiveComponent(Anode, Cathode, i);
 

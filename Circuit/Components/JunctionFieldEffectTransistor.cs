@@ -88,7 +88,7 @@ namespace Circuit
                     // Saturation region.
                     Vgst0 ^ 2);
             
-            id = Mna.AddNewUnknownEqualTo("i" + Name + "d", id);
+            id = Mna.AddUnknownEqualTo("i" + Name + "d", id);
             CurrentSource.Analyze(Mna, Drain, Source, id);
         }
 

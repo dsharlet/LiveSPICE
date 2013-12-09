@@ -15,7 +15,7 @@ namespace Circuit
         public static void Analyze(Analysis Mna, string Name, Node Input, Node Output)
         {
             // Unknown output current.
-            Mna.AddTerminal(Output, Mna.AddNewUnknown("i" + Name));
+            Mna.AddTerminal(Output, Mna.AddUnknown("i" + Name));
             // Follow voltage.
             Mna.AddEquation(Input.V, Output.V);
         }

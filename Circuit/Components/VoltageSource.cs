@@ -28,7 +28,7 @@ namespace Circuit
         public static void Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression V)
         {
             // Unknown current.
-            Mna.AddPassiveComponent(Anode, Cathode, Mna.AddNewUnknown("i" + Name));
+            Mna.AddPassiveComponent(Anode, Cathode, Mna.AddUnknown("i" + Name));
             // Set the voltage.
             Mna.AddEquation(Anode.V - Cathode.V, V);
         }

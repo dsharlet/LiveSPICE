@@ -28,7 +28,7 @@ namespace Circuit
         public override void Analyze(Analysis Mna)
         {
             // Unknown current.
-            Mna.AddTerminal(Terminal, Mna.AddNewUnknown("i" + Name));
+            Mna.AddTerminal(Terminal, Mna.AddUnknown("i" + Name));
             // Set voltage equal to the rail.
             Mna.AddEquation(V, Voltage);
             // Add initial conditions, if necessary.

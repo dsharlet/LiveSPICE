@@ -46,10 +46,10 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna) 
         {
-            Expression Ip = Mna.AddNewUnknown("i" + Name + "p");
+            Expression Ip = Mna.AddUnknown("i" + Name + "p");
             Mna.AddPassiveComponent(pa, pc, Ip);
-            Expression Isa = Mna.AddNewUnknown("i" + Name + "sa");
-            Expression Isc = Mna.AddNewUnknown("i" + Name + "sc");
+            Expression Isa = Mna.AddUnknown("i" + Name + "sa");
+            Expression Isc = Mna.AddUnknown("i" + Name + "sc");
             Mna.AddTerminal(sa, -Isa);
             Mna.AddTerminal(sc, Isc);
             Mna.AddTerminal(st, Isa - Isc);

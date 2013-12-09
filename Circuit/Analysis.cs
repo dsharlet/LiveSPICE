@@ -210,12 +210,17 @@ namespace Circuit
         /// </summary>
         /// <param name="Name"></param>
         /// <returns></returns>
-        public Expression AddNewUnknown(string Name) 
+        public Expression AddUnknown(string Name) 
         {
             Expression x = Component.DependentVariable(context.Prefix + Name, Component.t); 
             AddUnknowns(x);
             return x;
         }
+        /// <summary>
+        /// Add an anonymous unknown to the system.
+        /// </summary>
+        /// <returns></returns>
+        public Expression AddUnknown() { return AddUnknown(AnonymousName()); }
 
         /// <summary>
         /// Add a new named unknown to the system with a known equation.
@@ -223,13 +228,13 @@ namespace Circuit
         /// <param name="Name"></param>
         /// <param name="Eq"></param>
         /// <returns></returns>
-        public Expression AddNewUnknownEqualTo(string Name, Expression Eq)
+        public Expression AddUnknownEqualTo(string Name, Expression Eq)
         {
             IEnumerable<Equal> eqs = equations.Concat(context.Equations);
             Equal eq = eqs.FirstOrDefault(i => Component.IsDependentVariable(i.Left, Component.t) && i.Right.Equals(Eq));
             if (ReferenceEquals(eq, null))
             {
-                Expression x = AddNewUnknown(Name);
+                Expression x = AddUnknown(Name);
                 AddEquation(x, Eq);
                 return x;
             }
@@ -238,18 +243,12 @@ namespace Circuit
                 return eq.Left;
             }
         }
-
-        /// <summary>
-        /// Add an anonymous unknown to the system.
-        /// </summary>
-        /// <returns></returns>
-        public Expression AddNewUnknown() { return AddNewUnknown(AnonymousName()); }
         /// <summary>
         /// Add an anonymous unknown to the system with a known equation.
         /// </summary>
         /// <param name="Eq"></param>
         /// <returns></returns>
-        public Expression AddNewUnknownEqualTo(Expression Eq) { return AddNewUnknownEqualTo(AnonymousName(), Eq); }
+        public Expression AddUnknownEqualTo(Expression Eq) { return AddUnknownEqualTo(AnonymousName(), Eq); }
 
         /// <summary>
         /// Add initial conditions to the system.

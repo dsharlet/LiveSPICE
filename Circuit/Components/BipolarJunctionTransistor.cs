@@ -72,8 +72,8 @@ namespace Circuit
                 default: throw new NotSupportedException("Unknown BJT structure.");
             }
 
-            Expression Vbc = Mna.AddNewUnknownEqualTo(Name + "bc", sign * (Base.V - Collector.V));
-            Expression Vbe = Mna.AddNewUnknownEqualTo(Name + "be", sign * (Base.V - Emitter.V));
+            Expression Vbc = Mna.AddUnknownEqualTo(Name + "bc", sign * (Base.V - Collector.V));
+            Expression Vbe = Mna.AddUnknownEqualTo(Name + "be", sign * (Base.V - Emitter.V));
 
             Expression aR = BR / (1 + (Expression)BR);
             Expression aF = BF / (1 + (Expression)BF);
@@ -87,8 +87,8 @@ namespace Circuit
             Expression ic = aF * iF - iR;
             Expression ib = (1 - aF) * iF + (1 - aR) * iR;
 
-            ic = Mna.AddNewUnknownEqualTo("i" + Name + "c", ic);
-            ib = Mna.AddNewUnknownEqualTo("i" + Name + "b", ib);
+            ic = Mna.AddUnknownEqualTo("i" + Name + "c", ic);
+            ib = Mna.AddUnknownEqualTo("i" + Name + "b", ib);
             Mna.AddTerminal(Collector, sign * ic);
             Mna.AddTerminal(Base, sign * ib);
             Mna.AddTerminal(Emitter, -sign * (ic + ib));

@@ -25,7 +25,7 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression L)
         {
             // Define a new unknown for the current through the inductor.
-            Expression i = Mna.AddNewUnknown("i" + Name);
+            Expression i = Mna.AddUnknown("i" + Name);
             Mna.AddPassiveComponent(Anode, Cathode, i);
             // V = L*di/dt
             Mna.AddEquation(Anode.V - Cathode.V, L * D(i, t));

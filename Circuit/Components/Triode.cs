@@ -41,13 +41,13 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression Vpk = Mna.AddNewUnknownEqualTo(Name + "pk", p.V - k.V);
-            Expression Vgk = Mna.AddNewUnknownEqualTo(Name + "gk", g.V - k.V);
+            Expression Vpk = Mna.AddUnknownEqualTo(Name + "pk", p.V - k.V);
+            Expression Vgk = Mna.AddUnknownEqualTo(Name + "gk", g.V - k.V);
 
             Expression ip, ig;
             Analyze(Mna, Vgk, Vpk, out ip, out ig);
-            ip = Mna.AddNewUnknownEqualTo("i" + Name + "p", ip);
-            ig = Mna.AddNewUnknownEqualTo("i" + Name + "g", ig);
+            ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
+            ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
             Mna.AddTerminal(p, ip);
             Mna.AddTerminal(g, ig);
             Mna.AddTerminal(k, -(ip + ig));

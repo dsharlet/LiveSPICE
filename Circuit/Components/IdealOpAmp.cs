@@ -44,7 +44,7 @@ namespace Circuit
             // Infinite input impedance.
             Mna.AddPassiveComponent(Positive, Negative, 0);
             // Unknown output current.
-            Mna.AddTerminal(Out, Mna.AddNewUnknown("i" + Name));
+            Mna.AddTerminal(Out, Mna.AddUnknown("i" + Name));
             // The voltage between the positive and negative terminals is 0.
             Mna.AddEquation(Positive.V, Negative.V);
         }
