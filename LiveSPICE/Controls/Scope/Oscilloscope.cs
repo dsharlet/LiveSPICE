@@ -129,7 +129,7 @@ namespace LiveSPICE
 
             lock (stabilize.Lock)
             {
-                int Decimate = 1 << (int)Math.Floor(Math.Log(sampleRate / 24000, 2));
+                int Decimate = 1 << (int)Math.Floor(Math.Log(sampleRate / 22000, 2));
                 int BlockSize = 8192;
                 if (stabilize.Count >= BlockSize)
                 {
