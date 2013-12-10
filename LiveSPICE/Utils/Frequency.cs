@@ -113,7 +113,9 @@ namespace LiveSPICE
                 x = (a - c) / (2.0 * (a - 2.0 * b + c));
 
                 // Maximum value.
-                return B - x * (A - C) / 4.0;
+                return Complex.FromPolarCoordinates(
+                    Math.Exp(b - x * (a - c) / 4.0),
+                    (B - x * (A - C) / 4.0).Phase);
             }
             else
             {
