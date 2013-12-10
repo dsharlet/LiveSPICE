@@ -135,7 +135,7 @@ namespace Circuit
                     terms.Add("s" + (time != 1 ? "^" + time : ""));
                 if (current != 0)
                     terms.Add("A" + (current != 1 ? "^" + current : ""));
-                return terms.UnSplit("*");
+                return String.Join("*", terms);
             }
         }
     }

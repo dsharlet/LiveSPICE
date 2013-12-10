@@ -68,7 +68,7 @@ namespace LiveSPICE
                     if (paths[j] == "..." && paths[j + 1] == "...")
                         paths.RemoveAt(j);
             }
-            return paths.UnSplit("\\");
+            return String.Join("\\", paths);
         }
     }
 }

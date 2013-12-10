@@ -302,7 +302,7 @@ namespace LiveSPICE
             // Append tooltip if there is a shortcut key.
             KeyGesture[] keys;
             if (ShortcutKeys.TryGetValue(C.GetType(), out keys))
-                button.ToolTip = (string)button.ToolTip + " (" + keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture)).UnSplit(", ") + ")";
+                button.ToolTip = (string)button.ToolTip + " (" + String.Join(", ", keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture))) + ")";
 
             return button;
         }

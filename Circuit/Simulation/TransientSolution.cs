@@ -74,7 +74,7 @@ namespace Circuit
             // Analyze the circuit to get the MNA system and unknowns.
             List<Equal> mna = Analysis.Equations.ToList();
             List<Expression> y = Analysis.Unknowns.ToList();
-            LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + y.UnSplit(", ") + " }}", mna);
+            LogExpressions(Log, MessageType.Verbose, "System of " + mna.Count + " equations and " + y.Count + " unknowns = {{ " + String.Join(", ", y) + " }}", mna);
 
             // Evaluate for simulation functions.
             // Define T = step size.
@@ -175,7 +175,7 @@ namespace Circuit
                     IEnumerable<LinearCombination> equations = nonlinear.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).ToList();
 
                     solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
-                    LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", nonlinear.Unknowns.UnSplit(", ")), equations.Select(i => i.ToString() + " == 0"));
+                    LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), equations.Select(i => i.ToString() + " == 0"));
                     LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
                 }
             }

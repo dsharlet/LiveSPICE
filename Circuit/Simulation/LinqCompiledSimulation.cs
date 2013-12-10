@@ -126,9 +126,9 @@ namespace Circuit
                 return d;
 
             Log.WriteLine(MessageType.Info, "Defining sample processing function...");
-            Log.WriteLine(MessageType.Verbose, "Inputs = {{ " + Input.UnSplit(", ") + " }}");
-            Log.WriteLine(MessageType.Verbose, "Outputs = {{ " + Output.UnSplit(", ") + " }}");
-            Log.WriteLine(MessageType.Verbose, "Parameters = {{ " + Parameters.UnSplit(", ") + " }}");
+            Log.WriteLine(MessageType.Verbose, "Inputs = {{ " + String.Join(", ", Input) + " }}");
+            Log.WriteLine(MessageType.Verbose, "Outputs = {{ " + String.Join(", ", Output) + " }}");
+            Log.WriteLine(MessageType.Verbose, "Parameters = {{ " + String.Join(", ", Parameters) + " }}");
             CodeGen code = DefineProcessFunction(T, Oversample, Input, Output, Parameters);
             Log.WriteLine(MessageType.Info, "Building sample processing function...");
             LinqExprs.LambdaExpression lambda = code.Build();
