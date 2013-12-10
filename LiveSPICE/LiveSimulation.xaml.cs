@@ -189,19 +189,6 @@ namespace LiveSPICE
             }
         }
 
-        private RedundantTaskScheduler updateScheduler = new RedundantTaskScheduler(Math.Max(Environment.ProcessorCount - 2, 1));
-        private void UpdateSimulation()
-        {
-            int ov = Oversample;
-            Circuit.Quantity h = new Circuit.Quantity((ComputerAlgebra.Expression)1 / (stream.SampleRate * ov), Circuit.Units.s);
-            Circuit.Analysis analysis = circuit.Analyze();
-            new Task(() => 
-            {
-                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(analysis, h, solution.InitialConditions, new NullLog());
-                lock (sync) simulation.Update(s, ov);
-            }).Start(updateScheduler);
-        }
-
         private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
             // Apply input gain.
