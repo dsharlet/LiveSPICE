@@ -37,7 +37,7 @@ namespace Circuit
         {
             if (Value.Units != units && Value.Units != Units.None)
                 throw new UnitCastException(Value.Units, units);
-            if (x != Value.x)
+            if (!Equals(x, Value.x))
             {
                 x = Value.x;
                 return true;
