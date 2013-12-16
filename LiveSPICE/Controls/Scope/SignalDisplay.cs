@@ -38,7 +38,7 @@ namespace LiveSPICE
 
         void Invalidate(object sender, EventArgs e)
         {
-            Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.Render);
         }
                 
         private Signal selected;
