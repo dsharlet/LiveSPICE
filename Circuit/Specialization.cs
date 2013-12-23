@@ -10,6 +10,14 @@ using ComputerAlgebra;
 namespace Circuit
 {
     /// <summary>
+    /// Exception thrown when a Specialization does not have an implementation.
+    /// </summary>
+    public class SpecializationNotImplemented : Exception
+    {
+        public SpecializationNotImplemented() : base("Specialization not implemented.") { }
+    }
+
+    /// <summary>
     /// This component represents a specialization of another component type.
     /// </summary>
     public class Specialization : Component
@@ -20,17 +28,18 @@ namespace Circuit
         public Specialization(Component Impl) { impl = Impl; }
 
         // Forward the interesting work to the implementation component.
-        public override string Name { get { return impl.Name; } set { impl.Name = value; NotifyChanged("Name"); } }
+        public override string Name { get { AssertImpl(); return impl.Name; } set { AssertImpl(); impl.Name = value; NotifyChanged("Name"); } }
         [Browsable(false)]
-        public override string PartNumber { get { return impl.PartNumber; } set { impl.PartNumber = value; NotifyChanged("PartNumber"); } }
-        public override IEnumerable<Terminal> Terminals { get { return impl.Terminals; } }
-        public override void Analyze(Analysis Mna) { impl.Analyze(Mna); }
-        public override void LayoutSymbol(SymbolLayout Sym) { impl.LayoutSymbol(Sym); }
+        public override string PartNumber { get { AssertImpl(); return impl.PartNumber; } set { AssertImpl(); impl.PartNumber = value; NotifyChanged("PartNumber"); } }
+        public override IEnumerable<Terminal> Terminals { get { AssertImpl(); return impl.Terminals; } }
+        public override void Analyze(Analysis Mna) { AssertImpl(); impl.Analyze(Mna); }
+        public override void LayoutSymbol(SymbolLayout Sym) { AssertImpl(); impl.LayoutSymbol(Sym); }
         
         public override string TypeName { get { return PartNumber; } }
 
         public override XElement Serialize()
         {
+            AssertImpl();
             XElement E = base.Serialize();
             E.Add(impl.Serialize());
             return E;
@@ -41,5 +50,7 @@ namespace Circuit
             impl = Deserialize(X.Element("Component"));
             base.DeserializeImpl(X);
         }
+
+        private void AssertImpl() { if (impl == null) throw new SpecializationNotImplemented(); }
     }
 }
