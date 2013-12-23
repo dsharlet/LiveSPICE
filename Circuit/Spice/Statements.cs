@@ -68,11 +68,11 @@ namespace Circuit.Spice
                     }
                     else
                     {
-                        Element element = Element.Parse(tokens);
-                        if (subcircuits.Any())
-                            subcircuits.Peek().Elements.Add(element);
-                        else
-                            statements.Add(element);
+                        //Element element = Element.Parse(tokens);
+                        //if (subcircuits.Any())
+                        //    subcircuits.Peek().Elements.Add(element);
+                        //else
+                        //    statements.Add(element);
                     }
                 }
                 catch (Exception Ex)
