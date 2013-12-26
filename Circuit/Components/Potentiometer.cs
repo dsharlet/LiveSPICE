@@ -13,8 +13,8 @@ namespace Circuit
     [Category("Standard")]
     [DisplayName("Potentiometer")]
     [DefaultProperty("Resistance")]
-    [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")] 
-    public class Potentiometer : Component
+    [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")]
+    public class Potentiometer : Component, IPotControl
     {
         protected Terminal anode, cathode, wiper;
         [Browsable(false)] public Terminal Anode { get { return anode; } }
@@ -46,6 +46,8 @@ namespace Circuit
         protected double wipe = 0.5;
         [Serialize, Description("Position of the wiper, between 0 and 1.")]
         public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+        // IPotControl
+        double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep progression of this potentiometer.")]
@@ -60,7 +62,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = Mna.AddParameter(this, Name, wipe, 1e-6, 1.0 - 1e-6, Sweep);
+            Expression P = VariableResistor.AdjustWipe(wipe, sweep);
 
             Expression R1 = Resistance * P;
             Expression R2 = Resistance * (1 - P);

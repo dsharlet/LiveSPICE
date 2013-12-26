@@ -10,6 +10,17 @@ using ComputerAlgebra;
 namespace Circuit
 {
     /// <summary>
+    /// Interface for components that expose a pot controlled value.
+    /// </summary>
+    public interface IPotControl
+    {
+        /// <summary>
+        /// The value of the pot.
+        /// </summary>
+        double PotValue { get; set; }
+    }
+
+    /// <summary>
     /// Indicates the property should be serialized.
     /// </summary>
     public class Serialize : Attribute { };

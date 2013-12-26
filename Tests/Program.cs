@@ -88,18 +88,19 @@ namespace Tests
             Analysis analysis = C.Analyze();
             TransientSolution TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample), Log);
 
-            List<KeyValuePair<Expression, double>> arguments = analysis.Parameters.Select(i => new KeyValuePair<Expression, double>(i.Expression, (double)i.Default)).ToList();
-
             analysisTime += Timer.Delta(a);
 
-            Simulation S = new LinqCompiledSimulation(TS, Oversample, Log);
+            Simulation S = new Simulation(TS, Input, Plots) 
+            { 
+                Oversample = Oversample, 
+                Iterations = Iterations,
+                Log = Log, 
+            };
+
             Log.WriteLine("");
             if (Samples > 0)
                 return RunTest(
                     C, S,
-                    Input,
-                    Plots,
-                    arguments,
                     Vin,
                     Samples,
                     C.Name);
@@ -107,23 +108,19 @@ namespace Tests
                 return 0.0;
         }
 
-        public double RunTest(Circuit.Circuit C, Simulation S, Expression Input, IEnumerable<Expression> Outputs, IEnumerable<KeyValuePair<Expression, double>> Arguments, Func<double, double> Vin, int Samples, string Name)
+        public double RunTest(Circuit.Circuit C, Simulation S, Func<double, double> Vin, int Samples, string Name)
         {
             double t0 = (double)S.Time;
             double T = S.TimeStep;
 
             int N = 353;
+            double[] input = new double[N];
 
-            Dictionary<Expression, double[]> input = new Dictionary<Expression, double[]>();
-            double[] vin = new double[N];
-            input.Add(Input, vin);
-
-            Dictionary<Expression, List<double>> output = Outputs.ToDictionary(i => i, i => new List<double>());
-            Dictionary<Expression, double[]> buffers = Outputs.ToDictionary(i => i, i => new double[N]);
+            List<List<double>> output = S.Output.Select(i => new List<double>(Samples)).ToList();
+            List<double[]> buffers = S.Output.Select(i => new double[N]).ToList();
 
             // Ensure that the simulation is cached before benchmarking.
-            S.Run(1, input, buffers, Iterations);
-            S.Reset();
+            S.Run(input, buffers);
 
             double time = 0.0;
             int samples = 0;
@@ -131,14 +128,14 @@ namespace Tests
             for (; samples < Samples; samples += N)
             {
                 for (int n = 0; n < N; ++n, t += T)
-                    vin[n] = Vin(t);
+                    input[n] = Vin(t);
 
                 long a = Timer.Counter;
-                S.Run(N, input, buffers, Arguments, Iterations);
+                S.Run(input, buffers);
                 time += Timer.Delta(a);
 
-                foreach (Expression key in output.Keys)
-                    output[key].AddRange(buffers[key]);
+                for (int i = 0; i < S.Output.Count(); ++i)
+                    output[i].AddRange(buffers[i]);
             }
             simulateTime += time;
 
@@ -157,9 +154,9 @@ namespace Tests
                 yLabel = "Voltage (V)",
             };
 
-            p.Series.AddRange(output.Select(i => new Scatter(
-                i.Value.Take(t1)
-                .Select((j, n) => new KeyValuePair<double, double>(n * T, j)).ToArray()) { Name = i.Key.ToString() }));
+            p.Series.AddRange(output.Select((i, j) => new Scatter(
+                i.Take(t1)
+                .Select((k, n) => new KeyValuePair<double, double>(n * T, k)).ToArray()) { Name = S.Output.ElementAt(j).ToString() }));
             return samples / time;
         }
     }

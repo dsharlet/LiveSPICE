@@ -34,13 +34,20 @@ namespace Circuit
         /// a follows SolutionSet b in this enumeration, b's solution may depend on a's solutions.
         /// </summary>
         public IEnumerable<SolutionSet> Solutions { get { return solutions; } }
-
+        
         private IEnumerable<Arrow> initialConditions;
         /// <summary>
         /// Set of expressions describing the initial conditions of the variables in this solution.
         /// </summary>
         public IEnumerable<Arrow> InitialConditions { get { return initialConditions; } }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="TimeStep">Describes the timestep of the solution.</param>
+        /// <param name="Solutions">Enumeration of SolutionSets describing the unknowns solved by this solution.</param>
+        /// <param name="InitialConditions">Initial conditions for which the solution is valid.</param>
+        /// <param name="Parameters">Description of the parameters in the solution.</param>
         public TransientSolution(
             Expression TimeStep,
             IEnumerable<SolutionSet> Solutions,
@@ -94,11 +101,7 @@ namespace Circuit
             {
                 Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
 
-                List<Arrow> arguments = Analysis.Parameters.Select(i => Arrow.New(i.Expression, i.Default)).ToList();
-
                 List<Equal> dc = mna
-                    // Substitute default arguments for the parameters.
-                    .Evaluate(arguments)
                     // Derivatives, t, and t0 are zero in the steady state.
                     .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(t0, 0)))
                     // Use the initial conditions from analysis.
@@ -136,12 +139,9 @@ namespace Circuit
             {
                 // Find linear solutions for y. Linear systems should be completely solved here.
                 F.RowReduce();
-                List<Arrow> linear = F.Solve();
+                IEnumerable<Arrow> linear = F.Solve();
                 if (linear.Any())
                 {
-                    // Factor for more efficient arithmetic.
-                    linear = linear.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
-
                     solutions.Add(new LinearSolutions(linear));
                     LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
                 }
@@ -164,18 +164,13 @@ namespace Circuit
 
                     // Find linear solutions for dy. 
                     nonlinear.RowReduce(ly);
-                    List<Arrow> solved = nonlinear.Solve(ly);
+                    IEnumerable<Arrow> solved = nonlinear.Solve(ly);
 
                     // Initial guess for y(t) = y(t0).
-                    List<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+                    IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
-                    // Factor for more efficient arithmetic.
-                    solved = solved.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
-                    guess = guess.Select(i => Arrow.New(i.Left, i.Right.Factor())).ToList();
-                    IEnumerable<LinearCombination> equations = nonlinear.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).ToList();
-
-                    solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
-                    LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), equations.Select(i => i.ToString() + " == 0"));
+                    solutions.Add(new NewtonIteration(solved, nonlinear.Equations, nonlinear.Unknowns, guess));
+                    LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), nonlinear.Equations.Select(i => i.ToString() + " == 0"));
                     LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
                 }
             }
@@ -189,10 +184,8 @@ namespace Circuit
                 solutions,
                 initial);
         }
-        public static TransientSolution Solve(Analysis Analysis, Expression TimeStep, ILog Log)
-        {
-            return Solve(Analysis, TimeStep, new Arrow[] { }, Log);
-        }
+        public static TransientSolution Solve(Analysis Analysis, Expression TimeStep, ILog Log) { return Solve(Analysis, TimeStep, new Arrow[] { }, Log); }
+        public static TransientSolution Solve(Analysis Analysis, Expression TimeStep) { return Solve(Analysis, TimeStep, new Arrow[] { }, new NullLog()); }
 
         // Shorthand for df/dx.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
@@ -209,6 +202,7 @@ namespace Circuit
         // Logging helpers.
         private static void LogList(ILog Log, MessageType Type, string Title, IEnumerable<string> List)
         {
+            if (Log is NullLog) return;
             if (List.Any())
             {
                 Log.WriteLine(Type, Title);

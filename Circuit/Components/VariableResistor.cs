@@ -11,7 +11,7 @@ namespace Circuit
     [DisplayName("Variable Resistor")]
     [DefaultProperty("Resistance")]
     [Description("Variable resistor.")]
-    public class VariableResistor : TwoTerminal
+    public class VariableResistor : TwoTerminal, IPotControl
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Serialize, Description("Resistance of this variable resistor.")]
@@ -20,6 +20,8 @@ namespace Circuit
         protected double wipe = 0.5;
         [Serialize, Description("Position of the wiper on this variable resistor, between 0 and 1.")]
         public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+        // IPotControl
+        double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep mapping of the wiper.")]
@@ -29,9 +31,21 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = Mna.AddParameter(this, Name, wipe, 1e-6, 1.0 - 1e-6, Sweep);
+            Expression P = AdjustWipe(wipe, sweep);
 
             Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * P);
+        }
+
+        public static double AdjustWipe(double x, SweepType Sweep)
+        {
+            switch (Sweep)
+            {
+                case SweepType.Logarithmic: x = (Math.Exp(x) - 1.0) / (Math.E - 1.0); break;
+                default: break;
+            }
+
+            // Clamp to (0, 1).
+            return Math.Min(Math.Max(x, 1e-6), 1.0 - 1e-6);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
