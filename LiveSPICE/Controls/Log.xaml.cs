@@ -43,12 +43,25 @@ namespace LiveSPICE
             if (Type > verbosity)
                 return;
             Dispatcher.InvokeAsync(() =>
-                {
-                    bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
-                    text.AppendText(String.Format(Message, Format) + "\r\n");
-                    if (atEnd)
-                        text.ScrollToEnd();
-                });
+            {
+                bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
+                text.AppendText(String.Format(Message, Format) + "\r\n");
+                if (atEnd)
+                    text.ScrollToEnd();
+            });
+        }
+        
+        public void WriteLines(MessageType Type, IEnumerable<string> Lines)
+        {
+            if (Type > verbosity)
+                return;
+            Dispatcher.InvokeAsync(() =>
+            {
+                bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
+                text.AppendText(String.Join("\r\n", Lines) + "\r\n");
+                if (atEnd)
+                    text.ScrollToEnd();
+            });
         }
 
         public void WriteException(Exception Ex)
@@ -63,6 +76,10 @@ namespace LiveSPICE
         void ILog.WriteLine(MessageType Type, string Message, params object[] Format)
         {
             WriteLine(Type, Message, Format);
+        }
+        void ILog.WriteLines(MessageType Type, IEnumerable<string> Lines)
+        {
+            WriteLines(Type, Lines);
         }
 
         // INotifyPropertyChanged.

@@ -170,7 +170,7 @@ namespace Circuit
                     IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
 
                     solutions.Add(new NewtonIteration(solved, nonlinear.Equations, nonlinear.Unknowns, guess));
-                    LogList(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), nonlinear.Equations.Select(i => i.ToString() + " == 0"));
+                    LogExpressions(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), nonlinear.Equations.Select(i => Equal.New(i, 0)));
                     LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
                 }
             }
@@ -206,8 +206,7 @@ namespace Circuit
             if (List.Any())
             {
                 Log.WriteLine(Type, Title);
-                foreach (string i in List)
-                    Log.WriteLine(Type, "  " + i);
+                Log.WriteLines(Type, List.Select(i => "  " + i));
                 Log.WriteLine(Type, "");
             }
         }

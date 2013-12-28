@@ -20,6 +20,7 @@ namespace Util
     public interface ILog
     {
         void WriteLine(MessageType Type, string Text, params object[] Format);
+        void WriteLines(MessageType Type, IEnumerable<string> Lines);
     }
 
     public abstract class Log : ILog
@@ -67,6 +68,12 @@ namespace Util
                         Format, 
                         Args));
         }
+        public void WriteLines(MessageType Type, IEnumerable<string> Lines)
+        {
+            if (verbosity >= Type)
+                foreach (string i in Lines)
+                    WriteLine(Type, i);
+        }
         public void WriteLine(string Format, params object[] Args) { WriteLine(MessageType.Info, Format, Args); }
         
         private static Log global = null;
@@ -96,6 +103,7 @@ namespace Util
     public class NullLog : ILog
     {
         void ILog.WriteLine(MessageType Type, string Text, params object[] Format) { }
+        void ILog.WriteLines(MessageType Type, IEnumerable<string> Lines) { }
     }
 
     /// <summary>
