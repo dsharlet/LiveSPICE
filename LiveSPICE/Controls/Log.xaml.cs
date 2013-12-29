@@ -42,10 +42,11 @@ namespace LiveSPICE
         {
             if (Type > verbosity)
                 return;
+            string append = String.Format(Message, Format) + "\r\n";
             Dispatcher.InvokeAsync(() =>
             {
                 bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
-                text.AppendText(String.Format(Message, Format) + "\r\n");
+                text.AppendText(append);
                 if (atEnd)
                     text.ScrollToEnd();
             });
@@ -55,10 +56,11 @@ namespace LiveSPICE
         {
             if (Type > verbosity)
                 return;
+            string append = String.Join("\r\n", Lines);
             Dispatcher.InvokeAsync(() =>
             {
                 bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;
-                text.AppendText(String.Join("\r\n", Lines) + "\r\n");
+                text.AppendText(append + "\r\n");
                 if (atEnd)
                     text.ScrollToEnd();
             });
