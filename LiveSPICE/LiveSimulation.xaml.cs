@@ -32,14 +32,14 @@ namespace LiveSPICE
         public int Oversample
         {
             get { return oversample; }
-            set { oversample = value; NotifyChanged("Oversample"); }
+            set { oversample = value; RebuildSolution(); NotifyChanged("Oversample"); }
         }
 
         protected int iterations = 8;
         public int Iterations
         {
             get { return iterations; }
-            set { iterations = value; NotifyChanged("Iterations"); }
+            set { iterations = value; RebuildSolution(); NotifyChanged("Iterations"); }
         }
 
         private double inputGain = 1.0;
@@ -96,17 +96,16 @@ namespace LiveSPICE
 
                 foreach (Circuit.Component i in circuit.Components)
                 {
-                    Circuit.IPotControl c = i as Circuit.IPotControl;
-                    if (c == null)
-                        continue;
-
                     Circuit.Symbol S = i.Tag as Circuit.Symbol;
                     if (S == null)
                         continue;
 
                     SymbolControl tag = (SymbolControl)S.Tag;
+                    if (tag == null)
+                        continue;
 
-                    if (tag != null)
+                    Circuit.IPotControl c = i as Circuit.IPotControl;
+                    if (c != null)
                     {
                         PotControl pot = new PotControl()
                         {
@@ -163,17 +162,16 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        Circuit.Quantity h = new Circuit.Quantity((ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
+                        ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
                         Circuit.TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
 
-                        simulation = new Circuit.Simulation(
-                            solution,
-                            inputChannels.Select(i => i.Signal),
-                            probes.Select(i => i.V).Concat(outputChannels.Select(i => i.Signal)))
+                        simulation = new Circuit.Simulation(solution)
                         {
+                            Input = inputChannels.Select(i => i.Signal),
+                            Output = probes.Select(i => i.V).Concat(outputChannels.Select(i => i.Signal)),
                             Oversample = Oversample,
                             Iterations = Iterations,
-                            Log = Log
+                            Log = Log,
                         };
                     }
                     catch (Exception Ex)
@@ -183,35 +181,26 @@ namespace LiveSPICE
                 });
             }
         }
-
-        private void RebuildSimulation()
-        {
-            lock (sync)
-            {
-                try
-                {
-                    simulation = new Circuit.Simulation(
-                        simulation.Solution,
-                        inputChannels.Select(i => i.Signal),
-                        probes.Select(i => i.V).Concat(outputChannels.Select(i => i.Signal)))
-                    {
-                        Oversample = Oversample,
-                        Iterations = Iterations,
-                        Log = Log
-                    };
-                }
-                catch (Exception Ex)
-                {
-                    Log.WriteException(Ex);
-                }
-            }
-        }
-
+        
+        private int clock = -1;
+        private int update = 0;
+        private TaskScheduler scheduler = new RedundantTaskScheduler(1);
         private void UpdateSimulation()
         {
-            Circuit.Quantity h = new Circuit.Quantity((ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample), Circuit.Units.s);
-            Circuit.TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h);
-            lock (sync) simulation.Solution = s;
+            int id = Interlocked.Increment(ref update);
+            new Task(() =>
+            {
+                ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
+                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h);
+                lock (sync)
+                {
+                    if (id > clock)
+                    {
+                        simulation.Solution = s;
+                        clock = id;
+                    }
+                }
+            }).Start(scheduler);
         }
 
         private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
@@ -333,7 +322,8 @@ namespace LiveSPICE
                 lock (sync)
                 {
                     probes.Add(probe);
-                    RebuildSimulation();
+                    if (simulation != null)
+                        simulation.Output = probes.Select(i => i.V).Concat(outputChannels.Select(i => i.Signal));
                 }
             }
         }
@@ -347,7 +337,8 @@ namespace LiveSPICE
                 lock (sync)
                 {
                     probes.Remove(probe);
-                    RebuildSimulation();
+                    if (simulation != null)
+                        simulation.Output = probes.Select(i => i.V).Concat(outputChannels.Select(i => i.Signal));
                 }
             }
         }

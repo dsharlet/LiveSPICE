@@ -90,17 +90,17 @@ namespace Circuit
         /// </summary>
         public Expression SampleRate { get { return 1 / (Solution.TimeStep * oversample); } }
 
-        private IEnumerable<Expression> input;
+        private IEnumerable<Expression> input = new Expression[] { };
         /// <summary>
         /// Expressions representing input samples.
         /// </summary>
-        public IEnumerable<Expression> Input { get { return input; } }
+        public IEnumerable<Expression> Input { get { return input; } set { input = value.Buffer(); InvalidateProcess(); } }
 
-        private IEnumerable<Expression> output;
+        private IEnumerable<Expression> output = new Expression[] { };
         /// <summary>
         /// Expressions for output samples.
         /// </summary>
-        public IEnumerable<Expression> Output { get { return output; } }
+        public IEnumerable<Expression> Output { get { return output; } set { output = value.Buffer(); InvalidateProcess(); } }
         
         // Stores any global state in the simulation (previous state values, mostly).
         private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
@@ -117,11 +117,9 @@ namespace Circuit
         /// <param name="Solution">Transient solution to run.</param>
         /// <param name="Input">Expressions in the solution to be defined by input samples.</param>
         /// <param name="Output">Expressions describing outputs to be saved from the simulation.</param>
-        public Simulation(TransientSolution Solution, IEnumerable<Expression> Input, IEnumerable<Expression> Output)
+        public Simulation(TransientSolution Solution)
         {
             solution = Solution;
-            input = Input.Buffer();
-            output = Output.Buffer();
             
             // If any system depends on the previous value of an unknown, we need a global variable for it.
             foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
@@ -140,9 +138,6 @@ namespace Circuit
 
             InvalidateProcess();
         }
-        public Simulation(TransientSolution Solution, Expression Input, IEnumerable<Expression> Output) : this(Solution, new[] { Input }, Output) { }
-        public Simulation(TransientSolution Solution, IEnumerable<Expression> Input, Expression Output) : this(Solution, Input, new[] { Output }) { }
-        public Simulation(TransientSolution Solution, Expression Input, Expression Output) : this(Solution, new[] { Input }, new[] { Output }) { }
           
         /// <summary>
         /// Process some samples with this simulation. The Input and Output buffers must match the enumerations provided
@@ -153,6 +148,9 @@ namespace Circuit
         /// <param name="Output">Buffers to receive output samples.</param>
         public void Run(int N, IEnumerable<double[]> Input, IEnumerable<double[]> Output)
         {
+            if (process == null)
+                return;
+
             // Build parameter list for the processor.
             object[] parameters = new object[2 + Input.Count() + Output.Count()];
             int p = 0;
@@ -189,7 +187,11 @@ namespace Circuit
         // Rebuild the process function.
         private void InvalidateProcess()
         {
-            process = DefineProcess(TimeStep, Oversample, Iterations);
+            try
+            {
+                process = DefineProcess(TimeStep, Oversample, Iterations);
+            }
+            catch (Exception) { }
         }
 
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
@@ -197,8 +199,6 @@ namespace Circuit
         //  { ... }
         private Delegate DefineProcess(double T, int Oversample, int Iterations)
         {
-            Util.Timer time = new Util.Timer();
-
             // Map expressions to identifiers in the syntax tree.
             List<KeyValuePair<Expression, LinqExpr>> inputs = new List<KeyValuePair<Expression, LinqExpr>>();
             List<KeyValuePair<Expression, LinqExpr>> outputs = new List<KeyValuePair<Expression, LinqExpr>>();
@@ -389,7 +389,6 @@ namespace Circuit
 
             LinqExprs.LambdaExpression lambda = code.Build();
             Delegate ret = lambda.Compile();
-            log.WriteLine(MessageType.Info, "Simulation.DefineProcess took '{0}'", time.ToString());
             return ret;
         }
 

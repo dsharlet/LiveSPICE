@@ -90,11 +90,13 @@ namespace Tests
 
             analysisTime += Timer.Delta(a);
 
-            Simulation S = new Simulation(TS, Input, Plots) 
+            Simulation S = new Simulation(TS) 
             { 
                 Oversample = Oversample, 
                 Iterations = Iterations,
                 Log = Log, 
+                Input = new[] { Input },
+                Output = Plots,
             };
 
             Log.WriteLine("");
@@ -118,10 +120,7 @@ namespace Tests
 
             List<List<double>> output = S.Output.Select(i => new List<double>(Samples)).ToList();
             List<double[]> buffers = S.Output.Select(i => new double[N]).ToList();
-
-            // Ensure that the simulation is cached before benchmarking.
-            S.Run(input, buffers);
-
+            
             double time = 0.0;
             int samples = 0;
             double t = 0;
