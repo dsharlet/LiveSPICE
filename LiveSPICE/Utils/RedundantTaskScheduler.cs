@@ -43,16 +43,20 @@ namespace LiveSPICE
                     Interlocked.Increment(ref running);
                     ThreadPool.UnsafeQueueUserWorkItem((x) =>
                     {
-                        Task item;
-                        lock (tasks)
+                        while (true)
                         {
-                            item = tasks.LastOrDefault();
-                            tasks.Clear();
+                            Task item;
+                            lock (tasks)
+                            {
+                                item = tasks.LastOrDefault();
+                                tasks.Clear();
+                            }
+
+                            if (item != null)
+                                base.TryExecuteTask(item);
+                            else
+                                break;
                         }
-
-                        if (item != null)
-                            base.TryExecuteTask(item);
-
                         Interlocked.Decrement(ref running);
                     }, null);
                 }
