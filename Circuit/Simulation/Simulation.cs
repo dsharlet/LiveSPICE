@@ -35,11 +35,8 @@ namespace Circuit
     /// </summary>
     public class Simulation
     {
-        // Expression for t at the previous timestep.
-        protected static readonly Variable t0 = TransientSolution.t0;
         protected static readonly Variable t = TransientSolution.t;
-        
-        // This is used often enough to shorten it a few characters.
+        protected static readonly Expression t0 = TransientSolution.t0;
         protected static readonly Arrow t_t0 = Arrow.New(t, t0);
 
         private long n = 0;

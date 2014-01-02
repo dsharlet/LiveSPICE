@@ -15,12 +15,9 @@ namespace Circuit
     /// </summary>
     public class TransientSolution
     {
-        // Expression for t at the previous timestep.
-        public static readonly Variable t0 = Component.t0;
-        // And the current timestep.
         public static readonly Variable t = Component.t;
-
-        public static readonly Variable T = Component.T;
+        public static readonly Expression T = Component.T;
+        public static readonly Expression t0 = Component.t0;
 
         private Expression h;
         /// <summary>
@@ -142,10 +139,10 @@ namespace Circuit
                 IEnumerable<Arrow> linear = F.Solve();
                 if (linear.Any())
                 {
+                    linear = Factor(linear);
                     solutions.Add(new LinearSolutions(linear));
                     LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
                 }
-
 
                 // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
                 if (F.Unknowns.Any())
@@ -165,12 +162,18 @@ namespace Circuit
                     // Find linear solutions for dy. 
                     nonlinear.RowReduce(ly);
                     IEnumerable<Arrow> solved = nonlinear.Solve(ly);
+                    solved = Factor(solved);
 
                     // Initial guess for y(t) = y(t0).
                     IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+                    guess = Factor(guess);
 
-                    solutions.Add(new NewtonIteration(solved, nonlinear.Equations, nonlinear.Unknowns, guess));
-                    LogExpressions(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), nonlinear.Equations.Select(i => Equal.New(i, 0)));
+                    // Newton system equations.
+                    IEnumerable<LinearCombination> equations = nonlinear.Equations;
+                    equations = Factor(equations);
+
+                    solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
+                    LogExpressions(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), equations.Select(i => Equal.New(i, 0)));
                     LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
                 }
             }
@@ -186,6 +189,9 @@ namespace Circuit
         }
         public static TransientSolution Solve(Analysis Analysis, Expression TimeStep, ILog Log) { return Solve(Analysis, TimeStep, new Arrow[] { }, Log); }
         public static TransientSolution Solve(Analysis Analysis, Expression TimeStep) { return Solve(Analysis, TimeStep, new Arrow[] { }, new NullLog()); }
+
+        private static IEnumerable<Arrow> Factor(IEnumerable<Arrow> x) { return x.Select(i => Arrow.New(i.Left, i.Right.Factor())).Buffer(); }
+        private static IEnumerable<LinearCombination> Factor(IEnumerable<LinearCombination> x) { return x.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).Buffer(); }
 
         // Shorthand for df/dx.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
