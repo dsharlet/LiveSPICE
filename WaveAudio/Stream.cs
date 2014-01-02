@@ -45,12 +45,12 @@ namespace WaveAudio
         public override void Stop()
         {
             stop = true;
+            proc.Join();
+
             foreach (WaveIn i in waveIn)
                 i.Stop();
             foreach (WaveOut i in waveOut)
                 i.Stop();
-
-            proc.Join();
         }
 
         private void Proc()
@@ -107,7 +107,7 @@ namespace WaveAudio
             }
             catch (Exception Ex)
             {
-                Log.Global.WriteLine(MessageType.Error, "Unhandled exception '{0}': {1}", Ex.GetType().FullName, Ex.ToString());
+                Log.Global.WriteLine(MessageType.Error, "Unhandled exception on streaming thread '{0}': {1}", Ex.GetType().FullName, Ex.ToString());
             }
             Log.Global.WriteLine(MessageType.Info, "Exiting streaming thread");
         }
