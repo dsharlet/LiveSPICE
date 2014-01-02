@@ -56,10 +56,13 @@ namespace WaveAudio
             {
                 foreach (InBuffer i in buffers)
                     i.Dispose(Disposing);
-                buffers.Clear();
+                buffers = null;
             }
             if (waveIn != IntPtr.Zero)
                 Winmm.waveInClose(waveIn);
+            waveIn = IntPtr.Zero;
+
+            callback = null;
         }
 
         public void Stop()

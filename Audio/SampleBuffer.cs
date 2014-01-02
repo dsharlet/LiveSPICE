@@ -41,15 +41,17 @@ namespace Audio
             raw = Marshal.AllocHGlobal(Count * sizeof(double));
         }
 
-        ~SampleBuffer() { FreeRaw(); }
-        public void Dispose() { FreeRaw(); }
-        private void FreeRaw()
+        ~SampleBuffer() { Dispose(false); }
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+        private void Dispose(bool Disposing)
         {
             if (raw != IntPtr.Zero)
             {
                 Marshal.FreeHGlobal(raw);
                 raw = IntPtr.Zero;
             }
+            samples = null;
+            locked = false;
         }
 
         /// <summary>
@@ -175,8 +177,9 @@ namespace Audio
             raw = Target.LockRaw(Read, Write);
         }
 
-        ~RawLock() { Unlock(); }
-        public void Dispose() { Unlock(); }
+        ~RawLock() { Dispose(false); }
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+        private void Dispose(bool Disposing) { Unlock(); target = null; }
         private void Unlock() { if (raw != IntPtr.Zero) target.Unlock(); raw = IntPtr.Zero; }
         
         public int Count { get { return target.Count; } }
@@ -195,8 +198,9 @@ namespace Audio
             samples = Target.LockSamples(Read, Write);
         }
 
-        ~SamplesLock() { Unlock(); }
-        public void Dispose() { Unlock(); }
+        ~SamplesLock() { Dispose(false); }
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+        private void Dispose(bool Disposing) { Unlock(); target = null; }
         private void Unlock() { if (samples != null) target.Unlock(); samples = null; }
         
         public int Count { get { return samples.Length; } }

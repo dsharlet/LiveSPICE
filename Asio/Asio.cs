@@ -210,9 +210,17 @@ namespace Asio
             vtbl = new VTable(Marshal.ReadIntPtr(_this));
         }
 
-        ~AsioObject() { Release(); }
-        public void Dispose() { Release(); }
-        private void Release() { if (_this != IntPtr.Zero) { vtbl.Release(_this); _this = IntPtr.Zero; } }
+        ~AsioObject() { Dispose(false); }
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+        private void Dispose(bool Disposing)
+        { 
+            if (_this != IntPtr.Zero) 
+            { 
+                vtbl.Release(_this); 
+                _this = IntPtr.Zero; 
+            }
+            vtbl = null;
+        }
 
         public void Init(IntPtr SysHandle) 
         {
