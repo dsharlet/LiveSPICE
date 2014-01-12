@@ -86,7 +86,7 @@ namespace LiveSPICE
         }
         public static IEnumerable<SchematicEditor> Show(Window Owner, string Message, MessageBoxButton Buttons, params SchematicEditor[] Editors) { return Show(Owner, Message, Buttons, Editors.AsEnumerable()); }
 
-        private void Yes_Click(object sender, RoutedEventArgs e) { result = yes.Content == "Yes" ? MessageBoxResult.Yes : MessageBoxResult.OK; Close(); }
+        private void Yes_Click(object sender, RoutedEventArgs e) { result = ((string)yes.Content == "Yes" ? MessageBoxResult.Yes : MessageBoxResult.OK); Close(); }
         private void No_Click(object sender, RoutedEventArgs e) { result = MessageBoxResult.No; Close(); }
     }
 }
