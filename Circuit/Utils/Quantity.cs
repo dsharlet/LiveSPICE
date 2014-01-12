@@ -91,6 +91,7 @@ namespace Circuit
         }
 
         public static implicit operator Expression(Quantity x) { return x.x; }
+        public static implicit operator LazyExpression(Quantity x) { return new LazyExpression(x.x); }
         public static explicit operator Real(Quantity x) { return (Real)x.x; }
         public static explicit operator double(Quantity x) { return (double)x.x; }
 
