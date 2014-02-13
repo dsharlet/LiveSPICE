@@ -146,7 +146,7 @@ namespace Circuit
         public void Run(int N, IEnumerable<double[]> Input, IEnumerable<double[]> Output)
         {
             if (process == null)
-                return;
+                process = DefineProcess();
 
             // Build parameter list for the processor.
             object[] parameters = new object[2 + Input.Count() + Output.Count()];
@@ -186,7 +186,8 @@ namespace Circuit
         {
             try
             {
-                process = DefineProcess(TimeStep, Oversample, Iterations);
+                process = null;
+                process = DefineProcess();
             }
             catch (Exception) { }
         }
@@ -194,7 +195,7 @@ namespace Circuit
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ...)
         //  { ... }
-        private Delegate DefineProcess(double T, int Oversample, int Iterations)
+        private Delegate DefineProcess()
         {
             // Map expressions to identifiers in the syntax tree.
             List<KeyValuePair<Expression, LinqExpr>> inputs = new List<KeyValuePair<Expression, LinqExpr>>();
@@ -227,7 +228,7 @@ namespace Circuit
             code.Add(LinqExpr.Assign(t, t0));
 
             // double h = T / Oversample
-            LinqExpr h = LinqExpr.Constant((double)T / (double)Oversample);
+            LinqExpr h = LinqExpr.Constant(TimeStep / (double)Oversample);
 
             // Load the globals to local variables and add them to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
@@ -312,7 +313,7 @@ namespace Circuit
                                 code.DoWhile((Break) =>
                                 {
                                     // Solve the un-solved system.
-                                    Solve(code, JxF, S.Equations.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value)))), S.UnknownDeltas);
+                                    Solve(code, JxF, S.Equations, S.UnknownDeltas);
 
                                     // Compile the pre-solved solutions.
                                     if (S.KnownDeltas != null)
