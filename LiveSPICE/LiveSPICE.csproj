@@ -112,9 +112,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
-    <Compile Include="Controls\Simulation\Channel.xaml.cs">
-      <DependentUpon>Channel.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Controls\Simulation\Channel.cs" />
     <Compile Include="Controls\Simulation\PotControl.cs" />
     <Compile Include="Utils\MenuItemIcon.cs" />
     <Compile Include="Utils\ImageButton.cs" />
@@ -186,10 +184,6 @@
     <Compile Include="Windows\UnhandledException.xaml.cs">
       <DependentUpon>UnhandledException.xaml</DependentUpon>
     </Compile>
-    <Page Include="Controls\Simulation\Channel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Themes\Images.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -13,6 +13,31 @@
 
         <CommandBinding Command="{x:Static ls:Commands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type ls:InputChannel}">
+            <DockPanel Margin="4">
+                <TextBlock DockPanel.Dock="Left" Width="100" Text="{Binding Name}" TextAlignment="Left" VerticalAlignment="Center" FontWeight="Bold" />
+                <TextBlock DockPanel.Dock="Left" Width="50"
+                           Text="{Binding V0dB, StringFormat={}{0:N2} V}"
+                           TextAlignment="Center" VerticalAlignment="Center" />
+                <Slider DockPanel.Dock="Right" Minimum="0" Maximum="1" Value="{Binding V0dB}" />
+            </DockPanel>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ls:OutputChannel}">
+            <DockPanel Margin="4">
+                <DockPanel Margin="4" DockPanel.Dock="Top">
+                    <TextBlock DockPanel.Dock="Left" Width="100" Text="{Binding Name}" TextAlignment="Left" VerticalAlignment="Center" FontWeight="Bold" />
+                    <TextBox DockPanel.Dock="Right" Text="{Binding Signal}" TextAlignment="Left" VerticalAlignment="Center" />
+                </DockPanel>
+                <DockPanel Margin="4" DockPanel.Dock="Bottom">
+                    <TextBlock DockPanel.Dock="Left" Width="50"
+                               Text="{Binding V0dB, StringFormat={}{0:N2} V}"
+                               TextAlignment="Center" VerticalAlignment="Center" />
+                    <Slider DockPanel.Dock="Right" Minimum="0" Maximum="1" Value="{Binding V0dB}" />
+                </DockPanel>
+            </DockPanel>
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="0" />
@@ -79,34 +104,9 @@
                         <xcad:LayoutAnchorablePane>
                             <!-- Audio -->
                             <xcad:LayoutAnchorable x:Name="audio" Title="Audio" AutoHideWidth="240">
-                                <StackPanel Orientation="Vertical" Margin="4">
-                                    <DockPanel LastChildFill="True">
-                                        <TextBlock DockPanel.Dock="Left" Text="Input" Margin="4" 
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <TextBlock x:Name="inputLevel" DockPanel.Dock="Right" Width="50"
-                                                    Text="{Binding ElementName=_this, Path=InputGain, StringFormat={}{0:+#;-#;+0} dB}"
-                                                    TextAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" />
-                                        <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=InputGain}" />
-                                    </DockPanel>
-                                    <Border BorderBrush="DarkGray" Margin="4" BorderThickness="1">
-                                        <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                            <StackPanel x:Name="inputs" Height="80" Background="White" />
-                                        </ScrollViewer>
-                                    </Border>
-                                    <Separator />
-                                    <DockPanel LastChildFill="True">
-                                        <TextBlock DockPanel.Dock="Left" Text="Output" Margin="4" 
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <TextBlock x:Name="outputLevel" DockPanel.Dock="Right" Width="50"
-                                                   Text="{Binding ElementName=_this, Path=OutputGain, StringFormat={}{0:+#;-#;+0} dB}" 
-                                                   TextAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" />
-                                        <Slider Minimum="-40" Maximum="20" Margin="4" Value="{Binding ElementName=_this, Path=OutputGain}" />
-                                    </DockPanel>
-                                    <Border BorderBrush="DarkGray" Margin="4" BorderThickness="1">
-                                        <ScrollViewer ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                            <StackPanel x:Name="outputs" Height="80" Background="White" />
-                                        </ScrollViewer>
-                                    </Border>
+                                <StackPanel Orientation="Vertical">
+                                    <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=InputChannels}" />
+                                    <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=OutputChannels}" />
                                 </StackPanel>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
