@@ -207,12 +207,24 @@ namespace Circuit
             // Create parameters for the basic simulation info (N, t, Iterations).
             ParamExpr SampleCount = code.Decl<int>(Scope.Parameter, "SampleCount");
             ParamExpr t0 = code.Decl(Scope.Parameter, Simulation.t0);
+
             // Create buffer parameters for each input...
+            Log.WriteLine(MessageType.Verbose, "Simulation inputs:");
             foreach (Expression i in Input)
+            {
                 inputs.Add(new KeyValuePair<Expression, LinqExpr>(i, code.Decl<double[]>(Scope.Parameter, i.ToString())));
+                Log.WriteLine(MessageType.Verbose, "   {0}", i.ToString());
+            }
+            Log.WriteLine(MessageType.Verbose, "");
+
             // ... and output.
+            Log.WriteLine(MessageType.Verbose, "Simulation outputs:");
             foreach (Expression i in Output)
+            {
                 outputs.Add(new KeyValuePair<Expression, LinqExpr>(i, code.Decl<double[]>(Scope.Parameter, i.ToString())));
+                Log.WriteLine(MessageType.Verbose, "   {0}", i.ToString());
+            }
+            Log.WriteLine(MessageType.Verbose, "");
 
             // Create globals to store previous values of inputs.
             foreach (Expression i in Input.Distinct())
