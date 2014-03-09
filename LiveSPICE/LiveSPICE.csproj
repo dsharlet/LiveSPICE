@@ -112,7 +112,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Controls\Component.cs" />
+    <Compile Include="Controls\ComponentControl.cs" />
     <Compile Include="Controls\Simulation\Channel.cs" />
     <Compile Include="Controls\Simulation\FindRelevantTool.cs" />
     <Compile Include="Controls\Simulation\PotControl.cs" />
