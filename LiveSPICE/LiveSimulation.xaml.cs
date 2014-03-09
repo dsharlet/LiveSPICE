@@ -146,6 +146,8 @@ namespace LiveSPICE
                     Circuit.Input input = i as Circuit.Input;
                     if (input != null)
                     {
+                        tag.ShowText = false;
+
                         ComboBox combo = new ComboBox()
                         {
                             Width = 80,
@@ -164,35 +166,37 @@ namespace LiveSPICE
                             });
                         }
 
-                        if (combo.Items.Count > 0)
-                            combo.SelectedItem = combo.Items[0];
-                        else
-                            combo.Text = "0 V";
-
                         Schematic.overlays.Children.Add(combo);
                         Canvas.SetLeft(combo, Canvas.GetLeft(tag) - combo.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(combo, Canvas.GetTop(tag) - combo.Height / 2 + tag.Height / 2);
 
                         ComputerAlgebra.Expression V = Circuit.Component.DependentVariable(input.Name, Circuit.Component.t);
-                     
-                        combo.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler((o, e) =>
+                        inputs[V] = new SignalChannel(0);
+
+                        combo.SelectionChanged += (o, e) =>
                         {
                             if (combo.SelectedItem != null)
                             {
                                 ComboBoxItem it = (ComboBoxItem)combo.SelectedItem;
                                 inputs[V] = new InputChannel(((InputChannel)it.Tag).Index);
                             }
-                            else
+                        };
+
+                        combo.AddHandler(TextBox.KeyDownEvent, new KeyEventHandler((o, e) =>
+                        {
+                            try
                             {
-                                try
-                                {
-                                    inputs[V] = new SignalChannel(ComputerAlgebra.Expression.Parse(combo.Text));
-                                }
-                                catch (Exception Ex) 
-                                { 
-                                }
+                                inputs[V] = new SignalChannel(combo.Text);
+                            }
+                            catch (Exception Ex)
+                            {
                             }
                         }));
+
+                        if (combo.Items.Count > 0)
+                            combo.SelectedItem = combo.Items[0];
+                        else
+                            combo.Text = "0 V";
 
                         combo.MouseEnter += (o, e) => combo.Opacity = 0.95;
                         combo.MouseLeave += (o, e) => combo.Opacity = 0.5;
