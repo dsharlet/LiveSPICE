@@ -113,6 +113,7 @@
     </ApplicationDefinition>
     <Compile Include="Controls\Component.cs" />
     <Compile Include="Controls\Simulation\Channel.cs" />
+    <Compile Include="Controls\Simulation\FindRelevantTool.cs" />
     <Compile Include="Controls\Simulation\PotControl.cs" />
     <Compile Include="Utils\dBConverter.cs" />
     <Compile Include="Utils\MenuItemIcon.cs" />
