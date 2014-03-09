@@ -279,6 +279,8 @@ namespace LiveSPICE
             }
         }
 
+        public void ClearFilter_Click(object sender, RoutedEventArgs e) { Filter = ""; }
+
         private List<Action<Circuit.Component>> componentClick = new List<Action<Circuit.Component>>();
         public event Action<Circuit.Component> ComponentClick
         {

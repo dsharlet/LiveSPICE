@@ -11,7 +11,10 @@
             <Button Click="Refresh_Click"><Image Source="{StaticResource Refresh}" Height="16" /></Button>
             <Separator />
             <TextBlock Text="Filter: " VerticalAlignment="Center"/>
-            <TextBox Width="110" Margin="2" Text="{Binding ElementName=_this, Path=Filter, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox Width="120" Margin="2" Text="{Binding ElementName=_this, Path=Filter, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Click="ClearFilter_Click">
+                <TextBlock Text="&#215;" FontSize="20" VerticalAlignment="Center" />
+            </Button>
         </ToolBar>
         <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto">
