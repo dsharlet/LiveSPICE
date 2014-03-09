@@ -54,21 +54,15 @@ namespace LiveSPICE
         /// <summary>
         /// Overall input gain.
         /// </summary>
-        public double InputGain
-        {
-            get { return (int)Math.Round(20 * Math.Log(inputGain, 10)); }
-            set { inputGain = Math.Pow(10, value / 20); NotifyChanged("InputGain"); }
-        }
+        public double InputGain { get { return inputGain; } set { inputGain = value; NotifyChanged("InputGain"); } }
 
         private double outputGain = 1.0;
         /// <summary>
         /// Overall output gain.
         /// </summary>
-        public double OutputGain
-        {
-            get { return (int)Math.Round(20 * Math.Log(outputGain, 10)); }
-            set { outputGain = Math.Pow(10, value / 20); NotifyChanged("OutputGain"); }
-        }
+        public double OutputGain { get { return outputGain; } set { outputGain = value; NotifyChanged("OutputGain"); } }
+
+        private SimulationSchematic Schematic { get { return (SimulationSchematic)schematic.Schematic; } set { schematic.Schematic = value; } }
 
         protected Circuit.Circuit circuit = null;
         protected Circuit.Simulation simulation = null;
@@ -91,29 +85,25 @@ namespace LiveSPICE
             try
             {
                 InitializeComponent();
-
-                // Create audio channel controls.
-                for (int i = 0; i < Inputs.Length; ++i)
-                    InputChannels.Add(new InputChannel(i) { Name = Inputs[i].Name });
-                for (int i = 0; i < Outputs.Length; ++i)
-                {
-                    OutputChannel c = new OutputChannel(i) { Name = Outputs[i].Name };
-                    c.PropertyChanged += (o, e) => { if (e.PropertyName == "Signal") RebuildSolution(); };
-                    OutputChannels.Add(c);
-                }
-
+                
                 // Make a clone of the schematic so we can mess with it.
                 Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
                 clone.Elements.ItemAdded += OnElementAdded;
                 clone.Elements.ItemRemoved += OnElementRemoved;
-                schematic.Schematic = new SimulationSchematic(clone);
-                schematic.Schematic.SelectionChanged += OnProbeSelected;
+                Schematic = new SimulationSchematic(clone);
+                Schematic.SelectionChanged += OnProbeSelected;
 
                 // Build the circuit from the schematic.
-                circuit = schematic.Schematic.Schematic.Build(Log);
+                circuit = Schematic.Schematic.Build(Log);
                 
                 // Create the input and output controls.                
                 IEnumerable<Circuit.Component> components = circuit.Components;
+
+                // Create audio input channels.
+                for (int i = 0; i < Inputs.Length; ++i)
+                    InputChannels.Add(new InputChannel(i) { Name = Inputs[i].Name });
+
+                ComputerAlgebra.Expression speakers = 0;
 
                 foreach (Circuit.Component i in components)
                 {
@@ -137,7 +127,7 @@ namespace LiveSPICE
                             FontSize = 15,
                             FontWeight = FontWeights.Bold,
                         };
-                        schematic.Schematic.overlays.Children.Add(pot);
+                        Schematic.overlays.Children.Add(pot);
                         Canvas.SetLeft(pot, Canvas.GetLeft(tag) - pot.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(pot, Canvas.GetTop(tag) - pot.Height / 2 + tag.Height / 2);
 
@@ -147,6 +137,10 @@ namespace LiveSPICE
                         pot.MouseEnter += (o, e) => pot.Opacity = 0.95;
                         pot.MouseLeave += (o, e) => pot.Opacity = 0.5;
                     }
+
+                    Circuit.Speaker output = i as Circuit.Speaker;
+                    if (output != null)
+                        speakers += output.V;
 
                     // Create input controls.
                     Circuit.Input input = i as Circuit.Input;
@@ -175,7 +169,7 @@ namespace LiveSPICE
                         else
                             combo.Text = "0 V";
 
-                        schematic.Schematic.overlays.Children.Add(combo);
+                        Schematic.overlays.Children.Add(combo);
                         Canvas.SetLeft(combo, Canvas.GetLeft(tag) - combo.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(combo, Canvas.GetTop(tag) - combo.Height / 2 + tag.Height / 2);
 
@@ -204,6 +198,15 @@ namespace LiveSPICE
                         combo.MouseLeave += (o, e) => combo.Opacity = 0.5;
                     }
                 }
+
+                // Create audio output channels.
+                for (int i = 0; i < Outputs.Length; ++i)
+                {
+                    OutputChannel c = new OutputChannel(i) { Name = Outputs[i].Name, Signal = speakers };
+                    c.PropertyChanged += (o, e) => { if (e.PropertyName == "Signal") RebuildSolution(); };
+                    OutputChannels.Add(c);
+                }
+
 
                 // Begin audio processing.
                 if (Inputs.Any() || Outputs.Any())
@@ -418,7 +421,7 @@ namespace LiveSPICE
 
         private void OnProbeSelected(object sender, EventArgs e)
         {
-            IEnumerable<Circuit.Symbol> selected = SimulationSchematic.ProbesOf(schematic.Schematic.Selected);
+            IEnumerable<Circuit.Symbol> selected = SimulationSchematic.ProbesOf(Schematic.Selected);
             if (selected.Any())
                 Scope.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
@@ -430,6 +433,30 @@ namespace LiveSPICE
         private void ViewScope_Click(object sender, RoutedEventArgs e) { ToggleVisible(scope); }
         private void ViewAudio_Click(object sender, RoutedEventArgs e) { ToggleVisible(audio); }
         private void ViewLog_Click(object sender, RoutedEventArgs e) { ToggleVisible(log); }
+
+        private void BindSignal_Click(object sender, RoutedEventArgs e) 
+        {
+            OutputChannel ch = (OutputChannel)((FrameworkElement)sender).Tag;
+
+            SchematicTool tool = Schematic.Tool;
+
+            Schematic.Tool = new FindRelevantTool(Schematic)
+            {
+                Relevant = (x) => x is Circuit.Symbol && ((Circuit.Symbol)x).Component is Circuit.TwoTerminal,
+                Clicked = (x) => 
+                {
+                    if (x.Any())
+                    {
+                        ComputerAlgebra.Expression init = (Keyboard.Modifiers & ModifierKeys.Control) != 0 ? ch.Signal : 0;
+                        ch.Signal = x.OfType<Circuit.Symbol>()
+                            .Select(i => i.Component)
+                            .OfType<Circuit.TwoTerminal>()
+                            .Aggregate(init, (sum, c) => sum + c.V);
+                    }
+                    Schematic.Tool = tool;
+                }
+            };
+        }
 
         private static void ToggleVisible(LayoutAnchorable Anchorable)
         {

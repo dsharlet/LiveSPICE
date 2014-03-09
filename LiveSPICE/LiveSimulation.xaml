@@ -14,28 +14,67 @@
         <CommandBinding Command="{x:Static ls:Commands.Exit}" Executed="Exit_Executed" />
     </Window.CommandBindings>
     <Window.Resources>
+        <ls:dBConverter x:Key="dBConverter" />
         <DataTemplate DataType="{x:Type ls:InputChannel}">
-            <DockPanel Margin="4">
-                <TextBlock DockPanel.Dock="Left" Width="100" Text="{Binding Name}" TextAlignment="Left" VerticalAlignment="Center" FontWeight="Bold" />
-                <TextBlock DockPanel.Dock="Left" Width="50"
-                           Text="{Binding V0dB, StringFormat={}{0:N2} V}"
-                           TextAlignment="Center" VerticalAlignment="Center" />
-                <Slider DockPanel.Dock="Right" Minimum="0" Maximum="1" Value="{Binding V0dB}" />
-            </DockPanel>
+            <Border Margin="2" BorderThickness="1" BorderBrush="LightGray" ToolTip="{Binding Name}">
+                <DockPanel>
+                    <DockPanel Margin="2" DockPanel.Dock="Top">
+                        <Border DockPanel.Dock="Left" Margin="4" Width="12" Height="12" 
+                                BorderThickness="1"
+                                BorderBrush="Black" Background="{Binding SignalStatus}" />
+                        <TextBlock DockPanel.Dock="Left"
+                                   Text="{Binding Name}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding Name}" 
+                                   TextAlignment="Left" VerticalAlignment="Center" />
+                        <!--TextBlock DockPanel.Dock="Right" 
+                                   Text="{Binding Signal}" 
+                                   TextAlignment="Left" VerticalAlignment="Center" /-->
+                    </DockPanel>
+                    <DockPanel Margin="2" DockPanel.Dock="Bottom">
+                        <TextBlock DockPanel.Dock="Left" Width="50"
+                                   Text="0dBFS: "
+                                   TextAlignment="Right" VerticalAlignment="Center" />
+                        <TextBox DockPanel.Dock="Left" Width="50"
+                                 Text="{Binding V0dB, StringFormat={}{0:N3} V}"
+                                 TextAlignment="Center" VerticalAlignment="Center" />
+                        <Slider DockPanel.Dock="Right" Minimum="-20" Maximum="20" 
+                                Value="{Binding V0dB, Converter={StaticResource dBConverter}}" />
+                    </DockPanel>
+                </DockPanel>
+            </Border>
         </DataTemplate>
         <DataTemplate DataType="{x:Type ls:OutputChannel}">
-            <DockPanel Margin="4">
-                <DockPanel Margin="4" DockPanel.Dock="Top">
-                    <TextBlock DockPanel.Dock="Left" Width="100" Text="{Binding Name}" TextAlignment="Left" VerticalAlignment="Center" FontWeight="Bold" />
-                    <TextBox DockPanel.Dock="Right" Text="{Binding Signal}" TextAlignment="Left" VerticalAlignment="Center" />
+            <Border Margin="2" BorderThickness="1" BorderBrush="LightGray" ToolTip="{Binding Name}">
+                <DockPanel>
+                    <DockPanel Margin="2" DockPanel.Dock="Top" LastChildFill="True">
+                        <Border DockPanel.Dock="Left" Margin="4" Width="12" Height="12" 
+                                BorderThickness="1"
+                                BorderBrush="Black" Background="{Binding SignalStatus}" />
+                        <TextBlock DockPanel.Dock="Left" Width="60" 
+                                   Text="{Binding Name}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding Name}" 
+                                   TextAlignment="Left" VerticalAlignment="Center" />
+                        <TextBlock DockPanel.Dock="Left" Width="40" 
+                                   Text="Signal: " 
+                                   TextAlignment="Right" VerticalAlignment="Center" />
+                        <Button DockPanel.Dock="Right" Width="20" 
+                                Content="&#x1f50d;" Click="BindSignal_Click" Tag="{Binding}"/>
+                        <TextBox Text="{Binding Signal}" 
+                                 ToolTip="{Binding Signal}" 
+                                 TextAlignment="Left" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <DockPanel Margin="2" DockPanel.Dock="Bottom">
+                        <TextBlock DockPanel.Dock="Left" Width="50"
+                                   Text="0dBFS: "
+                                   TextAlignment="Right" VerticalAlignment="Center" />
+                        <TextBox DockPanel.Dock="Left" Width="50"
+                                 Text="{Binding V0dB, StringFormat={}{0:N3} V}"
+                                 TextAlignment="Center" VerticalAlignment="Center" />
+                        <Slider DockPanel.Dock="Right" Minimum="-20" Maximum="20" 
+                                Value="{Binding V0dB, Converter={StaticResource dBConverter}}" />
+                    </DockPanel>
                 </DockPanel>
-                <DockPanel Margin="4" DockPanel.Dock="Bottom">
-                    <TextBlock DockPanel.Dock="Left" Width="50"
-                               Text="{Binding V0dB, StringFormat={}{0:N2} V}"
-                               TextAlignment="Center" VerticalAlignment="Center" />
-                    <Slider DockPanel.Dock="Right" Minimum="0" Maximum="1" Value="{Binding V0dB}" />
-                </DockPanel>
-            </DockPanel>
+            </Border>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -104,10 +143,37 @@
                         <xcad:LayoutAnchorablePane>
                             <!-- Audio -->
                             <xcad:LayoutAnchorable x:Name="audio" Title="Audio" AutoHideWidth="240">
-                                <StackPanel Orientation="Vertical">
-                                    <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=InputChannels}" />
-                                    <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=OutputChannels}" />
-                                </StackPanel>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Orientation="Vertical">
+                                        <DockPanel Margin="5">
+                                            <TextBlock DockPanel.Dock="Left" Width="40" 
+                                                       Text="Input" FontWeight="Bold" VerticalAlignment="Center" />
+                                            <TextBlock DockPanel.Dock="Left" Width="40" 
+                                                       Text="Gain: " 
+                                                       TextAlignment="Right" VerticalAlignment="Center" />
+                                            <TextBox DockPanel.Dock="Left" Width="50" 
+                                                     Text="{Binding ElementName=_this, Path=InputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB}" 
+                                                     TextAlignment="Left" VerticalAlignment="Center" />
+                                            <Slider DockPanel.Dock="Right" 
+                                                    Value="{Binding ElementName=_this, Path=InputGain, Converter={StaticResource dBConverter}}" Minimum="-40" Maximum="40" />
+                                        </DockPanel>
+                                        <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=InputChannels}" />
+                                        <Separator />
+                                        <DockPanel Margin="5">
+                                            <TextBlock DockPanel.Dock="Left" Width="40"
+                                                       Text="Outputs" FontWeight="Bold" VerticalAlignment="Center" />
+                                            <TextBlock DockPanel.Dock="Left" Width="40" 
+                                                       Text="Gain: " 
+                                                       TextAlignment="Right" VerticalAlignment="Center" />
+                                            <TextBox DockPanel.Dock="Left" Width="50" 
+                                                     Text="{Binding ElementName=_this, Path=OutputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB}" 
+                                                     TextAlignment="Left" VerticalAlignment="Center" />
+                                            <Slider DockPanel.Dock="Right" 
+                                                    Value="{Binding ElementName=_this, Path=OutputGain, Converter={StaticResource dBConverter}}" Minimum="-40" Maximum="40" />
+                                        </DockPanel>
+                                        <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=OutputChannels}" />
+                                    </StackPanel>
+                                </ScrollViewer>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
 
