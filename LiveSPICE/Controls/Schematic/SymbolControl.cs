@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Xml.Linq;
 using System.Reflection;
 using System.ComponentModel;
+using Util;
 
 namespace LiveSPICE
 {
@@ -71,12 +72,12 @@ namespace LiveSPICE
 
             text.Inlines.Add(new Bold(new Run(component.ToString())));
 
-            foreach (PropertyInfo i in component.GetType().GetProperties().Where(j =>
-                j.GetCustomAttribute<Circuit.Serialize>() != null &&
-                (j.GetCustomAttribute<BrowsableAttribute>() == null || j.GetCustomAttribute<BrowsableAttribute>().Browsable)))
+            foreach (PropertyInfo i in component.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(j =>
+                j.CustomAttribute<Circuit.Serialize>() != null &&
+                (j.CustomAttribute<BrowsableAttribute>() == null || j.CustomAttribute<BrowsableAttribute>().Browsable)))
             {
-                object value = i.GetValue(component);
-                DefaultValueAttribute def = i.GetCustomAttribute<DefaultValueAttribute>();
+                object value = i.GetValue(component, null);
+                DefaultValueAttribute def = i.CustomAttribute<DefaultValueAttribute>();
                 if (def == null || !Equals(def.Value, value))
                 {
                     System.ComponentModel.TypeConverter tc = System.ComponentModel.TypeDescriptor.GetConverter(i.PropertyType);

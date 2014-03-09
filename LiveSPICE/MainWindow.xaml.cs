@@ -239,7 +239,7 @@ namespace LiveSPICE
             IEnumerable<object> selected = Properties.SelectedObjects;
             PropertyInfo property = selected.First().GetType().GetProperty(e.ChangedItem.PropertyDescriptor.Name);
             EditStack edits = (EditStack)Properties.Tag;
-            edits.Did(EditList.New(selected.Select(i => new PropertyEdit(i, property, property.GetValue(i), e.OldValues[i]))));
+            edits.Did(EditList.New(selected.Select(i => new PropertyEdit(i, property, property.GetValue(i, null), e.OldValues[i]))));
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

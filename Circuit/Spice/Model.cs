@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Util;
 
 namespace Circuit.Spice
 {
@@ -66,7 +67,7 @@ namespace Circuit.Spice
                 if (p != null)
                 {
                     TypeConverter tc = TypeDescriptor.GetConverter(p.PropertyType);
-                    p.SetValue(impl, tc.ConvertFrom(ParseValue(Tokens[i + 1]).ToString()));
+                    p.SetValue(impl, tc.ConvertFrom(ParseValue(Tokens[i + 1]).ToString()), null);
                 }
             }
 
@@ -77,10 +78,10 @@ namespace Circuit.Spice
         {
             Name = Name.ToUpper();
 
-            foreach (PropertyInfo i in Template.GetType().GetProperties())
+            foreach (PropertyInfo i in Template.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 // Check all the parameter aliases for this parameter.
-                foreach (ParameterAlias j in i.GetCustomAttributes<ParameterAlias>())
+                foreach (ParameterAlias j in i.CustomAttributes<ParameterAlias>())
                     if (Name == j.Alias)
                         return i;
 

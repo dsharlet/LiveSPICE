@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using Util;
 
 namespace LiveSPICE
 {
@@ -316,7 +317,7 @@ namespace LiveSPICE
         }
         private void AddItem(ICategory Group, Circuit.Component C)
         {
-            DescriptionAttribute desc = C.GetType().GetCustomAttribute<DescriptionAttribute>();
+            DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
             AddItem(Group, C, C.TypeName, desc != null ? desc.Description : null); 
         }
         private void AddItem(ICategory Group, Type T) { AddItem(Group, (Circuit.Component)Activator.CreateInstance(T)); }

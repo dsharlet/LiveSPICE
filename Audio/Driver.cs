@@ -18,9 +18,9 @@ namespace Audio
         { 
             get 
             {
-                foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies())
+                foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies().Where(i => !i.IsDynamic))
                 {
-                    foreach (Type j in i.DefinedTypes.Where(x => !x.IsAbstract && !drivers.Any(j => j.GetType() == x) && typeof(Driver).IsAssignableFrom(x)))
+                    foreach (Type j in i.GetExportedTypes().Where(x => !x.IsAbstract && !drivers.Any(j => j.GetType() == x) && typeof(Driver).IsAssignableFrom(x)))
                     {
                         try
                         {

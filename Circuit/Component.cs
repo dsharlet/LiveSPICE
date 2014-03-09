@@ -6,6 +6,7 @@ using System.Text;
 using System.Xml.Linq;
 using System.Reflection;
 using ComputerAlgebra;
+using Util;
 
 namespace Circuit
 {
@@ -85,10 +86,10 @@ namespace Circuit
             XElement X = new XElement("Component");
             Type T = GetType();
             X.SetAttributeValue("_Type", T.AssemblyQualifiedName);
-            foreach (PropertyInfo i in T.GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
+            foreach (PropertyInfo i in T.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(i => i.CustomAttribute<Serialize>() != null))
             {
-                object value = i.GetValue(this);
-                DefaultValueAttribute def = i.GetCustomAttribute<DefaultValueAttribute>();
+                object value = i.GetValue(this, null);
+                DefaultValueAttribute def = i.CustomAttribute<DefaultValueAttribute>();
                 if (def == null || !Equals(def.Value, value))
                 {
                     TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
@@ -100,13 +101,13 @@ namespace Circuit
 
         protected virtual void DeserializeImpl(XElement X)
         {
-            foreach (PropertyInfo i in GetType().GetProperties().Where(i => i.GetCustomAttribute<Serialize>() != null))
+            foreach (PropertyInfo i in GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(i => i.CustomAttribute<Serialize>() != null))
             {
                 XAttribute attr = X.Attribute(i.Name);
                 if (attr != null)
                 {
                     TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
-                    i.SetValue(this, tc.ConvertFromString(attr.Value));
+                    i.SetValue(this, tc.ConvertFromString(attr.Value), null);
                 }
             }
         }
@@ -144,7 +145,7 @@ namespace Circuit
         {
             get
             {
-                DisplayNameAttribute attr = GetType().GetCustomAttribute<DisplayNameAttribute>(false);
+                DisplayNameAttribute attr = GetType().CustomAttribute<DisplayNameAttribute>(false);
                 return attr != null ? attr.DisplayName : GetType().Name;
             }
         }

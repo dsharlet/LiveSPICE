@@ -124,7 +124,7 @@ namespace LiveSPICE
 
             foreach (object i in properties.SelectedObjects)
                 // Janky serialize...but if it works for the PropertyGrid, it works for us.
-                old[i] = converter.ConvertFromString(converter.ConvertToString(property.GetValue(i)));
+                old[i] = converter.ConvertFromString(converter.ConvertToString(property.GetValue(i, null)));
         }
 
         public delegate void PropertyValueChangedHandler(object sender, PropertyValueChangedEventArgs e);

@@ -61,7 +61,7 @@ namespace LiveSPICE
         object set;
         object unset;
 
-        public PropertyEdit(object Target, PropertyInfo Property, object Do) : this(Target, Property, Do, Property.GetValue(Target)) { }
+        public PropertyEdit(object Target, PropertyInfo Property, object Do) : this(Target, Property, Do, Property.GetValue(Target, null)) { }
         public PropertyEdit(object Target, PropertyInfo Property, object Do, object Undo)
         {
             target = Target;
@@ -70,8 +70,8 @@ namespace LiveSPICE
             unset = Undo;
         }
 
-        public override void Do() { property.SetValue(target, set); }
-        public override void Undo() { property.SetValue(target, unset); }
+        public override void Do() { property.SetValue(target, set, null); }
+        public override void Undo() { property.SetValue(target, unset, null); }
 
         public override string ToString() { return "Set " + property.Name; }
     }

@@ -25,6 +25,7 @@ namespace Circuit
         public int Number { get { return number; } set { number = value; NotifyChanged("Number"); } }
 
         // Use the name of the external terminal as the name of this port.
+        [Serialize]
         public override string Name { get { return external.Name; } set { external.Name = value; } }
 
         public Port() { external = new Terminal(this, "X1"); }

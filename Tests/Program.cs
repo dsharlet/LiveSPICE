@@ -34,7 +34,7 @@ namespace Tests
             List<string> performance = new List<string>();
 
             // This test generates the signal for the LiveSPICE 'logo'.
-            //Run("BossSD1NoBuffer.xml", Vin, "V1[t]", new Expression[] { "_v15[t]", "_v11[t]" });
+            //Run("Subcircuit Trivial.schx", Vin, "V1[t]", new Expression[] { "_v15[t]", "_v11[t]" });
             //return;
 
             foreach (string File in Tests)
@@ -180,8 +180,8 @@ namespace Tests
                 {
                     try
                     {
-                        System.ComponentModel.DisplayNameAttribute name = j.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>();
-                        System.ComponentModel.DescriptionAttribute desc = j.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>();
+                        System.ComponentModel.DisplayNameAttribute name = j.CustomAttribute<System.ComponentModel.DisplayNameAttribute>();
+                        System.ComponentModel.DescriptionAttribute desc = j.CustomAttribute<System.ComponentModel.DescriptionAttribute>();
                         
                         docs.WriteLine("\t<section id=\"" + j.Name + "\">");
                         docs.WriteLine("\t<h4>" + (name != null ? name.DisplayName : j.Name) + "</h4>");
@@ -190,9 +190,9 @@ namespace Tests
 
                         docs.WriteLine("\t\t<h5>Properties</h5>");
                         docs.WriteLine("\t\t<ul>");
-                        foreach (PropertyInfo p in j.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(k => k.GetCustomAttribute<Serialize>() != null))
+                        foreach (PropertyInfo p in j.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(k => k.CustomAttribute<Serialize>() != null))
                         {
-                            desc = p.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>();
+                            desc = p.CustomAttribute<System.ComponentModel.DescriptionAttribute>();
                             StringBuilder prop = new StringBuilder();
                             prop.Append("<span class=\"property\">" + p.Name + "</span>");
                             if (desc != null)
