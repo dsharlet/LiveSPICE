@@ -116,6 +116,7 @@
     <Compile Include="Controls\Simulation\FindRelevantTool.cs" />
     <Compile Include="Controls\Simulation\PotControl.cs" />
     <Compile Include="Utils\dBConverter.cs" />
+    <Compile Include="Utils\KillFocus.cs" />
     <Compile Include="Utils\MenuItemIcon.cs" />
     <Compile Include="Utils\ImageButton.cs" />
     <Compile Include="Controls\Scope\SignalDisplay.cs" />

@@ -78,7 +78,7 @@ namespace LiveSPICE
                 if (be != null)
                     be.UpdateSource();
 
-                Window.GetWindow(textbox).Focus();
+                textbox.KillFocus();
             }
         }
 
@@ -91,7 +91,7 @@ namespace LiveSPICE
                 if (be != null)
                     be.UpdateSource();
 
-                Window.GetWindow(combo).Focus();
+                combo.KillFocus();
             }
         }
 
