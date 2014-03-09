@@ -34,8 +34,9 @@ namespace LiveSPICE
             StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
 
             // Add image to the button.
-            content.Children.Add(new ComponentControl(C)
+            content.Children.Add(new ComponentControl()
             {
+                Component = C,
                 Width = 16,
                 Height = 16,
                 ShowText = false,

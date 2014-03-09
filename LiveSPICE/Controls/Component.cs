@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,21 +22,27 @@ namespace LiveSPICE
     /// <summary>
     /// Control that displays a circuit component.
     /// </summary>
-    public class ComponentControl : Control
+    public class ComponentControl : Control, INotifyPropertyChanged
     {
         static ComponentControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(ComponentControl), new FrameworkPropertyMetadata(typeof(ComponentControl))); }
 
         private bool showText = true;
         public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); } }
-        
-        protected Circuit.SymbolLayout layout;
 
-        public ComponentControl(Circuit.Component C)
+        protected Circuit.SymbolLayout layout = null;
+        private Circuit.Component component = null;
+        public Circuit.Component Component
         {
-            layout = new Circuit.SymbolLayout();
-            C.LayoutSymbol(layout);
+            get { return component; }
+            set
+            {
+                component = value;
+                layout = new Circuit.SymbolLayout();
+                component.LayoutSymbol(layout);
+                NotifyChanged("Component");
+            }
         }
-        
+
         protected override Size MeasureOverride(Size constraint)
         {
             return new Size(
@@ -55,5 +62,13 @@ namespace LiveSPICE
 
             SymbolControl.DrawLayout(layout, drawingContext, transform, ShowText ? FontFamily : null, FontWeight, FontSize);
         }
+
+        // INotifyPropertyChanged.
+        protected void NotifyChanged(string p)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }
