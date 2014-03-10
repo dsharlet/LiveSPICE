@@ -32,11 +32,11 @@ namespace LiveSPICE
         private bool showText = true;
         public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual();  } }
     
-        protected Circuit.SymbolLayout layout = new Circuit.SymbolLayout();
+        protected Circuit.SymbolLayout layout;
 
         public SymbolControl(Circuit.Symbol S) : base(S)
         {
-            Component.LayoutSymbol(layout);
+            layout = Component.LayoutSymbol();
 
             S.Component.PropertyChanged += (o, e) => RefreshLayout();
 
@@ -114,8 +114,7 @@ namespace LiveSPICE
 
         protected void RefreshLayout()
         {
-            layout = new Circuit.SymbolLayout();
-            Component.LayoutSymbol(layout);
+            layout = Component.LayoutSymbol();
             InvalidateVisual();
         }
 

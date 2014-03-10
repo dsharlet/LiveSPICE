@@ -112,7 +112,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Controls\ComponentControl.cs" />
+    <Compile Include="Controls\Library\LayoutControl.cs" />
+    <Compile Include="Controls\Library\Library.cs" />
     <Compile Include="Controls\Simulation\Channel.cs" />
     <Compile Include="Controls\Simulation\FindRelevantTool.cs" />
     <Compile Include="Controls\Simulation\PotControl.cs" />
@@ -173,7 +174,7 @@
     <Compile Include="Controls\Editor\SymbolTool.cs" />
     <Compile Include="Controls\Schematic\ElementControl.cs" />
     <Compile Include="Controls\Schematic\SchematicTool.cs" />
-    <Compile Include="Controls\ComponentLibrary.xaml.cs">
+    <Compile Include="Controls\Library\ComponentLibrary.xaml.cs">
       <DependentUpon>ComponentLibrary.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Log.xaml.cs">
@@ -229,7 +230,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\ComponentLibrary.xaml">
+    <Page Include="Controls\Library\ComponentLibrary.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
