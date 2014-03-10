@@ -106,6 +106,13 @@ namespace Circuit
                 warnings++;
             }
 
+            // Check for deprecated symbols.
+            foreach (Component i in circuit.Components.Where(i => i.GetType().CustomAttribute<ObsoleteAttribute>() != null))
+            {
+                log.WriteLine(MessageType.Warning, "Warning: Use of deprecated symbol '{0}'", i.ToString());
+                warnings++;
+            }
+
             log.WriteLine(MessageType.Info, "Build: {0} errors, {1} warnings", errors, warnings);
 
             if (errors != 0)
