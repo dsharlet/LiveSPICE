@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Port")]
     [DefaultProperty("Name")]
     [Description("Represents an input terminal when the schematic is used as a subcircuit.")]

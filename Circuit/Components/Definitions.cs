@@ -7,7 +7,7 @@ using ComputerAlgebra;
 
 namespace Circuit
 {
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Named Voltage")]
     public class VoltageDefinition : TwoTerminal
     {
@@ -31,7 +31,7 @@ namespace Circuit
         }
     }
 
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Named Current")]
     public class CurrentDefinition : TwoTerminal
     {

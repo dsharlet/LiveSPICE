@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal voltage source.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Rail")]
     [DefaultProperty("Voltage")]
     [Description("Single terminal voltage source with the cathode implicitly connected to ground.")] 

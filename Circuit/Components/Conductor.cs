@@ -11,7 +11,7 @@ namespace Circuit
     /// <summary>
     /// This component isn't useful. It is present for completeness.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Wire")]
     [Description("Component with zero impedance between the terminals.")]
     public class Conductor : TwoTerminal

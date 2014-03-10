@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Buffer")]
     [Description("Ideal voltage follower.")]
     public class Buffer : TwoTerminal

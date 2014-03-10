@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Resistor is a linear component with V = R*i.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Resistor")]
     [DefaultProperty("Resistance")]
     [Description("Standard resistor.")] 

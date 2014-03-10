@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal voltage source.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Voltage Source")]
     [DefaultProperty("Voltage")]
     [Description("Ideal voltage source.")]

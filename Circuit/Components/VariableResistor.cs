@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace Circuit
 { 
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Variable Resistor")]
     [DefaultProperty("Resistance")]
     [Description("Variable resistor.")]

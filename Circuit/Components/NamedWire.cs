@@ -11,7 +11,7 @@ namespace Circuit
     /// Named wire.
     /// </summary>
     [DisplayName("Named Wire")]
-    [Category("Standard")]
+    [Category("Generic")]
     [DefaultProperty("WireName")]
     [Description("Nodes with the same name are connected as if they were connected by a continuous wire.")]
     public class NamedWire : OneTerminal

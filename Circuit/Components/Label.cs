@@ -16,7 +16,7 @@ namespace Circuit
     /// <summary>
     /// Token component for storing circuit labels.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Label")]
     [DefaultProperty("Text")]
     [Description("Displays a text label on a schematic.")]

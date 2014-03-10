@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal current source.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Current Source")]
     [DefaultProperty("Current")]
     [Description("Ideal current source.")]

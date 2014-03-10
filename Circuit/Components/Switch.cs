@@ -65,19 +65,19 @@ namespace Circuit
         }
     }
 
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("DPST")]
     [DefaultProperty("Position")]
     [Description("2-pole single-throw switch.")]
     public class Sw2PST : SwNPST { public Sw2PST() : base(2) { } }
 
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("3PST")]
     [DefaultProperty("Position")]
     [Description("3-pole single-throw switch.")]
     public class Sw3PST : SwNPST { public Sw3PST() : base(3) { } }
 
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("4PST")]
     [DefaultProperty("Position")]
     [Description("4-pole single-throw switch.")]
@@ -88,7 +88,7 @@ namespace Circuit
     /// Switch component that is open or closed. 
     /// Deprecated.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Switch")]
     [DefaultProperty("Closed")]
     [Description("Switch.")]

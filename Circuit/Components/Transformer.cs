@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal transformer.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Transformer")]
     [DefaultProperty("Turns")]
     [Description("Ideal transformer.")]

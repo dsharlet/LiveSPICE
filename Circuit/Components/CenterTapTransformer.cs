@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ideal transformer.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Center Tap Transformer")]
     [DefaultProperty("Turns")]
     [Description("Ideal transformer with a center tap in the secondary coil.")]

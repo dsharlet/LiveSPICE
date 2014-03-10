@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Resistor is a linear component with V = R*i.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Potentiometer")]
     [DefaultProperty("Resistance")]
     [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")]

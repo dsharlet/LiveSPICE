@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Inductor is a linear component with V = L*di/dt.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Inductor")]
     [DefaultProperty("Inductance")]
     [Description("Standard inductor.")]

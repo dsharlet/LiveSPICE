@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Ground component, V = 0.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Ground")]
     public class Ground : OneTerminal
     {

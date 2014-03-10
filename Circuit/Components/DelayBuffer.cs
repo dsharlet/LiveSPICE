@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// Buffer that delays signal to the previous timestep.
     /// </summary>
-    [Category("Standard")]
+    [Category("Generic")]
     [DisplayName("Delay Buffer")]
     [Description("Ideal voltage follower with a single sample of delay.")]
     public class DelayBuffer : TwoTerminal
