@@ -138,6 +138,26 @@ namespace LiveSPICE
                         pot.MouseLeave += (o, e) => pot.Opacity = 0.5;
                     }
 
+                    // Create Buttons.
+                    Circuit.IButtonControl b = i as Circuit.IButtonControl;
+                    if (b != null)
+                    {
+                        Button button = new Button()
+                        {
+                            Width = tag.Width,
+                            Height = tag.Height,
+                            Opacity = 0.5,
+                        };
+                        Schematic.overlays.Children.Add(button);
+                        Canvas.SetLeft(button, Canvas.GetLeft(tag));
+                        Canvas.SetTop(button, Canvas.GetTop(tag));
+
+                        button.Click += (o, e) => { b.Click(); RebuildSolution(); };
+
+                        button.MouseEnter += (o, e) => button.Opacity = 0.95;
+                        button.MouseLeave += (o, e) => button.Opacity = 0.5;
+                    }
+
                     Circuit.Speaker output = i as Circuit.Speaker;
                     if (output != null)
                         speakers += output.V;
