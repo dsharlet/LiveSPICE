@@ -22,6 +22,14 @@ namespace Circuit
     }
 
     /// <summary>
+    /// Interface for components that expose a button controlled value.
+    /// </summary>
+    public interface IButtonControl
+    {
+        void Click();
+    }
+
+    /// <summary>
     /// Indicates the property should be serialized.
     /// </summary>
     public class Serialize : Attribute { };
