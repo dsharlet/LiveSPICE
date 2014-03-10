@@ -10,7 +10,7 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <DataTemplate DataType="{x:Type ls:Component}">
-            <Button Tag="{Binding Class}" BorderBrush="Transparent" ToolTip="{Binding Description}" Click="Component_Click" Visibility="{Binding Path=IsVisible, Converter={StaticResource BoolToVis}}">
+            <Button Tag="{Binding Instance}" BorderBrush="Transparent" ToolTip="{Binding Description}" Click="Component_Click" Visibility="{Binding Path=IsVisible, Converter={StaticResource BoolToVis}}">
                 <StackPanel Orientation="Horizontal">
                     <ls:LayoutControl Layout="{Binding Layout}" Width="16" Height="16" ShowText="False" Margin="1" />
                     <TextBlock Width="80" Margin="3, 0, 3, 0" 

@@ -29,15 +29,16 @@ namespace LiveSPICE
         private string desc;
         public string Description { get { return desc; } }
 
-        private Circuit.SymbolLayout layout;
-        public Circuit.SymbolLayout Layout { get { return layout; } }
+        private Circuit.Component instance;
+        public Circuit.Component Instance { get { return instance; } }
+        public Circuit.SymbolLayout Layout { get { return instance.LayoutSymbol(); } }
 
         private bool visible = true;
         public bool IsVisible { get { return visible; } set { visible = value; NotifyChanged("IsVisible"); } }
 
-        public Component(Circuit.SymbolLayout Layout, string Name, string Description)
+        public Component(Circuit.Component Instance, string Name, string Description)
         {
-            layout = Layout;
+            instance = Instance;
             name = Name;
             desc = Description;
         }
@@ -132,7 +133,7 @@ namespace LiveSPICE
                 {
                     Circuit.Schematic S = Circuit.Schematic.Deserialize(doc.Element("Schematic"));
                     Circuit.Circuit C = S.Build();
-                    AddComponent(C.LayoutSymbol(), name, C.Description);
+                    AddComponent(C, name, C.Description);
                 }
             }
             catch (System.Xml.XmlException)
@@ -146,7 +147,7 @@ namespace LiveSPICE
                     {
                         Category child = FindChild(name);
                         foreach (Circuit.Spice.Model i in models)
-                            child.AddComponent(i.Component.LayoutSymbol(), i.Component.PartNumber, i.Description);
+                            child.AddComponent(i.Component, i.Component.PartNumber, i.Description);
                     }
                 }
                 catch (Exception Ex)
@@ -173,14 +174,14 @@ namespace LiveSPICE
                 LoadLibrary(i);
         }
         
-        public void AddComponent(Circuit.SymbolLayout Layout, string Name, string Description)
+        public void AddComponent(Circuit.Component C, string Name, string Description)
         {
-            Components.Add(new Component(Layout, Name, Description));
+            Components.Add(new Component(C, Name, Description));
         }
         public void AddComponent(Circuit.Component C)
         {
             DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
-            AddComponent(C.LayoutSymbol(), C.TypeName, desc != null ? desc.Description : null);
+            AddComponent(C, C.TypeName, desc != null ? desc.Description : null);
         }
         public void AddComponent(Type T)
         {

@@ -82,7 +82,7 @@ namespace LiveSPICE
                 Category generic = Root.FindChild("Generic");
                 Type root = typeof(Circuit.Component);
                 foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies())
-                    foreach (Type j in i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)))
+                    foreach (Type j in i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j) && j.CustomAttribute<ObsoleteAttribute>() == null))
                         generic.AddComponent(j);
 
                 // Load standard libraries.
