@@ -147,6 +147,7 @@ namespace LiveSPICE
                             Width = tag.Width,
                             Height = tag.Height,
                             Opacity = 0.5,
+                            Background = Brushes.White,
                         };
                         Schematic.overlays.Children.Add(button);
                         Canvas.SetLeft(button, Canvas.GetLeft(tag));
