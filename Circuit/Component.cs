@@ -80,6 +80,13 @@ namespace Circuit
         /// </summary>
         /// <param name="S"></param>
         public abstract void LayoutSymbol(SymbolLayout Sym);
+
+        public SymbolLayout LayoutSymbol()
+        {
+            SymbolLayout layout = new SymbolLayout();
+            LayoutSymbol(layout);
+            return layout;
+        }
                 
         public virtual XElement Serialize()
         {
