@@ -10,7 +10,7 @@ namespace Circuit
     /// <summary>
     /// N-pole single throw switch base.
     /// </summary>
-    public abstract class SwNPST : Component, IButtonControl
+    public abstract class SwitchNPST : Component, IButtonControl
     {
         protected int position = 0;
         [Serialize, Description("Switch position.")]
@@ -26,7 +26,7 @@ namespace Circuit
 
         public override IEnumerable<Terminal> Terminals { get { return Poles.Append(Common); } }
 
-        public SwNPST(int PoleCount)
+        public SwitchNPST(int PoleCount)
         {
             if (PoleCount < 2 || PoleCount > 100)
                 throw new ArgumentOutOfRangeException("PoleCount", "PoleCount must be in [2, 100]");
@@ -69,19 +69,19 @@ namespace Circuit
     [DisplayName("DPST")]
     [DefaultProperty("Position")]
     [Description("2-pole single-throw switch.")]
-    public class Sw2PST : SwNPST { public Sw2PST() : base(2) { } }
+    public class Switch2PST : SwitchNPST { public Switch2PST() : base(2) { } }
 
     [Category("Generic")]
     [DisplayName("3PST")]
     [DefaultProperty("Position")]
     [Description("3-pole single-throw switch.")]
-    public class Sw3PST : SwNPST { public Sw3PST() : base(3) { } }
+    public class Switch3PST : SwitchNPST { public Switch3PST() : base(3) { } }
 
     [Category("Generic")]
     [DisplayName("4PST")]
     [DefaultProperty("Position")]
     [Description("4-pole single-throw switch.")]
-    public class Sw4PST : SwNPST { public Sw4PST() : base(4) { } }
+    public class Switch4PST : SwitchNPST { public Switch4PST() : base(4) { } }
 
 
     /// <summary>

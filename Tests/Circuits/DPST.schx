@@ -55,9 +55,9 @@
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-4" Flip="false" Position="-90,70">
     <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="Highpass" Subtext="" Name="_2" />
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-150,-100">
-    <Component _Type="Circuit.Sw2PST, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Position="0" Name="S2" />
-  </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-200" B="-100,-110" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-90" B="-100,0" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-150,-100">
+    <Component _Type="Circuit.Switch2PST, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="S2" Position="0" />
+  </Element>
 </Schematic>

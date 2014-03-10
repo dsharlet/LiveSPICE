@@ -131,8 +131,8 @@
       <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Mu="83.5" K="1.73E-06" Name="V6" PartNumber="12AX7" />
     </Component>
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-250,200">
-    <Component _Type="Circuit.Sw2PST, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Position="0" Name="Bright" />
-  </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,210" B="-200,230" />
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-250,200">
+    <Component _Type="Circuit.Switch2PST, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Position="0" Name="Bright" />
+  </Element>
 </Schematic>
