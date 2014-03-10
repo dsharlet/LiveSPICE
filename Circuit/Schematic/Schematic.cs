@@ -83,6 +83,10 @@ namespace Circuit
             {
                 foreach (Terminal j in i.Terminals.Where(j => j.ConnectedTo == null))
                 {
+                    Node dummy = new Node() { Name = "Unconnected" };
+                    circuit.Nodes.Add(dummy);
+                    j.ConnectedTo = dummy;
+
                     log.WriteLine(MessageType.Warning, "Warning: Unconnected terminal '{0}'", j.ToString());
                     warnings++;
                 }
