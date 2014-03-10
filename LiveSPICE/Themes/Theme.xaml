@@ -10,7 +10,7 @@
     </Style>
 
     <Style TargetType="ls:ImageButton" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" />
-    <Style TargetType="ls:ComponentButton" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" />
+    <!--Style TargetType="ls:ComponentButton" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" /-->
     <Style TargetType="ls:MenuItemIcon" BasedOn="{StaticResource {x:Type MenuItem}}" />
     <Style TargetType="Menu">
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />

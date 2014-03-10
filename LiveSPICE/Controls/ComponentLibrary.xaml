@@ -4,8 +4,35 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ls="clr-namespace:LiveSPICE"
+             xmlns:ckt="clr-namespace:Circuit;assembly=Circuit"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type ls:Component}">
+            <Button Tag="{Binding Class}" BorderBrush="Transparent" ToolTip="{Binding Description}" Click="Component_Click" Visibility="{Binding Visibility}">
+                <StackPanel Orientation="Horizontal">
+                    <ls:ComponentControl Component="{Binding Class}" Width="16" Height="16" ShowText="False" Margin="1" />
+                    <TextBlock Width="80" Margin="3, 0, 3, 0" 
+                               Text="{Binding Name}" FontWeight="Normal" FontSize="12"
+                               TextTrimming="CharacterEllipsis" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type ls:Category}">
+            <Expander Header="{Binding Name}" IsExpanded="{Binding IsExpanded}" Focusable="False" FontWeight="Bold" FontSize="14">
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Children}" />
+                    <ItemsControl ItemsSource="{Binding Components}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </Expander>
+        </DataTemplate>
+    </UserControl.Resources>    
     <DockPanel LastChildFill="True">
         <ToolBar Height="28" DockPanel.Dock="Top">
             <Button Click="Refresh_Click"><Image Source="{StaticResource Refresh}" Height="16" /></Button>
@@ -20,8 +47,14 @@
                       ScrollViewer.VerticalScrollBarVisibility="Auto">
             <Border BorderBrush="DarkGray" BorderThickness="1">
                 <Grid>
-                    <StackPanel Name="categories" />
-                    <WrapPanel Name="filtered" Visibility="Collapsed" />
+                    <ItemsControl x:Name="categories" ItemsSource="{Binding ElementName=_this, Path=Root.Children}" />
+                    <ItemsControl x:Name="components" ItemsSource="{Binding ElementName=_this, Path=Root.Components}" Visibility="Collapsed">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </Grid>
             </Border>
         </ScrollViewer>

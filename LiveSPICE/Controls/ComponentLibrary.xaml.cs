@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
@@ -20,101 +21,77 @@ using Util;
 
 namespace LiveSPICE
 {
-    class ComponentButton : Button
+    public class Component : INotifyPropertyChanged
     {
-        static ComponentButton() { DefaultStyleKeyProperty.OverrideMetadata(typeof(ComponentButton), new FrameworkPropertyMetadata(typeof(ComponentButton))); }
+        private string name;
+        public string Name { get { return name; } }
+
+        private string desc;
+        public string Description { get { return desc; } }
+
+        private Circuit.Component component;
+        public Circuit.Component Class { get { return component; } }
+
+        private Visibility visibility = Visibility.Visible;
+        public Visibility Visibility { get { return visibility; } set { visibility = value; NotifyChanged("Visibility"); } }
+
+        public Component(Circuit.Component C, string Name, string Description)
+        {
+            component = C;
+            name = Name;
+            desc = Description;
+        }
+
+        // INotifyPropertyChanged interface.
+        protected void NotifyChanged(string p)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+    }
+
+    public class Category : INotifyPropertyChanged
+    {
+        private ObservableCollection<Category> children = new ObservableCollection<Category>();
+        public ObservableCollection<Category> Children { get { return children; } }
+
+        private ObservableCollection<Component> components = new ObservableCollection<Component>();
+        public ObservableCollection<Component> Components { get { return components; } }
 
         private string name;
-        public new string Name { get { return name; } }
+        public string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
 
-        public ComponentButton(Circuit.Component C, string Name, string Description)
-        {
-            name = Name;
+        private bool expanded = false;
+        public bool IsExpanded { get { return expanded; } set { expanded = value; NotifyChanged("IsExpanded"); } }
 
-            StackPanel content = new StackPanel() { Orientation = Orientation.Horizontal };
-
-            // Add image to the button.
-            content.Children.Add(new ComponentControl()
-            {
-                Component = C,
-                Width = 16,
-                Height = 16,
-                ShowText = false,
-                Margin = new Thickness(1),
-            });
-
-            content.Children.Add(new TextBlock()
-            {
-                Text = Name,
-                Width = 80,
-                Margin = new Thickness(3, 0, 3, 0),
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                FontWeight = FontWeights.Normal,
-                FontSize = FontSize,
-            });
-
-            Tag = C;
-            if (Description != "")
-                ToolTip = Description;
-            Content = content;
-            BorderBrush = null;
-        }
-
-        public Circuit.Component Component { get { return (Circuit.Component)Tag; } }
-    }
-
-    public interface ICategory
-    {
-        IEnumerable<Category> SubCategories { get; }
-        Category SubCategory(string Name);
-
-        void AddItem(UIElement Item);
-    }
-
-    public class Category : Expander, ICategory
-    {
-        private StackPanel children = new StackPanel() { Margin = new Thickness(10, 0, 0, 0) };
-        private WrapPanel items = new WrapPanel() { Margin = new Thickness(10, 0, 0, 0) };
-
-        public Category(string Name)
-        {
-            Header = Name;
-            Focusable = false;
-            FontWeight = FontWeights.Bold;
-            FontSize = 14;
-
-            StackPanel content = new StackPanel();
-            content.Children.Add(children);
-            content.Children.Add(items);
-            Content = content;
-        }
-
-        public new string Name { get { return (string)Header; } }
-
-        public IEnumerable<Category> SubCategories { get { return children.Children.OfType<Category>(); } }
-        public IEnumerable<UIElement> Items { get { return items.Children.OfType<UIElement>(); } }
+        public void Clear() { children.Clear(); components.Clear(); }
 
         public Category SubCategory(string Name)
         {
-            Category category = SubCategories.SingleOrDefault(i => (string)i.Header == Name);
+            Category category = children.SingleOrDefault(i => i.Name == Name);
             if (category == null)
             {
-                category = new Category(Name);
-                children.Children.Add(category);
+                category = new Category() { Name = Name };
+                children.Add(category);
             }
 
             return category;
         }
 
-        public void AddItem(UIElement Item) { items.Children.Add(Item); }
+        // INotifyPropertyChanged interface.
+        protected void NotifyChanged(string p)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 
     /// <summary>
     /// Interaction logic for ComponentLibrary.xaml
     /// </summary>
-    public partial class ComponentLibrary : UserControl, INotifyPropertyChanged, ICategory
+    public partial class ComponentLibrary : UserControl, INotifyPropertyChanged
     {
         private static List<Type> Common = new List<Type>()
         {
@@ -139,12 +116,23 @@ namespace LiveSPICE
             { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
         };
 
-        private void AddLibrary(ICategory Category, string Library)
+        private Category root = new Category();
+        public Category Root { get { return root; } }
+
+        public ComponentLibrary()
+        {
+            InitializeComponent();
+
+            Loaded += OnLoaded;
+        }
+
+        private void AddLibrary(Category Category, string Library)
         {
             string name = System.IO.Path.GetFileNameWithoutExtension(Library);
 
             try
             {
+                // Try to load the library as a LiveSPICE XML document.
                 XDocument doc = XDocument.Load(Library);
                 XElement library = doc.Element("Library");
                 if (library != null)
@@ -167,6 +155,7 @@ namespace LiveSPICE
             }
             catch (System.Xml.XmlException)
             {
+                // Try to load the library as a SPICE model library.
                 try
                 {
                     Circuit.Spice.Statements statements = new Circuit.Spice.Statements(Library);
@@ -189,7 +178,7 @@ namespace LiveSPICE
             }
         }
         
-        private void AddLibraries(ICategory Category, string Path)
+        private void AddLibraries(Category Category, string Path)
         {
             foreach (string i in System.IO.Directory.GetDirectories(Path))
                 AddLibraries(Category.SubCategory(System.IO.Path.GetFileName(i)), i);
@@ -202,29 +191,20 @@ namespace LiveSPICE
         {
             ProgressDialog.Run(Window.GetWindow(this), "Loading component library...", () =>
             {
-                categories.Children.Clear();
-                filtered.Children.Clear();
+                Root.Clear();
 
                 // Add types identified in Common.
-                Category common = SubCategory("Common");
+                Category common = Root.SubCategory("Common");
+                common.IsExpanded = true;
                 foreach (Type i in Common)
-                    AddItem(common, (Circuit.Component)Activator.CreateInstance(i));
+                    AddItem(common, i);
 
-                // Add generic types to the Standard category.
-                Category standard = SubCategory("Standard");
+                // Add generic types to the Generic category.
+                Category standard = Root.SubCategory("Generic");
                 Type root = typeof(Circuit.Component);
                 foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies())
-                {
                     foreach (Type j in i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j)))
-                    {
-                        try
-                        {
-                            Circuit.Component c = (Circuit.Component)Activator.CreateInstance(j);
-                            AddItem(standard, j);
-                        }
-                        catch (Exception) { }
-                    }
-                }
+                        AddItem(standard, j);
 
                 // Load standard libraries.
                 string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
@@ -235,24 +215,51 @@ namespace LiveSPICE
                 };
                 string path = search.FirstOrDefault(i => System.IO.Directory.Exists(i));
                 if (path != null)
-                    AddLibraries(this, path);
+                    AddLibraries(Root, path);
 
                 // Load components from the user docs folder.
-                AddLibraries(this, System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components"));
+                AddLibraries(Root, System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components"));
             });
         }
 
-        public ComponentLibrary()
+        private void AddItem(Category Group, Circuit.Component C, string Name, string Description)
         {
-            InitializeComponent();
+            // Append tooltip if there is a shortcut key.
+            KeyGesture[] keys;
+            if (ShortcutKeys.TryGetValue(C.GetType(), out keys))
+                Description += " (" + String.Join(", ", keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture))) + ")";
 
-            Loaded += OnLoaded;
+            Component c = new Component(C, Name, Description);
+            Group.Components.Add(c);
+            root.Components.Add(c);
+        }
+        private void AddItem(Category Group, Circuit.Component C)
+        {
+            DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
+            AddItem(Group, C, C.TypeName, desc != null ? desc.Description : null);
+        }
+        private void AddItem(Category Group, Type T) 
+        {
+            try
+            {
+                AddItem(Group, (Circuit.Component)Activator.CreateInstance(T));
+            }
+            catch (Exception) { }
         }
 
         private void OnLoaded(object sender, EventArgs e)
         {
-            InitShortcutKeys(Window.GetWindow(this).CommandBindings);
-            
+            CommandBindingCollection commands = Window.GetWindow(this).CommandBindings;
+            foreach (KeyValuePair<Type, KeyGesture[]> i in ShortcutKeys)
+            {
+                Circuit.Component C = (Circuit.Component)Activator.CreateInstance(i.Key);
+
+                RoutedCommand command = new RoutedCommand(C.TypeName, GetType());
+                command.InputGestures.AddRange(i.Value);
+
+                commands.Add(new CommandBinding(command, (x, y) => RaiseComponentClick(C)));
+            }
+
             LoadComponents();
         }
 
@@ -267,20 +274,22 @@ namespace LiveSPICE
                 if (f == "")
                 {
                     categories.Visibility = Visibility.Visible;
-                    filtered.Visibility = Visibility.Collapsed;
+                    components.Visibility = Visibility.Collapsed;
+
+                    foreach (Component i in root.Components)
+                        i.Visibility = Visibility.Visible;
                 }
                 else
                 {
                     categories.Visibility = Visibility.Collapsed;
-                    filtered.Visibility = Visibility.Visible;
+                    components.Visibility = Visibility.Visible;
 
-                    foreach (ComponentButton i in filtered.Children)
+                    foreach (Component i in root.Components)
                         i.Visibility = i.Name.ToUpper().IndexOf(f) != -1 ? Visibility.Visible : Visibility.Collapsed;
                 }
                 NotifyChanged("Filter");
             }
         }
-
         public void ClearFilter_Click(object sender, RoutedEventArgs e) { Filter = ""; }
 
         private List<Action<Circuit.Component>> componentClick = new List<Action<Circuit.Component>>();
@@ -294,67 +303,10 @@ namespace LiveSPICE
             foreach (Action<Circuit.Component> i in componentClick)
                 i(C);
         }
-        private void OnComponentClick(object sender, RoutedEventArgs e) { RaiseComponentClick(((ComponentButton)sender).Component); }
-        
+        private void Component_Click(object sender, RoutedEventArgs e) { RaiseComponentClick((Circuit.Component)((FrameworkElement)sender).Tag); }
+
         private void Refresh_Click(object sender, EventArgs e) { LoadComponents(); }
 
-        private ComponentButton NewComponentButton(Circuit.Component C, string Name, string Description)
-        {
-            ComponentButton button = new ComponentButton(C, Name, Description);
-            button.Click += OnComponentClick;
-
-            // Append tooltip if there is a shortcut key.
-            KeyGesture[] keys;
-            if (ShortcutKeys.TryGetValue(C.GetType(), out keys))
-                button.ToolTip = (string)button.ToolTip + " (" + String.Join(", ", keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture))) + ")";
-
-            return button;
-        }
-
-        private void AddItem(ICategory Group, Circuit.Component C, string Name, string Description)
-        {
-            Group.AddItem(NewComponentButton(C, Name, Description));
-            filtered.Children.Add(NewComponentButton(C, Name, Description));
-        }
-        private void AddItem(ICategory Group, Circuit.Component C)
-        {
-            DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
-            AddItem(Group, C, C.TypeName, desc != null ? desc.Description : null); 
-        }
-        private void AddItem(ICategory Group, Type T) { AddItem(Group, (Circuit.Component)Activator.CreateInstance(T)); }
-
-        // Setup the shortcut key command bindings on the target.
-        private void InitShortcutKeys(CommandBindingCollection Target)
-        {
-            foreach (KeyValuePair<Type, KeyGesture[]> i in ShortcutKeys)
-            {
-                Circuit.Component C = (Circuit.Component)Activator.CreateInstance(i.Key);
-
-                RoutedCommand command = new RoutedCommand(C.TypeName, GetType());
-                command.InputGestures.AddRange(i.Value);
-
-                Target.Add(new CommandBinding(command, (x, y) => RaiseComponentClick(C)));
-            }
-        }
-
-        // ICategory interface.
-        public IEnumerable<Category> SubCategories { get { return categories.Children.OfType<Category>(); } }
-        public Category SubCategory(string Category)
-        {
-            if (Category == "")
-                Category = "Uncategorized";
-
-            Category category = SubCategories.SingleOrDefault(i => i.Name == Category);
-            if (category == null)
-            {
-                category = new Category(Category) { IsExpanded = !SubCategories.Any() };
-                categories.Children.Add(category);
-            }
-
-            return category;
-        }
-        public void AddItem(UIElement Item) { throw new NotImplementedException("Item must be a child of a category."); }
-        
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
