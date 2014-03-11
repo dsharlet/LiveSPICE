@@ -132,7 +132,7 @@ namespace LiveSPICE
                         Canvas.SetTop(pot, Canvas.GetTop(tag) - pot.Height / 2 + tag.Height / 2);
 
                         pot.Value = c.PotValue;
-                        pot.ValueChanged += x => { c.PotValue = x; UpdateSimulation(); };
+                        pot.ValueChanged += x => { c.PotValue = x; UpdateSimulation(false); };
 
                         pot.MouseEnter += (o, e) => pot.Opacity = 0.95;
                         pot.MouseLeave += (o, e) => pot.Opacity = 0.5;
@@ -153,7 +153,7 @@ namespace LiveSPICE
                         Canvas.SetLeft(button, Canvas.GetLeft(tag));
                         Canvas.SetTop(button, Canvas.GetTop(tag));
 
-                        button.Click += (o, e) => { b.Click(); RebuildSolution(); };
+                        button.Click += (o, e) => { b.Click(); UpdateSimulation(true); };
 
                         button.MouseEnter += (o, e) => button.Opacity = 0.95;
                         button.MouseLeave += (o, e) => button.Opacity = 0.5;
@@ -281,19 +281,33 @@ namespace LiveSPICE
         private int clock = -1;
         private int update = 0;
         private TaskScheduler scheduler = new RedundantTaskScheduler(1);
-        private void UpdateSimulation()
+        private void UpdateSimulation(bool Rebuild)
         {
             int id = Interlocked.Increment(ref update);
             new Task(() =>
             {
                 ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h);
+                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
                 lock (sync)
                 {
                     if (id > clock)
                     {
-                        simulation.Solution = s;
-                        clock = id;
+                        if (Rebuild)
+                        {
+                            simulation = new Circuit.Simulation(s)
+                            {
+                                Log = Log,
+                                Input = inputs.Keys,
+                                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)),
+                                Oversample = Oversample,
+                                Iterations = Iterations,
+                            };
+                        }
+                        else
+                        {
+                            simulation.Solution = s;
+                            clock = id;
+                        }
                     }
                 }
             }).Start(scheduler);
