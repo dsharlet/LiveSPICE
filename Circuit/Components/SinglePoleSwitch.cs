@@ -8,32 +8,32 @@ using System.ComponentModel;
 namespace Circuit
 {
     /// <summary>
-    /// N-pole single throw switch base.
+    /// single-pole N-throw switch.
     /// </summary>
-    public abstract class SwitchNPST : Component, IButtonControl
+    public abstract class SinglePoleSwitch : Component, IButtonControl
     {
         protected int position = 0;
         [Serialize, Description("Switch position.")]
         public int Position { get { return position; } set { position = value; NotifyChanged("Position"); } }
 
-        public void Click() { Position = (Position + 1) % poles.Length; }
+        public void Click() { Position = (Position + 1) % throws.Length; }
 
         private Terminal common;
         public Terminal Common { get { return common; } }
 
-        private Terminal[] poles = null;
-        public Terminal[] Poles { get { return poles; } }
+        private Terminal[] throws = null;
+        public Terminal[] Throws { get { return throws; } }
 
-        public override IEnumerable<Terminal> Terminals { get { return Poles.Append(Common); } }
+        public override IEnumerable<Terminal> Terminals { get { return Throws.Append(Common); } }
 
-        public SwitchNPST(int PoleCount)
+        public SinglePoleSwitch(int ThrowCount)
         {
-            if (PoleCount < 2 || PoleCount > 100)
-                throw new ArgumentOutOfRangeException("PoleCount", "PoleCount must be in [2, 100]");
+            if (ThrowCount < 2 || ThrowCount > 100)
+                throw new ArgumentOutOfRangeException("ThrowCount", "ThrowCount must be in [2, 100]");
 
-            poles = new Terminal[PoleCount];
-            for (int i = 0; i < PoleCount; ++i)
-                poles[i] = new Terminal(this, "Pole" + i.ToString());
+            throws = new Terminal[ThrowCount];
+            for (int i = 0; i < ThrowCount; ++i)
+                throws[i] = new Terminal(this, "Throw" + i.ToString());
 
             common = new Terminal(this, "Common");
 
@@ -42,8 +42,8 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            if (0 <= position && position < Poles.Length)
-                Conductor.Analyze(Mna, Name, Common, Poles[Position]);
+            if (0 <= position && position < Throws.Length)
+                Conductor.Analyze(Mna, Name, Common, Throws[Position]);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
@@ -51,10 +51,10 @@ namespace Circuit
             Sym.AddTerminal(common, new Coord(0, -20), new Coord(0, -12));
             Sym.AddCircle(EdgeType.Black, new Coord(0, -12), 2);
                         
-            for (int i = 0; i < Poles.Length; ++i)
+            for (int i = 0; i < Throws.Length; ++i)
             {
-                int x = (i - Poles.Length / 2) * 20 + (Poles.Length % 2 == 0 ? 10 : 0);
-                Sym.AddTerminal(poles[i], new Coord(x, 20), new Coord(x, 12));
+                int x = (i - Throws.Length / 2) * 20 + (Throws.Length % 2 == 0 ? 10 : 0);
+                Sym.AddTerminal(throws[i], new Coord(x, 20), new Coord(x, 12));
                 Sym.AddCircle(EdgeType.Black, new Coord(x, 12), 2);
 
                 if (i == Position)
@@ -66,23 +66,17 @@ namespace Circuit
     }
 
     [Category("Generic")]
-    [DisplayName("DPST")]
+    [DisplayName("SPDT")]
     [DefaultProperty("Position")]
-    [Description("2-pole single-throw switch.")]
-    public class Switch2PST : SwitchNPST { public Switch2PST() : base(2) { } }
+    [Description("single pole double-throw switch.")]
+    public class SPDT : SinglePoleSwitch { public SPDT() : base(2) { } }
 
     [Category("Generic")]
-    [DisplayName("3PST")]
+    [DisplayName("SP3T")]
     [DefaultProperty("Position")]
-    [Description("3-pole single-throw switch.")]
-    public class Switch3PST : SwitchNPST { public Switch3PST() : base(3) { } }
-
-    [Category("Generic")]
-    [DisplayName("4PST")]
-    [DefaultProperty("Position")]
-    [Description("4-pole single-throw switch.")]
-    public class Switch4PST : SwitchNPST { public Switch4PST() : base(4) { } }
-
+    [Description("single pole triple-throw switch.")]
+    public class SP3T : SinglePoleSwitch { public SP3T() : base(3) { } }
+    
 
     /// <summary>
     /// Switch component that is open or closed. 

@@ -40,10 +40,8 @@
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="100,130">
     <Component _Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="GND3" />
   </Element>
-  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-130,-120" B="-100,-120" />
-  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-200" B="-100,-120" />
-  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-130,-80" B="-100,-80" />
-  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-80" B="-100,0" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-130,-110" B="-100,-110" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-130,-90" B="-100,-90" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,0" B="-70,0" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,-100" B="-200,-70" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,-100" B="-170,-100" />
@@ -57,7 +55,9 @@
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-4" Flip="false" Position="-90,70">
     <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="Highpass" Subtext="" Name="_2" />
   </Element>
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-200" B="-100,-110" />
+  <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-100,-90" B="-100,0" />
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-150,-100">
-    <Component _Type="Circuit.Switch3PST, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Position="0" Name="S2" />
+    <Component _Type="Circuit.SPDT, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Position="0" Name="S2" />
   </Element>
 </Schematic>
