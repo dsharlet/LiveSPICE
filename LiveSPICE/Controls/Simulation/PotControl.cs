@@ -33,14 +33,18 @@ namespace LiveSPICE
                 NotifyChanged("Value");
             }
         }
-
+ 
         public PotControl()
         {
             MouseMove += OnMouseMove;
             MouseDown += OnMouseDown;
             MouseUp += OnMouseUp;
 
-            Background = new SolidColorBrush(new Color() { A = 64, R = 0, G = 0, B = 0 });
+            //Style = CloneStyle(Application.Current.TryFindResource(ToolBar.ButtonStyleKey) as Style, Control.BorderBrushProperty, Control.BackgroundProperty, Control.ForegroundProperty, Control.BorderThicknessProperty);
+
+            Background = new SolidColorBrush(new Color() { A = 64, R = 192, G = 192, B = 192 });
+            BorderBrush = Brushes.Gray;
+            Foreground = Brushes.Red;
         }
 
         private List<Action<double>> valueChanged = new List<Action<double>>();
@@ -96,8 +100,8 @@ namespace LiveSPICE
 
         protected override void OnRender(DrawingContext DC)
         {
-            Pen pen = new Pen(Brushes.Black, 1.0);
-
+            Pen pen = new Pen(BorderBrush, 1.0);
+            
             int n = 10;
             double r = Math.Min(ActualWidth, ActualHeight) / 2;
             DC.DrawEllipse(Background, pen, Center, r, r);
@@ -119,8 +123,32 @@ namespace LiveSPICE
                     DC.DrawText(label, (Point)(Center + dx * r * 1.15 - new Vector(label.Width, label.Height) * 0.5));
                 }
             }
-            DrawNotch(DC, new Pen(Brushes.Red, 1.5), ValueToVector(Value), r * 0.7, r * 1.15);
+            DrawNotch(DC, new Pen(Foreground, 1.5), ValueToVector(Value), r * 0.7, r * 1.15);
         }
+
+        //private static Style CloneStyle(Style From, params DependencyProperty[] Keys)
+        //{
+        //    Style clone = new Style(typeof(PotControl));
+        //    while (From != null)
+        //    {
+        //        foreach (Setter j in From.Setters.OfType<Setter>().Where(x => Keys.Contains(x.Property)))
+        //            clone.Setters.Add(j);
+        //        foreach (Trigger j in From.Triggers.OfType<Trigger>())
+        //        {
+        //            Trigger t = new Trigger()
+        //            {
+        //                Property = j.Property,
+        //                Value = j.Value,
+        //            };
+        //            foreach (Setter k in j.Setters.OfType<Setter>().Where(x => Keys.Contains(x.Property)))
+        //                t.Setters.Add(k);
+        //            if (t.Setters.Any())
+        //                clone.Triggers.Add(t);
+        //        }
+        //        From = From.BasedOn;
+        //    }
+        //    return clone;
+        //}
 
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
