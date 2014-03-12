@@ -79,7 +79,7 @@
     <Compile Include="Components\BipolarJunctionTransistor.cs" />
     <Compile Include="Components\Triode.cs" />
     <Compile Include="Components\Definitions.cs" />
-    <Compile Include="Components\SinglePoleSwitch.cs" />
+    <Compile Include="Components\Switch.cs" />
     <Compile Include="Components\CurrentSource.cs" />
     <Compile Include="Components\Ground.cs" />
     <Compile Include="Components\Inductor.cs" />

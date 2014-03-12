@@ -153,7 +153,13 @@ namespace LiveSPICE
                         Canvas.SetLeft(button, Canvas.GetLeft(tag));
                         Canvas.SetTop(button, Canvas.GetTop(tag));
 
-                        button.Click += (o, e) => { b.Click(); UpdateSimulation(true); };
+                        button.Click += (o, e) => 
+                        {
+                            // Click all the buttons in the group.
+                            foreach (Circuit.IButtonControl j in components.OfType<Circuit.IButtonControl>().Where(x => x.Group == b.Group))
+                                j.Click();
+                            UpdateSimulation(true); 
+                        };
 
                         button.MouseEnter += (o, e) => button.Opacity = 0.95;
                         button.MouseLeave += (o, e) => button.Opacity = 0.5;

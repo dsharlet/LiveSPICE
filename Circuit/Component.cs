@@ -27,6 +27,8 @@ namespace Circuit
     public interface IButtonControl
     {
         void Click();
+
+        string Group { get; }
     }
 
     /// <summary>

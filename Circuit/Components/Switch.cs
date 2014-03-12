@@ -16,6 +16,10 @@ namespace Circuit
         [Serialize, Description("Switch position.")]
         public int Position { get { return position; } set { position = value; NotifyChanged("Position"); } }
 
+        private string group = "";
+        [Serialize, Description("Switch group this switch is a part of.")]
+        public string Group { get { return group; } set { group = value; NotifyChanged("Group"); } }
+
         public void Click() { Position = (Position + 1) % throws.Length; }
 
         private Terminal common;
@@ -55,12 +59,14 @@ namespace Circuit
             {
                 int x = (i - Throws.Length / 2) * 20 + (Throws.Length % 2 == 0 ? 10 : 0);
                 Sym.AddTerminal(throws[i], new Coord(x, 20), new Coord(x, 12));
-                Sym.AddCircle(EdgeType.Black, new Coord(x, 12), 2);
+                Sym.DrawEllipse(EdgeType.Black, new Coord(x - 2, 10), new Coord(x + 2, 14));
+                //Sym.DrawText(i.ToString(), new Coord(x, 12), Alignment.Near, Alignment.Near);
 
                 if (i == Position)
                     Sym.AddWire(new Coord(0, -12), new Coord(x, 12));
             }
 
+            Sym.DrawText(() => Group, new Coord(-2, -12), Alignment.Far, Alignment.Far);
             Sym.DrawText(() => Name, new Coord(2, -12), Alignment.Near, Alignment.Far);
         }
     }
