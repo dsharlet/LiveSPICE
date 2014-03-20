@@ -28,7 +28,7 @@ namespace Circuit.Spice
         /// <summary>
         /// Messages resulting from parsing the statements in this list.
         /// </summary>
-        public ILog Log { get { return log; } }
+        public ILog Log { get { return log; } set { log = value; } }
 
         // Parsed statements.
         private List<Statement> statements = new List<Statement>();
@@ -41,8 +41,8 @@ namespace Circuit.Spice
             Dictionary<string, Action<TokenList>> handlers = new Dictionary<string, Action<TokenList>>();
 
             handlers[".MODEL"] = x => statements.Add(Model.Parse(x));
-            handlers[".SUBCKT"] = x => subcircuits.Push(new Subcircuit(x[1], x.Skip(2)));
-            handlers[".ENDS"] = x => statements.Add(subcircuits.Pop());
+            //handlers[".SUBCKT"] = x => subcircuits.Push(new Subcircuit(x[1], x.Skip(2)));
+            //handlers[".ENDS"] = x => statements.Add(subcircuits.Pop());
 
             title = Stream.ReadLine();
             int at = 1;
