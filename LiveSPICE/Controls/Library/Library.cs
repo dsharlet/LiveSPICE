@@ -141,7 +141,8 @@ namespace LiveSPICE
                 // Try to load the library as a SPICE model library.
                 try
                 {
-                    Circuit.Spice.Statements statements = new Circuit.Spice.Statements(Library);
+                    Circuit.Spice.Statements statements = new Circuit.Spice.Statements() { Log = Util.Log.Global };
+                    statements.Parse(Library);
                     IEnumerable<Circuit.Spice.Model> models = statements.OfType<Circuit.Spice.Model>().Where(i => i.Component != null);
                     if (models.Any())
                     {
