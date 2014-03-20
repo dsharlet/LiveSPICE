@@ -97,7 +97,14 @@ namespace LiveSPICE
                     Root.LoadLibraries(path);
 
                 // Load components from the user docs folder.
-                Root.LoadLibraries(System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components"));
+                try
+                {
+                    Root.LoadLibraries(System.IO.Path.Combine(App.Current.UserDocuments.FullName, "Components"));
+                }
+                catch (Exception Ex)
+                {
+                    Util.Log.Global.WriteLine(Util.MessageType.Warning, "Component library directory not found: {0}", Ex.Message);
+                }
 
                 foreach (Component i in Root.Children.SelectMany(i => i.Flatten))
                     Root.Components.Add(i);
