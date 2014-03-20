@@ -31,6 +31,7 @@ Source: "Tests\Circuits\Boss SD1 (no buffer).schx"; DestDir: "{userdocs}\LiveSPI
 Source: "Tests\Circuits\Ibanez TS9.schx"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
 Source: "Tests\Circuits\Ibanez TS9 (no buffer).schx"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
 Source: "Tests\Circuits\Marshall Blues Breaker.schx"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
+Source: "Tests\Circuits\Bazz Fuss.schx"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
 
 [Run]
 Filename: "{app}\LiveSPICE.exe"; Description: "Run LiveSPICE."; Flags: postinstall nowait
