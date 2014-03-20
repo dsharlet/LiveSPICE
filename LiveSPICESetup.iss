@@ -18,6 +18,7 @@ OutputDir=Setup
 Source: "LiveSPICE\bin\Release\LiveSPICE.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LiveSPICE\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Circuit\Components\*.xml"; DestDir: "{app}\Components"; Flags: onlyifdoesntexist
+Source: "Circuit\Components\Readme.txt"; DestDir: "{userdocs}\LiveSPICE\Components"; Flags: onlyifdoesntexist
 
 Source: "Tests\Circuits\Active 1stOrder Lowpass RC.schx"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
 Source: "Tests\Circuits\Passive 1stOrder Lowpass RC.schx"; DestDir: "{userdocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
