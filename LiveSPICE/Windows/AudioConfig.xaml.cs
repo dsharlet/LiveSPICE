@@ -81,10 +81,13 @@ namespace LiveSPICE
 
             Driver = Audio.Driver.Drivers.FirstOrDefault(i => i.Name == settings.AudioDriver);
             if (Driver == null)
-                Driver = Audio.Driver.Drivers.First();
-            Device = Driver.Devices.FirstOrDefault(i => i.Name == settings.AudioDevice);
-            if (Device == null && Driver != null)
-                Device = Driver.Devices.First();
+                Driver = Audio.Driver.Drivers.FirstOrDefault();
+            if (Driver != null)
+            {
+                Device = Driver.Devices.FirstOrDefault(i => i.Name == settings.AudioDevice);
+                if (Device == null)
+                    Device = Driver.Devices.FirstOrDefault();
+            }
             foreach (ListBoxItem i in inputs.Items)
                 if (settings.AudioInputs.Contains((string)i.Content))
                     inputs.SelectedItems.Add(i);
@@ -98,8 +101,8 @@ namespace LiveSPICE
         private void OK(object sender, EventArgs e)
         {
             Settings settings = App.Current.Settings;
-            settings.AudioDriver = Driver.Name;
-            settings.AudioDevice = Device.Name;
+            settings.AudioDriver = Driver != null ? Driver.Name : "";
+            settings.AudioDevice = Device != null ? Device.Name : "";
             settings.AudioInputs = Inputs.Select(i => i.Name).ToArray();
             settings.AudioOutputs = Outputs.Select(i => i.Name).ToArray();
 
