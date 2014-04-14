@@ -22,27 +22,34 @@ namespace Asio
             // in the software/asio folder
             using (RegistryKey asio = lm.OpenSubKey("SOFTWARE\\ASIO"))
             {
-                string[] names = asio.GetSubKeyNames();
-
-                Log.Global.WriteLine(MessageType.Info, "Found {0} ASIO drivers.", names.Length);
-
-                foreach (string i in names)
+                if (asio != null)
                 {
-                    Device d = null;
-                    try
+                    string[] names = asio.GetSubKeyNames();
+
+                    Log.Global.WriteLine(MessageType.Info, "Found {0} ASIO drivers.", names.Length);
+
+                    foreach (string i in names)
                     {
-                        using (RegistryKey driver = asio.OpenSubKey(i))
+                        Device d = null;
+                        try
                         {
-                            d = new Device(new Guid((string)driver.GetValue("CLSID")));
-                            Log.Global.WriteLine(MessageType.Info, "Loaded ASIO driver '{0}'.", i);
+                            using (RegistryKey driver = asio.OpenSubKey(i))
+                            {
+                                d = new Device(new Guid((string)driver.GetValue("CLSID")));
+                                Log.Global.WriteLine(MessageType.Info, "Loaded ASIO driver '{0}'.", i);
+                            }
                         }
+                        catch (Exception Ex)
+                        {
+                            Log.Global.WriteLine(MessageType.Warning, "Error instantiating ASIO driver '{0}': {1}", i, Ex.Message);
+                        }
+                        if (d != null)
+                            devices.Add(d);
                     }
-                    catch (Exception Ex) 
-                    {
-                        Log.Global.WriteLine(MessageType.Warning, "Error instantiating ASIO driver '{0}': {1}", i, Ex.Message);
-                    }
-                    if (d != null)
-                        devices.Add(d);
+                }
+                else
+                {
+                    Log.Global.WriteLine(MessageType.Info, "Found 0 ASIO drivers.");
                 }
             }
         }
