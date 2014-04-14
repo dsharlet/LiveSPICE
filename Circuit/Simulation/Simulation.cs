@@ -361,7 +361,18 @@ namespace Circuit
 
                         // Vo += i
                         foreach (Expression i in Output.Distinct())
-                            code.Add(LinqExpr.AddAssign(Vo[i], code.Compile(i)));
+                        {
+                            LinqExpr Voi = LinqExpr.Constant(0.0);
+                            try
+                            {
+                                Voi = code.Compile(i);
+                            }
+                            catch (Exception Ex)
+                            {
+                                Log.WriteLine(MessageType.Warning, Ex.Message);
+                            }
+                            code.Add(LinqExpr.AddAssign(Vo[i], Voi));
+                        }
 
                         // Vi_t0 = Vi
                         foreach (Expression i in Input.Distinct())
