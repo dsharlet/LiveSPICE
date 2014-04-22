@@ -83,7 +83,7 @@ namespace Circuit
             {
                 foreach (Terminal j in i.Terminals.Where(j => j.ConnectedTo == null))
                 {
-                    Node dummy = new Node() { Name = "Unconnected" };
+                    Node dummy = new Node() { Name = "_x1" };
                     circuit.Nodes.Add(dummy);
                     j.ConnectedTo = dummy;
 

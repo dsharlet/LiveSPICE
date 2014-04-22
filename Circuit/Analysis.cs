@@ -58,7 +58,7 @@ namespace Circuit
             }
 
             private int anon = 0;
-            public string AnonymousName() { return "_x" + (++anon).ToString(); }
+            public string AnonymousName() { return "_" + (++anon).ToString(); }
 
             public Dictionary<Expression, Expression> Definitions = new Dictionary<Expression, Expression>();
             public List<Equal> Equations = new List<Equal>();
