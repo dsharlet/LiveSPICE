@@ -94,22 +94,29 @@ namespace Circuit
 
             // Find steady state solution for initial conditions.
             List<Arrow> initial = InitialConditions.ToList();
-            try
-            {
-                Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
+            Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
 
-                List<Equal> dc = mna
-                    // Derivatives, t, and t0 are zero in the steady state.
-                    .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(t0, 0)))
-                    // Use the initial conditions from analysis.
-                    .Evaluate(Analysis.InitialConditions)
-                    .OfType<Equal>().ToList();
-                initial = dc.NSolve(y.Select(i => Arrow.New(i.Evaluate(t, 0), 0)));
-                LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial);
-            }
-            catch (Exception)
+            SystemOfEquations dc = new SystemOfEquations(mna
+                // Derivatives, t, and t0 are zero in the steady state.
+                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(t0, 0)))
+                // Use the initial conditions from analysis.
+                .Evaluate(Analysis.InitialConditions)
+                // Evaluate variables at t=0.
+                .OfType<Equal>(), y.Select(j => j.Evaluate(t, 0)));
+
+            // Solve partitions independently.
+            foreach (SystemOfEquations i in dc.Partition())
             {
-                Log.WriteLine(MessageType.Warning, "Failed to find steady state for initial conditions, circuit may be unstable.");
+                try
+                {
+                    List<Arrow> part = i.Equations.Select(j => Equal.New(j, 0)).NSolve(i.Unknowns.Select(j => Arrow.New(j, 0)));
+                    initial.AddRange(part);
+                    LogExpressions(Log, MessageType.Verbose, "Initial conditions:", part);
+                }
+                catch (Exception)
+                {
+                    Log.WriteLine(MessageType.Warning, "Failed to find partition initial conditions, simulation may be unstable.");
+                }
             }
             
             // Transient analysis of the system.
