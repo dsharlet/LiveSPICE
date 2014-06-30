@@ -215,7 +215,7 @@ namespace LiveSPICE
                             {
                                 inputs[V] = new SignalChannel(combo.Text);
                             }
-                            catch (Exception Ex)
+                            catch (Exception)
                             {
                             }
                         }));
@@ -516,7 +516,7 @@ namespace LiveSPICE
             switch (Color)
             {
                 // These two need to be brighter than the normal colors.
-                case Circuit.EdgeType.Red: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 50, 50)), 1.0);
+                case Circuit.EdgeType.Red: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 80, 80)), 1.0);
                 case Circuit.EdgeType.Blue: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 180, 255)), 1.0);
                 default: return ElementControl.MapToPen(Color);
             }
