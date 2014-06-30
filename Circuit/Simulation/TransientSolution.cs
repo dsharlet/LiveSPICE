@@ -17,8 +17,7 @@ namespace Circuit
     {
         public static readonly Variable t = Component.t;
         public static readonly Expression T = Component.T;
-        public static readonly Expression t0 = Component.t0;
-
+        
         private Expression h;
         /// <summary>
         /// The length of a timestep given by this solution.
@@ -97,8 +96,8 @@ namespace Circuit
             Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
 
             SystemOfEquations dc = new SystemOfEquations(mna
-                // Derivatives, t, and t0 are zero in the steady state.
-                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(t0, 0)))
+                // Derivatives, t, and T are zero in the steady state.
+                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0)))
                 // Use the initial conditions from analysis.
                 .Evaluate(Analysis.InitialConditions)
                 // Evaluate variables at t=0.
@@ -128,7 +127,9 @@ namespace Circuit
             system.RowReduce(dy_dt);
             system.BackSubstitute(dy_dt);
             IEnumerable<Equal> integrated = system.Solve(dy_dt)
-                .NDIntegrate(t, t0, h, IntegrationMethod.Trapezoid)
+                .NDIntegrate(t, h, IntegrationMethod.Trapezoid)
+                // NDIntegrate finds y[t + h] in terms of y[t], we need y[t] in terms of y[t - h].
+                .Evaluate(t, t - h).Cast<Arrow>()
                 .Select(i => Equal.New(i.Left, i.Right)).Buffer();
             system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
@@ -171,8 +172,8 @@ namespace Circuit
                     IEnumerable<Arrow> solved = nonlinear.Solve(ly);
                     solved = Factor(solved);
 
-                    // Initial guess for y(t) = y(t0).
-                    IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t0))).ToList();
+                    // Initial guess for y[t] = y[t - h].
+                    IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t - h))).ToList();
                     guess = Factor(guess);
 
                     // Newton system equations.

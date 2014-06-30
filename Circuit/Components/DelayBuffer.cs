@@ -19,8 +19,8 @@ namespace Circuit
         {
             // Unknown output current.
             Mna.AddTerminal(Cathode, Mna.AddUnknown("i" + Name));
-            // V-[t] = V+[t0], i.e. the voltage at the previous timestep.
-            Mna.AddEquation(Anode.V.Evaluate(t, t0), Cathode.V);
+            // V-[t] = V+[t - T], i.e. the voltage at the previous timestep.
+            Mna.AddEquation(Anode.V.Evaluate(t, t - T), Cathode.V);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

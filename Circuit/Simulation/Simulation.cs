@@ -36,8 +36,8 @@ namespace Circuit
     public class Simulation
     {
         protected static readonly Variable t = TransientSolution.t;
-        protected static readonly Expression t0 = TransientSolution.t0;
-        protected static readonly Arrow t_t0 = Arrow.New(t, t0);
+        protected Expression t0 { get { return t - Solution.TimeStep; } }
+        protected Arrow t_t0 { get { return Arrow.New(t, t0); } }
 
         private long n = 0;
         /// <summary>
@@ -206,7 +206,7 @@ namespace Circuit
 
             // Create parameters for the basic simulation info (N, t, Iterations).
             ParamExpr SampleCount = code.Decl<int>(Scope.Parameter, "SampleCount");
-            ParamExpr t0 = code.Decl(Scope.Parameter, Simulation.t0);
+            ParamExpr t = code.Decl(Scope.Parameter, Simulation.t);
 
             // Create buffer parameters for each input...
             foreach (Expression i in Input)
@@ -224,10 +224,6 @@ namespace Circuit
 
             // int Zero = 0
             LinqExpr Zero = LinqExpr.Constant(0);
-
-            // double t = t0
-            ParamExpr t = code.Decl(Simulation.t);
-            code.Add(LinqExpr.Assign(t, t0));
 
             // double h = T / Oversample
             LinqExpr h = LinqExpr.Constant(TimeStep / (double)Oversample);
@@ -355,9 +351,6 @@ namespace Circuit
                         foreach (SolutionSet S in Solution.Solutions)
                             foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
                                 code.Add(LinqExpr.Assign(code[i.Evaluate(t_t0)], code[i]));
-
-                        // t0 = t
-                        code.Add(LinqExpr.Assign(t0, t));
 
                         // Vo += i
                         foreach (Expression i in Output.Distinct())

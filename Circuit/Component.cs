@@ -49,11 +49,6 @@ namespace Circuit
         /// Sampling period of the simulation.
         /// </summary>
         public static readonly Expression T = Variable.New("T");
-        /// <summary>
-        /// Previous timestep of the simulation.
-        /// </summary>
-        public static readonly Expression t0 = Variable.New("t0");
-
 
         /// <summary>
         /// Thermal voltage.
