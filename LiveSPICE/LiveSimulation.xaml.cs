@@ -213,10 +213,12 @@ namespace LiveSPICE
                         {
                             try
                             {
-                                inputs[V] = new SignalChannel(combo.Text);
+                                inputs[V] = new SignalChannel(Circuit.Quantity.Parse(combo.Text, Circuit.Units.V));
                             }
                             catch (Exception)
                             {
+                                // If there is an error in the expression, zero out the signal.
+                                inputs[V] = new SignalChannel(0);
                             }
                         }));
 
