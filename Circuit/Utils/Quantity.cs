@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -67,7 +68,7 @@ namespace Circuit
             return 1;
         }
 
-        public static Quantity Parse(string s)
+        public static Quantity Parse(string s, CultureInfo culture)
         {
             Expression prefix = ParsePrefix(ref s);
             Units units = Units.None;
@@ -77,7 +78,7 @@ namespace Circuit
                 s = s.TrimEnd();
                 prefix = ParsePrefix(ref s);
             }
-            return new Quantity(prefix * Expression.Parse(s), units);
+            return new Quantity(prefix * Expression.Parse(s, culture), units);
         }
 
         public static Quantity Parse(string s, Units ExpectedUnits)
@@ -89,6 +90,8 @@ namespace Circuit
                 throw new UnitCastException(m.Units, ExpectedUnits);
             return m;
         }
+
+        public static Quantity Parse(string s) { return Parse(s, CultureInfo.InstalledUICulture); }
 
         public static implicit operator Expression(Quantity x) { return x.x; }
         public static implicit operator LazyExpression(Quantity x) { return new LazyExpression(x.x); }
@@ -162,10 +165,7 @@ namespace Circuit
                 int prefix = Math.Max(Math.Min((int)Real.Floor(order / 3) * 3, MaxPrefix), MinPrefix);
 
                 Value = Value / (((Real)10) ^ prefix);
-                if (Value is IFormattable)
-                    SB.Append(((IFormattable)Value).ToString(format, formatProvider));
-                else
-                    SB.Append(Value.ToString());
+                SB.Append(((IFormattable)Value).ToString(format, formatProvider));
                 SB.Append(" ");
                 SB.Append(Prefixes.Single(i => i.Value == prefix).Key);
             }

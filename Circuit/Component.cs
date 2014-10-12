@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -105,7 +106,7 @@ namespace Circuit
                 if (def == null || !Equals(def.Value, value))
                 {
                     TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
-                    X.SetAttributeValue(i.Name, tc.ConvertToString(value));
+                    X.SetAttributeValue(i.Name, tc.ConvertToString(null, CultureInfo.InvariantCulture, value));
                 }
             }
             return X;
@@ -119,7 +120,7 @@ namespace Circuit
                 if (attr != null)
                 {
                     TypeConverter tc = TypeDescriptor.GetConverter(i.PropertyType);
-                    i.SetValue(this, tc.ConvertFromString(attr.Value), null);
+                    i.SetValue(this, tc.ConvertFromString(null, CultureInfo.InvariantCulture, attr.Value), null);
                 }
             }
         }

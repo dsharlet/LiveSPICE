@@ -16,13 +16,13 @@ namespace Circuit
         public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
         {
             if (value is string)
-                return Quantity.Parse((string)value);
+                return Quantity.Parse((string)value, culture);
             return base.ConvertFrom(context, culture, value);
         }
         public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
         {
             if (destinationType == typeof(string))
-                return ((Quantity)value).ToString();
+                return ((Quantity)value).ToString(null, culture);
             return base.ConvertTo(context, culture, value, destinationType);
         }
         public override bool IsValid(ITypeDescriptorContext context, object value)
