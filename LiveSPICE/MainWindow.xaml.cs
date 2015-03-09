@@ -110,18 +110,25 @@ namespace LiveSPICE
 
         private void Open(string FileName, bool CanClose)
         {
-            SchematicViewer open = FindViewer(FileName);
-            if (open != null)
+            try
             {
-                ((LayoutDocument)open.Tag).IsSelected = true;
-                // If this schematic is already open, prompt for re-open if necessary.
-                if (CanClose || ((SchematicEditor)open.Schematic).CanClose(true))
-                    open.Schematic = SchematicEditor.Open(FileName);
+                SchematicViewer open = FindViewer(FileName);
+                if (open != null)
+                {
+                    ((LayoutDocument)open.Tag).IsSelected = true;
+                    // If this schematic is already open, prompt for re-open if necessary.
+                    if (CanClose || ((SchematicEditor)open.Schematic).CanClose(true))
+                        open.Schematic = SchematicEditor.Open(FileName);
+                }
+                else
+                {
+                    // Just make a new one.
+                    AddViewer(SchematicEditor.Open(FileName));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Just make a new one.
-                AddViewer(SchematicEditor.Open(FileName));
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void Open(string FileName) { Open(FileName, false); }
