@@ -37,10 +37,10 @@ namespace LiveSPICE
             schematics.ChildrenTreeChanged += (o, e) => NotifyChanged("ActivewViewerZoom");
 
             string[] args = Environment.GetCommandLineArgs();
-            foreach (string arg in args) {
-                if (System.IO.File.Exists(arg)) {
-                    Open(arg);
-                }
+            for (int i = 1; i < args.Length; i++)
+            {
+                if (args[i].EndsWith(".schx") && System.IO.File.Exists(args[i]))
+                    Open(args[i]);
             }
         }
 
