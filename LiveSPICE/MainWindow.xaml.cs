@@ -35,6 +35,13 @@ namespace LiveSPICE
             Components.ComponentClick += component_Click;
             Properties.PropertyValueChanged += properties_PropertyValueChanged;
             schematics.ChildrenTreeChanged += (o, e) => NotifyChanged("ActivewViewerZoom");
+
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 1; i < args.Length; i++)
+            {
+                if (args[i].EndsWith(".schx") && System.IO.File.Exists(args[i]))
+                    Open(args[i]);
+            }
         }
 
         public IEnumerable<SchematicViewer> Viewers { get { return schematics.Children.Select(i => i.Content).OfType<SchematicViewer>(); } }

@@ -93,7 +93,7 @@ namespace LiveSPICE
             return f0;
         }
 
-        private static double Hann(int i, int N) { return 0.5 * (1.0 - Math.Cos((2.0 * 3.14159265 * i) / (N - 1))); }
+        private static double Hann(int i, int N) { return 0.5 * (1.0 - Math.Cos((2.0 * Math.PI * i) / (N - 1))); }
 
         // Fit parabola to 3 bins and find the maximum.
         private static Complex LogParabolaMax(Complex A, Complex B, Complex C, out double x)
