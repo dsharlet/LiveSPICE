@@ -1,11 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Circuit", "Circuit\Circuit.csproj", "{5E788E8B-995B-4B54-B3A9-040D65D5509A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveSPICE", "LiveSPICE\LiveSPICE.csproj", "{CB1CDB4D-01FE-4ACF-BE67-C99516FF15BD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audio", "Audio\Audio.csproj", "{F53399E8-B038-4111-B89D-F5C4AB0CCB14}"
+	ProjectSection(ProjectDependencies) = postProject
+		{49EFF8ED-466F-4C88-BDF0-481063C282A3} = {49EFF8ED-466F-4C88-BDF0-481063C282A3}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComputerAlgebra", "ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj", "{2877C441-FD0B-4441-A469-E677003EE35A}"
 EndProject
@@ -170,5 +175,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8E85933D-DC60-4652-9582-25A13473BFDB}
 	EndGlobalSection
 EndGlobal
