@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WaveAudio
 {
-    class Driver : Audio.Driver
+    public class Driver : Audio.Driver
     {
         public Driver()
         {
