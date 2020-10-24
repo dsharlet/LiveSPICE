@@ -42,13 +42,9 @@ namespace LiveSPICE
 
         private T This<T>(string Name, T Default)
         {
-            try
-            {
-                T obj = (T)this[Name];
-                if (obj != null)
-                    return obj;
-            }
-            catch (Exception) { }
+            object obj = this[Name];
+            if (obj != null && obj is T t)
+                return t;
             return Default;
         }
 
