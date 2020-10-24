@@ -19,6 +19,7 @@ namespace WaveAudio
             waveIn = WaveIn;
 
             MmException.CheckThrow(Winmm.waveInPrepareHeader(waveIn, ref header, Marshal.SizeOf(header)));
+            header.dwFlags |= WaveHdrFlags.WHDR_DONE;
         }
 
         ~InBuffer() { Dispose(false); }
@@ -36,7 +37,6 @@ namespace WaveAudio
         public void Record()
         {
             header.dwFlags &= ~WaveHdrFlags.WHDR_DONE;
-            header.dwBufferLength = (uint)size;
             MmException.CheckThrow(Winmm.waveInAddBuffer(waveIn, ref header, Marshal.SizeOf(header)));
         }
     }

@@ -61,47 +61,53 @@ namespace WaveAudio
             {
                 Log.Global.WriteLine(MessageType.Info, "Entering streaming thread");
 
-                EventWaitHandle[] events = waveIn.Select(i => i.Callback).Concat(waveOut.Select(i => i.Callback)).ToArray();
-
                 Audio.SampleBuffer[] input = new Audio.SampleBuffer[waveIn.Length];
                 Audio.SampleBuffer[] output = new Audio.SampleBuffer[waveOut.Length];
                 while (!stop)
                 {
-                    // TODO: Why can't we use this?
-                    //if (!WaitHandle.WaitAll(events, 100))
-                    //    continue;
-
                     // Read from the inputs.
                     for (int i = 0; i < waveIn.Length; ++i)
                     {
-                        InBuffer b = waveIn[i].GetBuffer();
-                        if (b == null)
-                            return;
-                        using (Audio.RawLock l = new Audio.RawLock(b.Samples, false, true))
-                            ConvertSamples(b.Data, format, l, l.Count);
-                        b.Record();
-                        input[i] = b.Samples;
+                        InBuffer b = null;
+                        do
+                        {
+                            b = waveIn[i].GetBuffer();
+                        } while (b == null && !stop);
+                        if (b != null)
+                        {
+                            ConvertSamples(b.Data, format, b.Samples.Raw, b.Samples.Count);
+                            b.Record();
+                            input[i] = b.Samples;
+                        }
                     }
 
                     // Get an available buffer from the outputs.
                     for (int i = 0; i < waveOut.Length; ++i)
                     {
-                        OutBuffer b = waveOut[i].GetBuffer();
-                        if (b == null)
-                            return;
-                        output[i] = b.Samples;
+                        OutBuffer b = null;
+                        do
+                        {
+                            b = waveOut[i].GetBuffer();
+                        } while (b == null && !stop);
+                        if (b != null)
+                            output[i] = b.Samples;
                     }
 
-                    // Call the callback.
-                    callback(buffer, input, output, format.nSamplesPerSec);
-
-                    // Play the results.
-                    for (int i = 0; i < output.Length; ++i)
+                    if (!stop)
                     {
-                        OutBuffer b = (OutBuffer)output[i].Tag;
-                        using (Audio.RawLock l = new Audio.RawLock(b.Samples, true, false))
-                            ConvertSamples(l, b.Data, format, l.Count);
-                        b.Play();
+                        Debug.Assert(input.All(i => i != null));
+                        Debug.Assert(output.All(i => i != null));
+
+                        // Call the callback.
+                        callback(buffer, input, output, format.nSamplesPerSec);
+
+                        // Play the results.
+                        for (int i = 0; i < output.Length; ++i)
+                        {
+                            OutBuffer b = (OutBuffer)output[i].Tag;
+                            ConvertSamples(b.Samples.Raw, b.Data, format, b.Samples.Count);
+                            b.Play();
+                        }
                     }
                 }
             }
@@ -112,9 +118,9 @@ namespace WaveAudio
             Log.Global.WriteLine(MessageType.Info, "Exiting streaming thread");
         }
         
-        private static void ConvertSamples(IntPtr In, WAVEFORMATEX Format, IntPtr Out, int Count)
+        private static void ConvertSamples(IntPtr In, WAVEFORMATEX InFormat, IntPtr Out, int Count)
         {
-            switch (Format.wBitsPerSample)
+            switch (InFormat.wBitsPerSample)
             {
                 case 16: Audio.Util.LEi16ToLEf64(In, Out, Count); break;
                 case 32: Audio.Util.LEi32ToLEf64(In, Out, Count); break;
@@ -122,9 +128,9 @@ namespace WaveAudio
             }
         }
 
-        private static void ConvertSamples(IntPtr In, IntPtr Out, WAVEFORMATEX Format, int Count)
+        private static void ConvertSamples(IntPtr In, IntPtr Out, WAVEFORMATEX OutFormat, int Count)
         {
-            switch (Format.wBitsPerSample)
+            switch (OutFormat.wBitsPerSample)
             {
                 case 16: Audio.Util.LEf64ToLEi16(In, Out, Count); break;
                 case 32: Audio.Util.LEf64ToLEi32(In, Out, Count); break;
