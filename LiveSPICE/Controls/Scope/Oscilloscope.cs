@@ -89,6 +89,8 @@ namespace LiveSPICE
             FontFamily = new FontFamily("Courier New");
 
             Signals = new SignalCollection();
+            Signals.ItemAdded += (o, e) => InvalidateVisual();
+            Signals.ItemRemoved += (o, e) => InvalidateVisual();
 
             CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 0.5));
             CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 2.0));
