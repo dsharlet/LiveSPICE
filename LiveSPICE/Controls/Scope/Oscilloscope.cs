@@ -113,7 +113,10 @@ namespace LiveSPICE
             DrawTimeAxis(DC, bounds);
 
             if (Signals.Empty())
+            {
+                DC.Pop();
                 return;
+            }
 
             Signal stats = SelectedSignal;
             Signal stabilize = stats;
