@@ -34,10 +34,10 @@ namespace WaveAudio
             data = new byte[size];
             dataPin = GCHandle.Alloc(data, GCHandleType.Pinned);
             header = new WAVEHDR();
+            headerPin = GCHandle.Alloc(header, GCHandleType.Pinned);
             header.lpData = dataPin.AddrOfPinnedObject();
             header.dwBufferLength = (uint)size;
             header.dwFlags = 0;
-            headerPin = GCHandle.Alloc(header, GCHandleType.Pinned);
         }
 
         ~Buffer() { Dispose(false); }

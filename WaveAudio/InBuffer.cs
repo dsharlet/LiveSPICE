@@ -18,7 +18,7 @@ namespace WaveAudio
         {
             waveIn = WaveIn;
 
-            MmException.CheckThrow(Winmm.waveInPrepareHeader(waveIn, ref header, Marshal.SizeOf(header)));
+            MmException.CheckThrow(Winmm.waveInPrepareHeader(waveIn, header, Marshal.SizeOf(header)));
             header.dwFlags |= WaveHdrFlags.WHDR_DONE;
         }
 
@@ -29,7 +29,7 @@ namespace WaveAudio
             if (disposed) return;
 
             // Not checked intentionally.
-            Winmm.waveInUnprepareHeader(waveIn, ref header, Marshal.SizeOf(header));
+            Winmm.waveInUnprepareHeader(waveIn, header, Marshal.SizeOf(header));
 
             base.Dispose(Disposing);
         }
@@ -37,7 +37,7 @@ namespace WaveAudio
         public void Record()
         {
             header.dwFlags &= ~WaveHdrFlags.WHDR_DONE;
-            MmException.CheckThrow(Winmm.waveInAddBuffer(waveIn, ref header, Marshal.SizeOf(header)));
+            MmException.CheckThrow(Winmm.waveInAddBuffer(waveIn, header, Marshal.SizeOf(header)));
         }
     }
 }
