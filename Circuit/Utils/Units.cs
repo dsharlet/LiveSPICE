@@ -1,8 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Circuit
 {
@@ -12,7 +9,7 @@ namespace Circuit
         private int mass;
         private int time;
         private int current;
-        
+
         public Units(int m, int kg, int s, int A)
         {
             length = m;
@@ -20,7 +17,7 @@ namespace Circuit
             time = s;
             current = A;
         }
-        
+
         public static Units Parse(ref string s)
         {
             s = s.TrimEnd();
@@ -66,9 +63,9 @@ namespace Circuit
         private static Dictionary<Units, string> names = new Dictionary<Units, string>()
         {
             { m, "m" }, { kg, "kg" }, { s, "s" }, { A, "A" },
-            { Hz, "Hz" }, 
-            { N, "N" }, 
-            { J, "J" }, { W, "W" }, 
+            { Hz, "Hz" },
+            { N, "N" },
+            { J, "J" }, { W, "W" },
             { C, "C" }, { V, "V" }, { F, "F" }, { Ohm, "\u2126" },
             { Wb, "Wb" }, { H, "H" },
         };
@@ -84,15 +81,15 @@ namespace Circuit
         public static Units operator *(Units L, Units R)
         {
             return new Units(
-                L.length        + R.length,
-                L.mass          + R.mass,
-                L.time          + R.time,
-                L.current       + R.current);
+                L.length + R.length,
+                L.mass + R.mass,
+                L.time + R.time,
+                L.current + R.current);
         }
-        public static Units operator /(Units L, Units R) { return L * (R^-1); }
+        public static Units operator /(Units L, Units R) { return L * (R ^ -1); }
         public static bool operator ==(Units L, Units R)
         {
-            return 
+            return
                 L.length == R.length &&
                 L.mass == R.mass &&
                 L.time == R.time &&

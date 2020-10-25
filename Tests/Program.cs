@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Circuit;
+using ComputerAlgebra;
+using ComputerAlgebra.Plotting;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Reflection;
-using ComputerAlgebra;
-using ComputerAlgebra.LinqCompiler;
-using ComputerAlgebra.Plotting;
-using Circuit;
+using System.Text;
 using Util;
 
 // Filter design tool: http://sim.okawa-denshi.jp/en/CRtool.php
@@ -90,11 +89,11 @@ namespace Tests
 
             analysisTime += Timer.Delta(a);
 
-            Simulation S = new Simulation(TS) 
-            { 
-                Oversample = Oversample, 
+            Simulation S = new Simulation(TS)
+            {
+                Oversample = Oversample,
                 Iterations = Iterations,
-                Log = Log, 
+                Log = Log,
                 Input = new[] { Input },
                 Output = Plots,
             };
@@ -120,7 +119,7 @@ namespace Tests
 
             List<List<double>> output = S.Output.Select(i => new List<double>(Samples)).ToList();
             List<double[]> buffers = S.Output.Select(i => new double[N]).ToList();
-            
+
             double time = 0.0;
             int samples = 0;
             double t = 0;
@@ -141,7 +140,7 @@ namespace Tests
             int t1 = Math.Min(samples, 4000);
 
             Log.WriteLine("Performance {0}", Quantity.ToString(samples / time, Units.Hz));
-                        
+
             Plot p = new Plot()
             {
                 Title = Name,
@@ -155,7 +154,8 @@ namespace Tests
 
             p.Series.AddRange(output.Select((i, j) => new Scatter(
                 i.Take(t1)
-                .Select((k, n) => new KeyValuePair<double, double>(n * T, k)).ToArray()) { Name = S.Output.ElementAt(j).ToString() }));
+                .Select((k, n) => new KeyValuePair<double, double>(n * T, k)).ToArray())
+            { Name = S.Output.ElementAt(j).ToString() }));
             return samples / time;
         }
     }
@@ -182,7 +182,7 @@ namespace Tests
                     {
                         System.ComponentModel.DisplayNameAttribute name = j.CustomAttribute<System.ComponentModel.DisplayNameAttribute>();
                         System.ComponentModel.DescriptionAttribute desc = j.CustomAttribute<System.ComponentModel.DescriptionAttribute>();
-                        
+
                         docs.WriteLine("\t<section id=\"" + j.Name + "\">");
                         docs.WriteLine("\t<h4>" + (name != null ? name.DisplayName : j.Name) + "</h4>");
                         if (desc != null)

@@ -1,22 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
-using System.Xml.Linq;
 
 namespace LiveSPICE
 {
@@ -49,7 +37,7 @@ namespace LiveSPICE
         public SchematicControl(Circuit.Schematic Schematic)
         {
             InitializeComponent();
-                        
+
             schematic = Schematic;
 
             schematic.Elements.ItemAdded += ElementAdded;
@@ -59,7 +47,7 @@ namespace LiveSPICE
             foreach (Circuit.Element i in schematic.Elements)
                 ElementAdded(null, new Circuit.ElementEventArgs(i));
         }
-        
+
         // Schematic tools.
         private SchematicTool tool;
         public SchematicTool Tool
@@ -245,7 +233,7 @@ namespace LiveSPICE
         {
             if ((e.KeyboardDevice.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) != 0)
                 return;
-            if (Tool != null) 
+            if (Tool != null)
                 e.Handled = Tool.KeyDown(e);
         }
         protected override void OnKeyUp(KeyEventArgs e)
@@ -253,7 +241,7 @@ namespace LiveSPICE
             if ((e.KeyboardDevice.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) != 0)
                 return;
             if (Tool != null)
-                e.Handled = Tool.KeyUp(e); 
+                e.Handled = Tool.KeyUp(e);
         }
 
         // Mouse events.
@@ -276,7 +264,7 @@ namespace LiveSPICE
             else
             {
                 ReleaseMouseCapture();
-                if (Tool != null) 
+                if (Tool != null)
                     Tool.Cancel();
             }
 
@@ -288,7 +276,7 @@ namespace LiveSPICE
             if (e.ChangedButton == MouseButton.Left)
             {
                 if (Tool != null)
-                    Tool.MouseUp(at); 
+                    Tool.MouseUp(at);
                 ReleaseMouseCapture();
             }
             else if (e.ChangedButton == MouseButton.Right && e.ClickCount == 1)
@@ -312,7 +300,7 @@ namespace LiveSPICE
             if (!mouse.HasValue || mouse.Value != at)
             {
                 mouse = at;
-                if (Tool != null) 
+                if (Tool != null)
                     Tool.MouseMove(at);
                 e.Handled = true;
             }
@@ -322,7 +310,7 @@ namespace LiveSPICE
         {
             Circuit.Coord at = SnapToGrid(e.GetPosition(root));
             mouse = at;
-            if (Tool != null) 
+            if (Tool != null)
                 Tool.MouseEnter(at);
             e.Handled = true;
         }
@@ -330,7 +318,7 @@ namespace LiveSPICE
         {
             Circuit.Coord at = SnapToGrid(e.GetPosition(root));
             mouse = null;
-            if (Tool != null) 
+            if (Tool != null)
                 Tool.MouseLeave(at);
             e.Handled = true;
         }

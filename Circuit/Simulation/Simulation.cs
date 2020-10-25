@@ -1,15 +1,12 @@
-﻿using System;
+﻿using ComputerAlgebra;
+using ComputerAlgebra.LinqCompiler;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Reflection;
-using System.Reflection.Emit;
-using ComputerAlgebra;
-using ComputerAlgebra.LinqCompiler;
 using Util;
-using LinqExprs = System.Linq.Expressions;
 using LinqExpr = System.Linq.Expressions.Expression;
+using LinqExprs = System.Linq.Expressions;
 using ParamExpr = System.Linq.Expressions.ParameterExpression;
 
 namespace Circuit
@@ -64,8 +61,8 @@ namespace Circuit
         /// <summary>
         /// Solution of the circuit we are simulating.
         /// </summary>
-        public TransientSolution Solution 
-        { 
+        public TransientSolution Solution
+        {
             get { return solution; }
             set { solution = value; InvalidateProcess(); }
         }
@@ -98,7 +95,7 @@ namespace Circuit
         /// Expressions for output samples.
         /// </summary>
         public IEnumerable<Expression> Output { get { return output; } set { output = value.Buffer(); InvalidateProcess(); } }
-        
+
         // Stores any global state in the simulation (previous state values, mostly).
         private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
         // Add a new global and set it to 0 if it didn't already exist.
@@ -117,7 +114,7 @@ namespace Circuit
         public Simulation(TransientSolution Solution)
         {
             solution = Solution;
-            
+
             // If any system depends on the previous value of an unknown, we need a global variable for it.
             foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
                 if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
@@ -135,7 +132,7 @@ namespace Circuit
 
             InvalidateProcess();
         }
-          
+
         /// <summary>
         /// Process some samples with this simulation. The Input and Output buffers must match the enumerations provided
         /// at initialization.
@@ -575,7 +572,7 @@ namespace Circuit
             else
                 throw new NotImplementedException("Constant");
         }
-        
+
         private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
 
         // Get a method of T with the given name/param types.

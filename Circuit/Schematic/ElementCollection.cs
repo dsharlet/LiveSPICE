@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Circuit
 {
@@ -55,7 +52,7 @@ namespace Circuit
             foreach (Element i in items)
                 Add(i);
         }
-        public void Clear() 
+        public void Clear()
         {
             Element[] removed = x.ToArray();
             x.Clear();
@@ -65,8 +62,8 @@ namespace Circuit
         }
         public bool Contains(Element item) { return x.Contains(item); }
         public void CopyTo(Element[] array, int arrayIndex) { x.CopyTo(array, arrayIndex); }
-        public bool Remove(Element item) 
-        { 
+        public bool Remove(Element item)
+        {
             bool ret = x.Remove(item);
             if (ret)
                 OnItemRemoved(new ElementEventArgs(item));

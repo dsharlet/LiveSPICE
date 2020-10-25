@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Windows;
+using System.Linq;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -31,8 +21,8 @@ namespace LiveSPICE
 
         public Signal SelectedSignal { get { return oscilloscope.SelectedSignal; } set { oscilloscope.SelectedSignal = value; NotifyChanged("SelectedSignal"); } }
 
-        public Scope() 
-        { 
+        public Scope()
+        {
             InitializeComponent();
             Signals.ItemAdded += signals_ItemAdded;
             Signals.ItemRemoved += signals_ItemRemoved;
@@ -76,7 +66,7 @@ namespace LiveSPICE
                     SelectedSignal = null;
             }
         }
-        
+
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {

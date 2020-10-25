@@ -1,9 +1,7 @@
-﻿using System;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -21,13 +19,13 @@ namespace Circuit
         protected Expression unconnected;
         private static long count = 0;
 
-        public Terminal(Component Owner) 
+        public Terminal(Component Owner)
         {
             unconnected = Component.DependentVariable("_v" + Interlocked.Increment(ref count), Component.t);
-            owner = Owner; 
+            owner = Owner;
         }
         public Terminal(Component Owner, string Name) : this(Owner) { name = Name; }
-        
+
         protected Node connectedTo;
         /// <summary>
         /// The node this terminal is connected to.

@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using ComputerAlgebra;
+using System;
 using System.ComponentModel;
 
 namespace Circuit
-{ 
+{
     [Category("Generic")]
     [DisplayName("Variable Resistor")]
     [DefaultProperty("Resistance")]

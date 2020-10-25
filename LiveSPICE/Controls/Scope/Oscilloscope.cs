@@ -1,22 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Numerics;
 
 namespace LiveSPICE
 {
@@ -40,26 +27,26 @@ namespace LiveSPICE
         }
 
         protected bool showNotes = true;
-        public bool ShowNotes 
+        public bool ShowNotes
         {
-            get { return showNotes; } 
-            set 
-            { 
-                showNotes = value; 
-                InvalidateVisual(); 
-                NotifyChanged("ShowNotes"); 
-            } 
+            get { return showNotes; }
+            set
+            {
+                showNotes = value;
+                InvalidateVisual();
+                NotifyChanged("ShowNotes");
+            }
         }
-        
+
         protected double zoom = 10.0f / 440.0f;
-        public double Zoom 
-        { 
-            get { return zoom; } 
-            set 
-            { 
-                zoom = Math.Min(Math.Max(value, 16.0 / 48000.0), 2 * MaxPeriod); 
-                InvalidateVisual(); 
-                NotifyChanged("Zoom"); 
+        public double Zoom
+        {
+            get { return zoom; }
+            set
+            {
+                zoom = Math.Min(Math.Max(value, 16.0 / 48000.0), 2 * MaxPeriod);
+                InvalidateVisual();
+                NotifyChanged("Zoom");
             }
         }
 
@@ -78,7 +65,7 @@ namespace LiveSPICE
         public Pen GridPen = new Pen(Brushes.Gray, 0.25);
         public Pen AxisPen = new Pen(Brushes.Gray, 0.5);
         public Pen TracePen = new Pen(Brushes.White, 0.5);
-                             
+
         protected double Vmax, Vmean;
         protected Point? tracePoint;
 
@@ -100,14 +87,14 @@ namespace LiveSPICE
             MouseLeave += (o, e) => { tracePoint = null; InvalidateVisual(); };
             MouseDown += (o, e) => { Focus(); InvalidateVisual(); };
         }
-        
+
         protected override void OnRender(DrawingContext DC)
         {
             DC.DrawRectangle(BorderBrush, null, new Rect(0, 0, ActualWidth, ActualHeight));
             Rect bounds = new Rect(
-                BorderThickness.Left, 
-                BorderThickness.Top, 
-                ActualWidth - (BorderThickness.Right + BorderThickness.Left), 
+                BorderThickness.Left,
+                BorderThickness.Top,
+                ActualWidth - (BorderThickness.Right + BorderThickness.Left),
                 ActualHeight - (BorderThickness.Top + BorderThickness.Bottom));
             DC.PushClip(new RectangleGeometry(bounds));
             DC.DrawRectangle(Background, null, bounds);
@@ -174,7 +161,7 @@ namespace LiveSPICE
                 foreach (Signal i in signals)
                     lock (i.Lock) peak = Math.Max(peak, i.Max(j => Math.Abs(j), 0.0));
             }
-                                
+
             // Compute the target min/max
             double bound = peak;
             double gamma = 0.1;
@@ -188,7 +175,7 @@ namespace LiveSPICE
 
             foreach (Signal i in signals.Except(stabilize).Append(stabilize))
                 lock (i.Lock) DrawSignal(DC, bounds, i, (int)(sync - i.Clock));
-            
+
             if (stats != null)
                 DrawStatistics(DC, bounds, stats.Pen.Brush, peak, mean, rms, f0);
 
@@ -201,7 +188,7 @@ namespace LiveSPICE
         protected void DrawTimeAxis(DrawingContext DC, Rect Bounds)
         {
             double y = (Bounds.Bottom + Bounds.Top) / 2;
-            
+
             // Draw axis.
             DC.DrawLine(AxisPen, new Point(Bounds.Left, y), new Point(Bounds.Right, y));
 
@@ -250,7 +237,7 @@ namespace LiveSPICE
             for (double v = -Vmax + (2 * Vmax - (labels * dv)) / 2 + Vmean; v < Vmax + Vmean; v += dv)
             {
                 double y = MapFromSignal(Bounds, v);
-                if (y + 10 < (Bounds.Top + Bounds.Bottom) / 2 || 
+                if (y + 10 < (Bounds.Top + Bounds.Bottom) / 2 ||
                     y - 10 > (Bounds.Top + Bounds.Bottom) / 2)
                 {
                     DC.DrawLine(GridPen, new Point(Bounds.Left, y), new Point(Bounds.Right, y));
@@ -274,7 +261,7 @@ namespace LiveSPICE
 
             // Rate of pixels to sample.
             const double rate = 1.0;
-            
+
             // How many pixels map to one sample.
             double margin = Bounds.Width / (double)(zoom * Signals.SampleRate);
             List<Point> points = new List<Point>();
@@ -337,7 +324,7 @@ namespace LiveSPICE
         {
             FormattedText stats = new FormattedText(
                 String.Format(
-                    "\u0192\u2080:   {0}\nPeak: {1}\nMean: {2}\nRms:  {3}", 
+                    "\u0192\u2080:   {0}\nPeak: {1}\nMean: {2}\nRms:  {3}",
                     FrequencyToString(Freq),
                     Circuit.Quantity.ToString(Peak, Circuit.Units.V, "+G3"),
                     Circuit.Quantity.ToString(Mean, Circuit.Units.V, "+G3"),
@@ -348,7 +335,7 @@ namespace LiveSPICE
                 Brush);
             DC.DrawText(stats, Bounds.TopLeft);
         }
-        
+
         private double MapFromTime(Rect Bounds, double t) { return Bounds.Right + (t * Bounds.Width / zoom); }
         private double MapToTime(Rect Bounds, double x) { return (x - Bounds.Right) * zoom / Bounds.Width; }
 
@@ -360,13 +347,13 @@ namespace LiveSPICE
 
         private static double Partition(double P)
         {
-	        double[] Partitions = { 10.0, 4.0, 2.0 };
+            double[] Partitions = { 10.0, 4.0, 2.0 };
 
-	        double p = Math.Pow(10.0, Math.Ceiling(Math.Log10(P)));
-	        foreach (double i in Partitions)
-		        if (p / i > P)
-			        return p / i;
-	        return p;
+            double p = Math.Pow(10.0, Math.Ceiling(Math.Log10(P)));
+            foreach (double i in Partitions)
+                if (p / i > P)
+                    return p / i;
+            return p;
         }
 
         private string FrequencyToString(double f)
@@ -376,9 +363,9 @@ namespace LiveSPICE
             else
                 return Circuit.Quantity.ToString(f, Circuit.Units.Hz);
         }
-                
+
         private static double TimeFilter(double Prev, double Cur, double t)
-        {   
+        {
             if (double.IsNaN(Prev) || double.IsNaN(Cur))
                 return Cur;
 

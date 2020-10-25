@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -25,11 +18,11 @@ namespace LiveSPICE
 
         protected ScaleTransform scale = new ScaleTransform();
 
-        public SchematicControl Schematic 
-        { 
+        public SchematicControl Schematic
+        {
             get { return ((SchematicControl)scroll.Content); }
-            set 
-            { 
+            set
+            {
                 scroll.Content = value;
                 if (value != null)
                 {
@@ -45,9 +38,12 @@ namespace LiveSPICE
 
         private Size ViewportSize { get { return new Size(scroll.ViewportWidth, scroll.ViewportHeight); } }
 
-        private double MinZoom(Size Size) { return LogFloor(Math.Min(
-            Size.Width / (Schematic.ActualWidth + 1e-6), 
-            Size.Height / (Schematic.ActualHeight + 1e-6))); }
+        private double MinZoom(Size Size)
+        {
+            return LogFloor(Math.Min(
+Size.Width / (Schematic.ActualWidth + 1e-6),
+Size.Height / (Schematic.ActualHeight + 1e-6)));
+        }
 
         public double Zoom
         {
@@ -88,7 +84,7 @@ namespace LiveSPICE
 
             Schematic = new SchematicControl(new Circuit.Schematic());
         }
-        
+
         public SchematicViewer(SchematicEditor Schematic) : this()
         {
             this.Schematic = Schematic;
@@ -111,7 +107,7 @@ namespace LiveSPICE
                 FocusRect(a, b, false);
             }
         }
-        
+
         public void FocusRect(Point a, Point b, bool AllowZoom)
         {
             if (AllowZoom)

@@ -1,8 +1,6 @@
-﻿using System;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -28,7 +26,7 @@ namespace Circuit
         public Terminal Grid { get { return g; } }
         [Browsable(false)]
         public Terminal Cathode { get { return k; } }
-        
+
         public Triode()
         {
             p = new Terminal(this, "P");

@@ -1,9 +1,5 @@
-﻿using System;
+﻿using ComputerAlgebra;
 using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -46,7 +42,7 @@ namespace Circuit
             Sym.DrawArrow(EdgeType.Black, new Coord(0, -7), new Coord(0, 7), 0.2f);
 
             Sym.DrawText(() => Current.ToString(), new Point(r * 0.7, r * 0.7), Alignment.Near, Alignment.Near);
-            Sym.DrawText(() => Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far); 
+            Sym.DrawText(() => Name, new Point(r * 0.7, r * -0.7), Alignment.Near, Alignment.Far);
         }
     }
 }

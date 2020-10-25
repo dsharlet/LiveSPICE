@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -41,7 +38,7 @@ namespace Circuit
 
             common = new Terminal(this, "Common");
 
-            Name = "S1"; 
+            Name = "S1";
         }
 
         public override void Analyze(Analysis Mna)
@@ -54,7 +51,7 @@ namespace Circuit
         {
             Sym.AddTerminal(common, new Coord(0, -20), new Coord(0, -12));
             Sym.AddCircle(EdgeType.Black, new Coord(0, -12), 2);
-                        
+
             for (int i = 0; i < Throws.Length; ++i)
             {
                 int x = (i - Throws.Length / 2) * 20 + (Throws.Length % 2 == 0 ? 10 : 0);
@@ -82,7 +79,7 @@ namespace Circuit
     [DefaultProperty("Position")]
     [Description("single pole triple-throw switch.")]
     public class SP3T : SinglePoleSwitch { public SP3T() : base(3) { } }
-    
+
 
     /// <summary>
     /// Switch component that is open or closed. 

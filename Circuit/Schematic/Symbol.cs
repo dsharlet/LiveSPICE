@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Circuit
@@ -19,38 +16,38 @@ namespace Circuit
 
         protected Coord position = new Coord(0, 0);
         public Coord Position
-        { 
+        {
             get { return position; }
-            set 
+            set
             {
                 if (position == value) return;
                 position = value;
                 OnLayoutChanged();
-            } 
+            }
         }
 
         protected int rotation = 0;
-        public int Rotation 
-        { 
-            get { return rotation; } 
-            set 
+        public int Rotation
+        {
+            get { return rotation; }
+            set
             {
                 if (rotation == value) return;
                 rotation = value;
                 OnLayoutChanged();
-            } 
+            }
         }
-        
+
         protected bool flip = false;
-        public bool Flip 
-        { 
-            get { return flip; } 
-            set 
+        public bool Flip
+        {
+            get { return flip; }
+            set
             {
                 if (flip == value) return;
                 flip = value;
                 OnLayoutChanged();
-            } 
+            }
         }
 
         // Map a local coordinate to a global coordinate.
@@ -66,8 +63,8 @@ namespace Circuit
                 y * cos - x * sin + position.y);
         }
 
-        public Symbol(Component Component) 
-        { 
+        public Symbol(Component Component)
+        {
             component = Component;
             component.Tag = this;
 
@@ -83,7 +80,7 @@ namespace Circuit
         {
             Coord lb = layout.LowerBound;
             Coord ub = layout.UpperBound;
-            Coord[] x = 
+            Coord[] x =
             {
                 MapToGlobal(new Coord(lb.x, lb.y)),
                 MapToGlobal(new Coord(ub.x, lb.y)),
@@ -93,26 +90,26 @@ namespace Circuit
             return x;
         }
 
-        public override Coord LowerBound 
-        { 
-            get 
+        public override Coord LowerBound
+        {
+            get
             {
                 Coord[] corners = Corners();
-                return new Coord(corners.Min(i => i.x), corners.Min(i => i.y)); 
-            } 
+                return new Coord(corners.Min(i => i.x), corners.Min(i => i.y));
+            }
         }
-        public override Coord UpperBound 
-        { 
-            get 
+        public override Coord UpperBound
+        {
+            get
             {
                 Coord[] corners = Corners();
                 return new Coord(corners.Max(i => i.x), corners.Max(i => i.y));
-            } 
+            }
         }
         public Coord Size { get { return UpperBound - LowerBound; } }
         public int Width { get { return Size.x; } }
         public int Height { get { return Size.y; } }
-        
+
         public override void Move(Coord dx)
         {
             position += dx;

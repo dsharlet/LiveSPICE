@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Data;
+using System.Windows.Input;
 using Util;
 
 namespace LiveSPICE
@@ -53,13 +49,13 @@ namespace LiveSPICE
                 settings.Reset();
         }
 
-        public DirectoryInfo UserDocuments 
-        { 
-            get 
+        public DirectoryInfo UserDocuments
+        {
+            get
             {
                 string docs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LiveSPICE");
                 return Directory.CreateDirectory(docs);
-            } 
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -106,7 +102,7 @@ namespace LiveSPICE
                 catch (FileLoadException Ex)
                 {
                     Util.Log.Global.WriteLine(MessageType.Warning, "Failed to load assembly '{0}': {1}", dll, Ex.Message);
-                } 
+                }
                 catch (BadImageFormatException Ex)
                 {
                     Util.Log.Global.WriteLine(MessageType.Warning, "Failed to load assembly '{0}': {1}", dll, Ex.Message);

@@ -1,9 +1,6 @@
-﻿using System;
-using System.ComponentModel;
+﻿using ComputerAlgebra;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+using System.ComponentModel;
 
 namespace Circuit
 {
@@ -18,7 +15,7 @@ namespace Circuit
         public override sealed IEnumerable<Terminal> Terminals { get { yield return terminal; } }
 
         public OneTerminal() { terminal = new Terminal(this); }
-        
+
         /// <summary>
         /// Connect the terminal of this port.
         /// </summary>
@@ -34,7 +31,7 @@ namespace Circuit
             get { return Terminal.ConnectedTo; }
             set { Terminal.ConnectedTo = value; }
         }
-        
+
         /// <summary>
         /// Voltage at this component.
         /// </summary>
@@ -70,7 +67,7 @@ namespace Circuit
         /// </summary>
         [Browsable(false)]
         public Expression V { get { return Anode.V - Cathode.V; } }
-        
+
         /// <summary>
         /// Connect the terminals of this component to the given nodes.
         /// </summary>

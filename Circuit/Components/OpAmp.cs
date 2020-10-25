@@ -1,8 +1,6 @@
-﻿using System;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -18,10 +16,10 @@ namespace Circuit
     public class OpAmp : IdealOpAmp
     {
         protected Terminal vcc, vee;
-                
+
         public override IEnumerable<Terminal> Terminals { get { return base.Terminals.Append(vcc, vee); } }
 
-        public OpAmp() 
+        public OpAmp()
         {
             vcc = new Terminal(this, "Vcc+");
             vee = new Terminal(this, "Vcc-");
@@ -42,7 +40,7 @@ namespace Circuit
         protected Quantity gbp = new Quantity(1e6m, Units.Hz);
         [Serialize, Description("Gain-bandwidth product, equivalent to the unity gain bandwidth.")]
         public Quantity GBP { get { return gbp; } set { if (gbp.Set(value)) NotifyChanged("GBP"); } }
-        
+
         public override void Analyze(Analysis Mna)
         {
             // Implement Voltage gain.

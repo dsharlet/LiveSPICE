@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -16,14 +13,14 @@ namespace Circuit
     public class IdealOpAmp : Component
     {
         protected Terminal p, n, o;
-        public override IEnumerable<Terminal> Terminals 
-        { 
-            get 
+        public override IEnumerable<Terminal> Terminals
+        {
+            get
             {
                 yield return p;
                 yield return n;
                 yield return o;
-            } 
+            }
         }
         [Browsable(false)]
         public Terminal Positive { get { return p; } }

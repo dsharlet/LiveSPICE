@@ -1,18 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -25,10 +15,10 @@ namespace LiveSPICE
         public Audio.Driver Driver
         {
             get { return driver; }
-            set 
-            { 
-                driver = value; 
-                
+            set
+            {
+                driver = value;
+
                 devices.Items.Clear();
                 if (value != null)
                 {
@@ -38,7 +28,7 @@ namespace LiveSPICE
                         Device = driver.Devices.First();
                 }
 
-                NotifyChanged("Driver"); 
+                NotifyChanged("Driver");
             }
         }
 
@@ -46,7 +36,7 @@ namespace LiveSPICE
         public Audio.Device Device
         {
             get { return device; }
-            set 
+            set
             {
                 device = value;
 
@@ -60,10 +50,10 @@ namespace LiveSPICE
                         outputs.Items.Add(new ListBoxItem() { Content = i.Name, Tag = i });
                 }
 
-                NotifyChanged("Device"); 
+                NotifyChanged("Device");
             }
         }
-        
+
         public Audio.Channel[] Inputs { get { return inputs.SelectedItems.Cast<ListBoxItem>().Select(i => i.Tag).Cast<Audio.Channel>().ToArray(); } }
         public Audio.Channel[] Outputs { get { return outputs.SelectedItems.Cast<ListBoxItem>().Select(i => i.Tag).Cast<Audio.Channel>().ToArray(); } }
 
@@ -109,7 +99,7 @@ namespace LiveSPICE
             DialogResult = true;
             Close();
         }
-                
+
         private void RefreshDrivers()
         {
             drivers.Items.Clear();
@@ -118,14 +108,14 @@ namespace LiveSPICE
             if (drivers.Items.Count > 0)
                 Driver = Audio.Driver.Drivers.First();
         }
-        
+
         protected Signal signal;
 
         private void BeginTest(object sender, EventArgs e)
         {
             signal = new Signal();
             scope.Signals.Add(signal);
-            
+
             stream = Device.Open(Callback, Inputs, Outputs);
 
             Enabled = false;
@@ -161,7 +151,7 @@ namespace LiveSPICE
 
             Enabled = true;
         }
-        
+
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {

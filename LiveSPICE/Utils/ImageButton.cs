@@ -1,19 +1,11 @@
-﻿using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Runtime.InteropServices;
 
 namespace LiveSPICE
 {
@@ -21,7 +13,7 @@ namespace LiveSPICE
     {
         static ImageButton() { DefaultStyleKeyProperty.OverrideMetadata(typeof(ImageButton), new FrameworkPropertyMetadata(typeof(ImageButton))); }
         private Image enabled, disabled;
-        
+
         private double width = double.NaN, height = double.NaN;
         [LocalizabilityAttribute(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverterAttribute(typeof(LengthConverter))]
@@ -30,10 +22,10 @@ namespace LiveSPICE
         [TypeConverterAttribute(typeof(LengthConverter))]
         public double ImageHeight { get { return height; } set { height = value; NotifyChanged("ImageHeight"); } }
 
-        public ImageSource Source 
-        { 
-            get { return enabled != null ? enabled.Source : null; } 
-            set 
+        public ImageSource Source
+        {
+            get { return enabled != null ? enabled.Source : null; }
+            set
             {
                 if (value != null)
                 {
@@ -53,8 +45,8 @@ namespace LiveSPICE
                     disabled = null;
                 }
                 Update();
-                NotifyChanged("Source"); 
-            } 
+                NotifyChanged("Source");
+            }
         }
 
         public ICommand CommandImage
@@ -93,9 +85,9 @@ namespace LiveSPICE
 
                 for (int j = 0; j < bitmap.PixelWidth * 4; j += 4)
                 {
-                    double g = 
-                        0.114 * row[j + 0] + 
-                        0.587 * row[j + 1] + 
+                    double g =
+                        0.114 * row[j + 0] +
+                        0.587 * row[j + 1] +
                         0.299 * row[j + 2];
                     row[j + 0] = row[j + 1] = row[j + 2] = (byte)g;
                     row[j + 3] /= 2;

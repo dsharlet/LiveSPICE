@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Threading;
 using Util;
 
 namespace WaveAudio
 {
     class WaveOut : IDisposable
-    {                     
+    {
         private IntPtr waveOut = IntPtr.Zero;
         private List<OutBuffer> buffers;
         private volatile bool disposed = false;
@@ -33,14 +26,14 @@ namespace WaveAudio
         ~WaveOut() { Dispose(false); }
 
         public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
-        
+
         private void Dispose(bool Disposing)
         {
             if (disposed) return;
             disposed = true;
 
             Log.Global.WriteLine(MessageType.Info, "Closing wave out device.");
-            
+
             if (waveOut != IntPtr.Zero)
                 Winmm.waveOutReset(waveOut);
             if (buffers != null)

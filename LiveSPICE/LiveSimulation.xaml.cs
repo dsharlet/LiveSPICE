@@ -1,24 +1,16 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Xceed.Wpf.AvalonDock.Layout;
-using ComputerAlgebra;
-using ComputerAlgebra.LinqCompiler;
 using Util;
+using Xceed.Wpf.AvalonDock.Layout;
 
 namespace LiveSPICE
 {
@@ -85,7 +77,7 @@ namespace LiveSPICE
             try
             {
                 InitializeComponent();
-                
+
                 // Make a clone of the schematic so we can mess with it.
                 Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
                 clone.Elements.ItemAdded += OnElementAdded;
@@ -95,7 +87,7 @@ namespace LiveSPICE
 
                 // Build the circuit from the schematic.
                 circuit = Schematic.Schematic.Build(Log);
-                
+
                 // Create the input and output controls.                
                 IEnumerable<Circuit.Component> components = circuit.Components;
 
@@ -153,12 +145,12 @@ namespace LiveSPICE
                         Canvas.SetLeft(button, Canvas.GetLeft(tag));
                         Canvas.SetTop(button, Canvas.GetTop(tag));
 
-                        button.Click += (o, e) => 
+                        button.Click += (o, e) =>
                         {
                             // Click all the buttons in the group.
                             foreach (Circuit.IButtonControl j in components.OfType<Circuit.IButtonControl>().Where(x => x.Group == b.Group))
                                 j.Click();
-                            UpdateSimulation(true); 
+                            UpdateSimulation(true);
                         };
 
                         button.MouseEnter += (o, e) => button.Opacity = 0.95;
@@ -285,7 +277,7 @@ namespace LiveSPICE
                 });
             }
         }
-        
+
         private int clock = -1;
         private int update = 0;
         private TaskScheduler scheduler = new RedundantTaskScheduler(1);
@@ -472,7 +464,7 @@ namespace LiveSPICE
         private void ViewAudio_Click(object sender, RoutedEventArgs e) { ToggleVisible(audio); }
         private void ViewLog_Click(object sender, RoutedEventArgs e) { ToggleVisible(log); }
 
-        private void BindSignal_Click(object sender, RoutedEventArgs e) 
+        private void BindSignal_Click(object sender, RoutedEventArgs e)
         {
             OutputChannel ch = (OutputChannel)((FrameworkElement)sender).Tag;
 
@@ -481,7 +473,7 @@ namespace LiveSPICE
             Schematic.Tool = new FindRelevantTool(Schematic)
             {
                 Relevant = (x) => x is Circuit.Symbol && ((Circuit.Symbol)x).Component is Circuit.TwoTerminal,
-                Clicked = (x) => 
+                Clicked = (x) =>
                 {
                     if (x.Any())
                     {

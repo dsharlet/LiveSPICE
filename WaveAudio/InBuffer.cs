@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
 namespace WaveAudio
@@ -13,7 +9,7 @@ namespace WaveAudio
     class InBuffer : Buffer
     {
         private IntPtr waveIn;
-        
+
         public InBuffer(IntPtr WaveIn, WAVEFORMATEX Format, int Count) : base(Format, Count)
         {
             waveIn = WaveIn;
@@ -33,7 +29,7 @@ namespace WaveAudio
 
             base.Dispose(Disposing);
         }
-        
+
         public void Record()
         {
             header.dwFlags &= ~WaveHdrFlags.WHDR_DONE;

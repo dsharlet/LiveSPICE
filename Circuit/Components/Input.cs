@@ -1,9 +1,5 @@
-﻿using System;
+﻿using ComputerAlgebra;
 using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -17,9 +13,9 @@ namespace Circuit
     public class Input : TwoTerminal
     {
         public Input() { Name = "V1"; }
-        
-        public override void Analyze(Analysis Mna) 
-        { 
+
+        public override void Analyze(Analysis Mna)
+        {
             Expression Vin = DependentVariable(Name, t);
             VoltageSource.Analyze(Mna, Anode, Cathode, Vin, Arrow.New(Vin.Evaluate(t, 0), 0));
         }

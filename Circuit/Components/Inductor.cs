@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using ComputerAlgebra;
+using System;
 using System.ComponentModel;
 
 namespace Circuit
-{ 
+{
     /// <summary>
     /// Inductor is a linear component with V = L*di/dt.
     /// </summary>
@@ -45,7 +42,7 @@ namespace Circuit
             double min = t1 + coil * Math.Cos(t1);
             double max = t2 + coil * Math.Cos(t2);
             double length = max - min;
-            
+
             Sym.DrawFunction(
                 EdgeType.Black,
                 (t) => x - Scale * Math.Sin(t),
@@ -63,7 +60,7 @@ namespace Circuit
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
             Draw(Sym, 0.0, -16.0, 16.0, 4);
-            
+
             Sym.DrawText(() => Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(() => inductance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
         }

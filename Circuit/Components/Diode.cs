@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using ComputerAlgebra;
+using System;
 using System.ComponentModel;
 
 namespace Circuit
@@ -33,7 +30,7 @@ namespace Circuit
         protected DiodeType type = DiodeType.Diode;
         [Serialize, Description("Type of this diode. This property only affects the schematic symbol, it does not affect the simulation.")]
         public DiodeType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
-        
+
         public Diode() { Name = "D1"; }
 
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT)
@@ -66,7 +63,7 @@ namespace Circuit
                 new Coord(10, 10),
                 new Coord(0, -10));
             Sym.AddLine(EdgeType.Black, new Coord(-10, -10), new Coord(10, -10));
-            
+
             switch (Type)
             {
                 case DiodeType.LED:

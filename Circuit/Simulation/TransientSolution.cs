@@ -1,11 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Reflection;
-using ComputerAlgebra;
 using Util;
 
 namespace Circuit
@@ -17,7 +13,7 @@ namespace Circuit
     {
         public static readonly Variable t = Component.t;
         public static readonly Expression T = Component.T;
-        
+
         private Expression h;
         /// <summary>
         /// The length of a timestep given by this solution.
@@ -30,13 +26,13 @@ namespace Circuit
         /// a follows SolutionSet b in this enumeration, b's solution may depend on a's solutions.
         /// </summary>
         public IEnumerable<SolutionSet> Solutions { get { return solutions; } }
-        
+
         private IEnumerable<Arrow> initialConditions;
         /// <summary>
         /// Set of expressions describing the initial conditions of the variables in this solution.
         /// </summary>
         public IEnumerable<Arrow> InitialConditions { get { return initialConditions; } }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -87,7 +83,7 @@ namespace Circuit
             // Define u[t] = step function.
             Analysis.Add(ExprFunction.New("u", Call.If(t >= 0, 1, 0), t));
             mna = mna.Resolve(Analysis).OfType<Equal>().ToList();
-            
+
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
 
@@ -117,7 +113,7 @@ namespace Circuit
                     Log.WriteLine(MessageType.Warning, "Failed to find partition initial conditions, simulation may be unstable.");
                 }
             }
-            
+
             // Transient analysis of the system.
             Log.WriteLine(MessageType.Info, "Performing transient analysis...");
 
@@ -157,7 +153,7 @@ namespace Circuit
                 {
                     // The variables of this system are the newton iteration updates.
                     List<Expression> dy = F.Unknowns.Select(i => NewtonIteration.Delta(i)).ToList();
-                    
+
                     // Compute JxF*dy + F(y0) == 0.
                     SystemOfEquations nonlinear = new SystemOfEquations(
                         F.Select(i => i.Gradient(F.Unknowns).Select(j => new KeyValuePair<Expression, Expression>(NewtonIteration.Delta(j.Key), j.Value))
@@ -189,7 +185,7 @@ namespace Circuit
             Log.WriteLine(MessageType.Info, "System solved, {0} solution sets for {1} unknowns.",
                 solutions.Count,
                 solutions.Sum(i => i.Unknowns.Count()));
-            
+
             return new TransientSolution(
                 h,
                 solutions,

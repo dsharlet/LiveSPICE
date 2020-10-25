@@ -1,8 +1,6 @@
-﻿using System;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -22,14 +20,14 @@ namespace Circuit
     public class BipolarJunctionTransistor : Component, INotifyPropertyChanged
     {
         private Terminal c, e, b;
-        public override IEnumerable<Terminal> Terminals 
-        { 
-            get 
+        public override IEnumerable<Terminal> Terminals
+        {
+            get
             {
                 yield return c;
                 yield return e;
                 yield return b;
-            } 
+            }
         }
         [Browsable(false)]
         public Terminal Collector { get { return c; } }
@@ -37,7 +35,7 @@ namespace Circuit
         public Terminal Emitter { get { return e; } }
         [Browsable(false)]
         public Terminal Base { get { return b; } }
-        
+
         private BjtType type = BjtType.NPN;
         [Serialize, Description("BJT structure.")]
         public BjtType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
@@ -59,7 +57,7 @@ namespace Circuit
             c = new Terminal(this, "C");
             e = new Terminal(this, "E");
             b = new Terminal(this, "B");
-            Name = "Q1"; 
+            Name = "Q1";
         }
 
         public override void Analyze(Analysis Mna)
@@ -80,7 +78,7 @@ namespace Circuit
 
             Expression iF = IS * (LinExp(Vbe / VT) - 1);
             Expression iR = IS * (LinExp(Vbc / VT) - 1);
-            
+
             // TODO: Algebraically rearranging these results in dramatically different stability behavior. 
             // It would be nice to understand this.
             //Expression ie = iF - aR * iR;
@@ -112,7 +110,7 @@ namespace Circuit
                     Sym.DrawArrow(EdgeType.Black, new Coord(10, 17), new Coord(bx, 8), 0.2, 0.3);
                     Sym.DrawLine(EdgeType.Black, new Coord(bx, -8), new Coord(10, -17));
                     break;
-                default: 
+                default:
                     throw new NotSupportedException("Unknown BJT type.");
             }
             Sym.DrawLine(EdgeType.Black, new Coord(bx, 12), new Coord(bx, -12));

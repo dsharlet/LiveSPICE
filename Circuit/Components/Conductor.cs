@@ -1,10 +1,5 @@
-﻿using System;
+﻿using ComputerAlgebra;
 using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -28,7 +23,7 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode) { return Analyze(Mna, Mna.AnonymousName(), Anode, Cathode); }
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode); }
-        
+
         public override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);

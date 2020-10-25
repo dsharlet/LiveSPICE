@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Numerics;
+using System.Text;
 
 namespace LiveSPICE
 {
@@ -45,7 +42,7 @@ namespace LiveSPICE
             }
             return ret.ToString();
         }
-        
+
         public static double Estimate(double[] Samples, int Decimate, out double Phase)
         {
             Complex[] data = DecimateSignal(Samples, Decimate);

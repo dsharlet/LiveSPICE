@@ -5,30 +5,30 @@ namespace WaveAudio
 {
     public enum MMRESULT : uint
     {
-        NOERROR         = 0,
-        ERROR           = 1,
-        BADDEVICEID     = 2,
-        NOTENABLED      = 3,
-        ALLOCATED       = 4,
-        INVALHANDLE     = 5,
-        NODRIVER        = 6,
-        NOMEM           = 7,
-        NOTSUPPORTED    = 8,
-        BADERRNUM       = 9,
-        INVALFLAG       = 10,
-        INVALPARAM      = 11,
-        HANDLEBUSY      = 12,
-        INVALIDALIAS    = 13,
-        BADDB           = 14,
-        KEYNOTFOUND     = 15,
-        READERROR       = 16,
-        WRITEERROR      = 17,
-        DELETEERROR     = 18,
-        VALNOTFOUND     = 19,
-        NODRIVERCB      = 20,
-        BADFORMAT       = 32,
-        STILLPLAYING    = 33,
-        UNPREPARED      = 34
+        NOERROR = 0,
+        ERROR = 1,
+        BADDEVICEID = 2,
+        NOTENABLED = 3,
+        ALLOCATED = 4,
+        INVALHANDLE = 5,
+        NODRIVER = 6,
+        NOMEM = 7,
+        NOTSUPPORTED = 8,
+        BADERRNUM = 9,
+        INVALFLAG = 10,
+        INVALPARAM = 11,
+        HANDLEBUSY = 12,
+        INVALIDALIAS = 13,
+        BADDB = 14,
+        KEYNOTFOUND = 15,
+        READERROR = 16,
+        WRITEERROR = 17,
+        DELETEERROR = 18,
+        VALNOTFOUND = 19,
+        NODRIVERCB = 20,
+        BADFORMAT = 32,
+        STILLPLAYING = 33,
+        UNPREPARED = 34
     }
 
     public class MmException : Exception
@@ -52,13 +52,13 @@ namespace WaveAudio
     [StructLayout(LayoutKind.Sequential, Pack = 2)]
     public struct WAVEFORMATEX
     {
-        public ushort    wFormatTag;
-        public ushort    nChannels;
-        public uint      nSamplesPerSec;
-        public uint      nAvgBytesPerSec;
-        public ushort    nBlockAlign;
-        public ushort    wBitsPerSample;
-        public ushort    cbSize;
+        public ushort wFormatTag;
+        public ushort nChannels;
+        public uint nSamplesPerSec;
+        public uint nAvgBytesPerSec;
+        public ushort nBlockAlign;
+        public ushort wBitsPerSample;
+        public ushort cbSize;
 
         public WAVEFORMATEX(int Rate, int Bits, int Channels)
         {
@@ -159,7 +159,7 @@ namespace WaveAudio
         public const int MM_WIM_OPEN = 0x3BE;
         public const int MM_WIM_CLOSE = 0x3BF;
         public const int MM_WIM_DATA = 0x3C0;
-        
+
         public delegate void Callback(IntPtr hw, int uMsg, IntPtr dwUser, ref WAVEHDR dwParam1, IntPtr dwParam2);
 
         [DllImport("winmm.dll")]

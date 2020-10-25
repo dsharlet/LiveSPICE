@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LiveSPICE
 {
@@ -37,7 +32,7 @@ namespace LiveSPICE
         {
             Debug.Assert(Elements.Any());
             elements = Elements.ToList();
-            delta = Delta; 
+            delta = Delta;
             around = Around;
         }
 
@@ -81,8 +76,8 @@ namespace LiveSPICE
         public override void Do() { target.Add(elements); }
         public override void Undo() { target.Remove(elements); }
 
-        public override string ToString() 
-        { 
+        public override string ToString()
+        {
             if (elements.Count > 1)
                 return "Add " + elements.Count + " Elements";
             else
@@ -104,7 +99,7 @@ namespace LiveSPICE
 
         public override void Do() { target.Remove(elements); }
         public override void Undo() { target.Add(elements); }
-        
+
         public override string ToString()
         {
             if (elements.Count > 1)

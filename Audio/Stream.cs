@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-
-namespace Audio
+﻿namespace Audio
 {
     /// <summary>
     /// Base class for a running audio stream.

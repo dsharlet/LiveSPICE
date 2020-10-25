@@ -1,21 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Globalization;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml.Linq;
-using System.Reflection;
-using System.ComponentModel;
 using Util;
 
 namespace LiveSPICE
@@ -25,13 +18,13 @@ namespace LiveSPICE
     /// </summary>
     public class SymbolControl : ElementControl
     {
-        private static Pen TextOutline = new Pen(new SolidColorBrush(Color.FromArgb(32, 0, 0, 0)), 0.2);    
+        private static Pen TextOutline = new Pen(new SolidColorBrush(Color.FromArgb(32, 0, 0, 0)), 0.2);
 
         static SymbolControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SymbolControl), new FrameworkPropertyMetadata(typeof(SymbolControl))); }
 
         private bool showText = true;
-        public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual();  } }
-    
+        public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); } }
+
         protected Circuit.SymbolLayout layout;
 
         public SymbolControl(Circuit.Symbol S) : base(S)
@@ -125,7 +118,7 @@ namespace LiveSPICE
 
             dc = drawingContext;
             dc.PushGuidelineSet(SymbolControl.Guidelines);
-            
+
             DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
 
             Rect bounds = new Rect(T(transform, layout.LowerBound), T(transform, layout.UpperBound));
@@ -137,25 +130,25 @@ namespace LiveSPICE
             dc.Pop();
             dc = null;
         }
-        
+
         private static Point T(Matrix Tx, Circuit.Point x) { return Tx.Transform(new Point(x.x, x.y)); }
 
         public static void DrawLayout(
             Circuit.SymbolLayout Layout,
-            DrawingContext Context, Matrix Tx, 
+            DrawingContext Context, Matrix Tx,
             Pen Pen, FontFamily FontFamily, FontWeight FontWeight, double FontSize)
         {
             Context.PushGuidelineSet(Guidelines);
 
             foreach (Circuit.SymbolLayout.Shape i in Layout.Lines)
                 Context.DrawLine(
-                    Pen != null ? Pen : MapToPen(i.Edge), 
-                    T(Tx, i.x1), 
+                    Pen != null ? Pen : MapToPen(i.Edge),
+                    T(Tx, i.x1),
                     T(Tx, i.x2));
             foreach (Circuit.SymbolLayout.Shape i in Layout.Rectangles)
                 Context.DrawRectangle(
-                    (i.Fill && Pen == null) ? MapToBrush(i.Edge) : null, 
-                    Pen != null ? Pen : MapToPen(i.Edge), 
+                    (i.Fill && Pen == null) ? MapToBrush(i.Edge) : null,
+                    Pen != null ? Pen : MapToPen(i.Edge),
                     new Rect(T(Tx, i.x1), T(Tx, i.x2)));
             foreach (Circuit.SymbolLayout.Shape i in Layout.Ellipses)
             {
@@ -165,7 +158,7 @@ namespace LiveSPICE
                 Point p2 = T(Tx, i.x2);
 
                 Context.DrawEllipse(
-                    brush, pen, 
+                    brush, pen,
                     new Point((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2), (p2.X - p1.X) / 2, (p2.Y - p1.Y) / 2);
             }
             foreach (Circuit.SymbolLayout.Curve i in Layout.Curves)
@@ -212,9 +205,9 @@ namespace LiveSPICE
                     p1.Y *= text.Height; p2.Y *= text.Height;
 
                     Rect rc = new Rect(
-                        Math.Min(p.X + p1.X, p.X - p2.X), 
+                        Math.Min(p.X + p1.X, p.X - p2.X),
                         Math.Min(p.Y + p1.Y, p.Y - p2.Y),
-                        text.Width, 
+                        text.Width,
                         text.Height);
                     if (TextOutline != null)
                         Context.DrawRectangle(null, TextOutline, rc);

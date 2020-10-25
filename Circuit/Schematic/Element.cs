@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Circuit
@@ -83,7 +80,7 @@ namespace Circuit
             X.SetAttributeValue("Type", GetType().AssemblyQualifiedName);
             return X;
         }
-        
+
         public static Element Deserialize(XElement X)
         {
             try

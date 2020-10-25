@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Linq;
 
 namespace Circuit.Spice
 {
@@ -13,10 +11,10 @@ namespace Circuit.Spice
 
         private int lineCount = 0;
         public int LineCount { get { return lineCount; } }
-        
+
         // Whitespace characters.
         private static char[] Whitespace = new char[] { ' ', '\t', '(', ')', ',', '=' };
-        
+
         public TokenList(string Line)
         {
             text = Line.ToString().TrimEnd();

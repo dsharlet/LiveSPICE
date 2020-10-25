@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -44,23 +41,23 @@ namespace LiveSPICE
 
     public static class Images
     {
-        public static readonly BitmapImage Clear    = new BitmapImage(new Uri(@"pack://application:,,,/Images/Clear.png"));
-        public static readonly BitmapImage Copy     = new BitmapImage(new Uri(@"pack://application:,,,/Images/Copy.png"));
-        public static readonly BitmapImage Cut      = new BitmapImage(new Uri(@"pack://application:,,,/Images/Cut.png"));
-        public static readonly BitmapImage Gears    = new BitmapImage(new Uri(@"pack://application:,,,/Images/Gears.png"));
-        public static readonly BitmapImage New      = new BitmapImage(new Uri(@"pack://application:,,,/Images/New.png"));
-        public static readonly BitmapImage Open     = new BitmapImage(new Uri(@"pack://application:,,,/Images/Open.png"));
-        public static readonly BitmapImage Paste    = new BitmapImage(new Uri(@"pack://application:,,,/Images/Paste.png"));
-        public static readonly BitmapImage Pause    = new BitmapImage(new Uri(@"pack://application:,,,/Images/Pause.png"));
-        public static readonly BitmapImage Redo     = new BitmapImage(new Uri(@"pack://application:,,,/Images/Redo.png"));
-        public static readonly BitmapImage Restart  = new BitmapImage(new Uri(@"pack://application:,,,/Images/Restart.png"));
-        public static readonly BitmapImage Save     = new BitmapImage(new Uri(@"pack://application:,,,/Images/Save.png"));
-        public static readonly BitmapImage SaveAll  = new BitmapImage(new Uri(@"pack://application:,,,/Images/SaveAll.png"));
-        public static readonly BitmapImage Start    = new BitmapImage(new Uri(@"pack://application:,,,/Images/Start.png"));
-        public static readonly BitmapImage Undo     = new BitmapImage(new Uri(@"pack://application:,,,/Images/Undo.png"));
-        public static readonly BitmapImage ZoomIn   = new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomIn.png"));
-        public static readonly BitmapImage ZoomFit  = new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomFit.png"));
-        public static readonly BitmapImage ZoomOut  = new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomOut.png"));
+        public static readonly BitmapImage Clear = new BitmapImage(new Uri(@"pack://application:,,,/Images/Clear.png"));
+        public static readonly BitmapImage Copy = new BitmapImage(new Uri(@"pack://application:,,,/Images/Copy.png"));
+        public static readonly BitmapImage Cut = new BitmapImage(new Uri(@"pack://application:,,,/Images/Cut.png"));
+        public static readonly BitmapImage Gears = new BitmapImage(new Uri(@"pack://application:,,,/Images/Gears.png"));
+        public static readonly BitmapImage New = new BitmapImage(new Uri(@"pack://application:,,,/Images/New.png"));
+        public static readonly BitmapImage Open = new BitmapImage(new Uri(@"pack://application:,,,/Images/Open.png"));
+        public static readonly BitmapImage Paste = new BitmapImage(new Uri(@"pack://application:,,,/Images/Paste.png"));
+        public static readonly BitmapImage Pause = new BitmapImage(new Uri(@"pack://application:,,,/Images/Pause.png"));
+        public static readonly BitmapImage Redo = new BitmapImage(new Uri(@"pack://application:,,,/Images/Redo.png"));
+        public static readonly BitmapImage Restart = new BitmapImage(new Uri(@"pack://application:,,,/Images/Restart.png"));
+        public static readonly BitmapImage Save = new BitmapImage(new Uri(@"pack://application:,,,/Images/Save.png"));
+        public static readonly BitmapImage SaveAll = new BitmapImage(new Uri(@"pack://application:,,,/Images/SaveAll.png"));
+        public static readonly BitmapImage Start = new BitmapImage(new Uri(@"pack://application:,,,/Images/Start.png"));
+        public static readonly BitmapImage Undo = new BitmapImage(new Uri(@"pack://application:,,,/Images/Undo.png"));
+        public static readonly BitmapImage ZoomIn = new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomIn.png"));
+        public static readonly BitmapImage ZoomFit = new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomFit.png"));
+        public static readonly BitmapImage ZoomOut = new BitmapImage(new Uri(@"pack://application:,,,/Images/ZoomOut.png"));
 
         public static ImageSource ForCommand(ICommand Command)
         {

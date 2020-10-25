@@ -1,23 +1,18 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Util;
 
 namespace WaveAudio
 {
     class Stream : Audio.Stream
-    {                     
+    {
         private SampleHandler callback;
         private WAVEFORMATEX format;
         private WaveIn[] waveIn;
         private WaveOut[] waveOut;
-        
+
         private Thread proc;
 
         public override double SampleRate { get { return format.nSamplesPerSec; } }
@@ -117,7 +112,7 @@ namespace WaveAudio
             }
             Log.Global.WriteLine(MessageType.Info, "Exiting streaming thread");
         }
-        
+
         private static void ConvertSamples(IntPtr In, WAVEFORMATEX InFormat, IntPtr Out, int Count)
         {
             switch (InFormat.wBitsPerSample)

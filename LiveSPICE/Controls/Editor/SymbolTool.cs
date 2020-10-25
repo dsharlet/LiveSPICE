@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -21,12 +10,12 @@ namespace LiveSPICE
     public class SymbolTool : EditorTool
     {
         protected SymbolControl overlay;
-        
+
         public SymbolTool(SchematicEditor Target, Circuit.Component C) : base(Target)
         {
-            overlay = new SymbolControl(C) 
-            { 
-                Visibility = Visibility.Hidden, 
+            overlay = new SymbolControl(C)
+            {
+                Visibility = Visibility.Hidden,
                 ShowText = false,
                 Highlighted = true,
                 Pen = new Pen(Brushes.Gray, 1.0) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }
@@ -49,7 +38,7 @@ namespace LiveSPICE
             };
             Editor.Add(S);
             Editor.Select(S);
-            
+
             overlay.Pen.Brush = Brushes.Black;
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
                 Target.Tool = new SelectionTool(Editor);
@@ -74,7 +63,7 @@ namespace LiveSPICE
         {
             overlay.Visibility = Visibility.Hidden;
         }
-        
+
         public override bool KeyDown(KeyEventArgs Event)
         {
             Circuit.Symbol symbol = overlay.Symbol;

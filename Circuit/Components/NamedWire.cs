@@ -1,9 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using System.ComponentModel;
 
 namespace Circuit
 {
@@ -20,10 +15,10 @@ namespace Circuit
 
         private string wire = "Name";
         [Serialize, Description("Name of the node connected to this named wire.")]
-        public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire");  } }
+        public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire"); } }
 
         public override void Analyze(Analysis Mna) { }
-        
+
         public override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);

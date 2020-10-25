@@ -1,22 +1,15 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Threading;
 using Util;
 
 namespace WaveAudio
 {
     class WaveIn : IDisposable
-    {                     
+    {
         private IntPtr waveIn = IntPtr.Zero;
         private List<InBuffer> buffers;
         private volatile bool disposed = false;
-        
+
         public WaveIn(int Device, WAVEFORMATEX Format, int BufferSize)
         {
             Log.Global.WriteLine(MessageType.Info, "Opening wave in device '{0}'.", Device);
@@ -32,14 +25,14 @@ namespace WaveAudio
                 b.Record();
                 buffers.Add(b);
             }
-            
+
             MmException.CheckThrow(Winmm.waveInStart(waveIn));
         }
 
         ~WaveIn() { Dispose(false); }
 
         public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
-        
+
         private void Dispose(bool Disposing)
         {
             if (disposed) return;

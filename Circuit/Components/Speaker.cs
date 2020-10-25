@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -13,7 +9,7 @@ namespace Circuit
     [Category("Generic")]
     [DisplayName("Speaker")]
     [DefaultProperty("Impedance")]
-    [Description("Ideal speaker.")] 
+    [Description("Ideal speaker.")]
     public class Speaker : TwoTerminal
     {
         private Quantity impedance = new Quantity(Real.Infinity, Units.Ohm);

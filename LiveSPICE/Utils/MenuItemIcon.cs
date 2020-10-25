@@ -1,18 +1,9 @@
-﻿using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -30,10 +21,10 @@ namespace LiveSPICE
         [TypeConverterAttribute(typeof(LengthConverter))]
         public double IconHeight { get { return height; } set { height = value; NotifyChanged("IconHeight"); } }
 
-        public ImageSource IconSource 
-        { 
-            get { return enabled != null ? enabled.Source : null; } 
-            set 
+        public ImageSource IconSource
+        {
+            get { return enabled != null ? enabled.Source : null; }
+            set
             {
                 if (value != null)
                 {
@@ -53,18 +44,18 @@ namespace LiveSPICE
                     disabled = null;
                 }
                 Update();
-                NotifyChanged("IconSource"); 
-            } 
+                NotifyChanged("IconSource");
+            }
         }
 
         public ICommand CommandImage
-        { 
-            get { return base.Command; } 
+        {
+            get { return base.Command; }
             set
-            { 
+            {
                 base.Command = value;
                 IconSource = Images.ForCommand(value);
-            } 
+            }
         }
 
         public MenuItemIcon() { IsEnabledChanged += OnEnabledChanged; }

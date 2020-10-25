@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace LiveSPICE
@@ -95,7 +92,7 @@ namespace LiveSPICE
             //Vector ap = Point1 - Point;
 
             //return (ap - (Vector.Multiply(ap, n) * n)).LengthSquared;
-            
+
             //Area = |(1/2)(x1y2 + x2y3 + x3y1 - x2y1 - x3y2 - x1y3)|   *Area of triangle
             //Base = v((x1-x2)²+(x1-x2)²)                               *Base of Triangle*
             //Area = .5*Base*H                                          *Solve for height

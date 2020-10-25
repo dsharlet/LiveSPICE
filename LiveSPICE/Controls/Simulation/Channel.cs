@@ -1,21 +1,7 @@
-﻿using System;
+﻿using ComputerAlgebra.LinqCompiler;
+using System;
 using System.ComponentModel;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using ComputerAlgebra;
-using ComputerAlgebra.LinqCompiler;
 
 namespace LiveSPICE
 {
@@ -32,7 +18,7 @@ namespace LiveSPICE
 
         private Brush signalStatus = Brushes.Transparent;
         public Brush SignalStatus { get { return signalStatus; } set { signalStatus = value; NotifyChanged("SignalStatus"); } }
-        
+
         // INotifyPropertyChanged.
         protected void NotifyChanged(string p)
         {
@@ -69,7 +55,7 @@ namespace LiveSPICE
                 buffer[i] = signal(t);
             return buffer;
         }
-        
+
         public SignalChannel(ComputerAlgebra.Expression Signal)
         {
             signal = Signal.Compile<Func<double, double>>(Circuit.Component.t);

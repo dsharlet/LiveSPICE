@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
 namespace WaveAudio
@@ -25,7 +21,7 @@ namespace WaveAudio
 
         private Audio.SampleBuffer samples;
         public Audio.SampleBuffer Samples { get { return samples; } }
-        
+
         public Buffer(WAVEFORMATEX Format, int Count)
         {
             samples = new Audio.SampleBuffer(Count) { Tag = this };
@@ -56,7 +52,7 @@ namespace WaveAudio
 
             disposed = true;
         }
-        
+
         private static int BlockAlignedSize(WAVEFORMATEX Format, int Count)
         {
             int align = Format.nBlockAlign;

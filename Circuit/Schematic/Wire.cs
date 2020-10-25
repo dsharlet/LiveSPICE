@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Circuit
@@ -45,16 +42,16 @@ namespace Circuit
                 b = value;
                 OnLayoutChanged();
             }
-        }                
+        }
 
-        public Wire() 
-        { 
+        public Wire()
+        {
             conductor = new Conductor();
             conductor.Tag = this;
         }
         public Wire(Coord A, Coord B) : this()
         {
-            a = A; 
+            a = A;
             b = B;
         }
 
@@ -115,7 +112,7 @@ namespace Circuit
             b.y += (int)Math.Round(2 * (y - b.y));
             OnLayoutChanged();
         }
-        
+
         public override XElement Serialize()
         {
             XElement X = base.Serialize();

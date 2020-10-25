@@ -1,9 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using System.ComponentModel;
 
 namespace Circuit
 {
@@ -13,9 +8,9 @@ namespace Circuit
     {
         public VoltageDefinition() { Name = "V1"; }
 
-        public override void Analyze(Analysis Mna) 
+        public override void Analyze(Analysis Mna)
         {
-            Mna.AddDefinition(Name, Anode.V - Cathode.V); 
+            Mna.AddDefinition(Name, Anode.V - Cathode.V);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
@@ -37,8 +32,8 @@ namespace Circuit
     {
         public CurrentDefinition() { Name = "I1"; }
 
-        public override void Analyze(Analysis Mna) 
-        { 
+        public override void Analyze(Analysis Mna)
+        {
             Mna.AddDefinition(Name, Conductor.Analyze(Mna, Anode, Cathode));
         }
 
@@ -51,7 +46,7 @@ namespace Circuit
 
             Sym.DrawArrow(EdgeType.Black, new Coord(0, -7), new Coord(0, 7), 0.2f);
 
-            Sym.DrawText(() => Name, new Point(5, 0), Alignment.Near, Alignment.Center); 
+            Sym.DrawText(() => Name, new Point(5, 0), Alignment.Near, Alignment.Center);
         }
     }
 }

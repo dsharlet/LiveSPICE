@@ -1,17 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -20,7 +11,7 @@ namespace LiveSPICE
         protected Circuit.Coord a, b;
 
         public FindRelevantTool(SchematicControl Target)
-            : base(Target) 
+            : base(Target)
         {
         }
 
@@ -46,7 +37,7 @@ namespace LiveSPICE
             b = At;
             Target.Highlight(RelevantOf(Target.AtPoint(b)));
         }
-        
+
         public override void MouseUp(Circuit.Coord At)
         {
             b = At;

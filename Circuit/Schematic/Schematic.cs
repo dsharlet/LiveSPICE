@@ -1,11 +1,8 @@
-﻿using System;
-using System.Diagnostics;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using ComputerAlgebra;
 using Util;
 
 namespace Circuit
@@ -232,7 +229,7 @@ namespace Circuit
             List<Node> nodes = Wires.Select(i => i.Node).Distinct().ToList();
 
             Node n = null;
-            
+
             // If this set of wires is connected to a NamedWire, use that as the node.
             if (n == null)
             {

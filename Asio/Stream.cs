@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Util;
 
 namespace Asio
@@ -50,7 +46,7 @@ namespace Asio
                     a[i].Raw,
                     a[i].Count);
             }
-            
+
             Audio.SampleBuffer[] b = new Audio.SampleBuffer[output.Length];
             for (int i = 0; i < output.Length; ++i)
                 b[i] = output[i].Samples;
@@ -71,7 +67,7 @@ namespace Asio
         {
             sampleRate = SampleRate;
         }
-        
+
         private int OnAsioMessage(ASIOMessageSelector selector, int value, IntPtr msg, IntPtr opt)
         {
             switch (selector)
@@ -94,7 +90,7 @@ namespace Asio
         }
 
         private IntPtr OnBufferSwitchTimeInfo(IntPtr _params, int doubleBufferIndex, ASIOBool directProcess) { return _params; }
-                
+
         public Stream(Guid DeviceId, Audio.Stream.SampleHandler Callback, Channel[] Input, Channel[] Output)
             : base(Input, Output)
         {

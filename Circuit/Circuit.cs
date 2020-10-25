@@ -1,14 +1,11 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
-using ComputerAlgebra;
 
 namespace Circuit
-{        
+{
     /// <summary>
     /// Circuits contain a list of nodes and components.
     /// </summary>
@@ -29,10 +26,10 @@ namespace Circuit
         /// <summary>
         /// External terminals (ports) in this circuit.
         /// </summary>
-        public override IEnumerable<Terminal> Terminals 
+        public override IEnumerable<Terminal> Terminals
         {
-            get 
-            { 
+            get
+            {
                 return Components.OfType<Port>().Select(i => i.External);
             }
         }
@@ -43,7 +40,7 @@ namespace Circuit
             List<Port> ports = Components.OfType<Port>().OrderBy(i => i.Name).ToList();
 
             int number = (Math.Max(ports.Max(i => i.Number, 0), ports.Count()) + 1) & ~1;
-            
+
             int w = 40;
             int h = (number / 2) * 10;
 

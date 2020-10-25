@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Circuit
 {
@@ -13,16 +10,16 @@ namespace Circuit
     public class NodeCollection : ICollection<Node>, IEnumerable<Node>
     {
         protected List<Node> x = new List<Node>();
-        
+
         public Node this[int index] { get { return x[index]; } }
         /// <summary>
         /// Get the node with the given Name. If it doesn't exist, it will be created.
         /// </summary>
         /// <param name="Name"></param>
         /// <returns></returns>
-        public Node this[string Name] 
-        { 
-            get 
+        public Node this[string Name]
+        {
+            get
             {
                 Node n = x.SingleOrDefault(i => i.Name == Name);
                 if (n != null)

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Circuit;
+﻿using Circuit;
 
 namespace LiveSPICE
 {
@@ -20,7 +15,7 @@ namespace LiveSPICE
         private double[] buffer = null;
         public double[] Buffer { get { return buffer; } }
 
-        public double[] AllocBuffer(int Samples) 
+        public double[] AllocBuffer(int Samples)
         {
             if (buffer == null || buffer.Length < Samples)
                 buffer = new double[Samples];
@@ -31,7 +26,7 @@ namespace LiveSPICE
         public Probe(EdgeType Color) { color = Color; }
 
         public override void Analyze(Analysis Mna) { }
-        
+
         public override void LayoutSymbol(SymbolLayout Sym)
         {
             Coord w = new Coord(0, 0);
@@ -42,7 +37,7 @@ namespace LiveSPICE
 
             w += dw * 10;
             Sym.AddWire(Terminal, w);
-            
+
             Sym.AddLine(color, w - pw * 4, w + pw * 4);
             Sym.AddLoop(color,
                 w + pw * 2,

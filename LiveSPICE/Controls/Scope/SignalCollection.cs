@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LiveSPICE
 {
@@ -31,7 +27,7 @@ namespace LiveSPICE
     {
         protected List<Signal> x = new List<Signal>();
 
-        public Signal this[int index] { get { lock(x) return x[index]; } }
+        public Signal this[int index] { get { lock (x) return x[index]; } }
 
         public delegate void SignalEventHandler(object sender, SignalEventArgs e);
 
@@ -86,10 +82,10 @@ namespace LiveSPICE
         }
 
         // ICollection<Node>
-        public int Count { get { lock(x) return x.Count; } }
+        public int Count { get { lock (x) return x.Count; } }
         public void Add(Signal item)
         {
-            lock(x) x.Add(item);
+            lock (x) x.Add(item);
             OnItemAdded(new SignalEventArgs(item));
         }
         public void AddRange(IEnumerable<Signal> items)
@@ -110,7 +106,7 @@ namespace LiveSPICE
         public bool Remove(Signal item)
         {
             bool ret;
-            lock(x) ret = x.Remove(item);
+            lock (x) ret = x.Remove(item);
             if (ret)
                 OnItemRemoved(new SignalEventArgs(item));
             return ret;
@@ -128,9 +124,9 @@ namespace LiveSPICE
         public void ForEach(Action<Signal> f)
         {
             lock (x) foreach (Signal i in x)
-                f(i);
+                    f(i);
         }
-        
+
         // IEnumerable<Node>
         public IEnumerator<Signal> GetEnumerator() { return x.GetEnumerator(); }
 

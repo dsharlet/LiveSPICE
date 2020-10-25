@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Circuit
 {
@@ -32,14 +31,14 @@ namespace Circuit
         Normal,
         Large,
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
     public class SymbolLayout
     {
         public SymbolLayout() { }
-     
+
         protected Coord x1 = new Coord(int.MaxValue, int.MaxValue);
         protected Coord x2 = new Coord(int.MinValue, int.MinValue);
         public Coord LowerBound { get { return x1; } }
@@ -59,7 +58,7 @@ namespace Circuit
             }
         }
         public void InBounds(params Coord[] x) { InBounds(x.AsEnumerable()); }
-        
+
         protected Dictionary<Terminal, Coord> terminals = new Dictionary<Terminal, Coord>();
         /// <summary>
         /// The terminals in this layout.
@@ -77,12 +76,12 @@ namespace Circuit
         /// <param name="T"></param>
         /// <param name="x"></param>
         public void AddTerminal(Terminal T, params Coord[] x) { terminals[T] = x[0]; AddWire(x); }
-        
+
         // Add shapes to the schematic.
-        public void AddRectangle(EdgeType Type, Coord x1, Coord x2) 
+        public void AddRectangle(EdgeType Type, Coord x1, Coord x2)
         {
             InBounds(x1, x2);
-            DrawRectangle(Type, x1, x2); 
+            DrawRectangle(Type, x1, x2);
         }
         public void AddCircle(EdgeType Type, Coord x, int r)
         {
@@ -107,10 +106,10 @@ namespace Circuit
             AddLine(Type, Points.First(), Points.Last());
         }
         public void AddLoop(EdgeType Type, params Coord[] Points) { AddLoop(Type, Points.AsEnumerable()); }
-        
+
 
         // Add a wire to the schematic.
-        public void AddWire(IEnumerable<Coord> Points) 
+        public void AddWire(IEnumerable<Coord> Points)
         {
             foreach (var i in Points.Zip(Points.Skip(1), (a, b) => new[] { a, b }))
                 DrawLine(EdgeType.Wire, i[0], i[1]);
@@ -134,17 +133,17 @@ namespace Circuit
             public Point x1 { get { return _x1; } }
             public Point x2 { get { return _x2; } }
 
-            public Shape(EdgeType Edge, Point x1, Point x2, bool Fill) 
-            { 
+            public Shape(EdgeType Edge, Point x1, Point x2, bool Fill)
+            {
                 edge = Edge;
                 fill = Fill;
-                _x1 = x1; 
-                _x2 = x2; 
+                _x1 = x1;
+                _x2 = x2;
             }
         }
 
-        public class Text 
-        { 
+        public class Text
+        {
             private Func<string> s;
             private Point _x;
             private Alignment halign, valign;
@@ -156,28 +155,28 @@ namespace Circuit
             public Alignment VerticalAlign { get { return valign; } }
             public Size Size { get { return size; } set { size = value; } }
 
-            public Text(Func<string> String, Point x, Alignment HorizontalAlign, Alignment VerticalAlign, Size Size) 
+            public Text(Func<string> String, Point x, Alignment HorizontalAlign, Alignment VerticalAlign, Size Size)
             {
                 s = String;
-                _x = x; 
-                halign = HorizontalAlign; 
+                _x = x;
+                halign = HorizontalAlign;
                 valign = VerticalAlign;
                 size = Size;
             }
         }
 
-        public class Curve 
-        { 
-            private EdgeType edge; 
+        public class Curve
+        {
+            private EdgeType edge;
             private Point[] _x;
 
             public EdgeType Edge { get { return edge; } }
             public Point[] x { get { return _x; } }
 
-            public Curve(EdgeType Edge, Point[] x) 
-            { 
-                _x = x; 
-                edge = Edge; 
+            public Curve(EdgeType Edge, Point[] x)
+            {
+                _x = x;
+                edge = Edge;
             }
         }
 

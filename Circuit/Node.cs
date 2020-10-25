@@ -1,10 +1,7 @@
-﻿using System;
-using System.ComponentModel;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+using System.ComponentModel;
 
 namespace Circuit
 {
@@ -46,15 +43,15 @@ namespace Circuit
         /// <summary>
         /// Voltage at this node.
         /// </summary>
-        public Expression V 
-        { 
-            get 
+        public Expression V
+        {
+            get
             {
                 if (!ReferenceEquals(v, null))
                     return v;
                 else
                     return Call.New(name, Component.t);
-            } 
+            }
         }
 
         /// <summary>

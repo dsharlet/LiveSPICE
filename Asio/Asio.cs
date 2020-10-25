@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using Util;
 
 namespace Asio
@@ -34,7 +31,7 @@ namespace Asio
         Int32MSB18 = 9,
         Int32MSB20 = 10,
         Int32MSB24 = 11,
-        
+
         Int16LSB = 16,
         Int24LSB = 17,
         Int32LSB = 18,
@@ -58,7 +55,7 @@ namespace Asio
         False = 0,
         True = 1,
     }
-    
+
     class AsioException : Exception
     {
         private ASIOError error;
@@ -71,10 +68,10 @@ namespace Asio
     [StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Ansi)]
     struct ASIOClockSource
     {
-	    public int index;
-	    public int associatedChannel;
-	    public int associatedGroup;
-	    public ASIOBool isCurrentSource;
+        public int index;
+        public int associatedChannel;
+        public int associatedGroup;
+        public ASIOBool isCurrentSource;
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
         public string name;
     }
@@ -90,68 +87,68 @@ namespace Asio
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
         public string name;
     };
-    
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     struct ASIOBufferInfo
     {
-	    public ASIOBool isInput;
-	    public int channelNum;
+        public ASIOBool isInput;
+        public int channelNum;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public IntPtr[] buffers;
     };
 
-    
+
     [Flags]
     enum ASIOTimeCodeFlags : uint
     {
-	    Valid = 1,
-	    Running = 1 << 1,
-	    Reverse = 1 << 2,
-	    Onspeed = 1 << 3,
-	    Still = 1 << 4,
-	    SpeedValid = 1 << 8
+        Valid = 1,
+        Running = 1 << 1,
+        Reverse = 1 << 2,
+        Onspeed = 1 << 3,
+        Still = 1 << 4,
+        SpeedValid = 1 << 8
     };
-    
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     struct ASIOTimeCode
-    {       
-	    public double speed;
-	    public long timeCodeSamples;
-	    public ASIOTimeCodeFlags flags;
+    {
+        public double speed;
+        public long timeCodeSamples;
+        public ASIOTimeCodeFlags flags;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-	    public byte[] future;
+        public byte[] future;
     };
 
     [Flags]
     enum AsioTimeInfoFlags : uint
     {
-	    SystemTimeValid = 1,
-	    SamplePositionValid = 1 << 1,
-	    SampleRateValid = 1 << 2,
-	    SpeedValid = 1 << 3,
-	    SampleRateChanged = 1 << 4,
-	    ClockSourceChanged = 1 << 5
+        SystemTimeValid = 1,
+        SamplePositionValid = 1 << 1,
+        SampleRateValid = 1 << 2,
+        SpeedValid = 1 << 3,
+        SampleRateChanged = 1 << 4,
+        ClockSourceChanged = 1 << 5
     };
-    
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     struct AsioTimeInfo
     {
-	    public double speed;
-	    public long systemTime;
-	    public long samplePosition;
-	    public double sampleRate;
+        public double speed;
+        public long systemTime;
+        public long samplePosition;
+        public double sampleRate;
         public AsioTimeInfoFlags flags;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
-	    public byte[] reserved;
+        public byte[] reserved;
     };
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     struct ASIOTime
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-	    public int[] reserved;
-	    public AsioTimeInfo timeInfo;
-	    public ASIOTimeCode timeCode;
+        public int[] reserved;
+        public AsioTimeInfo timeInfo;
+        public ASIOTimeCode timeCode;
     };
 
     enum ASIOMessageSelector : int
@@ -187,7 +184,7 @@ namespace Asio
         public AsioMessage asioMessage;
         public BufferSwitchTimeInfo bufferSwitchTimeInfo;
     };
-    
+
     class AsioObject : IDisposable
     {
         private VTable vtbl;
@@ -213,40 +210,40 @@ namespace Asio
         ~AsioObject() { Dispose(false); }
         public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
         private void Dispose(bool Disposing)
-        { 
-            if (_this != IntPtr.Zero) 
-            { 
-                vtbl.Release(_this); 
-                _this = IntPtr.Zero; 
+        {
+            if (_this != IntPtr.Zero)
+            {
+                vtbl.Release(_this);
+                _this = IntPtr.Zero;
             }
             vtbl = null;
         }
 
-        public void Init(IntPtr SysHandle) 
+        public void Init(IntPtr SysHandle)
         {
             Log.Global.WriteLine(MessageType.Info, "AsioObject.Init");
-            if (vtbl.init(_this, SysHandle) == ASIOBool.False) 
-                throw new AsioException("init failed", ASIOError.NotPresent); 
+            if (vtbl.init(_this, SysHandle) == ASIOBool.False)
+                throw new AsioException("init failed", ASIOError.NotPresent);
         }
 
-        public string DriverName 
-        { 
+        public string DriverName
+        {
             get
-            { 
+            {
                 StringBuilder name = new StringBuilder(256);
                 vtbl.getDriverName(_this, name);
                 return name.ToString();
-            } 
+            }
         }
 
-        public string ErrorMessage 
-        { 
+        public string ErrorMessage
+        {
             get
             {
                 StringBuilder message = new StringBuilder(256);
                 vtbl.getErrorMessage(_this, message);
                 return message.ToString();
-            } 
+            }
         }
 
         public int DriverVersion { get { return vtbl.getDriverVersion(_this); } }
@@ -254,12 +251,12 @@ namespace Asio
         public void Start()
         {
             Log.Global.WriteLine(MessageType.Info, "AsioObject.Start");
-            Try(vtbl.start(_this)); 
+            Try(vtbl.start(_this));
         }
         public void Stop()
         {
             Log.Global.WriteLine(MessageType.Info, "AsioObject.Stop");
-            Try(vtbl.stop(_this)); 
+            Try(vtbl.stop(_this));
         }
 
         private ASIOChannelInfo[] GetChannels(int Count, bool Input)
@@ -272,9 +269,9 @@ namespace Asio
             }
             return channels;
         }
-        
+
         public ASIOChannelInfo[] InputChannels
-        { 
+        {
             get
             {
                 int input, output;
@@ -284,7 +281,7 @@ namespace Asio
         }
 
         public ASIOChannelInfo[] OutputChannels
-        { 
+        {
             get
             {
                 int input, output;
@@ -293,8 +290,8 @@ namespace Asio
             }
         }
 
-        public int InputLatency 
-        { 
+        public int InputLatency
+        {
             get
             {
                 int input, output;
@@ -303,8 +300,8 @@ namespace Asio
             }
         }
 
-        public int OutputLatency 
-        { 
+        public int OutputLatency
+        {
             get
             {
                 int input, output;
@@ -314,9 +311,9 @@ namespace Asio
         }
 
         public bool IsSampleRateSupported(double SampleRate) { return vtbl.canSampleRate(_this, SampleRate) == ASIOError.OK; }
-        public double SampleRate 
-        { 
-            get { double rate; Try(vtbl.getSampleRate(_this, out rate)); return rate; } 
+        public double SampleRate
+        {
+            get { double rate; Try(vtbl.getSampleRate(_this, out rate)); return rate; }
             set { Try(vtbl.setSampleRate(_this, value)); }
         }
 
@@ -340,8 +337,8 @@ namespace Asio
             public int Granularity { get { return granularity; } }
         };
 
-        public BufferSizeInfo BufferSize 
-        { 
+        public BufferSizeInfo BufferSize
+        {
             get
             {
                 int min, max, preferred, granularity;
@@ -353,12 +350,12 @@ namespace Asio
         private IntPtr callbacks = IntPtr.Zero;
         private GCHandle[] pins = null;
 
-        public void CreateBuffers(ASIOBufferInfo[] Infos, int Size, ASIOCallbacks Callbacks) 
+        public void CreateBuffers(ASIOBufferInfo[] Infos, int Size, ASIOCallbacks Callbacks)
         {
             pins = new GCHandle[]
             {
                 GCHandle.Alloc(Callbacks.bufferSwitch),
-                GCHandle.Alloc(Callbacks.sampleRateDidChange), 
+                GCHandle.Alloc(Callbacks.sampleRateDidChange),
                 GCHandle.Alloc(Callbacks.asioMessage),
                 GCHandle.Alloc(Callbacks.bufferSwitchTimeInfo)
             };
@@ -366,7 +363,7 @@ namespace Asio
 
             Marshal.StructureToPtr(Callbacks, callbacks, false);
             Log.Global.WriteLine(MessageType.Info, "AsioObject.CreateBuffers(Size={0})", Size);
-            Try(vtbl.createBuffers(_this, Infos, Infos.Length, Size, callbacks)); 
+            Try(vtbl.createBuffers(_this, Infos, Infos.Length, Size, callbacks));
         }
         public void DisposeBuffers()
         {
@@ -382,7 +379,7 @@ namespace Asio
         }
 
         public void OutputReady() { Try(vtbl.outputReady(_this)); }
-        
+
         private static void Try(ASIOError Result)
         {
             if (Result != ASIOError.OK && Result != ASIOError.SUCCESS)
@@ -410,11 +407,11 @@ namespace Asio
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _canSampleRate(IntPtr _this, double sampleRate);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _getSampleRate(IntPtr _this, out double sampleRate);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _setSampleRate(IntPtr _this, double sampleRate);
-            [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _getClockSources(IntPtr _this, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] ASIOClockSource[] clocks, out int numSources);
+            [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _getClockSources(IntPtr _this, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] ASIOClockSource[] clocks, out int numSources);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _setClockSource(IntPtr _this, int reference);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _getSamplePosition(IntPtr _this, out long sPos, out long tStamp);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _getChannelInfo(IntPtr _this, ref ASIOChannelInfo info);
-            [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _createBuffers(IntPtr _this, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] ASIOBufferInfo[] bufferInfos, int numChannels, int bufferSize, IntPtr callbacks);
+            [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _createBuffers(IntPtr _this, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] ASIOBufferInfo[] bufferInfos, int numChannels, int bufferSize, IntPtr callbacks);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _disposeBuffers(IntPtr _this);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _controlPanel(IntPtr _this);
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)] public delegate ASIOError _future(IntPtr _this, int selector, IntPtr opt);

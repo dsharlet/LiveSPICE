@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using ComputerAlgebra;
+using System;
 using System.ComponentModel;
 
 namespace Circuit
-{ 
+{
     /// <summary>
     /// Resistor is a linear component with V = R*i.
     /// </summary>
     [Category("Generic")]
     [DisplayName("Resistor")]
     [DefaultProperty("Resistance")]
-    [Description("Standard resistor.")] 
+    [Description("Standard resistor.")]
     public class Resistor : TwoTerminal
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
@@ -43,7 +40,7 @@ namespace Circuit
         public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int N, double Scale)
         {
             double h = y2 - y1;
-            
+
             Sym.DrawFunction(
                 EdgeType.Black,
                 (t) => x - Scale * (Math.Abs((t + 0.5) % 2 - 1) * 2 - 1),
@@ -61,7 +58,7 @@ namespace Circuit
             Sym.InBounds(new Coord(-10, 0), new Coord(10, 0));
 
             Draw(Sym, 0, -16, 16, 7);
-            
+
             Sym.DrawText(() => Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
             Sym.DrawText(() => resistance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
         }

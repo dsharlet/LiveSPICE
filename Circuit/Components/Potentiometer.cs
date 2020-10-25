@@ -1,8 +1,5 @@
-﻿using System;
+﻿using ComputerAlgebra;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -21,14 +18,14 @@ namespace Circuit
         [Browsable(false)] public Terminal Cathode { get { return cathode; } }
         [Browsable(false)] public Terminal Wiper { get { return wiper; } }
 
-        public override IEnumerable<Terminal> Terminals 
-        { 
-            get 
+        public override IEnumerable<Terminal> Terminals
+        {
+            get
             {
                 yield return anode;
                 yield return cathode;
                 yield return wiper;
-            } 
+            }
         }
 
         public Potentiometer()
@@ -36,7 +33,7 @@ namespace Circuit
             anode = new Terminal(this, "Anode");
             cathode = new Terminal(this, "Cathode");
             wiper = new Terminal(this, "Wiper");
-            Name = "R1"; 
+            Name = "R1";
         }
 
         protected Quantity resistance = new Quantity(100, Units.Ohm);
@@ -52,7 +49,7 @@ namespace Circuit
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep progression of this potentiometer.")]
         public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
-        
+
         public void ConnectTo(Node A, Node C, Node W)
         {
             Anode.ConnectTo(A);
@@ -70,7 +67,7 @@ namespace Circuit
             Resistor.Analyze(Mna, Cathode, Wiper, R1);
             Resistor.Analyze(Mna, Anode, Wiper, R2);
         }
-        
+
         public override sealed void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.InBounds(new Coord(-20, -20), new Coord(10, 20));
@@ -80,7 +77,7 @@ namespace Circuit
 
             Sym.AddTerminal(Cathode, new Coord(-10, -20), new Coord(-10, -16));
             Sym.DrawNegative(EdgeType.Black, new Coord(-16, -16));
-                        
+
             Sym.AddTerminal(Wiper, new Coord(10, 0));
             Sym.DrawArrow(EdgeType.Black, new Coord(10, 0), new Coord(-6, 0), 0.2);
 

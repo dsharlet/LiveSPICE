@@ -1,12 +1,9 @@
-﻿using System;
+﻿using ComputerAlgebra;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
-{ 
+{
     /// <summary>
     /// Ideal transformer.
     /// </summary>
@@ -20,7 +17,7 @@ namespace Circuit
 
         public override IEnumerable<Terminal> Terminals
         {
-            get 
+            get
             {
                 yield return pa;
                 yield return pc;
@@ -41,10 +38,10 @@ namespace Circuit
             sa = new Terminal(this, "SA");
             st = new Terminal(this, "ST");
             sc = new Terminal(this, "SC");
-            Name = "TX1"; 
+            Name = "TX1";
         }
 
-        public override void Analyze(Analysis Mna) 
+        public override void Analyze(Analysis Mna)
         {
             Expression Ip = Mna.AddUnknown("i" + Name + "p");
             Mna.AddPassiveComponent(pa, pc, Ip);

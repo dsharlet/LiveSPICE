@@ -1,9 +1,7 @@
-﻿using System;
-using System.ComponentModel;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -34,7 +32,7 @@ namespace Circuit
         private List<Expression> unknowns = new List<Expression>();
         private Dictionary<Expression, Expression> kcl = new Dictionary<Expression, Expression>();
         private List<Arrow> initialConditions = new List<Arrow>();
-        
+
         // Describes the analysis of a subcircuit.
         protected class Circuit
         {
@@ -67,7 +65,7 @@ namespace Circuit
             public List<Arrow> InitialConditions = new List<Arrow>();
 
             public Circuit() { }
-            public Circuit(Circuit Parent, string Name) { parent = Parent;  name = Name; }
+            public Circuit(Circuit Parent, string Name) { parent = Parent; name = Name; }
         }
 
         private Circuit context = new Circuit();
@@ -126,7 +124,7 @@ namespace Circuit
                 i.BeginAnalysis(prefix);
         }
         public void DeclNodes(params Node[] Nodes) { DeclNodes(Nodes.AsEnumerable()); }
-        
+
         /// <summary>
         /// Get the KCL expressions for this analysis.
         /// </summary>
@@ -170,7 +168,7 @@ namespace Circuit
         /// </summary>
         /// <param name="Key"></param>
         /// <param name="Value"></param>
-        public void AddDefinition(Expression Key, Expression Value) 
+        public void AddDefinition(Expression Key, Expression Value)
         {
             Expression value;
             if (!context.Definitions.TryGetValue(Key, out value))
@@ -184,24 +182,24 @@ namespace Circuit
         /// Add equations to the system.
         /// </summary>
         /// <param name="Eq"></param>
-        public void AddEquations(IEnumerable<Equal> Eq) 
-        { 
-            foreach (Equal i in Eq) 
+        public void AddEquations(IEnumerable<Equal> Eq)
+        {
+            foreach (Equal i in Eq)
                 if (!equations.Contains(i))
-                    context.Equations.Add(i); 
+                    context.Equations.Add(i);
         }
         public void AddEquations(params Equal[] Eq) { AddEquations(Eq.AsEnumerable()); }
         public void AddEquation(Expression a, Expression b) { AddEquations(Equal.New(a, b)); }
-        
+
         /// <summary>
         /// Add Unknowns to the system.
         /// </summary>
         /// <param name="Unknowns"></param>
-        public void AddUnknowns(IEnumerable<Expression> Unknowns) 
+        public void AddUnknowns(IEnumerable<Expression> Unknowns)
         {
-            foreach (Expression i in Unknowns) 
+            foreach (Expression i in Unknowns)
                 if (!unknowns.Contains(i))
-                    unknowns.Add(i); 
+                    unknowns.Add(i);
         }
         public void AddUnknowns(params Expression[] Unknowns) { AddUnknowns(Unknowns.AsEnumerable()); }
 
@@ -210,9 +208,9 @@ namespace Circuit
         /// </summary>
         /// <param name="Name"></param>
         /// <returns></returns>
-        public Expression AddUnknown(string Name) 
+        public Expression AddUnknown(string Name)
         {
-            Expression x = Component.DependentVariable(context.Prefix + Name, Component.t); 
+            Expression x = Component.DependentVariable(context.Prefix + Name, Component.t);
             AddUnknowns(x);
             return x;
         }

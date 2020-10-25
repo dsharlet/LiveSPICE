@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Circuit
 {
@@ -30,7 +25,7 @@ namespace Circuit
 
         public Port() { external = new Terminal(this, "X1"); }
 
-        public override void Analyze(Analysis Mna) 
+        public override void Analyze(Analysis Mna)
         {
             // Port acts like a perfect conductor.
             Conductor.Analyze(Mna, Terminal, External);

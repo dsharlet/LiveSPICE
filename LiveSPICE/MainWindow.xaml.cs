@@ -1,22 +1,13 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml;
 using Xceed.Wpf.AvalonDock.Layout;
-using Microsoft.Win32;
 
 namespace LiveSPICE
 {
@@ -48,28 +39,28 @@ namespace LiveSPICE
         public IEnumerable<SchematicEditor> Editors { get { return Viewers.Select(i => i.Schematic).OfType<SchematicEditor>(); } }
 
         public LayoutContent ActiveContent { get { return schematics.SelectedContent; } }
-        public SchematicViewer ActiveViewer 
-        { 
-            get 
+        public SchematicViewer ActiveViewer
+        {
+            get
             {
                 if (schematics == null) return null;
                 LayoutContent selected = schematics.SelectedContent;
                 return selected != null ? (SchematicViewer)selected.Content : null;
-            } 
+            }
         }
-        public SchematicEditor ActiveEditor 
-        { 
-            get 
+        public SchematicEditor ActiveEditor
+        {
+            get
             {
                 SchematicViewer active = ActiveViewer;
                 return active != null ? (SchematicEditor)active.Schematic : null;
-            } 
+            }
         }
-        
+
         private string status;
-        public string Status 
+        public string Status
         {
-            get { return status != null ? status : "Ready"; } 
+            get { return status != null ? status : "Ready"; }
             set { status = value; NotifyChanged("Status"); }
         }
 
@@ -88,7 +79,7 @@ namespace LiveSPICE
             };
             doc.Closing += (o, e) => e.Cancel = !Schematic.CanClose();
 
-            Schematic.PropertyChanged += (o, e) => 
+            Schematic.PropertyChanged += (o, e) =>
             {
                 if (e.PropertyName == "FilePath")
                 {
@@ -141,8 +132,8 @@ namespace LiveSPICE
         private void Open(string FileName) { Open(FileName, false); }
 
         private void New_Executed(object sender, ExecutedRoutedEventArgs e) { New(); }
-        private void OnMruClick(object sender, RoutedEventArgs e) 
-        { 
+        private void OnMruClick(object sender, RoutedEventArgs e)
+        {
             try
             {
                 Open((string)((MenuItem)e.Source).Tag);
@@ -191,11 +182,11 @@ namespace LiveSPICE
 
             // Find the schematics that have been modified outside the editor.
             IEnumerable<SchematicEditor> modified = EditorListDialog.Show(
-                this, 
-                "The following schematics were modified outside LiveSPICE, do you want to reload them?", 
-                MessageBoxButton.YesNo, 
+                this,
+                "The following schematics were modified outside LiveSPICE, do you want to reload them?",
+                MessageBoxButton.YesNo,
                 Editors.Where(i => i.CheckForModifications()).ToList());
-            
+
             if (modified != null)
             {
                 foreach (SchematicEditor i in modified)
@@ -208,16 +199,16 @@ namespace LiveSPICE
 
         private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveViewer != null; }
         private void Close_Executed(object sender, ExecutedRoutedEventArgs e) { App.Current.Settings.MainWindowLayout = dock.SaveLayout(); ActiveContent.Close(); }
-        
+
         private void Exit_Executed(object sender, ExecutedRoutedEventArgs e) { Close(); }
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
             // Find the schematics that have pending edits.
             IEnumerable<SchematicEditor> save = EditorListDialog.Show(
-                this, 
-                "Save the following schematics?", 
-                MessageBoxButton.YesNoCancel, 
+                this,
+                "Save the following schematics?",
+                MessageBoxButton.YesNoCancel,
                 Editors.Where(i => i.Edits.Dirty));
 
             if (save != null)
@@ -265,7 +256,7 @@ namespace LiveSPICE
             catch (Exception) { }
         }
 
-        private void component_Click(Circuit.Component C) 
+        private void component_Click(Circuit.Component C)
         {
             SchematicEditor active = ActiveEditor;
             if (active == null)
@@ -279,7 +270,7 @@ namespace LiveSPICE
             active.Focus();
             Keyboard.Focus(active);
         }
-        
+
         private void Simulate_CanExecute(object sender, CanExecuteRoutedEventArgs e) { e.CanExecute = ActiveEditor != null; }
         private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e)
         {

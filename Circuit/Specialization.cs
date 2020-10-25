@@ -1,11 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Reflection;
+using System.ComponentModel;
 using System.Xml.Linq;
-using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -34,7 +30,7 @@ namespace Circuit
         public override IEnumerable<Terminal> Terminals { get { AssertImpl(); return impl.Terminals; } }
         public override void Analyze(Analysis Mna) { AssertImpl(); impl.Analyze(Mna); }
         public override void LayoutSymbol(SymbolLayout Sym) { AssertImpl(); impl.LayoutSymbol(Sym); }
-        
+
         public override string TypeName { get { return PartNumber; } }
 
         public override XElement Serialize()

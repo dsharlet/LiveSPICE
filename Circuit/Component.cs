@@ -1,12 +1,11 @@
-﻿using System;
-using System.ComponentModel;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Xml.Linq;
 using System.Reflection;
-using ComputerAlgebra;
+using System.Xml.Linq;
 using Util;
 
 namespace Circuit
@@ -36,7 +35,7 @@ namespace Circuit
     /// Indicates the property should be serialized.
     /// </summary>
     public class Serialize : Attribute { };
-    
+
     /// <summary>
     /// Components are capable of performing MNA to produce a set of equations and unknowns describing their behavior.
     /// </summary>
@@ -67,7 +66,7 @@ namespace Circuit
         private object tag = null;
         [Browsable(false)]
         public object Tag { get { return tag; } set { tag = value; NotifyChanged("Tag"); } }
-        
+
         /// <summary>
         /// Access the terminals of this component.
         /// </summary>
@@ -80,7 +79,7 @@ namespace Circuit
         /// <param name="Mna"></param>
         /// <param name="Unknowns"></param>
         public virtual void Analyze(Analysis Mna) { }
-        
+
         /// <summary>
         /// Define the schematic layout of this component.
         /// </summary>
@@ -93,7 +92,7 @@ namespace Circuit
             LayoutSymbol(layout);
             return layout;
         }
-                
+
         public virtual XElement Serialize()
         {
             XElement X = new XElement("Component");
@@ -162,7 +161,7 @@ namespace Circuit
                 return attr != null ? attr.DisplayName : GetType().Name;
             }
         }
-                
+
         // object interface.
         public override string ToString() { return TypeName + " " + Name; }
 
@@ -176,7 +175,7 @@ namespace Circuit
 
         // This is too useful not to have.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
-        
+
         /// <summary>
         /// Make a dependent variable.
         /// </summary>
@@ -210,7 +209,7 @@ namespace Circuit
         /// <param name="x"></param>
         /// <returns></returns>
         public static Expression LinExp(Expression x) { return Call.If(x < LinExpKnee, Call.Exp(x), Math.Exp(LinExpKnee) * (1.0 + x - LinExpKnee)); }
-        
+
         /// <summary>
         /// Find a unique name among a set of names.
         /// </summary>

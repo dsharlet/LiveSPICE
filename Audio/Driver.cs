@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 using Util;
 
@@ -14,9 +12,9 @@ namespace Audio
     public abstract class Driver
     {
         private static List<Driver> drivers = new List<Driver>();
-        public static IEnumerable<Driver> Drivers 
-        { 
-            get 
+        public static IEnumerable<Driver> Drivers
+        {
+            get
             {
                 foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies().Where(i => !i.IsDynamic))
                 {
@@ -27,16 +25,16 @@ namespace Audio
                             drivers.Add((Driver)Activator.CreateInstance(j));
                             Log.Global.WriteLine(MessageType.Info, "Loaded Audio implementation class '{0}'.", j.FullName);
                         }
-                        catch (Exception Ex) 
+                        catch (Exception Ex)
                         {
                             Log.Global.WriteLine(MessageType.Error, "Error instantiating Audio implementation class '{0}': {1}", j.FullName, Ex.Message);
                         }
                     }
                 }
                 return drivers;
-            } 
+            }
         }
-        
+
         public abstract string Name { get; }
 
         protected List<Device> devices = new List<Device>();

@@ -1,21 +1,10 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
 using System.Xml.Linq;
 
 namespace LiveSPICE
@@ -61,19 +50,19 @@ namespace LiveSPICE
 
             Origin = SnapToGrid(new Circuit.Coord((int)Width / 2, (int)Height / 2));
         }
-        
+
         private EditStack edits;
         public EditStack Edits { get { return edits; } }
 
         // File.
         private DateTime accessed = DateTime.Now;
         private string filepath = null;
-        private void SetFilePath(string FilePath) 
+        private void SetFilePath(string FilePath)
         {
             filepath = FilePath;
             Touch();
             NotifyChanged("FilePath");
-            NotifyChanged("Title"); 
+            NotifyChanged("Title");
         }
         public string FilePath { get { return filepath == null ? "Untitled" : filepath; } }
         public string Title { get { return filepath == null ? "<Untitled>" : System.IO.Path.GetFileNameWithoutExtension(filepath); } }
@@ -267,7 +256,7 @@ namespace LiveSPICE
                 return d;
             });
         }
-        
+
         private IEnumerable<Circuit.Wire> CoincidentWires(Circuit.Coord A, Circuit.Coord B)
         {
             return Wires.Where(i =>
@@ -322,7 +311,7 @@ namespace LiveSPICE
                     if (Circuit.Wire.PointOnLine(A, ia, ib) && !Circuit.Wire.PointOnLine(B, ia, ib))
                         terminals.Add(A);
                     else if (Circuit.Wire.PointOnLine(B, ia, ib) && !Circuit.Wire.PointOnLine(A, ia, ib))
-                        terminals.Add(B);                        
+                        terminals.Add(B);
                 }
             }
             terminals.Sort((t1, t2) => t1.x == t2.x ? t1.y.CompareTo(t2.y) : t1.x.CompareTo(t2.x));
@@ -349,7 +338,7 @@ namespace LiveSPICE
 
 
         }
-        
+
         private static double Distance(Circuit.Coord x1, Circuit.Coord x2)
         {
             Circuit.Coord dx = x2 - x1;

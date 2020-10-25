@@ -1,19 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -31,7 +22,7 @@ namespace LiveSPICE
     public partial class PropertyGrid : UserControl, INotifyPropertyChanged
     {
         private System.Windows.Forms.PropertyGrid properties = new System.Windows.Forms.PropertyGrid();
-        
+
         public PropertyGrid()
         {
             InitializeComponent();
@@ -50,9 +41,9 @@ namespace LiveSPICE
         private ComboBoxItem multi;
         private object[] objects;
 
-        public object[] SelectedObjects 
-        { 
-            get { return objects; } 
+        public object[] SelectedObjects
+        {
+            get { return objects; }
             set
             {
                 objects = value;
@@ -79,10 +70,10 @@ namespace LiveSPICE
             }
         }
 
-        public object SubSelectedObject 
-        { 
-            get { return multi != null && properties.SelectedObjects.Length > 1 ? null : properties.SelectedObject; } 
-            set 
+        public object SubSelectedObject
+        {
+            get { return multi != null && properties.SelectedObjects.Length > 1 ? null : properties.SelectedObject; }
+            set
             {
                 if (value == null)
                 {
@@ -94,7 +85,7 @@ namespace LiveSPICE
                     properties.SelectedObject = value;
                     NotifyChanged("SubSelectedObject");
                 }
-            } 
+            }
         }
 
         public IEnumerable<object> Objects

@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Util
 {
@@ -55,7 +53,7 @@ namespace Util
         public MessageType Verbosity { get { return verbosity; } set { verbosity = value; } }
 
         protected abstract void WriteLine(string Text);
-        
+
         public void WriteLine(MessageType Type, string Format, params object[] Args)
         {
             if (verbosity >= Type)
@@ -65,7 +63,7 @@ namespace Util
                         Thread.CurrentThread.Name != null ? Thread.CurrentThread.Name : Thread.CurrentThread.ManagedThreadId.ToString(),
                         DateTime.Now - t0) +
                     String.Format(
-                        Format, 
+                        Format,
                         Args));
         }
         public void WriteLines(MessageType Type, IEnumerable<string> Lines)
@@ -75,7 +73,7 @@ namespace Util
                     WriteLine(Type, i);
         }
         public void WriteLine(string Format, params object[] Args) { WriteLine(MessageType.Info, Format, Args); }
-        
+
         private static Log global = null;
         public static Log Global
         {
@@ -85,7 +83,7 @@ namespace Util
                 {
                     string name = Path.GetFileNameWithoutExtension(Process.GetCurrentProcess().ProcessName);
                     string path = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                         name,
                         DateTime.Now.ToString("yyyy dd M HH mm ss") + ".txt");
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -124,14 +122,14 @@ namespace Util
     {
         private FileStream file;
         private StreamWriter writer;
-        
-        public FileLog(string FileName) 
+
+        public FileLog(string FileName)
         {
             Tag = "[{ThreadId}]";
 
             file = new FileStream(FileName, FileMode.Create);
             writer = new StreamWriter(file);
-       }
+        }
 
         protected override void WriteLine(string Text)
         {
@@ -149,7 +147,7 @@ namespace Util
     /// </summary>
     public class ConsoleLog : Log
     {
-        protected override void WriteLine(string Text) 
+        protected override void WriteLine(string Text)
         {
             Console.WriteLine(Text);
         }

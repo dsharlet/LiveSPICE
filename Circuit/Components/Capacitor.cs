@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
-{ 
+{
     /// <summary>
     /// Capacitor is a passive linear component with i = C*dV/dt.
     /// </summary>

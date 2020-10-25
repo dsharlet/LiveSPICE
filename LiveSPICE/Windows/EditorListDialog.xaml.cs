@@ -1,16 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace LiveSPICE
 {
@@ -22,7 +14,7 @@ namespace LiveSPICE
         private EditorListDialog(string Message, MessageBoxButton Buttons, IEnumerable<SchematicEditor> Editors)
         {
             InitializeComponent();
-            
+
             message.Text = Message;
             switch (Buttons)
             {
@@ -35,10 +27,10 @@ namespace LiveSPICE
                     yes.Content = "OK";
                     no.Visibility = Visibility.Collapsed;
                     break;
-                case MessageBoxButton.YesNo: 
-                    cancel.Visibility = Visibility.Collapsed; 
+                case MessageBoxButton.YesNo:
+                    cancel.Visibility = Visibility.Collapsed;
                     break;
-                case MessageBoxButton.YesNoCancel: 
+                case MessageBoxButton.YesNoCancel:
                     break;
                 default: throw new ArgumentException("Button configuration not supported.", "Buttons");
             }

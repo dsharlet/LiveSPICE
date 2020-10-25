@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace LiveSPICE
@@ -20,7 +14,7 @@ namespace LiveSPICE
         protected Circuit.Coord a, b;
         protected Path path;
 
-        public SelectionTool(SchematicEditor Target) : base(Target) 
+        public SelectionTool(SchematicEditor Target) : base(Target)
         {
             path = new Path()
             {
@@ -67,7 +61,7 @@ namespace LiveSPICE
 
         private bool Movable(Circuit.Coord At)
         {
-            return 
+            return
                 Target.AtPoint(At).Any(i => ((ElementControl)i.Tag).Selected) &&
                 (Keyboard.Modifiers & ModifierKeys.Control) == 0;
         }
@@ -140,7 +134,7 @@ namespace LiveSPICE
 
         public override bool KeyUp(KeyEventArgs Event)
         {
-            Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross; 
+            Target.Cursor = Movable(b) ? Cursors.SizeAll : Cursors.Cross;
             return base.KeyUp(Event);
         }
     }

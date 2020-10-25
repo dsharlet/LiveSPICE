@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml.Linq;
 
 namespace LiveSPICE
 {
@@ -29,13 +18,13 @@ namespace LiveSPICE
 
         public static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash };
         public static Pen SelectedPen = new Pen(Brushes.Blue, 0.5f) { DashStyle = DashStyles.Dash };
-        
+
         private Pen pen = null;
         public Pen Pen { get { return pen; } set { pen = value; InvalidateVisual(); } }
 
         protected bool showTerminals = true;
         public bool ShowTerminals { get { return showTerminals; } set { showTerminals = value; InvalidateVisual(); } }
-        
+
         private List<EventHandler> selectedChanged = new List<EventHandler>();
         public event EventHandler SelectedChanged { add { selectedChanged.Add(value); } remove { selectedChanged.Remove(value); } }
 
@@ -80,7 +69,7 @@ namespace LiveSPICE
             foreach (Circuit.Terminal i in E.Terminals)
                 i.ConnectionChanged += (x, y) => InvalidateVisual();
         }
-                
+
         public static ElementControl New(Circuit.Element E)
         {
             if (E is Circuit.Wire)

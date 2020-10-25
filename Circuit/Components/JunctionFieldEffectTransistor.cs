@@ -1,8 +1,6 @@
-﻿using System;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -22,14 +20,14 @@ namespace Circuit
     public class JunctionFieldEffectTransistor : Component, INotifyPropertyChanged
     {
         private Terminal s, g, d;
-        public override IEnumerable<Terminal> Terminals 
-        { 
-            get 
+        public override IEnumerable<Terminal> Terminals
+        {
+            get
             {
                 yield return s;
                 yield return g;
                 yield return d;
-            } 
+            }
         }
         [Browsable(false)]
         public Terminal Source { get { return s; } }
@@ -37,7 +35,7 @@ namespace Circuit
         public Terminal Gate { get { return g; } }
         [Browsable(false)]
         public Terminal Drain { get { return d; } }
-        
+
         private JfetType type = JfetType.N;
         [Serialize, Description("JFET structure.")]
         public JfetType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
@@ -64,7 +62,7 @@ namespace Circuit
             s = new Terminal(this, "S");
             g = new Terminal(this, "G");
             d = new Terminal(this, "D");
-            Name = "J1"; 
+            Name = "J1";
         }
 
         public override void Analyze(Analysis Mna)
@@ -81,13 +79,13 @@ namespace Circuit
 
             Expression Vgst0 = Vgs - Vt0;
 
-            Expression id = (Vgs >= Vt0) * Beta * (1 + Lambda * Vds) * 
-                Call.If(Vds < Vgst0, 
+            Expression id = (Vgs >= Vt0) * Beta * (1 + Lambda * Vds) *
+                Call.If(Vds < Vgst0,
                     // Linear region.
-                    Vds * (2 * Vgst0 - 1), 
+                    Vds * (2 * Vgst0 - 1),
                     // Saturation region.
                     Vgst0 ^ 2);
-            
+
             id = Mna.AddUnknownEqualTo("i" + Name + "d", id);
             CurrentSource.Analyze(Mna, Drain, Source, id);
         }
@@ -104,7 +102,7 @@ namespace Circuit
             {
                 case JfetType.N: Sym.DrawArrow(EdgeType.Black, new Coord(-10, 0), new Coord(0, 0), 0.2, 0.3); break;
                 case JfetType.P: Sym.DrawArrow(EdgeType.Black, new Coord(0, 0), new Coord(-10, 0), 0.2, 0.3); break;
-                default: 
+                default:
                     throw new NotSupportedException("Unknown JFET type.");
             }
 

@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Circuit
 {
     public class Matrix
     {
         // Columns of the matrix.
-        private double[,] m = new double[2,3];
+        private double[,] m = new double[2, 3];
 
         public Matrix(double m00, double m01, double m02,
                       double m10, double m11, double m12)
@@ -40,7 +36,7 @@ namespace Circuit
                 1.0, 0.0, x.x,
                 0.0, 1.0, x.y);
         }
-        
+
         public static Matrix Rotate(double t)
         {
             double c = Math.Cos(t);
@@ -81,11 +77,11 @@ namespace Circuit
         {
             if (r == -1)
             {
-                double det = l[0,0] * l[1,1] - l[0,1] * l[1,0];
-                
+                double det = l[0, 0] * l[1, 1] - l[0, 1] * l[1, 0];
+
                 return new Matrix(
-                    l[1,1], -l[0,1], l[0,1] * l[1,2] - l[0,2] * l[1,1],
-                    -l[1,0], l[0,0], l[1,0] * l[0,2] - l[0,0] * l[1,2]) / det;
+                    l[1, 1], -l[0, 1], l[0, 1] * l[1, 2] - l[0, 2] * l[1, 1],
+                    -l[1, 0], l[0, 0], l[1, 0] * l[0, 2] - l[0, 0] * l[1, 2]) / det;
             }
             else
             {

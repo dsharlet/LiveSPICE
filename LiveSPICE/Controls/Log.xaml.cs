@@ -1,19 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Util;
 
 namespace LiveSPICE
@@ -32,10 +20,10 @@ namespace LiveSPICE
         public void Clear_Click(object sender, EventArgs e) { Clear(); }
 
         private MessageType verbosity = App.Current.Settings.LogVerbosity;
-        public MessageType Verbosity 
+        public MessageType Verbosity
         {
-            get { return verbosity; } 
-            set { App.Current.Settings.LogVerbosity = verbosity = value; NotifyChanged("Verbosity"); } 
+            get { return verbosity; }
+            set { App.Current.Settings.LogVerbosity = verbosity = value; NotifyChanged("Verbosity"); }
         }
 
         public void WriteLine(MessageType Type, string Message, params object[] Format)
@@ -51,7 +39,7 @@ namespace LiveSPICE
                     text.ScrollToEnd();
             });
         }
-        
+
         public void WriteLines(MessageType Type, IEnumerable<string> Lines)
         {
             if (Type > verbosity)

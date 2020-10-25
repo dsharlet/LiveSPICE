@@ -1,21 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Globalization;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml.Linq;
-using System.Reflection;
 
 namespace LiveSPICE
 {
@@ -31,7 +18,7 @@ namespace LiveSPICE
 
         private Circuit.SymbolLayout layout = null;
         public Circuit.SymbolLayout Layout { get { return layout; } set { layout = value; InvalidateVisual(); NotifyChanged("Layout"); } }
-        
+
         protected override Size MeasureOverride(Size constraint)
         {
             if (layout == null)
@@ -40,7 +27,7 @@ namespace LiveSPICE
                 Math.Min(layout.Width, constraint.Width),
                 Math.Min(layout.Height, constraint.Height));
         }
-        
+
         protected override void OnRender(DrawingContext drawingContext)
         {
             if (layout == null)
@@ -48,7 +35,7 @@ namespace LiveSPICE
 
             Circuit.Coord center = (layout.LowerBound + layout.UpperBound) / 2;
             double scale = Math.Min(Math.Min(ActualWidth / layout.Width, ActualHeight / layout.Height), 1.0);
-            
+
             Matrix transform = new Matrix();
             transform.Translate(-center.x, -center.y);
             transform.Scale(scale, -scale);

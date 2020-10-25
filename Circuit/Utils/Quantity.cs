@@ -1,19 +1,16 @@
-﻿using System;
-using System.ComponentModel;
+﻿using ComputerAlgebra;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Xml;
-using System.Xml.Schema;
-using System.Xml.Serialization;
-using ComputerAlgebra;
 
 namespace Circuit
 {
     public class UnitCastException : InvalidCastException
     {
-        public UnitCastException(Units From, Units To) 
+        public UnitCastException(Units From, Units To)
             : base("Cannot convert quantity from '" + From.ToString() + "' to '" + To.ToString() + "'")
         { }
     }
@@ -25,7 +22,7 @@ namespace Circuit
 
         private Units units;
         public Units Units { get { return units; } set { units = value; } }
-        
+
         public Quantity(Expression x, Units Units)
         {
             this.x = x;
@@ -132,7 +129,7 @@ namespace Circuit
         }
 
         public string ToString(string format, IFormatProvider formatProvider) { return ToString(x, units, format, formatProvider); }
-        
+
         public static string ToString(Expression Value, Units Units, string format, IFormatProvider formatProvider)
         {
             StringBuilder SB = new StringBuilder();
@@ -156,7 +153,7 @@ namespace Circuit
                     if (double.Parse(round.ToString(format)) != 1.0)
                         break;
                 }
-                
+
                 // Find the order of magnitude of the value.
                 Real order = Real.Log10(Real.Abs(constant.Value.IsNaN() ? 0 : constant.Value) * round);
                 if (order < -20) order = 0;

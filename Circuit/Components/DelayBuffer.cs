@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ComputerAlgebra;
+﻿using ComputerAlgebra;
 using System.ComponentModel;
 
 namespace Circuit
@@ -29,7 +25,7 @@ namespace Circuit
 
             Sym.AddWire(Anode, new Coord(0, 10));
             Sym.AddWire(Cathode, new Coord(0, -6));
-            
+
             Sym.AddLoop(EdgeType.Black,
                 new Coord(-10, 10),
                 new Coord(10, 10),
