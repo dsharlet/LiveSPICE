@@ -36,13 +36,16 @@ namespace Circuit
 
         protected override void Analyze(Analysis Mna, Expression Vpk, Expression Vgk, out Expression Ip, out Expression Ig)
         {
-            Expression ex = Kp * (1.0 / Mu + Vgk * (Kvb + Vpk * Vpk) ^ (-0.5));
+            Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * (Kvb + Vpk ^ 2) ^ (-0.5))) * Vpk / Kp;
 
-            // ln(1+e^x) = x for large x, and large x causes numerical issues.
-            Expression E1 = Call.If(ex > 5, ex, Call.Ln(1 + LinExp(ex))) * Vpk / Kp;
+            Ip = (Call.Max(E1, 0) ^ Ex) / Kg;
+            Ig = Call.Max(Vgk - Vg, 0) / Rgk;
+        }
 
-            Ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
-            Ig = Call.If(Vgk > Vg, (Vgk - Vg) / Rgk, 0);
+        // ln(1+e^x) = x for large x, and large x causes numerical issues.
+        private static Expression Ln1Exp(Expression x)
+        {
+            return Call.If(x > 50, x, Call.Ln(1 + Call.Exp(x)));
         }
     }
 }
