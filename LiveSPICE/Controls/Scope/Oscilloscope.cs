@@ -178,7 +178,7 @@ namespace LiveSPICE
             // Compute the target min/max
             double bound = peak;
             double gamma = 0.1;
-            double window = Math.Max(Math.Pow(2.0, Math.Ceiling(Math.Log(bound + 1e-9, 2.0))), 1e-2);
+            double window = Math.Max(Math.Pow(2.0, Math.Ceiling(Math.Log(bound + 1e-9, 2.0))), 5e-3);
             Vmax = Math.Max(TimeFilter(Vmax, window, gamma), Math.Abs(bound + (Vmean - mean)));
             Vmean = TimeFilter(Vmean, mean, gamma);
             if (Math.Abs(mean) * 1e2 < Vmax)
