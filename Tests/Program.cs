@@ -38,7 +38,7 @@ namespace Tests
 
             foreach (string File in Tests)
             {
-                string Name = System.IO.Path.GetFileNameWithoutExtension(File);
+                string Name = Path.GetFileNameWithoutExtension(File);
                 try
                 {
                     double perf = Run(File, Vin);
@@ -65,19 +65,10 @@ namespace Tests
         public double Run(string FileName, Func<double, double> Vin)
         {
             Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
-            C.Name = System.IO.Path.GetFileNameWithoutExtension(FileName);
-            return Run(
-                C,
-                Vin,
-                C.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault(),
-                C.Nodes.Select(i => i.V));
-        }
-
-        public double Run(string FileName, Func<double, double> Vin, Expression Input, IEnumerable<Expression> Plots)
-        {
-            Circuit.Circuit C = Schematic.Load(FileName, Log).Build();
-            C.Name = System.IO.Path.GetFileNameWithoutExtension(FileName);
-            return Run(C, Vin, Input, Plots);
+            C.Name = Path.GetFileNameWithoutExtension(FileName);
+            Expression input = C.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault();
+            IEnumerable<Expression> outputs = C.Nodes.Select(i => i.V);
+            return Run(C, Vin, input, outputs);
         }
 
         public double Run(Circuit.Circuit C, Func<double, double> Vin, Expression Input, IEnumerable<Expression> Plots)
@@ -100,16 +91,12 @@ namespace Tests
 
             Log.WriteLine("");
             if (Samples > 0)
-                return RunTest(
-                    C, S,
-                    Vin,
-                    Samples,
-                    C.Name);
+                return RunTest(S, Vin, Samples, C.Name);
             else
                 return 0.0;
         }
 
-        public double RunTest(Circuit.Circuit C, Simulation S, Func<double, double> Vin, int Samples, string Name)
+        public double RunTest(Simulation S, Func<double, double> Vin, int Samples, string Name)
         {
             double t0 = (double)S.Time;
             double T = S.TimeStep;
