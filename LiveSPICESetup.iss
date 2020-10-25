@@ -1,6 +1,6 @@
 [Setup]
 AppName=LiveSPICE
-AppVersion=0.12
+AppVersion=0.13
 AppPublisher=Dillon Sharlet
 AppPublisherURL="www.livespice.org"
 AppSupportURL="https://github.com/dsharlet/LiveSPICE/issues"
