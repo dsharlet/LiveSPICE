@@ -48,7 +48,8 @@ namespace WaveAudio
                 throw new MmException(result);
         }
     }
-    [StructLayout(LayoutKind.Sequential)]
+
+    [StructLayout(LayoutKind.Sequential, Pack = 2)]
     public struct WAVEFORMATEX
     {
         public ushort    wFormatTag;
@@ -82,8 +83,9 @@ namespace WaveAudio
         WHDR_INQUEUE = 16
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    public struct WAVEHDR
+    // This needs to be a class so pinning works correctly(?)
+    [StructLayout(LayoutKind.Sequential)]
+    public class WAVEHDR
     {
         public IntPtr lpData; // pointer to locked data buffer
         public uint dwBufferLength; // length of data buffer
@@ -165,11 +167,11 @@ namespace WaveAudio
         [DllImport("winmm.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern MMRESULT waveOutGetDevCaps(IntPtr hwo, ref WAVEOUTCAPS pwoc, uint cbwoc);
         [DllImport("winmm.dll")]
-        public static extern MMRESULT waveOutPrepareHeader(IntPtr hWaveOut, ref WAVEHDR lpWaveOutHdr, int uSize);
+        public static extern MMRESULT waveOutPrepareHeader(IntPtr hWaveOut, WAVEHDR lpWaveOutHdr, int uSize);
         [DllImport("winmm.dll")]
-        public static extern MMRESULT waveOutUnprepareHeader(IntPtr hWaveOut, ref WAVEHDR lpWaveOutHdr, int uSize);
+        public static extern MMRESULT waveOutUnprepareHeader(IntPtr hWaveOut, WAVEHDR lpWaveOutHdr, int uSize);
         [DllImport("winmm.dll")]
-        public static extern MMRESULT waveOutWrite(IntPtr hWaveOut, ref WAVEHDR lpWaveOutHdr, int uSize);
+        public static extern MMRESULT waveOutWrite(IntPtr hWaveOut, WAVEHDR lpWaveOutHdr, int uSize);
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveOutOpen(out IntPtr hWaveOut, int uDeviceID, ref WAVEFORMATEX lpFormat, Callback dwCallback, IntPtr dwInstance, WaveOutOpenFlags dwFlags);
         [DllImport("winmm.dll")]
@@ -196,7 +198,7 @@ namespace WaveAudio
         [DllImport("winmm.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern MMRESULT waveInGetDevCaps(IntPtr hwo, ref WAVEINCAPS pwic, uint cbwoc);
         [DllImport("winmm.dll")]
-        public static extern MMRESULT waveInAddBuffer(IntPtr hwi, ref WAVEHDR pwh, int cbwh);
+        public static extern MMRESULT waveInAddBuffer(IntPtr hwi, WAVEHDR pwh, int cbwh);
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveInClose(IntPtr hwi);
         [DllImport("winmm.dll")]
@@ -204,9 +206,9 @@ namespace WaveAudio
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveInOpen(out IntPtr phwi, int uDeviceID, ref WAVEFORMATEX lpFormat, IntPtr dwCallback, IntPtr dwInstance, WaveInOpenFlags dwFlags);
         [DllImport("winmm.dll")]
-        public static extern MMRESULT waveInPrepareHeader(IntPtr hWaveIn, ref WAVEHDR lpWaveInHdr, int uSize);
+        public static extern MMRESULT waveInPrepareHeader(IntPtr hWaveIn, WAVEHDR lpWaveInHdr, int uSize);
         [DllImport("winmm.dll")]
-        public static extern MMRESULT waveInUnprepareHeader(IntPtr hWaveIn, ref WAVEHDR lpWaveInHdr, int uSize);
+        public static extern MMRESULT waveInUnprepareHeader(IntPtr hWaveIn, WAVEHDR lpWaveInHdr, int uSize);
         [DllImport("winmm.dll")]
         public static extern MMRESULT waveInReset(IntPtr hwi);
         [DllImport("winmm.dll")]

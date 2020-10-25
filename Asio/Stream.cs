@@ -44,12 +44,11 @@ namespace Asio
             {
                 a[i] = input[i].Samples;
 
-                using (Audio.RawLock l = new Audio.RawLock(a[i], false, true))
-                    ConvertSamples(
-                        input[i].Info.buffers[Index],
-                        input[i].Type,
-                        l,
-                        l.Count);
+                ConvertSamples(
+                    input[i].Info.buffers[Index],
+                    input[i].Type,
+                    a[i].Raw,
+                    a[i].Count);
             }
             
             Audio.SampleBuffer[] b = new Audio.SampleBuffer[output.Length];
@@ -60,12 +59,11 @@ namespace Asio
 
             for (int i = 0; i < output.Length; ++i)
             {
-                using (Audio.RawLock l = new Audio.RawLock(b[i], true, false))
-                    ConvertSamples(
-                        l,
-                        output[i].Info.buffers[Index],
-                        output[i].Type,
-                        l.Count);
+                ConvertSamples(
+                    b[i].Raw,
+                    output[i].Info.buffers[Index],
+                    output[i].Type,
+                    b[i].Count);
             }
         }
 

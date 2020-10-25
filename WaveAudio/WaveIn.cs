@@ -16,16 +16,13 @@ namespace WaveAudio
         private IntPtr waveIn = IntPtr.Zero;
         private List<InBuffer> buffers;
         private volatile bool disposed = false;
-        private EventWaitHandle callback = new AutoResetEvent(false);
-
-        public EventWaitHandle Callback { get { return callback; } }
         
         public WaveIn(int Device, WAVEFORMATEX Format, int BufferSize)
         {
             Log.Global.WriteLine(MessageType.Info, "Opening wave in device '{0}'.", Device);
 
             // Construct waveIn
-            MmException.CheckThrow(Winmm.waveInOpen(out waveIn, Device, ref Format, callback.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero, WaveInOpenFlags.CALLBACK_EVENT));
+            MmException.CheckThrow(Winmm.waveInOpen(out waveIn, Device, ref Format, IntPtr.Zero, IntPtr.Zero, WaveInOpenFlags.CALLBACK_NULL));
 
             // Create buffers.
             buffers = new List<InBuffer>();
@@ -61,8 +58,6 @@ namespace WaveAudio
             if (waveIn != IntPtr.Zero)
                 Winmm.waveInClose(waveIn);
             waveIn = IntPtr.Zero;
-
-            callback = null;
         }
 
         public void Stop()
@@ -72,12 +67,9 @@ namespace WaveAudio
 
         public InBuffer GetBuffer()
         {
-            while (!disposed)
-            {
-                foreach (InBuffer i in buffers)
-                    if (i.Done)
-                        return i;
-            }
+            foreach (InBuffer i in buffers)
+                if (i.Done)
+                    return i;
             return null;
         }
     }

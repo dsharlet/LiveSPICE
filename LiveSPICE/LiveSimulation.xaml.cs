@@ -369,7 +369,7 @@ namespace LiveSPICE
                 foreach (Channel i in inputs.Values)
                 {
                     if (i is InputChannel)
-                        ins.Add(In[((InputChannel)i).Index].LockSamples(true, false));
+                        ins.Add(In[((InputChannel)i).Index].Samples);
                     else if (i is SignalChannel)
                         ins.Add(((SignalChannel)i).Buffer(Count, simulation.Time, simulation.TimeStep));
                 }
@@ -378,7 +378,7 @@ namespace LiveSPICE
                 foreach (Probe i in probes)
                     outs.Add(i.AllocBuffer(Count));
                 for (int i = 0; i < Out.Length; ++i)
-                    outs.Add(Out[i].LockSamples(false, true));
+                    outs.Add(Out[i].Samples);
 
                 // Process the samples!
                 simulation.Run(Count, ins, outs);
@@ -406,26 +406,17 @@ namespace LiveSPICE
                 foreach (Audio.SampleBuffer i in Out)
                     i.Clear();
             }
-
-            // Unlock sample buffers.
-            foreach (Audio.SampleBuffer i in Out)
-                i.Unlock();
-            foreach (Audio.SampleBuffer i in In)
-                i.Unlock();
         }
 
-        private static double AmplifySignal(Audio.SampleBuffer Signal, double Gain)
+        private static double AmplifySignal(Audio.SampleBuffer Samples, double Gain)
         {
             double peak = 0.0;
-            using (Audio.SamplesLock samples = new Audio.SamplesLock(Signal, true, true))
+            for (int i = 0; i < Samples.Count; ++i)
             {
-                for (int i = 0; i < samples.Count; ++i)
-                {
-                    double v = samples[i];
-                    v *= Gain;
-                    peak = Math.Max(peak, Math.Abs(v));
-                    samples[i] = v;
-                }
+                double v = Samples[i];
+                v *= Gain;
+                peak = Math.Max(peak, Math.Abs(v));
+                Samples[i] = v;
             }
             return peak;
         }

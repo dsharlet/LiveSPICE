@@ -12,15 +12,14 @@ namespace WaveAudio
     /// </summary>
     class Buffer : IDisposable
     {
-        protected GCHandle handle;
         protected WAVEHDR header;
-        protected GCHandle pin;
-        protected int size;
+        protected GCHandle headerPin;
+        protected byte[] data;
+        protected GCHandle dataPin;
 
         protected bool disposed = false;
 
         public IntPtr Data { get { return header.lpData; } }
-        public int Size { get { return size; } }
 
         public bool Done { get { return (header.dwFlags & WaveHdrFlags.WHDR_DONE) != 0; } }
 
@@ -29,17 +28,16 @@ namespace WaveAudio
         
         public Buffer(WAVEFORMATEX Format, int Count)
         {
-            handle = GCHandle.Alloc(this);
-
-            size = BlockAlignedSize(Format, Count);
             samples = new Audio.SampleBuffer(Count) { Tag = this };
 
+            int size = BlockAlignedSize(Format, Count);
+            data = new byte[size];
+            dataPin = GCHandle.Alloc(data, GCHandleType.Pinned);
             header = new WAVEHDR();
-            header.lpData = Marshal.AllocHGlobal(size);
-            header.dwUser = (IntPtr)handle;
+            headerPin = GCHandle.Alloc(header, GCHandleType.Pinned);
+            header.lpData = dataPin.AddrOfPinnedObject();
             header.dwBufferLength = (uint)size;
             header.dwFlags = 0;
-            pin = GCHandle.Alloc(header, GCHandleType.Pinned);
         }
 
         ~Buffer() { Dispose(false); }
@@ -50,14 +48,11 @@ namespace WaveAudio
         {
             if (disposed) return;
 
-            if (pin.IsAllocated)
-                pin.Free();
+            if (headerPin.IsAllocated)
+                headerPin.Free();
 
-            if (header.lpData != IntPtr.Zero)
-                Marshal.FreeHGlobal(header.lpData);
-
-            if (handle.IsAllocated)
-                handle.Free();
+            if (dataPin.IsAllocated)
+                dataPin.Free();
 
             disposed = true;
         }

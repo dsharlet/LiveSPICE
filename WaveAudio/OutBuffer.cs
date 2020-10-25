@@ -18,7 +18,7 @@ namespace WaveAudio
         {
             waveOut = WaveOut;
 
-            MmException.CheckThrow(Winmm.waveOutPrepareHeader(WaveOut, ref header, Marshal.SizeOf(header)));
+            MmException.CheckThrow(Winmm.waveOutPrepareHeader(WaveOut, header, Marshal.SizeOf(header)));
             header.dwFlags |= WaveHdrFlags.WHDR_DONE;
         }
 
@@ -28,7 +28,7 @@ namespace WaveAudio
         {
             if (disposed) return;
 
-            Winmm.waveOutUnprepareHeader(waveOut, ref header, Marshal.SizeOf(header));
+            Winmm.waveOutUnprepareHeader(waveOut, header, Marshal.SizeOf(header));
 
             base.Dispose(Disposing);
         }
@@ -36,7 +36,7 @@ namespace WaveAudio
         public void Play()
         {
             header.dwFlags &= ~WaveHdrFlags.WHDR_DONE;
-            MmException.CheckThrow(Winmm.waveOutWrite(waveOut, ref header, Marshal.SizeOf(header)));
+            MmException.CheckThrow(Winmm.waveOutWrite(waveOut, header, Marshal.SizeOf(header)));
         }
     }
 }

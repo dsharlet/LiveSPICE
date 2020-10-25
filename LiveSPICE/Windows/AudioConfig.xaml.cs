@@ -137,15 +137,13 @@ namespace LiveSPICE
 
             // Sum the inputs.
             foreach (Audio.SampleBuffer i in In)
-                using (Audio.SamplesLock y = new Audio.SamplesLock(i, true, false))
-                    for (int j = 0; j < y.Count; ++j)
-                        x[j] += y[j];
+                for (int j = 0; j < i.Count; ++j)
+                    x[j] += i[j];
 
             // Write the sum to the outputs.
             foreach (Audio.SampleBuffer i in Out)
-                using (Audio.SamplesLock y = new Audio.SamplesLock(i, false, true))
-                    for (int j = 0; j < y.Count; ++j)
-                        y[j] = x[j];
+                for (int j = 0; j < i.Count; ++j)
+                    i[j] = x[j];
 
             signal.AddSamples(scope.Signals.Clock, x);
 
