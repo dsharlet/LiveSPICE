@@ -5,6 +5,9 @@
         Title="Audio Configuration" Height="500" Width="400" 
         Topmost="True" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         WindowStyle="ToolWindow" Style="{StaticResource ResourceKey=Window}" Icon="{StaticResource Gears}">
+    <Window.Resources>
+        <ls:ObjectNotNullConverter x:Key="ObjectNotNullConverter" />
+    </Window.Resources>
     <DockPanel LastChildFill="True">
         <Grid Margin="4" DockPanel.Dock="Top">
             <Grid.Resources>
@@ -41,7 +44,7 @@
             <ListBox Grid.Row="3" Grid.Column="1" x:Name="outputs" Margin="4" SelectionMode="Multiple" IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
         </Grid>
         <StackPanel DockPanel.Dock="Top" Margin="4" Orientation="Horizontal" HorizontalAlignment="Center">
-            <ToggleButton Content="Test" Width="80" Margin="4" Checked="BeginTest" Unchecked="EndTest" />
+            <ToggleButton Content="Test" Width="80" Margin="4" Checked="BeginTest" Unchecked="EndTest" IsEnabled="{Binding ElementName=_this, Path=Device, Converter={StaticResource ObjectNotNullConverter}}" />
             <Button Content="OK" Width="80" Margin="4" Click="OK" IsDefault="True" />
             <Button Content="Cancel" Width="80" Margin="4" IsCancel="True" />
         </StackPanel>
