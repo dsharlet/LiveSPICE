@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -71,6 +73,9 @@ namespace LiveSPICE
         public ObservableCollection<OutputChannel> OutputChannels { get { return _outputChannels; } }
 
         private Dictionary<ComputerAlgebra.Expression, Channel> inputs = new Dictionary<ComputerAlgebra.Expression, Channel>();
+
+        protected volatile int samplesProcessed = 0;
+        protected System.Timers.Timer statusTime;
 
         public LiveSimulation(Circuit.Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
         {
@@ -242,6 +247,16 @@ namespace LiveSPICE
                 ContentRendered += (o, e) => RebuildSolution();
 
                 Closed += (s, e) => stream.Stop();
+
+                statusTime = new System.Timers.Timer()
+                {
+                    Interval = 1000,
+                    AutoReset = true,
+                    Enabled = true,
+                };
+                statusTime.Elapsed += StatusTime_Elapsed;
+                statusTime.Start();
+
             }
             catch (Exception Ex)
             {
@@ -379,6 +394,8 @@ namespace LiveSPICE
                 long clock = Scope.Signals.Clock;
                 foreach (Probe i in probes)
                     i.Signal.AddSamples(clock, i.Buffer);
+
+                samplesProcessed += Count;
             }
             catch (Circuit.SimulationDiverged Ex)
             {
@@ -486,6 +503,12 @@ namespace LiveSPICE
                     Schematic.Tool = tool;
                 }
             };
+        }
+        private void StatusTime_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            int rate = samplesProcessed;
+            samplesProcessed = 0;
+            Dispatcher.InvokeAsync(() => statusSampleRate.Text = rate.ToString() + "Hz");
         }
 
         private static void ToggleVisible(LayoutAnchorable Anchorable)

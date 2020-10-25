@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
-        xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:ls="clr-namespace:LiveSPICE"
         Title="Live Simulation" Icon="{StaticResource Start}"
         Width="1000" Height="800" WindowStartupLocation="CenterOwner" 
@@ -220,10 +219,7 @@
             </StatusBarItem>
             <StatusBarItem Grid.Column="1">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding ElementName=_this, Path=SampleRate}" />
-                    <TextBlock Text=" x " />
-                    <TextBlock Text="{Binding ElementName=_this, Path=BitsPerSample}" />
-                    <TextBlock Text="bit" />
+                    <TextBlock Name="statusSampleRate" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>
