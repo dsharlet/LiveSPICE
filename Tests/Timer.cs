@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Util
+namespace Tests
 {
     public class Timer
     {
