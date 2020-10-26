@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using SchematicControls;
 using Util;
 using Xceed.Wpf.AvalonDock.Layout;
 
@@ -124,7 +125,7 @@ namespace LiveSPICE
                             FontSize = 15,
                             FontWeight = FontWeights.Bold,
                         };
-                        Schematic.overlays.Children.Add(pot);
+                        Schematic.Overlays.Children.Add(pot);
                         Canvas.SetLeft(pot, Canvas.GetLeft(tag) - pot.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(pot, Canvas.GetTop(tag) - pot.Height / 2 + tag.Height / 2);
 
@@ -146,7 +147,7 @@ namespace LiveSPICE
                             Opacity = 0.5,
                             Background = Brushes.White,
                         };
-                        Schematic.overlays.Children.Add(button);
+                        Schematic.Overlays.Children.Add(button);
                         Canvas.SetLeft(button, Canvas.GetLeft(tag));
                         Canvas.SetTop(button, Canvas.GetTop(tag));
 
@@ -190,7 +191,7 @@ namespace LiveSPICE
                             });
                         }
 
-                        Schematic.overlays.Children.Add(combo);
+                        Schematic.Overlays.Children.Add(combo);
                         Canvas.SetLeft(combo, Canvas.GetLeft(tag) - combo.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(combo, Canvas.GetTop(tag) - combo.Height / 2 + tag.Height / 2);
 

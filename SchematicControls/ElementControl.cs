@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace LiveSPICE
+namespace SchematicControls
 {
     /// <summary>
     /// Base class for schematic elements.

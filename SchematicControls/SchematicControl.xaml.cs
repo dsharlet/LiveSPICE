@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace LiveSPICE
+namespace SchematicControls
 {
     public class SelectionEventArgs : EventArgs
     {
@@ -33,6 +33,8 @@ namespace LiveSPICE
 
         protected Circuit.Coord origin = new Circuit.Coord(0, 0);
         public Circuit.Coord Origin { get { return origin; } set { origin = value; RefreshLayout(); } }
+
+        public Canvas Overlays { get { return overlays; } }
 
         public SchematicControl(Circuit.Schematic Schematic)
         {
@@ -148,13 +150,13 @@ namespace LiveSPICE
         // Add/remove overlay element controls.
         public void AddOverlay(ElementControl Element)
         {
-            overlays.Children.Add(Element);
+            Overlays.Children.Add(Element);
             Element.Element.LayoutChanged += ElementLayoutChanged;
             ElementLayoutChanged(Element.Element, null);
         }
         public void RemoveOverlay(ElementControl Element)
         {
-            overlays.Children.Remove(Element);
+            Overlays.Children.Remove(Element);
             Element.Element.LayoutChanged -= ElementLayoutChanged;
         }
 

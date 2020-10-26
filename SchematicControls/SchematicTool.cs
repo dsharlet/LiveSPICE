@@ -1,7 +1,7 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace LiveSPICE
+namespace SchematicControls
 {
     public class SchematicTool
     {

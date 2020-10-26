@@ -142,18 +142,11 @@
     <Compile Include="Controls\Simulation\ProbeTool.cs" />
     <Compile Include="Controls\Simulation\SimulationSchematic.cs" />
     <Compile Include="Controls\Editor\EditorTool.cs" />
-    <Compile Include="Controls\Schematic\WireControl.cs" />
     <Compile Include="Controls\SchematicViewer.xaml.cs">
       <DependentUpon>SchematicViewer.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Controls\Schematic\SchematicControl.xaml.cs">
-      <DependentUpon>SchematicControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\Editor\SchematicEditor.cs" />
-    <Compile Include="Controls\Schematic\SymbolControl.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Controls\Scope\Scope.xaml.cs">
       <DependentUpon>Scope.xaml</DependentUpon>
     </Compile>
@@ -173,8 +166,6 @@
     <Compile Include="Controls\Editor\SchematicEdits.cs" />
     <Compile Include="Controls\Editor\SelectionTool.cs" />
     <Compile Include="Controls\Editor\SymbolTool.cs" />
-    <Compile Include="Controls\Schematic\ElementControl.cs" />
-    <Compile Include="Controls\Schematic\SchematicTool.cs" />
     <Compile Include="Controls\Library\ComponentLibrary.xaml.cs">
       <DependentUpon>ComponentLibrary.xaml</DependentUpon>
     </Compile>
@@ -214,10 +205,6 @@
     <Page Include="Controls\SchematicViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\Schematic\SchematicControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Scope\Scope.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -309,6 +296,10 @@
       <Project>{2877c441-fd0b-4441-a469-e677003ee35a}</Project>
       <Name>ComputerAlgebra</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SchematicControls\SchematicControls.csproj">
+      <Project>{489de6f5-c984-46b0-a4fb-997649231224}</Project>
+      <Name>SchematicControls</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Util\Util.csproj">
       <Project>{0a3db5cb-3c02-4779-b73a-927d2e1ebe54}</Project>
       <Name>Util</Name>
@@ -378,6 +369,7 @@
     <Resource Include="Images\Icon.png" />
     <Resource Include="Images\Signal.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
