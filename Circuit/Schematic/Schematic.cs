@@ -158,8 +158,6 @@ namespace Circuit
             OnLayoutChanged(e.Element, null);
 
             e.Element.LayoutChanged += OnLayoutChanged;
-
-            Log.WriteLine(MessageType.Verbose, "Added '" + e.Element.ToString() + "'");
         }
 
         protected void OnElementRemoved(object sender, ElementEventArgs e)
@@ -186,13 +184,8 @@ namespace Circuit
 
                 // If the node that this terminal was connected to has no more connections, remove it from the circuit.
                 if (n != null && n.Connected.Empty())
-                {
-                    Log.WriteLine(MessageType.Verbose, "Removed node '" + n.ToString() + "'");
                     circuit.Nodes.Remove(n);
-                }
             }
-
-            Log.WriteLine(MessageType.Verbose, "Removed '" + e.Element.ToString() + "'");
         }
 
         // When an element moves, we will need to update its connections.
@@ -236,11 +229,7 @@ namespace Circuit
                 foreach (NamedWire i in Symbols.Select(j => j.Component).OfType<NamedWire>())
                 {
                     if (Wires.Any(j => j.IsConnectedTo(((Symbol)i.Tag).MapTerminal(i.Terminal))))
-                    {
-                        if (n != null)
-                            Log.WriteLine(MessageType.Verbose, "Multiple Named Wires connected to node.");
                         n = circuit.Nodes[i.WireName];
-                    }
                 }
             }
 
@@ -253,7 +242,6 @@ namespace Circuit
             {
                 n = new Node();
                 circuit.Nodes.Add(n);
-                Log.WriteLine(MessageType.Verbose, "Created new node '" + n.ToString() + "'");
             }
 
             foreach (Wire i in Wires)
@@ -268,7 +256,6 @@ namespace Circuit
                 foreach (Terminal j in i.Connected.ToArray())
                     j.ConnectTo(n);
                 circuit.Nodes.Remove(i);
-                Log.WriteLine(MessageType.Verbose, "Removed node '" + i.ToString() + "'");
             }
             return n;
         }
@@ -311,13 +298,7 @@ namespace Circuit
         private void Connect(Terminal T, Node V)
         {
             if (V != T.ConnectedTo)
-            {
                 T.ConnectTo(V);
-                if (V != null)
-                    Log.WriteLine(MessageType.Verbose, "Terminal '" + T.ToString() + "' connected to node '" + V.ToString() + "'");
-                else
-                    Log.WriteLine(MessageType.Verbose, "Terminal '" + T.ToString() + "' disconnected");
-            }
         }
 
         private void LogComponents()
