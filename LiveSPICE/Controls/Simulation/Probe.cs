@@ -17,7 +17,7 @@ namespace LiveSPICE
 
         public double[] AllocBuffer(int Samples)
         {
-            if (buffer == null || buffer.Length < Samples)
+            if (buffer == null || buffer.Length != Samples)
                 buffer = new double[Samples];
             return buffer;
         }

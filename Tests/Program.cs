@@ -101,17 +101,17 @@ namespace Tests
             double t0 = (double)S.Time;
             double T = S.TimeStep;
 
-            int N = 353;
-            double[] input = new double[N];
-
             List<List<double>> output = S.Output.Select(i => new List<double>(Samples)).ToList();
-            List<double[]> buffers = S.Output.Select(i => new double[N]).ToList();
 
             double time = 0.0;
             int samples = 0;
             double t = 0;
-            for (; samples < Samples; samples += N)
+            Random rng = new Random();
+            while (samples < Samples)
             {
+                int N = Math.Min(Samples - samples, rng.Next(1000, 10000));
+                double[] input = new double[N];
+                List<double[]> buffers = S.Output.Select(i => new double[N]).ToList();
                 for (int n = 0; n < N; ++n, t += T)
                     input[n] = Vin(t);
 
@@ -121,6 +121,8 @@ namespace Tests
 
                 for (int i = 0; i < S.Output.Count(); ++i)
                     output[i].AddRange(buffers[i]);
+
+                samples += N;
             }
             simulateTime += time;
 
