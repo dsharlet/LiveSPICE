@@ -5,8 +5,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using SchematicControls;
 
-namespace SchematicControls
+namespace LiveSPICE
 {
     public class SelectionEventArgs : EventArgs
     {
@@ -328,8 +329,7 @@ namespace SchematicControls
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }

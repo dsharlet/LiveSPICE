@@ -48,16 +48,8 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SchematicControl.xaml.cs">
-      <DependentUpon>SchematicControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="SchematicTool.cs" />
     <Compile Include="SymbolControl.cs" />
     <Compile Include="WireControl.cs" />
-    <Page Include="SchematicControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

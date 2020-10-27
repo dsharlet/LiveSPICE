@@ -114,6 +114,10 @@
     </ApplicationDefinition>
     <Compile Include="Controls\Library\LayoutControl.cs" />
     <Compile Include="Controls\Library\Library.cs" />
+    <Compile Include="Controls\SchematicControl.xaml.cs">
+      <DependentUpon>SchematicControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SchematicTool.cs" />
     <Compile Include="Controls\Simulation\Channel.cs" />
     <Compile Include="Controls\Simulation\FindRelevantTool.cs" />
     <Compile Include="Controls\Simulation\PotControl.cs" />
@@ -182,6 +186,10 @@
     <Compile Include="Windows\UnhandledException.xaml.cs">
       <DependentUpon>UnhandledException.xaml</DependentUpon>
     </Compile>
+    <Page Include="Controls\SchematicControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Themes\Images.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
