@@ -1,41 +1,89 @@
 ﻿using Circuit;
 using ComputerAlgebra;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Security.Policy;
+using System.Text.RegularExpressions;
+using System.Windows.Controls;
 
 namespace LiveSPICEVst
 {
+    public class ComponentWrapper
+    {
+        public string Name { get; set; }
+        public bool IsDirty { get; set; }
+    }
+
     /// <summary>
     /// Simple wrapper around IPotControl to make UI integration easier
     /// </summary>
-    public class PotWrapper
+    public class PotWrapper : ComponentWrapper
     {
-        public Circuit.Component Pot { get; set; }
+        IPotControl pot = null;
 
-        public string Name
+        public PotWrapper(IPotControl pot, string name)
         {
-            get
-            {
-                return Pot.Name;
-            }
+            this.pot = pot;
+            this.Name = name;
         }
 
         public double PotValue
         {
             get
             {
-                return (Pot as IPotControl).PotValue;
+                return pot.PotValue;
             }
 
             set
             {
-                (Pot as IPotControl).PotValue = value;
+                pot.PotValue = value;
 
                 IsDirty = true;
             }
         }
+    }
 
-        public bool IsDirty { get; set; }
+    /// <summary>
+    /// Simple wrapper around IButtonControl to make UI integration easier
+    /// </summary>
+    public class ButtonWrapper : ComponentWrapper
+    {
+        List<IButtonControl> buttons = new List<IButtonControl>();
+        bool engaged = false;
+
+        public ButtonWrapper(string name)
+        {
+            this.Name = name;
+        }
+
+        public bool Engaged
+        {
+            get
+            {
+                return engaged;
+            }
+
+            set
+            {
+                if (value != engaged)
+                {
+                    engaged = !engaged;
+
+                    foreach (IButtonControl button in buttons)
+                    {
+                        button.Click();
+                    }
+
+                    IsDirty = true;
+                }
+            }
+        }
+
+        public void AddButton(IButtonControl button)
+        {
+            buttons.Add(button);
+        }
     }
 
     /// <summary>
@@ -43,7 +91,7 @@ namespace LiveSPICEVst
     /// </summary>
     public class SimulationProcessor
     {
-        public ObservableCollection<PotWrapper> Pots { get; private set; }
+        public ObservableCollection<ComponentWrapper> InteractiveComponents { get; private set; }
 
         public double SampleRate
         {
@@ -87,20 +135,43 @@ namespace LiveSPICEVst
 
         public SimulationProcessor()
         {
-            Pots = new ObservableCollection<PotWrapper>();
+            InteractiveComponents = new ObservableCollection<ComponentWrapper>();
         }
 
         public void SetCircuit(Circuit.Circuit circuit)
         {
             this.circuit = circuit;
 
-            Pots.Clear();
+            InteractiveComponents.Clear();
+
+            Dictionary<string, ButtonWrapper> buttonGroups = new Dictionary<string, ButtonWrapper>();
 
             foreach (Circuit.Component i in circuit.Components)
             {
                 if (i is IPotControl)
                 {
-                    Pots.Add(new PotWrapper { Pot = i });
+                    InteractiveComponents.Add(new PotWrapper((i as IPotControl), i.Name));
+                }
+                else if (i is IButtonControl)
+                {
+                    IButtonControl button = (i as IButtonControl);
+
+                    ButtonWrapper wrapper = null;
+
+                    if (buttonGroups.ContainsKey(button.Group))
+                    {
+                        wrapper = buttonGroups[button.Group];
+                    }
+                    else
+                    {
+                        wrapper = new ButtonWrapper(button.Group);
+
+                        buttonGroups[button.Group] = wrapper;
+
+                        InteractiveComponents.Add(wrapper);
+                    }
+
+                    wrapper.AddButton(button);
                 }
             }
 
@@ -115,16 +186,15 @@ namespace LiveSPICEVst
             }
             else
             {
-
                 bool needUpdate = false;
 
-                foreach (PotWrapper pot in Pots)
+                foreach (ComponentWrapper component in InteractiveComponents)
                 {
-                    if (pot.IsDirty)
+                    if (component.IsDirty)
                     {
                         needUpdate = true;
 
-                        pot.IsDirty = false;
+                        component.IsDirty = false;
                     }
                 }
 

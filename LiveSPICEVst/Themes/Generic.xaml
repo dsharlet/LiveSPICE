@@ -4,7 +4,8 @@
     xmlns:local="clr-namespace:LiveSPICEVst">
 
     <local:DialToAngleConverter x:Key="DialToAngleConverter"/>
-    
+    <local:ObjectTypeConverter x:Key="OjbectTypeConverter"/>
+
     <Style TargetType="{x:Type local:Dial}">
         <Setter Property="Template">
             <Setter.Value>
@@ -68,4 +69,20 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style x:Key="PowerButton" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Image x:Name="ToggleImage" Width="16" Height="16" Source="pack://application:,,,/LiveSPICEVst;component/Images/PowerOff.png"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="true">
+                            <Setter TargetName="ToggleImage" Property="Source" Value="pack://application:,,,/LiveSPICEVst;component/Images/PowerOn.png" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

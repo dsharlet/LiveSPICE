@@ -131,5 +131,9 @@
       <Name>SchematicControls</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\PowerOff.png" />
+    <Resource Include="Images\PowerOn.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -14,7 +14,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <ItemsControl ItemsSource="{Binding Pots}" HorizontalAlignment="Center" VerticalAlignment="Top">
+    <ItemsControl ItemsSource="{Binding InteractiveComponents}" HorizontalAlignment="Center" VerticalAlignment="Top">
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
                 <WrapPanel />
@@ -48,6 +48,19 @@
                                             </DataTemplate>
                                         </Setter.Value>
                                     </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext, Converter={StaticResource OjbectTypeConverter}}" Value="{x:Type local:ButtonWrapper}">
+                                            <Setter Property="ContentTemplate">
+                                                <Setter.Value>
+                                                    <DataTemplate>
+                                                        <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2" IsChecked="{Binding Engaged, Mode=TwoWay}"
+                                                            Style="{StaticResource PowerButton}">
+                                                        </ToggleButton>
+                                                    </DataTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
                                 </Style>
                             </ContentControl.Style>
                         </ContentControl>
