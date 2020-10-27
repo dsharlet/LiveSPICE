@@ -21,6 +21,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveAudio", "WaveAudio\Wave
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchematicControls", "SchematicControls\SchematicControls.csproj", "{489DE6F5-C984-46B0-A4FB-997649231224}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveSPICEVst", "LiveSPICEVst\LiveSPICEVst.csproj", "{5278D253-919C-4BB3-ABA7-B945326D33A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VSTUITestApp", "VSTUITestApp\VSTUITestApp.csproj", "{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +66,14 @@ Global
 		{489DE6F5-C984-46B0-A4FB-997649231224}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{489DE6F5-C984-46B0-A4FB-997649231224}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{489DE6F5-C984-46B0-A4FB-997649231224}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5278D253-919C-4BB3-ABA7-B945326D33A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5278D253-919C-4BB3-ABA7-B945326D33A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5278D253-919C-4BB3-ABA7-B945326D33A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5278D253-919C-4BB3-ABA7-B945326D33A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
