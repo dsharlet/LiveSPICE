@@ -15,7 +15,7 @@ namespace Tests
             FileStream file = new FileStream("docs.html", FileMode.Create);
             StreamWriter docs = new StreamWriter(file);
 
-            Action<StreamWriter, string, string, string> WriteTag = (StreamWriter S, string Tab, string Tag, string P) => S.WriteLine(Tab + "<" + Tag + ">" + P + "</" + Tag + ">");
+            void WriteTag(StreamWriter S, string Tab, string Tag, string P) => S.WriteLine(Tab + "<" + Tag + ">" + P + "</" + Tag + ">");
 
             docs.WriteLine("<section id=\"components\">");
             docs.WriteLine("\t<h3>Components</h3>");

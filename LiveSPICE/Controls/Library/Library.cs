@@ -33,8 +33,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }
@@ -169,7 +168,7 @@ namespace LiveSPICE
         public void AddComponent(Circuit.Component C)
         {
             DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
-            AddComponent(C, C.TypeName, desc != null ? desc.Description : null);
+            AddComponent(C, C.TypeName, desc?.Description);
         }
         public void AddComponent(Type T)
         {
@@ -183,8 +182,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }

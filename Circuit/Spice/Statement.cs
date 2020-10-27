@@ -8,7 +8,7 @@ namespace Circuit.Spice
     public class Statement
     {
         // Parsing quantities.
-        private static Dictionary<string, double> Prefixes = new Dictionary<string, double>()
+        private static readonly Dictionary<string, double> Prefixes = new Dictionary<string, double>()
         {
             { "F", 1e-15 },
             { "P", 1e-12 },
@@ -21,7 +21,7 @@ namespace Circuit.Spice
             { "T", 1e+12 },
         };
 
-        private static Regex Quantity = new Regex(@"([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)(F|P|N|U|M|K|MEG|G|T)?.*", RegexOptions.IgnoreCase);
+        private static readonly Regex Quantity = new Regex(@"([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)(F|P|N|U|M|K|MEG|G|T)?.*", RegexOptions.IgnoreCase);
         public static Expression ParseValue(string s)
         {
             Match m = Quantity.Match(s);

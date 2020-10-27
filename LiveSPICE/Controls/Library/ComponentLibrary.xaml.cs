@@ -15,7 +15,7 @@ namespace LiveSPICE
     /// </summary>
     public partial class ComponentLibrary : UserControl, INotifyPropertyChanged
     {
-        private static List<Type> Common = new List<Type>()
+        private static readonly List<Type> Common = new List<Type>()
         {
             typeof(Circuit.Conductor),
             typeof(Circuit.Ground),
@@ -28,17 +28,19 @@ namespace LiveSPICE
             typeof(Circuit.Label)
         };
 
-        private static Dictionary<Type, KeyGesture[]> ShortcutKeys = new Dictionary<Type, KeyGesture[]>()
+        private static readonly Dictionary<Type, KeyGesture[]> ShortcutKeys = new Dictionary<Type, KeyGesture[]>()
         {
-            { typeof(Circuit.Conductor), new[] { new KeyGesture(Key.W, ModifierKeys.Control) } },
-            { typeof(Circuit.Ground), new[] { new KeyGesture(Key.G, ModifierKeys.Control) } },
-            { typeof(Circuit.Resistor), new[] { new KeyGesture(Key.R, ModifierKeys.Control) } },
-            { typeof(Circuit.Capacitor), new[] { new KeyGesture(Key.F, ModifierKeys.Control) } },
-            { typeof(Circuit.Inductor), new[] { new KeyGesture(Key.L, ModifierKeys.Control), new KeyGesture(Key.H, ModifierKeys.Control) } },
-            { typeof(Circuit.Label), new[] { new KeyGesture(Key.T, ModifierKeys.Control) } },
+            [typeof(Circuit.Conductor)] = new[] { new KeyGesture(Key.W, ModifierKeys.Control) },
+            [typeof(Circuit.Ground)] = new[] { new KeyGesture(Key.G, ModifierKeys.Control) },
+            [typeof(Circuit.Resistor)] = new[] { new KeyGesture(Key.R, ModifierKeys.Control) },
+            [typeof(Circuit.Capacitor)] = new[] { new KeyGesture(Key.F, ModifierKeys.Control) },
+            [typeof(Circuit.Inductor)] = new[] { 
+                new KeyGesture(Key.L, ModifierKeys.Control), 
+                new KeyGesture(Key.H, ModifierKeys.Control) },
+            [typeof(Circuit.Label)] = new[] { new KeyGesture(Key.T, ModifierKeys.Control) },
         };
 
-        private Category root = new Category();
+        private readonly Category root = new Category();
         public Category Root { get { return root; } }
 
         public ComponentLibrary()
@@ -163,8 +165,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }

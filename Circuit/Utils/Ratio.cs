@@ -36,7 +36,7 @@ namespace Circuit
         public bool Equals(Ratio obj) { return this == obj; }
 
         // object interface.
-        public override bool Equals(object obj) { return obj is Ratio ? Equals((Ratio)obj) : base.Equals(obj); }
+        public override bool Equals(object obj) { return obj is Ratio ratio ? Equals(ratio) : base.Equals(obj); }
         public override int GetHashCode() { return n.GetHashCode() * 33 + d.GetHashCode(); }
         public override string ToString() { return n.ToString() + ":" + d.ToString(); }
     }

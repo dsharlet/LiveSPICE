@@ -39,11 +39,11 @@ namespace Circuit.Spice
         /// </summary>
         private static Dictionary<string, Component> ModelTemplates = new Dictionary<string, Component>()
         {
-            { "D", new Diode() },
-            { "NPN", new BipolarJunctionTransistor() { Type = BjtType.NPN } },
-            { "PNP", new BipolarJunctionTransistor() { Type = BjtType.PNP } },
-            { "NJF", new JunctionFieldEffectTransistor() { Type = JfetType.N } },
-            { "PJF", new JunctionFieldEffectTransistor() { Type = JfetType.P } },
+            ["D"] = new Diode(),
+            ["NPN"] = new BipolarJunctionTransistor() { Type = BjtType.NPN },
+            ["PNP"] = new BipolarJunctionTransistor() { Type = BjtType.PNP },
+            ["NJF"] = new JunctionFieldEffectTransistor() { Type = JfetType.N },
+            ["PJF"] = new JunctionFieldEffectTransistor() { Type = JfetType.P },
         };
 
         public static Model Parse(TokenList Tokens)
@@ -51,8 +51,7 @@ namespace Circuit.Spice
             string name = Tokens[1];
             string type = Tokens[2];
 
-            Component template;
-            if (!ModelTemplates.TryGetValue(type, out template))
+            if (!ModelTemplates.TryGetValue(type, out Component template))
                 throw new NotSupportedException("Model type '" + type + "' not supported.");
 
             Component impl = template.Clone();

@@ -168,8 +168,7 @@ namespace Circuit
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -194,11 +193,10 @@ namespace Circuit
         /// <returns></returns>
         public static bool IsDependentVariable(Expression x, params Expression[] On)
         {
-            Call d = x as Call;
             return
-                !ReferenceEquals(d, null) &&
-                d.Target is UnknownFunction &&
-                On.SequenceEqual(d.Arguments);
+                x is Call d
+                && d.Target is UnknownFunction
+                && On.SequenceEqual(d.Arguments);
         }
 
         private const double LinExpKnee = 50.0;
