@@ -2,6 +2,7 @@
 using ComputerAlgebra;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Security.Policy;
 using System.Text.RegularExpressions;
@@ -158,7 +159,12 @@ namespace LiveSPICEVst
 
                     ButtonWrapper wrapper = null;
 
-                    if (buttonGroups.ContainsKey(button.Group))
+                    if (string.IsNullOrEmpty(button.Group))
+                    {
+                        wrapper = new ButtonWrapper(i.Name);
+                        InteractiveComponents.Add(wrapper);
+                    }
+                    else if (buttonGroups.ContainsKey(button.Group))
                     {
                         wrapper = buttonGroups[button.Group];
                     }
