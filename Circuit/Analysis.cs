@@ -14,7 +14,7 @@ namespace Circuit
     }
 
     /// <summary>
-    /// 
+    /// What kind of sweep a logarithmic parameter should make.
     /// </summary>
     public enum SweepType
     {
@@ -128,7 +128,7 @@ namespace Circuit
         /// <summary>
         /// Get the KCL expressions for this analysis.
         /// </summary>
-        public IEnumerable<KeyValuePair<Expression, Expression>> Kcl { get { return kcl.Where(i => !ReferenceEquals(i.Value, null)); } }
+        public IEnumerable<KeyValuePair<Expression, Expression>> Kcl { get { return kcl.Where(i => i.Value is object); } }
 
         /// <summary>
         /// Enumerates the equations in the system.
@@ -230,7 +230,7 @@ namespace Circuit
         {
             IEnumerable<Equal> eqs = equations.Concat(context.Equations);
             Equal eq = eqs.FirstOrDefault(i => Component.IsDependentVariable(i.Left, Component.t) && i.Right.Equals(Eq));
-            if (ReferenceEquals(eq, null))
+            if (eq is null)
             {
                 Expression x = AddUnknown(Name);
                 AddEquation(x, Eq);
@@ -263,26 +263,24 @@ namespace Circuit
 
         private void AddKcl(Dictionary<Expression, Expression> Kcl, Expression V, Expression i)
         {
-            Expression sumi;
-            if (Kcl.TryGetValue(V, out sumi))
+            if (Kcl.TryGetValue(V, out Expression sumi))
             {
                 // preserve null (arbitrary current).
-                if (ReferenceEquals(i, null))
+                if (i is null)
                     Kcl[V] = null;
-                else if (!ReferenceEquals(sumi, null))
+                else if (sumi is object)
                     Kcl[V] = sumi + i;
             }
             else
             {
                 Kcl[V] = i;
             }
-
         }
 
         // Helper for evaluating typical analysis expressions.
         private static Expression Evaluate(Expression x, IDictionary<Expression, Expression> At)
         {
-            if (ReferenceEquals(x, null))
+            if (x is null)
                 return null;
             else if (At.Any())
                 return x.Evaluate(At);
