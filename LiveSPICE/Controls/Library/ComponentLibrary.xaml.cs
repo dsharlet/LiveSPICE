@@ -61,20 +61,21 @@ namespace LiveSPICE
                 common.IsExpanded = true;
                 foreach (Type i in Common)
                 {
-                    //// Append tooltip if there is a shortcut key.
-                    //KeyGesture[] keys;
-                    //if (ShortcutKeys.TryGetValue(C.GetType(), out keys))
-                    //    Description += " (" + String.Join(", ", keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture))) + ")";
-
-                    common.AddComponent(i);
+                    ShortcutKeys.TryGetValue(i, out KeyGesture[] keys);
+                    common.AddComponent(i, keys);
                 }
 
                 // Add generic types to the Generic category.
                 Category generic = Root.FindChild("Generic");
                 Type root = typeof(Circuit.Component);
                 foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies())
+                {
                     foreach (Type j in i.GetTypes().Where(j => j.IsPublic && !j.IsAbstract && root.IsAssignableFrom(j) && j.CustomAttribute<ObsoleteAttribute>() == null))
-                        generic.AddComponent(j);
+                    {
+                        ShortcutKeys.TryGetValue(j, out KeyGesture[] keys);
+                        generic.AddComponent(j, keys);
+                    }
+                }
 
                 // Load standard libraries.
                 string app = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);

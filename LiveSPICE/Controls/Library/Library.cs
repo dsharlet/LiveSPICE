@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
+using System.Windows.Input;
 using System.Xml.Linq;
 using Util;
 
@@ -161,20 +163,29 @@ namespace LiveSPICE
                 LoadLibrary(i);
         }
 
-        public void AddComponent(Circuit.Component C, string Name, string Description)
+        public void AddComponent(Circuit.Component C, string Name, string Description, KeyGesture[] keys = null)
         {
+            if (keys != null)
+            {
+                string shortcuts = "(" + string.Join(", ", keys.Select(j => j.GetDisplayStringForCulture(CultureInfo.CurrentCulture))) + ")";
+                if (Description != null)
+                    Description += " " + shortcuts;
+                else
+                    Description = shortcuts;
+            }
+
             Components.Add(new Component(C, Name, Description));
         }
-        public void AddComponent(Circuit.Component C)
+        public void AddComponent(Circuit.Component C, KeyGesture[] keys = null)
         {
             DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
-            AddComponent(C, C.TypeName, desc?.Description);
+            AddComponent(C, C.TypeName, desc?.Description, keys);
         }
-        public void AddComponent(Type T)
+        public void AddComponent(Type T, KeyGesture[] keys = null)
         {
             try
             {
-                AddComponent((Circuit.Component)Activator.CreateInstance(T));
+                AddComponent((Circuit.Component)Activator.CreateInstance(T), keys);
             }
             catch (Exception) { }
         }
