@@ -9,7 +9,8 @@ namespace LiveSPICEVst
     public class ComponentWrapper
     {
         public string Name { get; set; }
-        public bool IsDirty { get; set; }
+        public bool NeedUpdate { get; set; }
+        public bool NeedRebuild { get; set; }
     }
 
     /// <summary>
@@ -36,7 +37,7 @@ namespace LiveSPICEVst
             {
                 pot.PotValue = value;
 
-                IsDirty = true;
+                NeedUpdate = true;
             }
         }
     }
@@ -72,7 +73,7 @@ namespace LiveSPICEVst
                         button.Click();
                     }
 
-                    IsDirty = true;
+                    NeedRebuild = true;
                 }
             }
         }
@@ -192,11 +193,18 @@ namespace LiveSPICEVst
 
                 foreach (ComponentWrapper component in InteractiveComponents)
                 {
-                    if (component.IsDirty)
+                    if (component.NeedUpdate)
                     {
                         needUpdate = true;
 
-                        component.IsDirty = false;
+                        component.NeedUpdate = false;
+                    }
+
+                    if (component.NeedRebuild)
+                    {
+                        needRebuild = true;
+
+                        component.NeedRebuild = false;
                     }
                 }
 

@@ -7,7 +7,6 @@
         xmlns:LiveSPICEVst="clr-namespace:LiveSPICEVst;assembly=LiveSPICEVst"
         mc:Ignorable="d"
         Title="MockVst" Height="200" Width="350">
-    <Grid>
-        <LiveSPICEVst:EditorView />
+    <Grid x:Name="MainGrid">
     </Grid>
 </Window>
