@@ -18,9 +18,12 @@ namespace SchematicControls
     /// </summary>
     public class SymbolControl : ElementControl
     {
-        private static Pen TextOutline = new Pen(new SolidColorBrush(Color.FromArgb(32, 0, 0, 0)), 0.2);
+        private static readonly Pen TextOutline = new Pen(new SolidColorBrush(Color.FromArgb(32, 0, 0, 0)), 0.2);
 
-        static SymbolControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(SymbolControl), new FrameworkPropertyMetadata(typeof(SymbolControl))); }
+        static SymbolControl() 
+        { 
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(SymbolControl), new FrameworkPropertyMetadata(typeof(SymbolControl)));
+        }
 
         private bool showText = true;
         public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); } }
@@ -142,18 +145,18 @@ namespace SchematicControls
 
             foreach (Circuit.SymbolLayout.Shape i in Layout.Lines)
                 Context.DrawLine(
-                    Pen != null ? Pen : MapToPen(i.Edge),
+                    Pen ?? MapToPen(i.Edge),
                     T(Tx, i.x1),
                     T(Tx, i.x2));
             foreach (Circuit.SymbolLayout.Shape i in Layout.Rectangles)
                 Context.DrawRectangle(
                     (i.Fill && Pen == null) ? MapToBrush(i.Edge) : null,
-                    Pen != null ? Pen : MapToPen(i.Edge),
+                    Pen ?? MapToPen(i.Edge),
                     new Rect(T(Tx, i.x1), T(Tx, i.x2)));
             foreach (Circuit.SymbolLayout.Shape i in Layout.Ellipses)
             {
                 Brush brush = (i.Fill && Pen == null) ? MapToBrush(i.Edge) : null;
-                Pen pen = Pen != null ? Pen : MapToPen(i.Edge);
+                Pen pen = Pen ?? MapToPen(i.Edge);
                 Point p1 = T(Tx, i.x1);
                 Point p2 = T(Tx, i.x2);
 
@@ -167,7 +170,7 @@ namespace SchematicControls
                 if (!e.MoveNext())
                     return;
 
-                Pen pen = Pen != null ? Pen : MapToPen(i.Edge);
+                Pen pen = Pen ?? MapToPen(i.Edge);
                 Point x1 = T(Tx, e.Current);
                 while (e.MoveNext())
                 {

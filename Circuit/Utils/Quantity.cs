@@ -52,8 +52,7 @@ namespace Circuit
             if (s.Length < 2)
                 return 1;
 
-            int prefix;
-            if (Prefixes.TryGetValue(DeAliasPrefix(s[s.Length - 1].ToString()), out prefix))
+            if (Prefixes.TryGetValue(DeAliasPrefix(s[s.Length - 1].ToString()), out int prefix))
             {
                 // Make sure this isn't just part of the word before the prefix.
                 if (char.IsDigit(s[s.Length - 2]) || char.IsWhiteSpace(s[s.Length - 2]))
@@ -99,7 +98,7 @@ namespace Circuit
         public bool Equals(Quantity obj) { return this == obj; }
 
         // object interface.
-        public override bool Equals(object obj) { return obj is Quantity ? Equals((Quantity)obj) : base.Equals(obj); }
+        public override bool Equals(object obj) { return obj is Quantity quantity ? Equals(quantity) : base.Equals(obj); }
         public override int GetHashCode() { return x.GetHashCode() ^ units.GetHashCode(); }
         public override string ToString() { return ToString("G3", null); }
 
@@ -161,7 +160,7 @@ namespace Circuit
 
                 int prefix = Math.Max(Math.Min((int)Real.Floor(order / 3) * 3, MaxPrefix), MinPrefix);
 
-                Value = Value / (((Real)10) ^ prefix);
+                Value /= (((Real)10) ^ prefix);
                 SB.Append(((IFormattable)Value).ToString(format, formatProvider));
                 SB.Append(" ");
                 SB.Append(Prefixes.Single(i => i.Value == prefix).Key);

@@ -28,15 +28,16 @@ namespace Circuit.Spice
         private List<Statement> statements = new List<Statement>();
 
         // Circuits constructed.
-        private Stack<Subcircuit> subcircuits = new Stack<Subcircuit>();
+        //private Stack<Subcircuit> subcircuits = new Stack<Subcircuit>();
 
         public void Parse(System.IO.StreamReader Stream)
         {
-            Dictionary<string, Action<TokenList>> handlers = new Dictionary<string, Action<TokenList>>();
-
-            handlers[".MODEL"] = x => statements.Add(Model.Parse(x));
-            //handlers[".SUBCKT"] = x => subcircuits.Push(new Subcircuit(x[1], x.Skip(2)));
-            //handlers[".ENDS"] = x => statements.Add(subcircuits.Pop());
+            Dictionary<string, Action<TokenList>> handlers = new Dictionary<string, Action<TokenList>>
+            {
+                [".MODEL"] = x => statements.Add(Model.Parse(x)),
+                //[".SUBCKT"] = x => subcircuits.Push(new Subcircuit(x[1], x.Skip(2))),
+                //[".ENDS"] = x => statements.Add(subcircuits.Pop()),
+            };
 
             title = Stream.ReadLine();
             int at = 1;
@@ -54,8 +55,7 @@ namespace Circuit.Spice
                     if (tokens[0].StartsWith("."))
                     {
                         // Parse directive.
-                        Action<TokenList> handler;
-                        if (handlers.TryGetValue(tokens[0], out handler))
+                        if (handlers.TryGetValue(tokens[0], out Action<TokenList> handler))
                             handler(tokens);
                         else
                             Log.WriteLine(MessageType.Warning, "Warning (line {1}): Ignored unknown spice directive '{0}'.", tokens[0], at);
