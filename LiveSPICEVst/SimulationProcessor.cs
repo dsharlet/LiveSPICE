@@ -2,11 +2,7 @@
 using ComputerAlgebra;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Security.Policy;
-using System.Text.RegularExpressions;
-using System.Windows.Controls;
 
 namespace LiveSPICEVst
 {

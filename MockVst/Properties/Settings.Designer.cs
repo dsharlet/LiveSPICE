@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace VSTUITestApp.Properties {
+namespace MockVst.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
