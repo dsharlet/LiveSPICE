@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "Util\Util.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveAudio", "WaveAudio\WaveAudio.csproj", "{8190C5B2-71F3-4074-8FB8-3E53E7B28675}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchematicControls", "SchematicControls\SchematicControls.csproj", "{489DE6F5-C984-46B0-A4FB-997649231224}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8190C5B2-71F3-4074-8FB8-3E53E7B28675}.Release|Any CPU.Build.0 = Release|Any CPU
+		{489DE6F5-C984-46B0-A4FB-997649231224}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{489DE6F5-C984-46B0-A4FB-997649231224}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{489DE6F5-C984-46B0-A4FB-997649231224}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{489DE6F5-C984-46B0-A4FB-997649231224}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

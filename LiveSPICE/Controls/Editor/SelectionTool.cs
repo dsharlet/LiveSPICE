@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using SchematicControls;
 
 namespace LiveSPICE
 {
@@ -49,8 +50,8 @@ namespace LiveSPICE
             return menu;
         }
 
-        public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Cross; }
-        public override void End() { Target.overlays.Children.Remove(path); base.End(); }
+        public override void Begin() { base.Begin(); Target.Overlays.Children.Add(path); Target.Cursor = Cursors.Cross; }
+        public override void End() { Target.Overlays.Children.Remove(path); base.End(); }
         public override void Cancel() { path.Visibility = Visibility.Hidden; }
 
         public override void MouseDoubleClick(Circuit.Coord At)

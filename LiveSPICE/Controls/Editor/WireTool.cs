@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using SchematicControls;
 
 namespace LiveSPICE
 {
@@ -27,8 +28,8 @@ namespace LiveSPICE
             };
         }
 
-        public override void Begin() { base.Begin(); Target.overlays.Children.Add(path); Target.Cursor = Cursors.Pen; }
-        public override void End() { Target.overlays.Children.Remove(path); base.End(); }
+        public override void Begin() { base.Begin(); Target.Overlays.Children.Add(path); Target.Cursor = Cursors.Pen; }
+        public override void End() { Target.Overlays.Children.Remove(path); base.End(); }
 
         public override void MouseDown(Circuit.Coord At)
         {

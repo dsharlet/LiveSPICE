@@ -11,7 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Util;
 
-namespace LiveSPICE
+namespace SchematicControls
 {
     /// <summary>
     /// Element for a symbol.

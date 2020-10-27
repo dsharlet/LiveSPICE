@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace LiveSPICE
+namespace SchematicControls
 {
     public class WireControl : ElementControl
     {

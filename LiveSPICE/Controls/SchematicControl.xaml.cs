@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using SchematicControls;
 
 namespace LiveSPICE
 {
@@ -33,6 +34,8 @@ namespace LiveSPICE
 
         protected Circuit.Coord origin = new Circuit.Coord(0, 0);
         public Circuit.Coord Origin { get { return origin; } set { origin = value; RefreshLayout(); } }
+
+        public Canvas Overlays { get { return overlays; } }
 
         public SchematicControl(Circuit.Schematic Schematic)
         {
@@ -148,13 +151,13 @@ namespace LiveSPICE
         // Add/remove overlay element controls.
         public void AddOverlay(ElementControl Element)
         {
-            overlays.Children.Add(Element);
+            Overlays.Children.Add(Element);
             Element.Element.LayoutChanged += ElementLayoutChanged;
             ElementLayoutChanged(Element.Element, null);
         }
         public void RemoveOverlay(ElementControl Element)
         {
-            overlays.Children.Remove(Element);
+            Overlays.Children.Remove(Element);
             Element.Element.LayoutChanged -= ElementLayoutChanged;
         }
 
@@ -326,8 +329,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }
