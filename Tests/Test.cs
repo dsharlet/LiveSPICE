@@ -11,6 +11,18 @@ namespace Tests
 {
     internal class Test
     {
+        private static double Benchmark(double t, Action fn)
+        {
+            DateTime begin = DateTime.Now;
+            int iterations = 0;
+            do
+            {
+                fn();
+                iterations++;
+            } while ((DateTime.Now - begin).TotalSeconds < t);
+            return (DateTime.Now - begin).TotalSeconds / iterations;
+        }
+
         private static Expression FindInput(Circuit.Circuit C)
         {
             return C.Components.Where(i => i is Input)
@@ -96,8 +108,13 @@ namespace Tests
             Expression Input = null,
             IEnumerable<Expression> Outputs = null)
         {
-            Analysis analysis = C.Analyze();
-            TransientSolution TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample));
+            Analysis analysis = null;
+            double analyzeTime = Benchmark(1, () => analysis = C.Analyze());
+            System.Console.WriteLine("Circuit.Analyze time: {0}", analyzeTime);
+
+            TransientSolution TS = null;
+            double solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample)));
+            System.Console.WriteLine("TransientSolution.Solve time: {0}", solveTime);
 
             // By default, pass Vin to each input of the circuit.
             if (Input == null)
@@ -112,33 +129,31 @@ namespace Tests
                 Outputs = new[] { sum };
             }
 
-            Simulation S = new Simulation(TS)
+            Simulation S = null;
+            double simTime = Benchmark(1, () => S = new Simulation(TS)
             {
                 Oversample = Oversample,
                 Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
-            };
+            });
+            System.Console.WriteLine("Simulation.Simulation time: {0}", simTime);
 
             int N = 1000;
             double[] inputBuffer = new double[N];
             List<double[]> outputBuffers = Outputs.Select(i => new double[N]).ToList();
 
-            DateTime begin = DateTime.Now;
             double T = 1.0 / SampleRate;
             double t = 0;
-            int samples = 0;
-            while ((DateTime.Now - begin).TotalSeconds < 3)
+            double runTime = Benchmark(3, () =>
             {
                 // This is counting the cost of evaluating Vin during benchmarking...
                 for (int n = 0; n < N; ++n, t += T)
                     inputBuffer[n] = Vin(t);
 
                 S.Run(inputBuffer, outputBuffers);
-                samples += N;
-            }
-
-            return samples / (DateTime.Now - begin).TotalSeconds;
+            });
+            return N / runTime;
         }
 
         public void PlotAll(string Title, Dictionary<Expression, List<double>> Outputs)
