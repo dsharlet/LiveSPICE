@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using SharpSoundDevice;
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,6 +16,7 @@ namespace LiveSPICEVst
         public LiveSPICEPlugin Plugin { get; private set; }
 
         SchematicWindow schematicWindow = null;
+        string schematicPath = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LiveSPICE"), "Examples");
 
         public EditorView(LiveSPICEPlugin plugin)
         {
@@ -55,11 +57,14 @@ namespace LiveSPICEVst
         {
             OpenFileDialog dialog = new OpenFileDialog();
 
+            dialog.InitialDirectory = schematicPath;
             dialog.Filter = "Circuit Schemas (*.schx)|*.schx";
 
             if (dialog.ShowDialog() == true)
             {
                 string path = dialog.FileName;
+
+                schematicPath = Path.GetDirectoryName(path);
 
                 Plugin.LoadSchematic(path);
             }
