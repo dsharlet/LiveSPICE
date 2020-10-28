@@ -1,8 +1,9 @@
-﻿using Circuit;
-using ComputerAlgebra;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Circuit;
+using ComputerAlgebra;
 
 namespace LiveSPICEVst
 {
@@ -91,6 +92,10 @@ namespace LiveSPICEVst
     {
         public ObservableCollection<ComponentWrapper> InteractiveComponents { get; private set; }
 
+        public Schematic Schematic { get; private set; }
+        public string SchematicPath { get; private set; }
+        public string SchematicName { get; private set; }
+
         public double SampleRate
         {
             get { return sampleRate; }
@@ -136,7 +141,34 @@ namespace LiveSPICEVst
             InteractiveComponents = new ObservableCollection<ComponentWrapper>();
         }
 
-        public void SetCircuit(Circuit.Circuit circuit)
+        public void LoadSchematic(string path)
+        {
+            //try
+            //{
+            Schematic newSchematic = Circuit.Schematic.Load(path);
+
+                Circuit.Circuit circuit = newSchematic.Build();
+
+                SetCircuit(circuit);
+
+                Schematic = newSchematic;
+
+                //OverlaySchematic.DataContext = schematic;
+
+                SchematicName = System.IO.Path.GetFileNameWithoutExtension(path);
+                //(LoadCircuitButton.Content as TextBlock).Text = SchematicName;
+
+                //schematicWindow = null;
+
+                SchematicPath = path;
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(String.Format("Error loading circuit from: {0}\n\n{1}", path, ex.Message), "Circuit Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            //}
+        }
+
+        void SetCircuit(Circuit.Circuit circuit)
         {
             this.circuit = circuit;
 
@@ -181,6 +213,18 @@ namespace LiveSPICEVst
             needRebuild = true;
         }
 
+        public void ClearCircuit()
+        {
+            circuit = null;
+
+            InteractiveComponents.Clear();
+        }
+
+        /// <summary>
+        /// Run the cicuite simulation on a buffer of audio samples
+        /// </summary>
+        /// <param name="audioInput">Array of input samples</param>
+        /// <param name="audioOutput">Array of output samples</param>
         public void RunSimulation(double[] audioInput, double[] audioOutput)
         {
             if (circuit == null)

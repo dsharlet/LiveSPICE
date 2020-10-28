@@ -14,19 +14,27 @@ namespace LiveSPICEVst
     {
         public LiveSPICEPlugin Plugin { get; private set; }
 
-        public string CircuitName { get; private set; }
-
-        Schematic schematic = null;
         SchematicWindow schematicWindow = null;
 
         public EditorView(LiveSPICEPlugin plugin)
         {
-            CircuitName = "Load Circuit";
-
             this.Plugin = plugin;
             this.DataContext = Plugin;
 
+            Plugin.EditorView = this;
+
             InitializeComponent();
+
+            UpdateSchematic();
+        }
+
+        public void UpdateSchematic()
+        {
+            OverlaySchematic.DataContext = Plugin.SimulationProcessor.Schematic;
+
+            (LoadCircuitButton.Content as TextBlock).Text = (Plugin.SimulationProcessor.Schematic != null) ? Plugin.SimulationProcessor.SchematicName : "Load Schematic";
+
+            schematicWindow = null;
         }
 
         private void OversampleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -53,22 +61,7 @@ namespace LiveSPICEVst
             {
                 string path = dialog.FileName;
 
-                try
-                {
-                    schematic = Schematic.Load(path);
-
-                    OverlaySchematic.DataContext = schematic;
-
-                    Plugin.SimulationProcessor.SetCircuit(schematic.Build());
-
-                    CircuitName = System.IO.Path.GetFileNameWithoutExtension(path);
-                    (LoadCircuitButton.Content as TextBlock).Text = CircuitName;
-
-                    schematicWindow = null;
-                }
-                catch
-                {
-                }
+                Plugin.LoadSchematic(path);
             }
         }
 
@@ -80,15 +73,15 @@ namespace LiveSPICEVst
 
         private void ShowCircuitButton_Click(object sender, RoutedEventArgs e)
         {
-            if (schematic != null)
+            if (Plugin.SimulationProcessor.Schematic != null)
             {
                 if (schematicWindow == null)
                 {
                     schematicWindow = new SchematicWindow()
                     {
                         Owner = Window.GetWindow(this),
-                        DataContext = schematic,
-                        Title = CircuitName
+                        DataContext = Plugin.SimulationProcessor.Schematic,
+                        Title = Plugin.SimulationProcessor.SchematicName
                     };
                 }
                 

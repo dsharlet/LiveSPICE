@@ -1,8 +1,11 @@
 ﻿using SharpSoundDevice;
 using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Windows;
+using System.Xml.Serialization;
 
 namespace LiveSPICEVst
 {
@@ -21,8 +24,8 @@ namespace LiveSPICEVst
         public int DeviceId { get; set; }
 
         public SimulationProcessor SimulationProcessor { get; private set; }
+        public EditorView EditorView { get; set; }
 
-        EditorView view;
         System.Windows.Window window;
 
         double[] inputBuffer = null;
@@ -91,17 +94,17 @@ namespace LiveSPICEVst
         {
             Logging.Log("Open editor");
 
-            if (view == null)
+            if (EditorView == null)
             {
-                view = new EditorView(this) { Width = DevInfo.EditorWidth, Height = DevInfo.EditorHeight };
+                EditorView = new EditorView(this) { Width = DevInfo.EditorWidth, Height = DevInfo.EditorHeight };
             }
 
-            DevInfo.EditorWidth = (int)view.Width;
-            DevInfo.EditorHeight = (int)view.Height;
+            DevInfo.EditorWidth = (int)EditorView.Width;
+            DevInfo.EditorHeight = (int)EditorView.Height;
             HostInfo.SendEvent(DeviceId, new Event { Data = null, EventIndex = 0, Type = EventType.WindowSize });
-            window = new System.Windows.Window() { Content = view };
-            window.Width = view.Width;
-            window.Height = view.Height;
+            window = new System.Windows.Window() { Content = EditorView };
+            window.Width = EditorView.Width;
+            window.Height = EditorView.Height;
             DeviceUtilities.DockWpfWindow(window, parentWindow);
             window.Show();
         }
@@ -127,23 +130,84 @@ namespace LiveSPICEVst
         {
         }
 
+        /// <summary>
+        /// Save our current plugin state
+        /// </summary>
+        /// <param name="index">Program index</param>
+        /// <returns></returns>
         public Program GetProgramData(int index)
         {
             Logging.Log("Save program: " + index);
 
+            // We only have one program
+
             var program = new Program();
             program.Name = null; // "Program 1";
+            program.Data = null;
 
-            //program.Data = GetCurrentProgramData();
+            XmlSerializer serializer = new XmlSerializer(typeof(VstProgramParameters));
+
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                serializer.Serialize(memoryStream,
+                    new VstProgramParameters
+                    {
+                        SchematicPath = SimulationProcessor.SchematicPath,
+                        OverSample = SimulationProcessor.Oversample,
+                        Iterations = SimulationProcessor.Iterations
+                    });
+
+                program.Data = memoryStream.ToArray();
+            }
 
             return program;
         }
 
-
+        /// <summary>
+        /// Set plugin state from program data
+        /// </summary>
+        /// <param name="program">The program data</param>
+        /// <param name="index">The index of the program</param>
         public void SetProgramData(Program program, int index)
         {
             Logging.Log("Load program: " + index);
 
+            XmlSerializer serializer = new XmlSerializer(typeof(VstProgramParameters));
+
+            try
+            {
+                using (MemoryStream memoryStream = new MemoryStream(program.Data))
+                {
+                    VstProgramParameters programParameters = serializer.Deserialize(memoryStream) as VstProgramParameters;
+
+                    if (!string.IsNullOrEmpty(programParameters.SchematicPath))
+                    {
+                        LoadSchematic(programParameters.SchematicPath);
+                    }
+
+                    SimulationProcessor.Oversample = programParameters.OverSample;
+                    SimulationProcessor.Iterations = programParameters.Iterations;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Log("Load program failed: " + ex.Message);
+            }
+        }
+
+        public void LoadSchematic(string path)
+        {
+            try
+            {
+                SimulationProcessor.LoadSchematic(path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(String.Format("Error loading schematic from: {0}\n\n{1}", path, ex.Message), "Schematic Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            if (EditorView != null)
+                EditorView.UpdateSchematic();
         }
 
         /// <summary>
@@ -170,7 +234,16 @@ namespace LiveSPICEVst
 
             Marshal.Copy(leftIn, inputBuffer, 0, currentBufferSize);
 
-            SimulationProcessor.RunSimulation(inputBuffer, outputBuffer);
+            try
+            {
+                SimulationProcessor.RunSimulation(inputBuffer, outputBuffer);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                SimulationProcessor.ClearCircuit();
+            }
 
             Marshal.Copy(outputBuffer, 0, leftOut, currentBufferSize);
         }
