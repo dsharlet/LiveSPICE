@@ -47,7 +47,7 @@ namespace Circuit
         {
             get
             {
-                if (!ReferenceEquals(v, null))
+                if (!(v is null))
                     return v;
                 else
                     return Call.New(name, Component.t);
@@ -60,7 +60,7 @@ namespace Circuit
         /// <param name="Context"></param>
         public void BeginAnalysis(string Context)
         {
-            if (!ReferenceEquals(v, null))
+            if (!(v is null))
                 throw new InvalidOperationException("Node '" + name + "' is already part of an analysis.");
 
             v = Call.New(Context + name, Component.t);

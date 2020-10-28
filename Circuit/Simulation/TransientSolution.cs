@@ -204,7 +204,7 @@ namespace Circuit
         protected static bool IsD(Expression f, Expression x)
         {
             Call C = f as Call;
-            if (!ReferenceEquals(C, null))
+            if (!(C is null))
                 return C.Target.Name == "D" && C.Arguments.ElementAt(1).Equals(x);
             return false;
         }
