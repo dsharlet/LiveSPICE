@@ -203,8 +203,7 @@ namespace Circuit
         // Check if x is a derivative
         protected static bool IsD(Expression f, Expression x)
         {
-            Call C = f as Call;
-            if (!(C is null))
+            if (f is Call C)
                 return C.Target.Name == "D" && C.Arguments.ElementAt(1).Equals(x);
             return false;
         }
