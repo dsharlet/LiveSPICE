@@ -421,19 +421,6 @@ namespace LiveSPICE
             }
         }
 
-        private static double AmplifySignal(Audio.SampleBuffer Samples, double Gain)
-        {
-            double peak = 0.0;
-            for (int i = 0; i < Samples.Count; ++i)
-            {
-                double v = Samples[i];
-                v *= Gain;
-                peak = Math.Max(peak, Math.Abs(v));
-                Samples[i] = v;
-            }
-            return peak;
-        }
-
         private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
         {
             if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
@@ -538,6 +525,7 @@ namespace LiveSPICE
                 default: return ElementControl.MapToPen(Color);
             }
         }
+
         private static Brush MapSignalToBrush(double Peak)
         {
             if (Peak < 1e-3) return Brushes.Transparent;
