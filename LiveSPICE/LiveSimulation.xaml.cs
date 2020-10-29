@@ -75,6 +75,7 @@ namespace LiveSPICE
 
         private Dictionary<ComputerAlgebra.Expression, Channel> inputs = new Dictionary<ComputerAlgebra.Expression, Channel>();
 
+        // A timer for continuously refreshing controls.
         protected System.Timers.Timer timer;
 
         public LiveSimulation(Circuit.Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
