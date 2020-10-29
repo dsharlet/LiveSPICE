@@ -99,7 +99,7 @@ namespace Tests
         /// By default, benchmarks producing the sum of all output components.
         /// </summary>
         /// <returns>The rate at which the circuit simulated, in samples per second.</returns>
-        public double Benchmark(
+        public void Benchmark(
             Circuit.Circuit C,
             Func<double, double> Vin,
             int SampleRate,
@@ -110,11 +110,11 @@ namespace Tests
         {
             Analysis analysis = null;
             double analyzeTime = Benchmark(1, () => analysis = C.Analyze());
-            System.Console.WriteLine("Circuit.Analyze time: {0}", analyzeTime);
+            System.Console.WriteLine("Circuit.Analyze time: {0:G3} ms", analyzeTime * 1000);
 
             TransientSolution TS = null;
             double solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample)));
-            System.Console.WriteLine("TransientSolution.Solve time: {0}", solveTime);
+            System.Console.WriteLine("TransientSolution.Solve time: {0:G3} ms", solveTime * 1000);
 
             // By default, pass Vin to each input of the circuit.
             if (Input == null)
@@ -137,7 +137,7 @@ namespace Tests
                 Input = new[] { Input },
                 Output = Outputs,
             });
-            System.Console.WriteLine("Simulation.Simulation time: {0}", simTime);
+            System.Console.WriteLine("Simulation.Simulation time: {0} ms", simTime * 1000);
 
             int N = 1000;
             double[] inputBuffer = new double[N];
@@ -153,7 +153,8 @@ namespace Tests
 
                 S.Run(inputBuffer, outputBuffers);
             });
-            return N / runTime;
+            double rate = N / runTime;
+            System.Console.WriteLine("{0:G3} kHz, {1:G3}x real time", rate / 1000, rate / SampleRate);
         }
 
         public void PlotAll(string Title, Dictionary<Expression, List<double>> Outputs)
