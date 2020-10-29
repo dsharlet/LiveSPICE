@@ -37,6 +37,26 @@ namespace LiveSPICEVst
             (LoadCircuitButton.Content as TextBlock).Text = (Plugin.SimulationProcessor.Schematic != null) ? Plugin.SimulationProcessor.SchematicName : "Load Schematic";
 
             schematicWindow = null;
+
+            for (int i = 0; i < OversampleComboBox.Items.Count; i++)
+            {
+                if (int.Parse((OversampleComboBox.Items[i] as ComboBoxItem).Content as string) == Plugin.SimulationProcessor.Oversample)
+                {
+                    OversampleComboBox.SelectedIndex = i;
+
+                    break;
+                }
+            }
+
+            for (int i = 0; i < IterationsComboBox.Items.Count; i++)
+            {
+                if (int.Parse((IterationsComboBox.Items[i] as ComboBoxItem).Content as string) == Plugin.SimulationProcessor.Iterations)
+                {
+                    IterationsComboBox.SelectedIndex = i;
+
+                    break;
+                }
+            }
         }
 
         private void OversampleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -67,6 +87,8 @@ namespace LiveSPICEVst
                 schematicPath = Path.GetDirectoryName(path);
 
                 Plugin.LoadSchematic(path);
+
+                UpdateSchematic();
             }
         }
 

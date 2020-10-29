@@ -143,29 +143,17 @@ namespace LiveSPICEVst
 
         public void LoadSchematic(string path)
         {
-            //try
-            //{
             Schematic newSchematic = Circuit.Schematic.Load(path);
 
-                Circuit.Circuit circuit = newSchematic.Build();
+            Circuit.Circuit circuit = newSchematic.Build();
 
-                SetCircuit(circuit);
+            SetCircuit(circuit);
 
-                Schematic = newSchematic;
+            Schematic = newSchematic;
 
-                //OverlaySchematic.DataContext = schematic;
+            SchematicName = System.IO.Path.GetFileNameWithoutExtension(path);
 
-                SchematicName = System.IO.Path.GetFileNameWithoutExtension(path);
-                //(LoadCircuitButton.Content as TextBlock).Text = SchematicName;
-
-                //schematicWindow = null;
-
-                SchematicPath = path;
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(String.Format("Error loading circuit from: {0}\n\n{1}", path, ex.Message), "Circuit Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            //}
+            SchematicPath = path;
         }
 
         void SetCircuit(Circuit.Circuit circuit)
@@ -211,13 +199,6 @@ namespace LiveSPICEVst
             }
 
             needRebuild = true;
-        }
-
-        public void ClearCircuit()
-        {
-            circuit = null;
-
-            InteractiveComponents.Clear();
         }
 
         /// <summary>

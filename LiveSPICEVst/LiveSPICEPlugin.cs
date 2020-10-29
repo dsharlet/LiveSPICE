@@ -31,6 +31,7 @@ namespace LiveSPICEVst
         double[] inputBuffer = null;
         double[] outputBuffer = null;
         int currentBufferSize = 0;
+        bool haveSimulationError = false;
 
         public LiveSPICEPlugin()
         {
@@ -187,6 +188,9 @@ namespace LiveSPICEVst
 
                     SimulationProcessor.Oversample = programParameters.OverSample;
                     SimulationProcessor.Iterations = programParameters.Iterations;
+
+                    if (EditorView != null)
+                        EditorView.UpdateSchematic();
                 }
             }
             catch (Exception ex)
@@ -197,6 +201,8 @@ namespace LiveSPICEVst
 
         public void LoadSchematic(string path)
         {
+            haveSimulationError = false;
+
             try
             {
                 SimulationProcessor.LoadSchematic(path);
@@ -205,9 +211,6 @@ namespace LiveSPICEVst
             {
                 MessageBox.Show(String.Format("Error loading schematic from: {0}\n\n{1}", path, ex.Message), "Schematic Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            if (EditorView != null)
-                EditorView.UpdateSchematic();
         }
 
         /// <summary>
@@ -220,32 +223,43 @@ namespace LiveSPICEVst
         /// <param name="bufferSize">The buffer size in samples</param>
         public void ProcessSample(IntPtr input, IntPtr output, uint inChannelCount, uint outChannelCount, uint bufferSize)
         {
-            if (currentBufferSize < bufferSize)
+            if (haveSimulationError)
             {
-                currentBufferSize = (int)bufferSize;
+                // If we had an error running the simulation, bypass it
 
-                Array.Resize<double>(ref inputBuffer, currentBufferSize);
-                Array.Resize<double>(ref outputBuffer, currentBufferSize);
+                uint bytesToCopy = bufferSize * sizeof(double);
+
+                Buffer.MemoryCopy((void *)((double**)input)[0], (void *)((double**)output)[0], bytesToCopy, bytesToCopy);
             }
-
-            // We are doing mono processing, so just grab the left input and output channel
-            IntPtr leftIn = (IntPtr)((double**)input)[0];
-            IntPtr leftOut = (IntPtr)((double**)output)[0];
-
-            Marshal.Copy(leftIn, inputBuffer, 0, currentBufferSize);
-
-            try
+            else
             {
-                SimulationProcessor.RunSimulation(inputBuffer, outputBuffer);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (currentBufferSize < bufferSize)
+                {
+                    currentBufferSize = (int)bufferSize;
 
-                SimulationProcessor.ClearCircuit();
-            }
+                    Array.Resize<double>(ref inputBuffer, currentBufferSize);
+                    Array.Resize<double>(ref outputBuffer, currentBufferSize);
+                }
 
-            Marshal.Copy(outputBuffer, 0, leftOut, currentBufferSize);
+                // We are doing mono processing, so just grab the left input and output channel
+                IntPtr leftIn = (IntPtr)((double**)input)[0];
+                IntPtr leftOut = (IntPtr)((double**)output)[0];
+
+                Marshal.Copy(leftIn, inputBuffer, 0, currentBufferSize);
+
+                try
+                {
+                    SimulationProcessor.RunSimulation(inputBuffer, outputBuffer);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                    haveSimulationError = true;
+                }
+
+                Marshal.Copy(outputBuffer, 0, leftOut, currentBufferSize);
+            }
         }
     }
 }
