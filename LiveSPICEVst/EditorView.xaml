@@ -20,7 +20,7 @@
                     <TextBlock Margin="5,0,5,0">View</TextBlock>
                 </Button>
                 <Button x:Name="LoadCircuitButton" Click="LoadCircuitButton_Click" MaxWidth="200">
-                    <TextBlock TextTrimming="CharacterEllipsis" Text="{Binding Path=CircuitName, ElementName=MyEditorView}" />
+                    <TextBlock TextTrimming="CharacterEllipsis">Load Schematic</TextBlock>
                 </Button>
             </DockPanel>
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5" UseLayoutRounding="True">
@@ -31,14 +31,14 @@
                     </Style>
                 </StackPanel.Resources>
                 <TextBlock>Oversample:</TextBlock>
-                <ComboBox x:Name="OversampleComboBox" SelectedIndex="1" SelectionChanged="OversampleComboBox_SelectionChanged">
+                <ComboBox x:Name="OversampleComboBox" SelectionChanged="OversampleComboBox_SelectionChanged">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
                     <ComboBoxItem>4</ComboBoxItem>
                     <ComboBoxItem>8</ComboBoxItem>
                 </ComboBox>
                 <TextBlock>Iterations:</TextBlock>
-                <ComboBox x:Name="IterationsComboBox" SelectedIndex="3" SelectionChanged="IterationsComboBox_SelectionChanged">
+                <ComboBox x:Name="IterationsComboBox" SelectionChanged="IterationsComboBox_SelectionChanged">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
                     <ComboBoxItem>4</ComboBoxItem>

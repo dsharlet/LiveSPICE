@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using SharpSoundDevice;
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,19 +15,48 @@ namespace LiveSPICEVst
     {
         public LiveSPICEPlugin Plugin { get; private set; }
 
-        public string CircuitName { get; private set; }
-
-        Schematic schematic = null;
         SchematicWindow schematicWindow = null;
+        string schematicPath = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LiveSPICE"), "Examples");
 
         public EditorView(LiveSPICEPlugin plugin)
         {
-            CircuitName = "Load Circuit";
-
             this.Plugin = plugin;
             this.DataContext = Plugin;
 
+            Plugin.EditorView = this;
+
             InitializeComponent();
+
+            UpdateSchematic();
+        }
+
+        public void UpdateSchematic()
+        {
+            OverlaySchematic.DataContext = Plugin.SimulationProcessor.Schematic;
+
+            (LoadCircuitButton.Content as TextBlock).Text = (Plugin.SimulationProcessor.Schematic != null) ? Plugin.SimulationProcessor.SchematicName : "Load Schematic";
+
+            schematicWindow = null;
+
+            for (int i = 0; i < OversampleComboBox.Items.Count; i++)
+            {
+                if (int.Parse((OversampleComboBox.Items[i] as ComboBoxItem).Content as string) == Plugin.SimulationProcessor.Oversample)
+                {
+                    OversampleComboBox.SelectedIndex = i;
+
+                    break;
+                }
+            }
+
+            for (int i = 0; i < IterationsComboBox.Items.Count; i++)
+            {
+                if (int.Parse((IterationsComboBox.Items[i] as ComboBoxItem).Content as string) == Plugin.SimulationProcessor.Iterations)
+                {
+                    IterationsComboBox.SelectedIndex = i;
+
+                    break;
+                }
+            }
         }
 
         private void OversampleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -47,28 +77,18 @@ namespace LiveSPICEVst
         {
             OpenFileDialog dialog = new OpenFileDialog();
 
+            dialog.InitialDirectory = schematicPath;
             dialog.Filter = "Circuit Schemas (*.schx)|*.schx";
 
             if (dialog.ShowDialog() == true)
             {
                 string path = dialog.FileName;
 
-                try
-                {
-                    schematic = Schematic.Load(path);
+                schematicPath = Path.GetDirectoryName(path);
 
-                    OverlaySchematic.DataContext = schematic;
+                Plugin.LoadSchematic(path);
 
-                    Plugin.SimulationProcessor.SetCircuit(schematic.Build());
-
-                    CircuitName = System.IO.Path.GetFileNameWithoutExtension(path);
-                    (LoadCircuitButton.Content as TextBlock).Text = CircuitName;
-
-                    schematicWindow = null;
-                }
-                catch
-                {
-                }
+                UpdateSchematic();
             }
         }
 
@@ -80,15 +100,15 @@ namespace LiveSPICEVst
 
         private void ShowCircuitButton_Click(object sender, RoutedEventArgs e)
         {
-            if (schematic != null)
+            if (Plugin.SimulationProcessor.Schematic != null)
             {
                 if (schematicWindow == null)
                 {
                     schematicWindow = new SchematicWindow()
                     {
                         Owner = Window.GetWindow(this),
-                        DataContext = schematic,
-                        Title = CircuitName
+                        DataContext = Plugin.SimulationProcessor.Schematic,
+                        Title = Plugin.SimulationProcessor.SchematicName
                     };
                 }
                 

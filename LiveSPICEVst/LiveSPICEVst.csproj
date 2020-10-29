@@ -57,6 +57,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VstProgramParameters.cs" />
     <Compile Include="SchematicWindow.xaml.cs">
       <DependentUpon>SchematicWindow.xaml</DependentUpon>
     </Compile>
