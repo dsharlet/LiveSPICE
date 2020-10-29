@@ -19,11 +19,25 @@ namespace LiveSPICE
         private Brush signalStatus = Brushes.Transparent;
         public Brush SignalStatus { get { return signalStatus; } set { signalStatus = value; NotifyChanged("SignalStatus"); } }
 
+        private double signalLevel = 0;
+        public double SignalLevel { get { return signalLevel; } }
+        /// <summary>
+        /// Update the signal level of this channel.
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="time"></param>
+        public void SampleSignalLevel(double level, double time)
+        {
+            double a = Frequency.DecayRate(time, 0.25);
+            signalLevel = Math.Max(level, level * a + signalLevel * (1 - a));
+        }
+
+        public void ResetSignalLevel() { signalLevel = 0; }
+
         // INotifyPropertyChanged.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }

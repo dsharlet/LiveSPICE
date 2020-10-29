@@ -75,8 +75,7 @@ namespace LiveSPICE
 
         private Dictionary<ComputerAlgebra.Expression, Channel> inputs = new Dictionary<ComputerAlgebra.Expression, Channel>();
 
-        protected volatile int samplesProcessed = 0;
-        protected System.Timers.Timer statusTime;
+        protected System.Timers.Timer timer;
 
         public LiveSimulation(Circuit.Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
         {
@@ -249,14 +248,14 @@ namespace LiveSPICE
 
                 Closed += (s, e) => stream.Stop();
 
-                statusTime = new System.Timers.Timer()
+                timer = new System.Timers.Timer()
                 {
-                    Interval = 1000,
+                    Interval = 100,
                     AutoReset = true,
                     Enabled = true,
                 };
-                statusTime.Elapsed += StatusTime_Elapsed;
-                statusTime.Start();
+                timer.Elapsed += timer_Elapsed;
+                timer.Start();
 
             }
             catch (Exception Ex)
@@ -331,12 +330,15 @@ namespace LiveSPICE
 
         private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
+            // The time covered by these samples.
+            double timespan = Count / Rate;
+
             // Apply input gain.
             for (int i = 0; i < In.Length; ++i)
             {
                 Channel ch = InputChannels[i];
                 double peak = In[i].Amplify(inputGain * ch.V0dB);
-                Dispatcher.InvokeAsync(() => ch.SignalStatus = MapSignalToBrush(peak));
+                ch.SampleSignalLevel(peak, timespan);
             }
 
             // Run the simulation.
@@ -354,13 +356,16 @@ namespace LiveSPICE
             {
                 Channel ch = OutputChannels[i];
                 double peak = Out[i].Amplify(outputGain / ch.V0dB);
-                Dispatcher.InvokeAsync(() => ch.SignalStatus = MapSignalToBrush(peak));
+                ch.SampleSignalLevel(peak, timespan);
             }
 
             // Tick oscilloscope.
             Scope.Signals.TickClock(Count, Rate);
         }
 
+        // These lists only ever grow, but they should never contain more than 10s of items.
+        readonly List<double[]> inputBuffers = new List<double[]>();
+        readonly List<double[]> outputBuffers = new List<double[]>();
         private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
             try
@@ -373,30 +378,28 @@ namespace LiveSPICE
                     return;
                 }
 
-                List<double[]> ins = new List<double[]>(inputs.Count);
+                inputBuffers.Clear();
                 foreach (Channel i in inputs.Values)
                 {
-                    if (i is InputChannel)
-                        ins.Add(In[((InputChannel)i).Index].Samples);
-                    else if (i is SignalChannel)
-                        ins.Add(((SignalChannel)i).Buffer(Count, simulation.Time, simulation.TimeStep));
+                    if (i is InputChannel input)
+                        inputBuffers.Add(In[input.Index].Samples);
+                    else if (i is SignalChannel channel)
+                        inputBuffers.Add(channel.Buffer(Count, simulation.Time, simulation.TimeStep));
                 }
 
-                List<double[]> outs = new List<double[]>(probes.Count + Out.Length);
+                outputBuffers.Clear();
                 foreach (Probe i in probes)
-                    outs.Add(i.AllocBuffer(Count));
+                    outputBuffers.Add(i.AllocBuffer(Count));
                 for (int i = 0; i < Out.Length; ++i)
-                    outs.Add(Out[i].Samples);
+                    outputBuffers.Add(Out[i].Samples);
 
                 // Process the samples!
-                simulation.Run(Count, ins, outs);
+                simulation.Run(Count, inputBuffers, outputBuffers);
 
                 // Show the samples on the oscilloscope.
                 long clock = Scope.Signals.Clock;
                 foreach (Probe i in probes)
                     i.Signal.AddSamples(clock, i.Buffer);
-
-                samplesProcessed += Count;
             }
             catch (Circuit.SimulationDiverged Ex)
             {
@@ -505,11 +508,16 @@ namespace LiveSPICE
                 }
             };
         }
-        private void StatusTime_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+
+        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            int rate = samplesProcessed;
-            samplesProcessed = 0;
-            Dispatcher.InvokeAsync(() => statusSampleRate.Text = rate.ToString() + "Hz");
+            Dispatcher.InvokeAsync(() => {
+                // TODO: Figure out how to calculate the processing speed to set statusSampleRate.Text.
+                foreach (Channel i in InputChannels)
+                    i.SignalStatus = MapSignalToBrush(i.SignalLevel);
+                foreach (Channel i in OutputChannels)
+                    i.SignalStatus = MapSignalToBrush(i.SignalLevel);
+            });
         }
 
         private static void ToggleVisible(LayoutAnchorable Anchorable)
@@ -530,9 +538,9 @@ namespace LiveSPICE
                 default: return ElementControl.MapToPen(Color);
             }
         }
-
         private static Brush MapSignalToBrush(double Peak)
         {
+            if (Peak < 1e-3) return Brushes.Transparent;
             if (Peak < 0.5) return Brushes.Green;
             if (Peak < 0.75) return Brushes.Yellow;
             if (Peak < 0.95) return Brushes.Orange;
@@ -542,8 +550,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }
