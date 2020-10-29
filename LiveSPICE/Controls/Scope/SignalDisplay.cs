@@ -28,7 +28,7 @@ namespace LiveSPICE
         {
             refreshTimer = new System.Timers.Timer()
             {
-                Interval = 16,
+                Interval = 16,  // 60 Hz
                 AutoReset = true,
                 Enabled = true,
             };
