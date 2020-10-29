@@ -145,8 +145,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }
