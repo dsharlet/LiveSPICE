@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Circuit;
 using ComputerAlgebra;
+using SharpSoundDevice;
+using Util;
 
 namespace LiveSPICEVst
 {
@@ -215,7 +219,17 @@ namespace LiveSPICEVst
         /// <param name="audioOutput">Array of output samples</param>
         public void RunSimulation(double[] audioInput, double[] audioOutput)
         {
-            if (circuit == null)
+            if (simulation == null)
+            {
+                if (needRebuild)
+                {
+                    UpdateSimulation(needRebuild);
+
+                    needRebuild = false;
+                }
+            }
+
+            if ((circuit == null) || (simulation == null))
             {
                 audioInput.CopyTo(audioOutput, 0);
             }
@@ -223,63 +237,86 @@ namespace LiveSPICEVst
             {
                 bool needUpdate = false;
 
-                foreach (ComponentWrapper component in InteractiveComponents)
+                lock (sync)
                 {
-                    if (component.NeedUpdate)
+                    foreach (ComponentWrapper component in InteractiveComponents)
                     {
-                        needUpdate = true;
+                        if (component.NeedUpdate)
+                        {
+                            needUpdate = true;
 
-                        component.NeedUpdate = false;
+                            component.NeedUpdate = false;
+                        }
+
+                        if (component.NeedRebuild)
+                        {
+                            needRebuild = true;
+
+                            component.NeedRebuild = false;
+                        }
                     }
 
-                    if (component.NeedRebuild)
+                    if (needUpdate || needRebuild)
                     {
-                        needRebuild = true;
+                        UpdateSimulation(needRebuild);
 
-                        component.NeedRebuild = false;
+                        needRebuild = false;
                     }
+
+                    simulation.Run(audioInput, audioOutput);
                 }
-
-                if (needUpdate || needRebuild)
-                {
-                    UpdateSimulation(needRebuild);
-
-                    needRebuild = false;
-                }
-
-                simulation.Run(audioInput, audioOutput);
             }
         }
 
+        int clock = -1;
+        int update = 0;
+        TaskScheduler scheduler = new RedundantTaskScheduler(1);
+        object sync = new object();
+
+        /// <summary>
+        /// Update the simulation asynchronously
+        /// </summary>
+        /// <param name="rebuild">Wether a full simulation rebuilt is required</param>
         void UpdateSimulation(bool rebuild)
         {
-            Analysis analysis = circuit.Analyze();
-            TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
-
-            if (rebuild)
+            int id = Interlocked.Increment(ref update);
+            new Task(() =>
             {
-                Expression outputExpression = 0;
+                Analysis analysis = circuit.Analyze();
+                TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
 
-                foreach (Circuit.Component i in circuit.Components)
+                lock (sync)
                 {
-                    if (i is Speaker)
+                    if (id > clock)
                     {
-                        outputExpression += (i as Speaker).V;  // Add the voltage drop across this speaker to the output expression.
+                        if (rebuild)
+                        {
+                            Expression outputExpression = 0;
+
+                            foreach (Circuit.Component i in circuit.Components)
+                            {
+                                if (i is Speaker)
+                                {
+                                    outputExpression += (i as Speaker).V;  // Add the voltage drop across this speaker to the output expression.
+                                }
+                            }
+
+                            simulation = new Simulation(ts)
+                            {
+                                Oversample = oversample,
+                                Iterations = iterations,
+                                Input = new[] { circuit.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault() },
+                                Output = new[] { outputExpression }
+                            };
+                        }
+                        else
+                        {
+                            simulation.Solution = ts;
+                            clock = id;
+                        }
                     }
                 }
-
-                simulation = new Simulation(ts)
-                {
-                    Oversample = oversample,
-                    Iterations = iterations,
-                    Input = new[] { circuit.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault() },
-                    Output = new[] { outputExpression }
-                };
-            }
-            else
-            {
-                simulation.Solution = ts;
-            }
+            }).Start(scheduler);
         }
     }
 }
