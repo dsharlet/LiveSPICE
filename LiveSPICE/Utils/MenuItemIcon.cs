@@ -23,7 +23,7 @@ namespace LiveSPICE
 
         public ImageSource IconSource
         {
-            get { return enabled != null ? enabled.Source : null; }
+            get { return enabled?.Source; }
             set
             {
                 if (value != null)

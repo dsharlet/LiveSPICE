@@ -24,7 +24,7 @@ namespace LiveSPICE
 
         public ImageSource Source
         {
-            get { return enabled != null ? enabled.Source : null; }
+            get { return enabled?.Source; }
             set
             {
                 if (value != null)
