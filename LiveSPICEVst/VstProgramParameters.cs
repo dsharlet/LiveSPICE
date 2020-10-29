@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace LiveSPICEVst
 {
@@ -14,11 +10,23 @@ namespace LiveSPICEVst
         public string SchematicPath { get; set; }
         public int OverSample { get; set; }
         public int Iterations { get; set; }
+        public List<VSTProgramControlParameter> ControlParameters { get; set; }
 
         public VstProgramParameters()
         {
             OverSample = 2;
             Iterations = 8;
+
+            ControlParameters = new List<VSTProgramControlParameter>();
         }
+    }
+
+    /// <summary>
+    /// Name/Value pair for storing schematic control state
+    /// </summary>
+    public class VSTProgramControlParameter
+    {
+        public string Name { get; set; }
+        public double Value { get; set; }
     }
 }

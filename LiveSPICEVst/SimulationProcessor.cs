@@ -156,6 +156,13 @@ namespace LiveSPICEVst
             SchematicPath = path;
         }
 
+        public void ClearSchematic()
+        {
+            Schematic = null;
+            circuit = null;
+            InteractiveComponents.Clear();
+        }
+
         void SetCircuit(Circuit.Circuit circuit)
         {
             this.circuit = circuit;

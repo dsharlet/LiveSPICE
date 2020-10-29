@@ -146,17 +146,30 @@ namespace LiveSPICEVst
             program.Name = null; // "Program 1";
             program.Data = null;
 
+            VstProgramParameters programParameters = new VstProgramParameters
+            {
+                SchematicPath = SimulationProcessor.SchematicPath,
+                OverSample = SimulationProcessor.Oversample,
+                Iterations = SimulationProcessor.Iterations
+            };
+
+            foreach (ComponentWrapper wrapper in SimulationProcessor.InteractiveComponents)
+            {
+                if (wrapper is PotWrapper)
+                {
+                    programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = (wrapper as PotWrapper).PotValue });
+                }
+                else if (wrapper is ButtonWrapper)
+                {
+                    programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = (wrapper as ButtonWrapper).Engaged ? 1 : 0 });
+                }
+            }
+
             XmlSerializer serializer = new XmlSerializer(typeof(VstProgramParameters));
 
             using (MemoryStream memoryStream = new MemoryStream())
             {
-                serializer.Serialize(memoryStream,
-                    new VstProgramParameters
-                    {
-                        SchematicPath = SimulationProcessor.SchematicPath,
-                        OverSample = SimulationProcessor.Oversample,
-                        Iterations = SimulationProcessor.Iterations
-                    });
+                serializer.Serialize(memoryStream, programParameters);
 
                 program.Data = memoryStream.ToArray();
             }
@@ -181,13 +194,39 @@ namespace LiveSPICEVst
                 {
                     VstProgramParameters programParameters = serializer.Deserialize(memoryStream) as VstProgramParameters;
 
-                    if (!string.IsNullOrEmpty(programParameters.SchematicPath))
+                    if (string.IsNullOrEmpty(programParameters.SchematicPath))
+                    {
+                        haveSimulationError = false;
+
+                        SimulationProcessor.ClearSchematic();
+                    }
+                    else
                     {
                         LoadSchematic(programParameters.SchematicPath);
                     }
 
                     SimulationProcessor.Oversample = programParameters.OverSample;
                     SimulationProcessor.Iterations = programParameters.Iterations;
+
+                    foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
+                    {
+                        foreach (ComponentWrapper wrapper in SimulationProcessor.InteractiveComponents)
+                        {
+                            if (wrapper.Name == controlParameter.Name)
+                            {
+                                if (wrapper is PotWrapper)
+                                {
+                                    (wrapper as PotWrapper).PotValue = controlParameter.Value;
+                                }
+                                else if (wrapper is ButtonWrapper)
+                                {
+                                    (wrapper as ButtonWrapper).Engaged = (controlParameter.Value == 1);
+                                }
+
+                                break;
+                            }
+                        }
+                    }
 
                     if (EditorView != null)
                         EditorView.UpdateSchematic();

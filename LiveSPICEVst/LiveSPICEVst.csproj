@@ -50,10 +50,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Util, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Share\3rdPartyCode\LiveSPICE\LiveSPICE\bin\Debug\Util.dll</HintPath>
-    </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +126,10 @@
     <ProjectReference Include="..\SchematicControls\SchematicControls.csproj">
       <Project>{489de6f5-c984-46b0-a4fb-997649231224}</Project>
       <Name>SchematicControls</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Util\Util.csproj">
+      <Project>{0a3db5cb-3c02-4779-b73a-927d2e1ebe54}</Project>
+      <Name>Util</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

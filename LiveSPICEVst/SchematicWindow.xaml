@@ -5,9 +5,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:local="clr-namespace:LiveSPICEVst"
     Title="Schematic" Width="800" Height="600" 
-    Topmost="True" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
-    WindowStyle="ToolWindow">
-    <Grid>
+    WindowStartupLocation="CenterOwner">
+    <Border BorderThickness="2" BorderBrush="Black">
         <local:SchematicDisplay />
-    </Grid>
+    </Border>
 </Window>
