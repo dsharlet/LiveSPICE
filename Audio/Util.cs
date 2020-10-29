@@ -16,7 +16,7 @@ namespace Audio
         }
         public static unsafe void LEi32ToLEf64(IntPtr In, IntPtr Out, int Count)
         {
-            short* from = (short*)In.ToPointer();
+            int* from = (int*)In.ToPointer();
             double* to = (double*)Out.ToPointer();
             double scale = 1.0 / ((1L << 31) - 1);
             for (int i = 0; i < Count; i++)
