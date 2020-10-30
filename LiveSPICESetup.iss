@@ -15,8 +15,8 @@ OutputBaseFilename=LiveSPICESetup
 OutputDir=Setup
 
 [Components]
-Name: "main"; Description: "LiveSPICE"; Types: full; Flags: fixed
-Name: "vst"; Description: "VST Plugin"; Types: full
+Name: "main"; Description: "LiveSPICE"; Types: full compact custom; Flags: fixed
+Name: "vst"; Description: "VST Plugin"; Types: full custom
 
 [Files]
 Source: "LiveSPICE\bin\Release\LiveSPICE.exe"; DestDir: "{app}"; Flags: ignoreversion
