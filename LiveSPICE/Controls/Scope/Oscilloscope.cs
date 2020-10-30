@@ -256,7 +256,7 @@ namespace LiveSPICE
         }
 
         // Keep this here to avoid generating garbage for the GC.
-        List<Point> points = new List<Point>();
+        readonly List<Point> points = new List<Point>();
         protected void DrawSignal(DrawingContext DC, Rect Bounds, Signal S, int shift)
         {
             shift += S.Count;
