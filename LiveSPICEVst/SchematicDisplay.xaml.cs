@@ -45,6 +45,8 @@ namespace LiveSPICEVst
 
         private void SchematicDisplay_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            SchematicCanvas.Children.Clear();
+
             Schematic schematic = (DataContext as Schematic);
 
             if (schematic != null)
@@ -70,8 +72,6 @@ namespace LiveSPICEVst
 
                 // Offset the origin by the center of the used region to center the schematic
                 Circuit.Coord origin = new Circuit.Coord((int)((SchematicCanvas.Width / 2) - ((minX + maxX) / 2)), (int)((SchematicCanvas.Height / 2) - ((minY + maxY) / 2)));
-
-                SchematicCanvas.Children.Clear();
 
                 foreach (Element element in schematic.Elements)
                 {
