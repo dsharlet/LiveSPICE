@@ -255,6 +255,8 @@ namespace LiveSPICE
             }
         }
 
+        // Keep this here to avoid generating garbage for the GC.
+        List<Point> points = new List<Point>();
         protected void DrawSignal(DrawingContext DC, Rect Bounds, Signal S, int shift)
         {
             shift += S.Count;
@@ -264,7 +266,8 @@ namespace LiveSPICE
 
             // How many pixels map to one sample.
             double margin = Bounds.Width / (double)(zoom * Signals.SampleRate);
-            List<Point> points = new List<Point>();
+            points.Clear();
+            Point p = new Point();
             for (double i = -margin; i <= Bounds.Right + margin; i += rate)
             {
                 int s0 = MapToSample(Bounds, i) + shift;
@@ -273,16 +276,21 @@ namespace LiveSPICE
                 if (s1 > s0)
                 {
                     // Anti-aliasing.
+                    // TODO: Better antialiasing (this is just a box filter).
                     double v = 0.0;
                     for (int j = s0; j < s1; ++j)
                         v += S[j];
 
                     if (!double.IsNaN(v))
-                        points.Add(new Point(i, MapFromSignal(Bounds, v / (s1 - s0))));
+                    {
+                        p.X = i;
+                        p.Y = MapFromSignal(Bounds, v / (s1 - s0));
+                        points.Add(p);
+                    }
                 }
             }
 
-            points = DouglasPeuckerReduction.Reduce(points, 0.5);
+            DouglasPeuckerReduction.Reduce(points, 0.5);
             for (int i = 0; i + 1 < points.Count; ++i)
                 DC.DrawLine(S.Pen, points[i], points[i + 1]);
         }
