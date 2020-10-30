@@ -47,14 +47,6 @@ namespace LiveSPICE
             remove { itemRemoved.Remove(value); }
         }
 
-        private List<EventHandler<TickEventArgs>> tick = new List<EventHandler<TickEventArgs>>();
-        protected void OnTick(long Clock) { TickEventArgs e = new TickEventArgs(Clock); foreach (EventHandler<TickEventArgs> i in tick) i(this, e); }
-        public event EventHandler<TickEventArgs> ClockTicked
-        {
-            add { tick.Add(value); }
-            remove { tick.Remove(value); }
-        }
-
         private long clock = 0;
         public long Clock { get { return clock; } }
 
@@ -75,8 +67,6 @@ namespace LiveSPICE
                 else
                     i.Truncate(truncate);
             });
-
-            OnTick(clock);
 
             clock += SampleCount;
         }

@@ -136,5 +136,15 @@ namespace LiveSPICE
             }
             return data;
         }
+
+        /// <summary>
+        /// Get the parameter for a first-order IIR filter.
+        /// </summary>
+        /// <param name="timestep">The time between steps.</param>
+        /// <param name="halflife">The time to decay by half.</param>
+        public static double DecayRate(double timestep, double halflife)
+        {
+            return Math.Exp(timestep / halflife * Math.Log(0.5));
+        }
     }
 }
