@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,19 +16,25 @@ namespace LiveSPICE
             get { return signals; }
             set
             {
-                if (signals != null)
-                    signals.ClockTicked -= Invalidate;
                 signals = value;
-                if (signals != null)
-                    signals.ClockTicked += Invalidate;
                 InvalidateVisual();
                 NotifyChanged("Signals");
             }
         }
 
-        void Invalidate(object sender, EventArgs e)
+        private System.Timers.Timer refreshTimer;
+
+        public SignalDisplay()
         {
-            Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            refreshTimer = new System.Timers.Timer()
+            {
+                Interval = 16,  // 60 Hz
+                AutoReset = true,
+                Enabled = true,
+            };
+            refreshTimer.Elapsed +=
+                (o, e) => Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            refreshTimer.Start();
         }
 
         private Signal selected;
@@ -42,8 +49,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }

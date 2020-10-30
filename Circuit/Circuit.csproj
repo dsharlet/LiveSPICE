@@ -49,8 +49,6 @@
     <Compile Include="Components\JunctionFieldEffectTransistor.cs" />
     <Compile Include="Components\Input.cs" />
     <Compile Include="Specialization.cs" />
-    <Compile Include="Components\KorenTriode.cs" />
-    <Compile Include="Components\ChildLangmuirTriode.cs" />
     <Compile Include="Components\Transformer.cs" />
     <Compile Include="Components\Rail.cs" />
     <Compile Include="Components\Unserialized.cs" />

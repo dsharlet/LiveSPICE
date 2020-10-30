@@ -31,9 +31,6 @@ namespace LiveSPICE
 
         protected override void OnRender(DrawingContext drawingContext)
         {
-            if (layout == null)
-                base.OnRender(drawingContext);
-
             Circuit.Coord center = (layout.LowerBound + layout.UpperBound) / 2;
             double scale = Math.Min(Math.Min(ActualWidth / layout.Width, ActualHeight / layout.Height), 1.0);
 
@@ -60,8 +57,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged.
         protected void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
     }

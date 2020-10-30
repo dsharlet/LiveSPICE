@@ -24,7 +24,7 @@ namespace LiveSPICE
 
         public ImageSource Source
         {
-            get { return enabled != null ? enabled.Source : null; }
+            get { return enabled?.Source; }
             set
             {
                 if (value != null)
@@ -68,8 +68,7 @@ namespace LiveSPICE
         // INotifyPropertyChanged.
         private void NotifyChanged(string p)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
         public event PropertyChangedEventHandler PropertyChanged;
 

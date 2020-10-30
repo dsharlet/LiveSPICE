@@ -40,10 +40,7 @@ namespace Tests
                             tester.PlotAll(C.Name, outputs);
                     }
                     if (benchmark)
-                    {
-                        double rate = tester.Benchmark(C, t => Harmonics(t, 0.5, 82, 2), SampleRate, Oversample, Iterations);
-                        System.Console.WriteLine("{0:G3} kHz, {1:G3}x real time", rate / 1000, rate / SampleRate);
-                    }
+                        tester.Benchmark(C, t => Harmonics(t, 0.5, 82, 2), SampleRate, Oversample, Iterations);
                     System.Console.WriteLine("");
                 }
             }
