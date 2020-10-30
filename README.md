@@ -12,11 +12,11 @@ Building
 The LiveSPICE solution requires the ComputerAlgebra project: https://github.com/dsharlet/ComputerAlgebra
 The VST plugin depends on https://github.com/ValdemarOrn/SharpSoundDevice
 
-To clone the LiveSPICE repo, run the following commands:
+To clone the LiveSPICE repo, run the following commands from the folder to contain the LiveSPICE solution:
 
 ```bash
-git clone https://github.com/dsharlet/LiveSPICE.git LiveSPICE
-git clone https://github.com/dsharlet/ComputerAlgebra.git LiveSPICE/ComputerAlgebra
+git clone https://github.com/dsharlet/LiveSPICE.git .
+git clone https://github.com/dsharlet/ComputerAlgebra.git ComputerAlgebra
 ```
 
 To enable building the VST plugin:
