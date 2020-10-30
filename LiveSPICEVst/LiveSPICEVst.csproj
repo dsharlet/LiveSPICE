@@ -145,6 +145,6 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)SharpSoundDevice\x64\Release\BridgeGenerator.exe $(TargetDir)LiveSPICEVst.dll</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)SharpSoundDevice\x64\Release\BridgeGenerator.exe $(TargetDir)LiveSPICEVst.dll LiveSPICEVstBridge.dll</PostBuildEvent>
   </PropertyGroup>
 </Project>
