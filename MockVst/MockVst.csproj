@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="SharpSoundDevice">
-      <HintPath>..\LiveSPICEVst\bin\Debug\SharpSoundDevice.dll</HintPath>
+      <HintPath>..\LiveSPICEVst\bin\$(Configuration)\SharpSoundDevice.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -50,7 +50,7 @@
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="Util">
-      <HintPath>..\LiveSPICEVst\bin\Debug\Util.dll</HintPath>
+      <HintPath>..\LiveSPICEVst\bin\$(Configuration)\Util.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
