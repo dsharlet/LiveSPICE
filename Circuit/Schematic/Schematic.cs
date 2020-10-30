@@ -320,7 +320,7 @@ namespace Circuit
         public static Schematic Load(string FileName, ILog Log)
         {
             XDocument doc = XDocument.Load(FileName);
-            Schematic S = Schematic.Deserialize(doc.Root, Log);
+            Schematic S = Deserialize(doc.Root, Log);
             Log.WriteLine(MessageType.Info, "Schematic loaded from '" + FileName + "'");
             S.LogComponents();
             return S;
