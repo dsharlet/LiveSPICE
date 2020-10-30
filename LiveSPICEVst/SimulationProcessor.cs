@@ -276,7 +276,7 @@ namespace LiveSPICEVst
         /// <summary>
         /// Update the simulation asynchronously
         /// </summary>
-        /// <param name="rebuild">Wether a full simulation rebuilt is required</param>
+        /// <param name="rebuild">Whether a full simulation rebuild is required</param>
         void UpdateSimulation(bool rebuild)
         {
             int id = Interlocked.Increment(ref update);
