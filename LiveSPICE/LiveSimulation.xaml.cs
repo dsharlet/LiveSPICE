@@ -114,8 +114,7 @@ namespace LiveSPICE
                         continue;
 
                     // Create potentiometers.
-                    Circuit.IPotControl c = i as Circuit.IPotControl;
-                    if (c != null)
+                    if (i is Circuit.IPotControl c)
                     {
                         PotControl pot = new PotControl()
                         {
@@ -137,8 +136,7 @@ namespace LiveSPICE
                     }
 
                     // Create Buttons.
-                    Circuit.IButtonControl b = i as Circuit.IButtonControl;
-                    if (b != null)
+                    if (i is Circuit.IButtonControl b)
                     {
                         Button button = new Button()
                         {
@@ -163,13 +161,11 @@ namespace LiveSPICE
                         button.MouseLeave += (o, e) => button.Opacity = 0.5;
                     }
 
-                    Circuit.Speaker output = i as Circuit.Speaker;
-                    if (output != null)
+                    if (i is Circuit.Speaker output)
                         speakers += output.V;
 
                     // Create input controls.
-                    Circuit.Input input = i as Circuit.Input;
-                    if (input != null)
+                    if (i is Circuit.Input input)
                     {
                         tag.ShowText = false;
 
@@ -257,7 +253,6 @@ namespace LiveSPICE
                 };
                 timer.Elapsed += timer_Elapsed;
                 timer.Start();
-
             }
             catch (Exception Ex)
             {
