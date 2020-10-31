@@ -21,7 +21,7 @@ namespace LiveSPICE
     /// </summary>
     public partial class PropertyGrid : UserControl, INotifyPropertyChanged
     {
-        private System.Windows.Forms.PropertyGrid properties = new System.Windows.Forms.PropertyGrid();
+        private readonly System.Windows.Forms.PropertyGrid properties = new System.Windows.Forms.PropertyGrid();
 
         public PropertyGrid()
         {
@@ -132,22 +132,6 @@ namespace LiveSPICE
             PropertyValueChangedEventArgs args = new PropertyValueChangedEventArgs(e.ChangedItem, old);
             foreach (PropertyValueChangedHandler i in propertyValueChanged)
                 i(this, args);
-        }
-
-        public static Type GetCommonBaseClass(IEnumerable<Type> Types)
-        {
-            Type ret = Types.First();
-
-            foreach (Type i in Types.Skip(1))
-            {
-                if (i.IsAssignableFrom(ret))
-                    ret = i;
-                else
-                    while (!ret.IsAssignableFrom(i))
-                        ret = ret.BaseType;
-            }
-
-            return ret;
         }
 
         // INotifyPropertyChanged.
