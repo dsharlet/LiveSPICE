@@ -28,8 +28,8 @@ namespace LiveSPICEVst
 
         System.Windows.Window window;
 
-        double[] inputBuffer = null;
-        double[] outputBuffer = null;
+        double[][] inputBuffers = null;
+        double[][] outputBuffers = null;
         int currentBufferSize = 0;
         bool haveSimulationError = false;
 
@@ -55,15 +55,20 @@ namespace LiveSPICEVst
             // Not sure if this helps, but...
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-            ParameterInfo = new Parameter[0]
-            {
-            };
+            ParameterInfo = new Parameter[0];
 
             PortInfo = new SharpSoundDevice.Port[2]
             {
                 new SharpSoundDevice.Port() { Direction = PortDirection.Input, Name = "Mono Input", NumberOfChannels = 1 },
                 new SharpSoundDevice.Port() { Direction = PortDirection.Output, Name = "Mono Output", NumberOfChannels = 1 }
             };
+
+            // Initialize as arrays of arrays, even though we are only using one channel, since that is what the simulation takes
+            inputBuffers = new double[1][];
+            inputBuffers[0] = null;
+
+            outputBuffers = new double[1][];
+            outputBuffers[0] = null;
 
             SimulationProcessor = new SimulationProcessor();
         }
@@ -272,23 +277,31 @@ namespace LiveSPICEVst
             }
             else
             {
-                if (currentBufferSize < bufferSize)
+                // Check if our buffer size has changed
+                if (currentBufferSize != bufferSize)
                 {
-                    currentBufferSize = (int)bufferSize;
+                    if (currentBufferSize < bufferSize)
+                    {
+                        currentBufferSize = (int)bufferSize;
 
-                    Array.Resize<double>(ref inputBuffer, currentBufferSize);
-                    Array.Resize<double>(ref outputBuffer, currentBufferSize);
+                        Array.Resize<double>(ref inputBuffers[0], currentBufferSize);
+                        Array.Resize<double>(ref outputBuffers[0], currentBufferSize);
+                    }
+                    else
+                    {
+                        currentBufferSize = (int)bufferSize;
+                    }
                 }
 
                 // We are doing mono processing, so just grab the left input and output channel
                 IntPtr leftIn = (IntPtr)((double**)input)[0];
                 IntPtr leftOut = (IntPtr)((double**)output)[0];
 
-                Marshal.Copy(leftIn, inputBuffer, 0, currentBufferSize);
+                Marshal.Copy(leftIn, inputBuffers[0], 0, currentBufferSize);
 
                 try
                 {
-                    SimulationProcessor.RunSimulation(inputBuffer, outputBuffer);
+                    SimulationProcessor.RunSimulation(inputBuffers, outputBuffers, currentBufferSize);
                 }
                 catch (Exception ex)
                 {
@@ -297,7 +310,7 @@ namespace LiveSPICEVst
                     haveSimulationError = true;
                 }
 
-                Marshal.Copy(outputBuffer, 0, leftOut, currentBufferSize);
+                Marshal.Copy(outputBuffers[0], 0, leftOut, currentBufferSize);
             }
         }
     }

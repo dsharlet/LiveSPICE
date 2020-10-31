@@ -215,9 +215,10 @@ namespace LiveSPICEVst
         /// <summary>
         /// Run the cicuite simulation on a buffer of audio samples
         /// </summary>
-        /// <param name="audioInput">Array of input samples</param>
-        /// <param name="audioOutput">Array of output samples</param>
-        public void RunSimulation(double[] audioInput, double[] audioOutput)
+        /// <param name="audioInputs">Arrays of input samples</param>
+        /// <param name="audioOutputs">Arrays of output samples</param>
+        /// <param name="numSamples">Number of samples to process</param>
+        public void RunSimulation(double[][] audioInputs, double[][] audioOutputs, int numSamples)
         {
             if (simulation == null)
             {
@@ -231,7 +232,7 @@ namespace LiveSPICEVst
 
             if ((circuit == null) || (simulation == null))
             {
-                audioInput.CopyTo(audioOutput, 0);
+                audioInputs[0].CopyTo(audioOutputs[0], 0);
             }
             else
             {
@@ -263,7 +264,7 @@ namespace LiveSPICEVst
                         needRebuild = false;
                     }
 
-                    simulation.Run(audioInput, audioOutput);
+                    simulation.Run(numSamples, audioInputs, audioOutputs);
                 }
             }
         }
