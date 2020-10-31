@@ -213,7 +213,7 @@ namespace LiveSPICEVst
         }
 
         /// <summary>
-        /// Run the cicuite simulation on a buffer of audio samples
+        /// Run the circuit simulation on a buffer of audio samples
         /// </summary>
         /// <param name="audioInputs">Arrays of input samples</param>
         /// <param name="audioOutputs">Arrays of output samples</param>
@@ -292,22 +292,12 @@ namespace LiveSPICEVst
                     {
                         if (rebuild)
                         {
-                            Expression outputExpression = 0;
-
-                            foreach (Circuit.Component i in circuit.Components)
-                            {
-                                if (i is Speaker)
-                                {
-                                    outputExpression += (i as Speaker).V;  // Add the voltage drop across this speaker to the output expression.
-                                }
-                            }
-
                             simulation = new Simulation(ts)
                             {
                                 Oversample = oversample,
                                 Iterations = iterations,
                                 Input = new[] { circuit.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault() },
-                                Output = new[] { outputExpression }
+                                Output = circuit.Components.OfType<Speaker>().Select(i => i.V) // voltage drop across the speakers
                             };
                         }
                         else

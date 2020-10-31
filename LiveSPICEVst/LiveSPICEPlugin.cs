@@ -1,6 +1,7 @@
 ﻿using SharpSoundDevice;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
@@ -215,7 +216,9 @@ namespace LiveSPICEVst
 
                     foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
                     {
-                        foreach (ComponentWrapper wrapper in SimulationProcessor.InteractiveComponents)
+                        ComponentWrapper wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
+
+                        if (wrapper != null)
                         {
                             if (wrapper.Name == controlParameter.Name)
                             {
@@ -227,8 +230,6 @@ namespace LiveSPICEVst
                                 {
                                     (wrapper as ButtonWrapper).Engaged = (controlParameter.Value == 1);
                                 }
-
-                                break;
                             }
                         }
                     }
