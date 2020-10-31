@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Xml.Serialization;
 
@@ -306,9 +307,12 @@ namespace LiveSPICEVst
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
                     haveSimulationError = true;
+
+                    new Thread(() =>
+                    {
+                        MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }).Start();
                 }
 
                 Marshal.Copy(outputBuffers[0], 0, leftOut, currentBufferSize);
