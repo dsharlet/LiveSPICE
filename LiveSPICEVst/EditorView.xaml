@@ -1,0 +1,54 @@
+﻿<UserControl x:Class="LiveSPICEVst.EditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LiveSPICEVst"
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="350"
+             Background="#555555"
+             x:Name="MyEditorView">
+    <Grid Margin="8,6">
+        <local:PluginBorder />
+        <local:SchematicDisplay x:Name="OverlaySchematic" Opacity="0.5" IsHitTestVisible="False" />
+        <DockPanel Margin="8,6">
+            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="5">
+                <Button DockPanel.Dock="Right" x:Name="ShowAboutButton" Click="ShowAboutButton_Click" HorizontalAlignment="Right">
+                    <TextBlock Margin="5,0,5,0">About</TextBlock>
+                </Button>
+                <Button DockPanel.Dock="Right" x:Name="ShowCircuitButton" Click="ShowCircuitButton_Click" HorizontalAlignment="Right">
+                    <TextBlock Margin="5,0,5,0">View</TextBlock>
+                </Button>
+                <Button x:Name="LoadCircuitButton" Click="LoadCircuitButton_Click" MaxWidth="200">
+                    <TextBlock TextTrimming="CharacterEllipsis">Load Schematic</TextBlock>
+                </Button>
+            </DockPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5" UseLayoutRounding="True">
+                <StackPanel.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="Margin" Value="10,0,5,0"/>
+                    </Style>
+                </StackPanel.Resources>
+                <TextBlock>Oversample:</TextBlock>
+                <ComboBox x:Name="OversampleComboBox" SelectionChanged="OversampleComboBox_SelectionChanged">
+                    <ComboBoxItem>1</ComboBoxItem>
+                    <ComboBoxItem>2</ComboBoxItem>
+                    <ComboBoxItem>4</ComboBoxItem>
+                    <ComboBoxItem>8</ComboBoxItem>
+                </ComboBox>
+                <TextBlock>Iterations:</TextBlock>
+                <ComboBox x:Name="IterationsComboBox" SelectionChanged="IterationsComboBox_SelectionChanged">
+                    <ComboBoxItem>1</ComboBoxItem>
+                    <ComboBoxItem>2</ComboBoxItem>
+                    <ComboBoxItem>4</ComboBoxItem>
+                    <ComboBoxItem>8</ComboBoxItem>
+                    <ComboBoxItem>16</ComboBoxItem>
+                    <ComboBoxItem>32</ComboBoxItem>
+                    <ComboBoxItem>64</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+            <local:SimulationInterface DataContext="{Binding SimulationProcessor}" />
+        </DockPanel>
+    </Grid>
+</UserControl>
