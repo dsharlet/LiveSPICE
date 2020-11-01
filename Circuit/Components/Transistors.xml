@@ -30,9 +30,26 @@
 			   IS="1.32e-13 A" BF="454" BR="7.41092" Type="NPN" Name="Q1" PartNumber="2SC2240" />
 
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="40.72 fA" BF="407" BR="1" Type="NPN" Name="Q1" PartNumber="BC107" />
+			   IS="40.72 fA" BF="407" BR="7.41092" Type="NPN" Name="Q1" PartNumber="BC107" />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="1.8e-14 A" BF="400" BR="35.5" Type="NPN" Name="Q1" PartNumber="BC108" />
+			   IS="7.049 fA" BF="375.5" BR="2.611" Type="NPN" Name="Q1" PartNumber="BC107A" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC107B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="375.5" BR="2.611" Type="NPN" Name="Q1" PartNumber="BC108A" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC108B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="677" BR="2.209" Type="NPN" Name="Q1" PartNumber="BC108C" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC109B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="677" BR="2.209" Type="NPN" Name="Q1" PartNumber="BC109C" />
+
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="5 uA" BF="160" BR="5" Type="NPN" Name="Q1" PartNumber="AC127" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="5 uA" BF="90" BR="5" Type="PNP" Name="Q1" PartNumber="AC128" />
 
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1e-14 A" BF="250" BR="3" Type="PNP" Name="Q1" PartNumber="2N2907" />
