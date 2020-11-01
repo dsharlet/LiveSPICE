@@ -162,7 +162,7 @@ namespace LiveSPICE
                     }
 
                     if (i is Circuit.Speaker output)
-                        speakers += output.V;
+                        speakers += output.Out;
 
                     // Create input controls.
                     if (i is Circuit.Input input)
@@ -191,15 +191,15 @@ namespace LiveSPICE
                         Canvas.SetLeft(combo, Canvas.GetLeft(tag) - combo.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(combo, Canvas.GetTop(tag) - combo.Height / 2 + tag.Height / 2);
 
-                        ComputerAlgebra.Expression V = Circuit.Component.DependentVariable(input.Name, Circuit.Component.t);
-                        inputs[V] = new SignalChannel(0);
+                        ComputerAlgebra.Expression In = input.In;
+                        inputs[In] = new SignalChannel(0);
 
                         combo.SelectionChanged += (o, e) =>
                         {
                             if (combo.SelectedItem != null)
                             {
                                 ComboBoxItem it = (ComboBoxItem)combo.SelectedItem;
-                                inputs[V] = new InputChannel(((InputChannel)it.Tag).Index);
+                                inputs[In] = new InputChannel(((InputChannel)it.Tag).Index);
                             }
                         };
 
@@ -207,12 +207,12 @@ namespace LiveSPICE
                         {
                             try
                             {
-                                inputs[V] = new SignalChannel(Circuit.Quantity.Parse(combo.Text, Circuit.Units.V));
+                                inputs[In] = new SignalChannel(ComputerAlgebra.Expression.Parse(combo.Text));
                             }
                             catch (Exception)
                             {
                                 // If there is an error in the expression, zero out the signal.
-                                inputs[V] = new SignalChannel(0);
+                                inputs[In] = new SignalChannel(0);
                             }
                         }));
 
@@ -333,7 +333,7 @@ namespace LiveSPICE
             for (int i = 0; i < In.Length; ++i)
             {
                 Channel ch = InputChannels[i];
-                double peak = In[i].Amplify(inputGain * ch.V0dB);
+                double peak = In[i].Amplify(inputGain);
                 ch.SampleSignalLevel(peak, timespan);
             }
 
@@ -351,7 +351,7 @@ namespace LiveSPICE
             for (int i = 0; i < Out.Length; ++i)
             {
                 Channel ch = OutputChannels[i];
-                double peak = Out[i].Amplify(outputGain / ch.V0dB);
+                double peak = Out[i].Amplify(outputGain);
                 ch.SampleSignalLevel(peak, timespan);
             }
 
@@ -476,7 +476,7 @@ namespace LiveSPICE
 
             Schematic.Tool = new FindRelevantTool(Schematic)
             {
-                Relevant = (x) => x is Circuit.Symbol && ((Circuit.Symbol)x).Component is Circuit.TwoTerminal,
+                Relevant = (x) => x is Circuit.Symbol symbol && symbol.Component is Circuit.TwoTerminal,
                 Clicked = (x) =>
                 {
                     if (x.Any())

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LiveSPICE
+namespace Util
 {
     /// <summary>
     /// Provides a task scheduler that ensures a maximum concurrency level while

@@ -21,13 +21,6 @@ namespace LiveSPICE
 
         public override void Begin() { base.Begin(); Target.Cursor = Cursors.Hand; }
 
-        private bool Movable(Circuit.Coord At)
-        {
-            return
-                RelevantOf(Target.AtPoint(At)).Any(i => ((ElementControl)i.Tag).Selected) &&
-                (Keyboard.Modifiers & ModifierKeys.Control) == 0;
-        }
-
         public override void MouseDown(Circuit.Coord At)
         {
             a = b = At;
@@ -51,7 +44,5 @@ namespace LiveSPICE
         {
             return Of.OfType<Circuit.Symbol>().Where(i => Relevant(i));
         }
-
-        private static Point ToPoint(Circuit.Coord x) { return new Point(x.x, x.y); }
     }
 }
