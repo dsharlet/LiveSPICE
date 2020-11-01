@@ -476,7 +476,7 @@ namespace LiveSPICE
 
             Schematic.Tool = new FindRelevantTool(Schematic)
             {
-                Relevant = (x) => x is Circuit.Symbol && ((Circuit.Symbol)x).Component is Circuit.TwoTerminal,
+                Relevant = (x) => x is Circuit.Symbol symbol && symbol.Component is Circuit.TwoTerminal,
                 Clicked = (x) =>
                 {
                     if (x.Any())
