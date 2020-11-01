@@ -207,7 +207,7 @@ namespace LiveSPICE
                         {
                             try
                             {
-                                inputs[In] = new SignalChannel(Circuit.Quantity.Parse(combo.Text, Circuit.Units.V));
+                                inputs[In] = new SignalChannel(ComputerAlgebra.Expression.Parse(combo.Text));
                             }
                             catch (Exception)
                             {
