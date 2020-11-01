@@ -307,7 +307,7 @@ namespace LiveSPICEVst
                         {
                             if (rebuild)
                             {
-                                Expression inputExpression = circuit.Components.OfType<Input>().Select(i => Expression.Parse(i.Name + "[t]")).DefaultIfEmpty("V[t]").SingleOrDefault();
+                                Expression inputExpression = circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
 
                                 if (inputExpression == null)
                                 {
@@ -322,7 +322,7 @@ namespace LiveSPICEVst
                                     // Output is voltage drop across the speakers
                                     foreach (Speaker speaker in speakers)
                                     {
-                                        outputExpression += speaker.V;
+                                        outputExpression += speaker.Out;
                                     }
 
                                     if (outputExpression.EqualsZero())

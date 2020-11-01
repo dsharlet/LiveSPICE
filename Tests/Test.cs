@@ -25,8 +25,8 @@ namespace Tests
 
         private static Expression FindInput(Circuit.Circuit C)
         {
-            return C.Components.Where(i => i is Input)
-                .Select(i => Component.DependentVariable(i.Name, Component.t))
+            return C.Components.OfType<Input>()
+                .Select(i => i.In)
                 // If there are no inputs, just make a dummy.
                 .DefaultIfEmpty("V[t]")
                 // Require exactly one input.
@@ -125,7 +125,7 @@ namespace Tests
             {
                 Expression sum = 0;
                 foreach (Speaker i in C.Components.OfType<Speaker>())
-                    sum += i.V;
+                    sum += i.Out;
                 Outputs = new[] { sum };
             }
 

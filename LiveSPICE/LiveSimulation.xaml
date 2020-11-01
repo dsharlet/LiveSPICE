@@ -29,16 +29,6 @@
                                    Text="{Binding Signal}" 
                                    TextAlignment="Left" VerticalAlignment="Center" /-->
                     </DockPanel>
-                    <DockPanel Margin="2" DockPanel.Dock="Bottom">
-                        <TextBlock DockPanel.Dock="Left" Width="50"
-                                   Text="0dBFS: "
-                                   TextAlignment="Right" VerticalAlignment="Center" />
-                        <TextBox DockPanel.Dock="Left" Width="50"
-                                 Text="{Binding V0dB, StringFormat={}{0:N3} V}"
-                                 TextAlignment="Center" VerticalAlignment="Center" />
-                        <Slider DockPanel.Dock="Right" Minimum="-20" Maximum="20" 
-                                Value="{Binding V0dB, Converter={StaticResource dBConverter}}" />
-                    </DockPanel>
                 </DockPanel>
             </Border>
         </DataTemplate>
@@ -61,16 +51,6 @@
                         <TextBox Text="{Binding Signal}" 
                                  ToolTip="{Binding Signal}" 
                                  TextAlignment="Left" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <DockPanel Margin="2" DockPanel.Dock="Bottom">
-                        <TextBlock DockPanel.Dock="Left" Width="50"
-                                   Text="0dBFS: "
-                                   TextAlignment="Right" VerticalAlignment="Center" />
-                        <TextBox DockPanel.Dock="Left" Width="50"
-                                 Text="{Binding V0dB, StringFormat={}{0:N3} V}"
-                                 TextAlignment="Center" VerticalAlignment="Center" />
-                        <Slider DockPanel.Dock="Right" Minimum="-20" Maximum="20" 
-                                Value="{Binding V0dB, Converter={StaticResource dBConverter}}" />
                     </DockPanel>
                 </DockPanel>
             </Border>
