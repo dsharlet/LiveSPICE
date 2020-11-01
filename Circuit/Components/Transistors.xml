@@ -21,12 +21,14 @@
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="26.03 fA" BF="4292" BR="1.01" Type="NPN" Name="Q1" PartNumber="2N4401" />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="360 fA" BF="337" BR="4" Type="NPN" Name="Q1" PartNumber="MPSA13" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="33.58 fA" BF="236" BR="5.774" Type="NPN" Name="Q1" PartNumber="MPSA18" />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="2.04 fA" BF="400" BR="3.377" Type="NPN" Name="Q1" PartNumber="2SC1815" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1.32e-13 A" BF="454" BR="7.41092" Type="NPN" Name="Q1" PartNumber="2SC2240" />
 
-	<!--Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-	           IS="" BF="" BR="" Type="NPN" Name="Q1" PartNumber="MPSA13" /-->
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="40.72 fA" BF="407" BR="1" Type="NPN" Name="Q1" PartNumber="BC107" />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
