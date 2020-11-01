@@ -35,7 +35,7 @@ namespace Circuit
 
         public static void Draw(SymbolLayout Sym, double x, double y1, double y2, int Turns, double Scale)
         {
-            double t1 = -3.141592;
+            double t1 = -Math.PI;
             double t2 = 2 * (Turns - 1) * Math.PI;
             double coil = 1.5;
 
