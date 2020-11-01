@@ -12,13 +12,24 @@ namespace Circuit
     [Description("Ideal voltage source representing an input port.")]
     public class Input : TwoTerminal
     {
+        private Quantity v0dBFS = new Quantity(1, Units.V);
+        [Serialize, Description("Voltage of the full signal level at this component.")]
+        public Quantity V0dBFS { get { return v0dBFS; } set { v0dBFS = value; NotifyChanged("V0dBFS"); } }
+
         public Input() { Name = "V1"; }
 
         public override void Analyze(Analysis Mna)
         {
-            Expression Vin = DependentVariable(Name, t);
-            VoltageSource.Analyze(Mna, Anode, Cathode, Vin, Arrow.New(Vin.Evaluate(t, 0), 0));
+            Expression VIn = In * V0dBFS;
+            // Assume the initial condition of the input is 0.
+            Arrow init = Arrow.New(VIn.Evaluate(t, 0), 0);
+            VoltageSource.Analyze(Mna, Anode, Cathode, VIn, init);
         }
+
+        /// <summary>
+        /// Expression describing the normalized input signal of this component.
+        /// </summary>
+        public Expression In { get { return DependentVariable(Name, t); } }
 
         public override void LayoutSymbol(SymbolLayout Sym)
         {

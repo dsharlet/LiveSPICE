@@ -13,9 +13,6 @@ namespace LiveSPICE
         private string name = "";
         public string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
 
-        private double v0dB = 1.414;
-        public double V0dB { get { return v0dB; } set { v0dB = value; NotifyChanged("V0dB"); } }
-
         private Brush signalStatus = Brushes.Transparent;
         public Brush SignalStatus { get { return signalStatus; } set { signalStatus = value; NotifyChanged("SignalStatus"); } }
 
