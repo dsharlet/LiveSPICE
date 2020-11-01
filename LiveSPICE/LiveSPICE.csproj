@@ -129,7 +129,6 @@
     <Compile Include="Controls\Scope\SignalDisplay.cs" />
     <Compile Include="Utils\NullStream.cs" />
     <Compile Include="Utils\ObjectNotNullConverter.cs" />
-    <Compile Include="Utils\RedundantTaskScheduler.cs" />
     <Compile Include="Windows\About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>

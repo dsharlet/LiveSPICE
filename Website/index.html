@@ -81,7 +81,7 @@
                     <li>LiveSPICE is a Windows application.</li>
                     <li>An audio input/output device is required, a device supporting ASIO is recommended.</li>
                     <li>A desktop computer with a recent CPU is recommended for live simulation.</li>
-                    <li>Requires the Microsoft <a target="_blank" href="http://www.microsoft.com/en-us/download/details.aspx?id=17851">.Net framework 4.0</a>.</li>
+                    <li>Requires the Microsoft <a target="_blank" href="http://www.microsoft.com/en-us/download/details.aspx?id=17851">.Net framework 4.7.2</a>.</li>
                 </ul>
             </div>
             <div class="col-md-4">
@@ -162,6 +162,8 @@
                         <li><strong>Easy to use visual circuit schematic editor.</strong> The interfaces of many circuit schematic editors 
                             are easily mistaken for a torture device. If you feel that way about LiveSPICE, I'd love to know how it can be 
                             improved!</li>
+                        <li><strong><a target="_blank" href="https://en.wikipedia.org/wiki/Virtual_Studio_Technology">VST plugin</a></strong> 
+                            enables loading your circuits as part of a larger DAW workflow.</li>
                         <li>Small but growing <strong>library of component and part models</strong>, including op-amps, transistors, 
                             vacuum tubes, transformers, and more. Custom components can easily be added to the library by simply saving
                             them in the library.</li>
@@ -173,7 +175,6 @@
                     <p>Planned future features and improvements but <strong>not yet implemented:</strong></p>
                     <ul>
                         <li>(Possibly limited) <strong>interoperability with SPICE netlists.</strong></li>
-                        <li><strong>Exporting the simulation to a VST plugin</strong> for use in other audio processing applications.</li>
                         <li>More simulation and analysis tools in addition to live transient simulation, such as <strong>transfer function 
                             analysis</strong> and <strong>DC operating point analysis/sweeps</strong>.</li>
                         <li>Better numerical methods to help simulations of certain types of circuits (those with strong clipping effects,
@@ -194,7 +195,7 @@
                             rate, the simulation can run in real time.</li>
                         <li>Not all simulations require the same oversampling rate to achieve real time performance. The oversampling factor was adjusted
                             from the default of 8x to enable real time simulation as necessary.</li>
-                        <li>All of the reported performance data is measured on an Intel i5 2500 (Sandy Bridge) CPU.</li>
+                        <li>All of the reported performance data is measured on an Intel i5 2500 (Sandy Bridge) CPU (2011).</li>
                         <li>The performance data is not kept strictly up to date. Although performance is generally improving over time, some improvements have 
                             required performance regressions. Hopefully, these are temporary when they do occur!</li>
                     </ul>
@@ -252,6 +253,13 @@
                             <p>Circuit described and analyzed in <a target="_blank" href="https://ccrma.stanford.edu/~dtyeh/papers/pubs.html">David Yeh's Dissertation</a> (section 5.4).</p>
                         </div>
                     </div>
+                </section>
+
+                <section id="acknowledgements">
+                    <h2>Acknowledgements</h2>
+                    <ul>
+                        <li>The <strong>VST plugin</strong> is contributed by <a href="https://github.com/mikeoliphant">Mike Oliphant</a>.</li>
+                    </ul>
                 </section>
             </section>
                 
