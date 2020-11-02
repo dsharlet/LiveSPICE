@@ -130,7 +130,9 @@
                     <ul>
                         <li>LiveSPICE relies heavily on a <strong>custom Computer Algebra System</strong> (CAS) to perform circuit 
                             analysis. This allows LiveSPICE to evaluate and simplify some of the mathematical operations required 
-                            to simulate the circuit before simulation begins, minimizing the work required during simulation.</li>
+                            to simulate the circuit before simulation begins,
+                            <a target="_blank" href="http://dsharlet.com/2014/03/28/how-livespice-works-numerically-solving-circuit-equations/">minimizing the work required</a>
+                            during simulation.</li>
                         <li>LiveSPICE <strong>Just-In-Time (JIT) compiles a custom simulation program</strong> for the particular circuit 
                             being simulated. This enables LiveSPICE to separate most of the logic for a simulation for evaluation as a 
                             preprocessing step, instead of evaluating it during simulation.</li>
@@ -148,6 +150,12 @@
                         project hosted on <a href="https://www.github.com/dsharlet/LiveSPICE/">GitHub</a>. If you would like 
                         to contribute, take a look at the <a href="https://github.com/dsharlet/LiveSPICE/issues">open issues</a> 
                         and send a pull request!</p>
+                    
+                    <h3>Acknowledgements</h3>
+                    <ul>
+                        <li><a href="https://github.com/mikeoliphant">Mike Oliphant</a> contributed the <strong>VST plugin</strong> and related
+                            improvements, as well as the demos of the simulations on this page.</li>
+                    </ul>
                 </section>
 
                 <section id="features">
@@ -181,14 +189,6 @@
                             such as op-amps with a saturation model).</li>
                         <li>Major optimizations to the circuit simulation remain. This should enable better component models and larger 
                             and more complex circuits to be simulated in real time.</li>
-                    </ul>
-                </section>
-
-                <section id="acknowledgements">
-                    <h2>Acknowledgements</h2>
-                    <ul>
-                        <li><a href="https://github.com/mikeoliphant">Mike Oliphant</a> contributed the <strong>VST plugin</strong> and related
-                            improvements, as well as the demos of the simulations on this page.</li>
                     </ul>
                 </section>
 
