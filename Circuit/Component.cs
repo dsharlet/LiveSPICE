@@ -63,6 +63,24 @@ namespace Circuit
         [Serialize, DefaultValue(""), Description("Part name/number.")]
         public virtual string PartNumber { get { return partNumber; } set { partNumber = value; NotifyChanged("PartNumber"); } }
 
+        private string description = "";
+        [Serialize, DefaultValue(""), Description("Description of this component.")]
+        public virtual string Description
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(description))
+                    return description;
+                else
+                    return GetType().CustomAttribute<DescriptionAttribute>()?.Description;
+            }
+            set
+            {
+                description = value;
+                NotifyChanged("Description");
+            }
+        }
+
         private object tag = null;
         [Browsable(false)]
         public object Tag { get { return tag; } set { tag = value; NotifyChanged("Tag"); } }

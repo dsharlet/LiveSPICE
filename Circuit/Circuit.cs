@@ -19,10 +19,6 @@ namespace Circuit
         [Browsable(false)]
         public NodeCollection Nodes { get { return nodes; } }
 
-        private string description = "";
-        [Serialize, DefaultValue("")]
-        public string Description { get { return description; } set { description = value; NotifyChanged("Description"); } }
-
         /// <summary>
         /// External terminals (ports) in this circuit.
         /// </summary>

@@ -16,7 +16,6 @@ namespace Circuit
     /// </summary>
     [Category("Transistors")]
     [DisplayName("JFET")]
-    [Description("Junction field effect transistor.")]
     public class JunctionFieldEffectTransistor : Component, INotifyPropertyChanged
     {
         private Terminal s, g, d;

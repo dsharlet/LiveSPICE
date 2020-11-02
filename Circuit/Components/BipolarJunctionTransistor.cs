@@ -11,12 +11,8 @@ namespace Circuit
         PNP,
     };
 
-    /// <summary>
-    /// Implementation of the Ebers-Moll transistor model: http://people.seas.harvard.edu/~jones/es154/lectures/lecture_3/bjt_models/ebers_moll/ebers_moll.html
-    /// </summary>
     [Category("Transistors")]
     [DisplayName("BJT")]
-    [Description("Bipolar junction transistor implemented with the Ebers-Moll model.")]
     public class BipolarJunctionTransistor : Component, INotifyPropertyChanged
     {
         private Terminal c, e, b;

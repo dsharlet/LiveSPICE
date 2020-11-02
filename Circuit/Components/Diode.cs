@@ -16,7 +16,6 @@ namespace Circuit
     /// </summary>
     [Category("Diodes")]
     [DisplayName("Diode")]
-    [Description("Diode implemented using the Shockley diode model.")]
     public class Diode : TwoTerminal
     {
         protected Quantity _is = new Quantity(1e-12m, Units.A);

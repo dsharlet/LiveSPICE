@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Library>
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   Type="NPN" IS="1 pA" BF="100" BR="1" Name="Q1" PartNumber="Generic NPN BJT" />
+			   Type="NPN" Name="Q1" PartNumber="Si" Description="Generic Silicon NPN bipolar junction transistor (BJT)." />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   Type="PNP" IS="1 pA" BF="100" BR="1" Name="Q1" PartNumber="Generic PNP BJT" />
+			   Type="PNP" Name="Q1" PartNumber="Si" Description="Generic Silicon PNP bipolar junction transistor (BJT)." />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   Type="NPN" IS="1 μA" Name="Q1" PartNumber="Ge" Description="Generic Germanium NPN bipolar junction transistor (BJT)." />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   Type="PNP" IS="1 μA" Name="Q1" PartNumber="Ge" Description="Generic Germanium PNP bipolar junction transistor (BJT)." />
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   Type="N" Name="Q1" PartNumber="Si" Description="Generic Silicon N-type junction field effect transistor (JFET)." />
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   Type="P" Name="Q1" PartNumber="Si" Description="Generic Silicon P-type junction field effect transistor (JFET)." />
 
 	<!-- http://ltwiki.org/index.php?title=Standard.bjt -->
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"

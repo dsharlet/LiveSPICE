@@ -192,9 +192,8 @@ namespace LiveSPICE
         }
         public void AddComponent(Circuit.Component C, KeyGesture[] keys = null)
         {
-            DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
             string name = string.IsNullOrEmpty(C.PartNumber) ? C.TypeName : C.PartNumber;
-            AddComponent(C, name, desc?.Description, keys);
+            AddComponent(C, name, C.Description, keys);
         }
         public void AddComponent(Type T, KeyGesture[] keys = null)
         {

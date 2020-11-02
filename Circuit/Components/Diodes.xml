@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Library>
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="1 μA" n="1" Type="Diode" Name="D1" PartNumber="Germanium Diode" />
+			   IS="1 pA" Type="Diode" Name="D1" PartNumber="Si" Description="Generic Silicon diode" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="1 pA" n="1" Type="Diode" Name="D1" PartNumber="Silicon Diode" />
+			   IS="1 μA" Type="Diode" Name="D1" PartNumber="Ge" Description="Generic Germanium diode" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="1 fA" n="1" Type="Zener" Name="D1" PartNumber="Zener Diode" />
+			   IS="1 fA" Type="Zener" Name="D1" PartNumber="" Description="Generic Zener diode" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="93 pA" n="3.73" Type="LED" Name="D1" PartNumber="Red LED" />
+			   IS="93 pA" n="3.73" Type="LED" Name="D1" PartNumber="Red" Description="Generic red LED" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="93 pA" n="4.61" Type="LED" Name="D1" PartNumber="Green LED" />
+			   IS="93 pA" n="4.61" Type="LED" Name="D1" PartNumber="Green" Description="Generic green LED" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="93 pA" n="7.61" Type="LED" Name="D1" PartNumber="Blue LED" />
+			   IS="93 pA" n="7.61" Type="LED" Name="D1" PartNumber="Blue" Description="Generic blue LED" />
 
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="65.4 pA" n="1.36" Type="Diode" Name="D1" PartNumber="1N4001" />
@@ -27,7 +27,7 @@
 			   IS="0.1 pA" n="2.07" Type="Diode" Name="D1" PartNumber="1N916" />
 
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   IS="1.214 fA" n="1" Type="Zener" Name="D1" PartNumber="1N4733" />
+			   IS="1.214 fA" Type="Zener" Name="D1" PartNumber="1N4733" />
 
 	<!--http://qrp.kd4ab.org/1998/980218/0042.html-->
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
