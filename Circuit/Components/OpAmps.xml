@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Library Category="Op-Amps">
 	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+               Rin="1 TΩ" Rout="50Ω" Aol="100k" GBP="1.2 MHz" Name="X1" PartNumber="3404A" />
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="5 MΩ" Rout="100 Ω" Aol="300 k" GBP="3 MHz" Name="X1" PartNumber="4558" />
 	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="2 MΩ" Rout="75 Ω" Aol="200 k" GBP="1 MHz" Name="X1" PartNumber="UA741" />
