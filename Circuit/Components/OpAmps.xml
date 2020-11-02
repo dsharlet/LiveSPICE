@@ -1,39 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Library Category="Op-Amps">
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="http://www.fairchildsemi.com/ds/KA/KA4558.pdf">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" 
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+               Rin="40 MΩ" Rout="50Ω" Aol="300k" GBP="1 MHz" Name="X1" PartNumber="LM308" />
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+               Rin="1 TΩ" Rout="50Ω" Aol="100k" GBP="1.2 MHz" Name="X1" PartNumber="3404A" />
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="5 MΩ" Rout="100 Ω" Aol="300 k" GBP="3 MHz" Name="X1" PartNumber="4558" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="2 MΩ" Rout="75 Ω" Aol="200 k" GBP="1 MHz" Name="X1" PartNumber="UA741" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="4 MΩ" Rout="70 Ω" Aol="1.78 M" GBP="8 MHz" Name="X1" PartNumber="OP27" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="1 TΩ" Rout="50 Ω" Aol="1 M" GBP="10 MHz" Name="X1" PartNumber="OP42" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="10 TΩ" Rout="10 Ω" Aol="1 M" GBP="8 MHz" Name="X1" PartNumber="OP134" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="200 GΩ" Rout="10 Ω" Aol="282 k" GBP="13 MHz" Name="X1" PartNumber="AD746" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                Rin="300 kΩ" Rout="8 Ω" Aol="5.6 k" GBP="35 MHz" Name="X1" PartNumber="AD826" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-               Rin="1 TΩ" Rout="50Ω" Aol="200k" GBP="4 MHz" Name="X1" PartNumber="TL071" />
-  </Component>
-  <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-               Rin="1 TΩ" Rout="50Ω" Aol="100k" GBP="4 MHz" Name="X1" PartNumber="TL081" />
-  </Component>
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+               Rin="1 TΩ" Rout="50Ω" Aol="315k" GBP="1 MHz" Name="X1" PartNumber="TL06x" />
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+               Rin="1 TΩ" Rout="50Ω" Aol="200k" GBP="5.25 MHz" Name="X1" PartNumber="TL07x" />
+	<Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+               Rin="1 TΩ" Rout="50Ω" Aol="100k" GBP="3 MHz" Name="X1" PartNumber="TL08x" />
 </Library>

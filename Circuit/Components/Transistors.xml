@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Library>
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   Type="NPN" IS="1 pA" BF="100" BR="1" Name="Q1" PartNumber="Generic NPN BJT" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   Type="PNP" IS="1 pA" BF="100" BR="1" Name="Q1" PartNumber="Generic PNP BJT" />
+
+	<!-- http://ltwiki.org/index.php?title=Standard.bjt -->
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14" BF="200" BR="3" Name="Q1" PartNumber="2N2222" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="14.34 fA" BF="255.9" BR="6.092" Name="Q1" PartNumber="2N2222A" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14" BF="300" BR="4" Name="Q1" PartNumber="2N3904" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="5.911 fA" BF="1122" BR="1.271" Type="NPN" Name="Q1" PartNumber="2N5088" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="5.911 fA" BF="1434" BR="1.262" Type="NPN" Name="Q1" PartNumber="2N5089" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="5.911 fA" BF="809.9" BR="1.287" Type="NPN" Name="Q1" PartNumber="2N5210" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="26.03 fA" BF="4292" BR="1.01" Type="NPN" Name="Q1" PartNumber="2N4401" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="360 fA" BF="337" BR="4" Type="NPN" Name="Q1" PartNumber="MPSA13" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="33.58 fA" BF="236" BR="5.774" Type="NPN" Name="Q1" PartNumber="MPSA18" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="2.04 fA" BF="400" BR="3.377" Type="NPN" Name="Q1" PartNumber="2SC1815" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1.32e-13 A" BF="454" BR="7.41092" Type="NPN" Name="Q1" PartNumber="2SC2240" />
+
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="40.72 fA" BF="407" BR="7.41092" Type="NPN" Name="Q1" PartNumber="BC107" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="375.5" BR="2.611" Type="NPN" Name="Q1" PartNumber="BC107A" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC107B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="375.5" BR="2.611" Type="NPN" Name="Q1" PartNumber="BC108A" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC108B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="677" BR="2.209" Type="NPN" Name="Q1" PartNumber="BC108C" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC109B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="677" BR="2.209" Type="NPN" Name="Q1" PartNumber="BC109C" />
+
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="5 uA" BF="160" BR="5" Type="NPN" Name="Q1" PartNumber="AC127" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="5 uA" BF="90" BR="5" Type="PNP" Name="Q1" PartNumber="AC128" />
+
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14 A" BF="250" BR="3" Type="PNP" Name="Q1" PartNumber="2N2907" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14 A" BF="200" BR="4" Type="PNP" Name="Q1" PartNumber="2N3906" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1.41 fA" BF="85.04" BR="5.576" Type="PNP" Name="Q1" PartNumber="2N4125" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="6.734 fA" BF="254.1" BR="2.683" Type="PNP" Name="Q1" PartNumber="2N5087" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="10.0004 fA" BF="239.283" BR="5" Type="PNP" Name="Q1" PartNumber="2SA1015" />
+
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14 A" Beta="1.3143e-3" Vt0="-2.021" Lambda="4e-3" Type="N" Name="Q1" PartNumber="2N5952" />
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14 A" Beta="488.9e-6" Vt0="-2.882" Lambda="3.167e-3" Type="N" Name="Q1" PartNumber="2N5458" />
+
+	<!-- http://pdf.datasheetcatalog.com/datasheet/fairchild/BC239.pdf These models are missing IS and BR. -->
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="10 fA" BF="170" BR="1" Type="NPN" Name="Q1" PartNumber="BC239A" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="10 fA" BF="320" BR="1" Type="NPN" Name="Q1" PartNumber="BC239B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="10 fA" BF="590" BR="1" Type="NPN" Name="Q1" PartNumber="BC239C" />
+</Library>

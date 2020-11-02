@@ -75,8 +75,6 @@
     <Component _Type="Circuit.Rail, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Voltage="10 V" Name="V2" />
   </Element>
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-10,100">
-    <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="NPN" IS="1 pA" BF="100" BR="1" Name="Q1" PartNumber="NPN" />
-    </Component>
+    <Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Type="NPN" IS="1 pA" BF="100" BR="1" Name="Q1" />
   </Element>
 </Schematic>

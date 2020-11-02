@@ -116,23 +116,17 @@
     <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="Fender Bassman 5F6-A preamp" Subtext="http://www.turretboards.com/layouts_schematics/fender/schematics/fender_bassman_5f6a.gif" Name="_1" />
   </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-10,230" B="100,230" />
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-400,300">
-    <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Model="ChildLangmuir" Mu="36.9" K="1.73E-06" Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V2" PartNumber="12AY7" />
-    </Component>
-  </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-100,300">
-    <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Model="ChildLangmuir" Mu="83.5" K="1.73E-06" Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V4" PartNumber="12AX7" />
-    </Component>
-  </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="0,200">
-    <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <Component _Type="Circuit.ChildLangmuirTriode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Model="ChildLangmuir" Mu="83.5" K="1.73E-06" Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V6" PartNumber="12AX7" />
-    </Component>
-  </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,210" B="-200,230" />
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-1" Flip="false" Position="-250,200">
     <Component _Type="Circuit.SPDT, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Position="0" Group="" Name="Bright" />
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-400,300">
+    <Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Model="ChildLangmuir" Mu="44.16" K="1.73E-06" Ex="1.113" Kg="1192.4" Kp="409.96" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V2" PartNumber="12AY7" />
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-100,300">
+    <Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Model="ChildLangmuir" Mu="83.5" K="1.73E-06" Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V4" PartNumber="12AX7" />
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="0,200">
+    <Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Model="ChildLangmuir" Mu="83.5" K="1.73E-06" Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV" Name="V6" PartNumber="12AX7" />
   </Element>
 </Schematic>

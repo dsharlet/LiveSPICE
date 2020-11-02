@@ -117,9 +117,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Components\Generic.xml" />
+    <Content Include="Components\Diodes.xml" />
     <Content Include="Components\OpAmps.xml" />
     <Content Include="Components\Readme.txt" />
+    <Content Include="Components\Transistors.xml" />
     <Content Include="Components\Tubes.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -93,6 +93,56 @@ namespace LiveSPICE
             return category;
         }
 
+        private void LoadSpiceLibrary(string Library, string Name)
+        {
+            // Try to load the library as a SPICE model library.
+            try
+            {
+                Circuit.Spice.Statements statements = new Circuit.Spice.Statements() { Log = Util.Log.Global };
+                statements.Parse(Library);
+                IEnumerable<Circuit.Spice.Model> models = statements.OfType<Circuit.Spice.Model>().Where(i => i.Component != null);
+                if (models.Any())
+                {
+                    Category child = FindChild(Name);
+                    foreach (Circuit.Spice.Model i in models)
+                        child.AddComponent(i.Component, i.Component.PartNumber, i.Description);
+                }
+            }
+            catch (Exception Ex)
+            {
+                Util.Log.Global.WriteLine(Util.MessageType.Warning, "Failed to load component libary '{0}': {1}", Library, Ex.Message);
+            }
+        }
+
+        private void LoadLibrary(XDocument Doc, string Name)
+        {
+            XElement library = Doc.Element("Library");
+            if (library != null)
+            {
+                XAttribute category = library.Attribute("Category");
+                Category child = FindChild(category != null ? category.Value : Name);
+
+                foreach (XElement i in library.Elements("Component"))
+                {
+                    try
+                    {
+                        Circuit.Component C = Circuit.Component.Deserialize(i);
+                        child.AddComponent(C);
+                    }
+                    catch (Exception E)
+                    {
+                        Util.Log.Global.WriteLine(Util.MessageType.Warning, "Failed to load component: {0}", E.Message);
+                    }
+                }
+            }
+            else if (Doc.Element("Schematic") != null)
+            {
+                Circuit.Schematic S = Circuit.Schematic.Deserialize(Doc.Element("Schematic"));
+                Circuit.Circuit C = S.Build();
+                AddComponent(C, Name, C.Description);
+            }
+        }
+
         /// <summary>
         /// Add the categories and components of the specified library to this Category.
         /// </summary>
@@ -100,49 +150,13 @@ namespace LiveSPICE
         public void LoadLibrary(string Library)
         {
             string name = System.IO.Path.GetFileNameWithoutExtension(Library);
-
             try
             {
-                // Try to load the library as a LiveSPICE XML document.
-                XDocument doc = XDocument.Load(Library);
-                XElement library = doc.Element("Library");
-                if (library != null)
-                {
-                    XAttribute category = library.Attribute("Category");
-                    Category child = FindChild(category != null ? category.Value : name);
-
-                    foreach (XElement i in library.Elements("Component"))
-                    {
-                        Circuit.Component C = Circuit.Component.Deserialize(i);
-                        child.AddComponent(C);
-                    }
-                }
-                else if (doc.Element("Schematic") != null)
-                {
-                    Circuit.Schematic S = Circuit.Schematic.Deserialize(doc.Element("Schematic"));
-                    Circuit.Circuit C = S.Build();
-                    AddComponent(C, name, C.Description);
-                }
+                LoadLibrary(XDocument.Load(Library), name);
             }
             catch (System.Xml.XmlException)
             {
-                // Try to load the library as a SPICE model library.
-                try
-                {
-                    Circuit.Spice.Statements statements = new Circuit.Spice.Statements() { Log = Util.Log.Global };
-                    statements.Parse(Library);
-                    IEnumerable<Circuit.Spice.Model> models = statements.OfType<Circuit.Spice.Model>().Where(i => i.Component != null);
-                    if (models.Any())
-                    {
-                        Category child = FindChild(name);
-                        foreach (Circuit.Spice.Model i in models)
-                            child.AddComponent(i.Component, i.Component.PartNumber, i.Description);
-                    }
-                }
-                catch (Exception Ex)
-                {
-                    Util.Log.Global.WriteLine(Util.MessageType.Warning, "Failed to load component libary '{0}': {1}", Library, Ex.Message);
-                }
+                LoadSpiceLibrary(Library, name);
             }
             catch (Exception Ex)
             {
@@ -179,7 +193,8 @@ namespace LiveSPICE
         public void AddComponent(Circuit.Component C, KeyGesture[] keys = null)
         {
             DescriptionAttribute desc = C.GetType().CustomAttribute<DescriptionAttribute>();
-            AddComponent(C, C.TypeName, desc?.Description, keys);
+            string name = string.IsNullOrEmpty(C.PartNumber) ? C.TypeName : C.PartNumber;
+            AddComponent(C, name, desc?.Description, keys);
         }
         public void AddComponent(Type T, KeyGesture[] keys = null)
         {
