@@ -64,7 +64,9 @@
 
 	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1e-14 A" Beta="1.3143e-3" Vt0="-2.021" Lambda="4e-3" Type="N" Name="Q1" PartNumber="2N5952" />
-	
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14 A" Beta="488.9e-6" Vt0="-2.882" Lambda="3.167e-3" Type="N" Name="Q1" PartNumber="2N5458" />
+
 	<!-- http://pdf.datasheetcatalog.com/datasheet/fairchild/BC239.pdf These models are missing IS and BR. -->
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="10 fA" BF="170" BR="1" Type="NPN" Name="Q1" PartNumber="BC239A" />
