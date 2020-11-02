@@ -184,6 +184,14 @@
                     </ul>
                 </section>
 
+                <section id="acknowledgements">
+                    <h2>Acknowledgements</h2>
+                    <ul>
+                        <li><a href="https://github.com/mikeoliphant">Mike Oliphant</a> contributed the <strong>VST plugin</strong> and related
+                            improvements, as well as the demos of the simulations on this page.</li>
+                    </ul>
+                </section>
+
                 <section id="examples">
                     <h2>Examples</h2>
                     <p>Here are some examples of what LiveSPICE is currently capable of simulating. All of these examples are screenshots of LiveSPICE 
@@ -253,13 +261,6 @@
                             <p>Circuit described and analyzed in <a target="_blank" href="https://ccrma.stanford.edu/~dtyeh/papers/pubs.html">David Yeh's Dissertation</a> (section 5.4).</p>
                         </div>
                     </div>
-                </section>
-
-                <section id="acknowledgements">
-                    <h2>Acknowledgements</h2>
-                    <ul>
-                        <li>The <strong>VST plugin</strong> is contributed by <a href="https://github.com/mikeoliphant">Mike Oliphant</a>.</li>
-                    </ul>
                 </section>
             </section>
                 
@@ -438,13 +439,26 @@
                                 </li>
                             </ul>
                         </div>
+                        <h3>Running the simulation in a VST host</h3>
+                        <p>After verifying the circuit functions as intended, the VST plugin allows the circuit to be used as part of a larger
+                            audio processing workflow implemented in a VST host application. Click
+                            <b class="menu">File</b><img src="img/r.gif" /><b class="menu">Save as...</b> and save the RC low-pass
+                            filter as <strong>RC Lowpass.schx</strong> in an suitable location.</p>
+                        <p>Launch your DAW/VST host application, and begin or open a project, and add an instance of the
+                            <strong>LiveSPICEVst</strong> plugin to your project or workflow.</p>
+                        <div class="well captionbox" style="width:400px;"><a data-lightbox="tutorial-1" href="img/vst1.png" title="VST plugin.">
+                            <img src="img/vst1.png" alt="VST plugin."></a>
+                            <p>Default state of the VST plugin.</p>
+                        </div>
+                        <p>Click the <strong>Load Schematic</strong> button and find <strong>RC Lowpass.schx</strong> saved previously. The
+                            plugin is now ready to process audio, and should produce similar filtering behavior as it did in LiveSPICE.</p>
                     </section> <!-- tutorial -->
                 </section> <!-- getting started -->
             </section> <!-- documentation -->
         </div>
 
         <footer>
-            <p>&copy; Dillon Sharlet 2013</p>
+            <p>&copy; Dillon Sharlet 2020</p>
         </footer>
     </div>
     <!-- /container -->
