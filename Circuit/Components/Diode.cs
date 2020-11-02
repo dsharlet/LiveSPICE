@@ -36,7 +36,8 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT)
         {
             // V = Va - Vc
-            Expression Vac = Mna.AddUnknownEqualTo("V" + Name, Anode.V - Cathode.V);
+            Expression Vac = Anode.V - Cathode.V;
+            Vac = Mna.AddUnknownEqualTo("V" + Name, Vac);
 
             // Evaluate the model.
             Expression i = IS * (LinExp(Vac / (n * VT)) - 1);
