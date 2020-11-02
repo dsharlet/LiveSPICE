@@ -19,6 +19,7 @@ namespace LiveSPICE
         {
             typeof(Circuit.Conductor),
             typeof(Circuit.Ground),
+            typeof(Circuit.Rail),
             typeof(Circuit.Resistor),
             typeof(Circuit.Capacitor),
             typeof(Circuit.Inductor),
@@ -32,6 +33,7 @@ namespace LiveSPICE
         {
             [typeof(Circuit.Conductor)] = new[] { new KeyGesture(Key.W, ModifierKeys.Control) },
             [typeof(Circuit.Ground)] = new[] { new KeyGesture(Key.G, ModifierKeys.Control) },
+            [typeof(Circuit.Rail)] = new[] { new KeyGesture(Key.P, ModifierKeys.Control) },
             [typeof(Circuit.Resistor)] = new[] { new KeyGesture(Key.R, ModifierKeys.Control) },
             [typeof(Circuit.Capacitor)] = new[] { new KeyGesture(Key.F, ModifierKeys.Control) },
             [typeof(Circuit.Inductor)] = new[] { 
