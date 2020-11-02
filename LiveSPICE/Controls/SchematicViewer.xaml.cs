@@ -42,8 +42,8 @@ namespace LiveSPICE
         private double MinZoom(Size Size)
         {
             return LogFloor(Math.Min(
-Size.Width / (Schematic.ActualWidth + 1e-6),
-Size.Height / (Schematic.ActualHeight + 1e-6)));
+                Size.Width / (Schematic.ActualWidth + 1e-6),
+                Size.Height / (Schematic.ActualHeight + 1e-6)));
         }
 
         public double Zoom
@@ -51,10 +51,10 @@ Size.Height / (Schematic.ActualHeight + 1e-6)));
             get { return scale.ScaleX; }
             set
             {
-                Point focus = mouse.HasValue ? mouse.Value : new Point(scroll.ViewportWidth / 2, scroll.ViewportHeight / 2);
+                Point focus = mouse ?? new Point(scroll.ViewportWidth / 2, scroll.ViewportHeight / 2);
                 Point at = TranslatePoint(focus, Schematic);
 
-                double zoom = LogFloor(value);
+                double zoom = value;
 
                 scale.ScaleX = scale.ScaleY = Math.Max(Math.Min(zoom, MaxZoom), MinZoom(ViewportSize));
                 Schematic.UpdateLayout();
@@ -69,13 +69,13 @@ Size.Height / (Schematic.ActualHeight + 1e-6)));
         {
             InitializeComponent();
 
-            CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 2));
-            CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 0.5));
+            CommandBindings.Add(new CommandBinding(NavigationCommands.Zoom, (o, e) => Zoom *= 1.5));
+            CommandBindings.Add(new CommandBinding(NavigationCommands.DecreaseZoom, (o, e) => Zoom *= 1 / 1.5));
             CommandBindings.Add(new CommandBinding(Commands.ZoomFit, (o, e) => FocusCenter()));
 
             scroll.PreviewMouseWheel += (o, e) =>
             {
-                Zoom = LogFloor(Zoom * (e.Delta > 0 ? 2 : 0.5));
+                Zoom *= e.Delta > 0 ? 1.1 : (1 / 1.1);
                 e.Handled = true;
             };
             scroll.PreviewMouseMove += (o, e) => mouse = e.GetPosition(this);
