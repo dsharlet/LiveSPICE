@@ -76,19 +76,20 @@ namespace Circuit
 
             // The drain and source terminals are reversible in the JFET model, this 
             // formulation is simpler than explicitly identifying normal/inverted mode.
-            Expression Vgs = Gate.V - Call.Min(Source.V, Drain.V);
-            Expression Vds = Call.Abs(Drain.V - Source.V);
+            Expression Vgds = Gate.V - Call.Min(Source.V, Drain.V);
+            Expression Vds = Drain.V - Source.V;
+            Expression AbsVds = Call.Abs(Vds);
 
-            //Vgs = Mna.AddNewUnknownEqualTo(Name + "gs", Vgs);
+            //Vgds = Mna.AddUnknownEqualTo(Name + "gds", Vgds);
 
-            Expression Vgst0 = Vgs - Vt0;
+            Expression Vgds_t0 = Vgds - Vt0;
 
-            Expression id = (Vgs >= Vt0) * Beta * (1 + Lambda * Vds) *
-                Call.If(Vds < Vgst0,
+            Expression id = Call.Sign(Vds) * (Vgds >= Vt0) * Beta * (1 + Lambda * AbsVds) *
+                Call.If(AbsVds < Vgds_t0,
                     // Linear region.
-                    Vds * (2 * Vgst0 - 1),
+                    AbsVds * (2 * Vgds_t0 - 1),
                     // Saturation region.
-                    Vgst0 ^ 2);
+                    Vgds_t0 ^ 2);
 
             id = Mna.AddUnknownEqualTo("i" + Name + "d", id);
             CurrentSource.Analyze(Mna, Drain, Source, id);
