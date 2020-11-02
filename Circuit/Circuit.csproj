@@ -48,11 +48,11 @@
     <Compile Include="Components\CenterTapTransformer.cs" />
     <Compile Include="Components\JunctionFieldEffectTransistor.cs" />
     <Compile Include="Components\Input.cs" />
+    <Compile Include="Components\Output.cs" />
     <Compile Include="Specialization.cs" />
     <Compile Include="Components\Transformer.cs" />
     <Compile Include="Components\Rail.cs" />
     <Compile Include="Components\Unserialized.cs" />
-    <Compile Include="Components\Speaker.cs" />
     <Compile Include="Components\Label.cs" />
     <Compile Include="Components\DelayBuffer.cs" />
     <Compile Include="Components\OpAmp.cs" />

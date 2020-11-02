@@ -41,7 +41,9 @@ namespace Circuit
             Sym.AddLine(EdgeType.Black, new Coord(-w, -20), new Coord(w, -20));
             Sym.DrawNegative(EdgeType.Black, new Coord(0, -15));
 
-            Sym.DrawText(() => Name, new Point(0, 0), Alignment.Center, Alignment.Center);
+            Sym.DrawArrow(EdgeType.Black, new Coord(-15, 0), new Coord(0, 0), 0.2);
+
+            Sym.DrawText(() => Name, new Point(2, 0), Alignment.Near, Alignment.Center);
         }
     }
 }

@@ -101,7 +101,7 @@ namespace LiveSPICE
                 for (int i = 0; i < Inputs.Length; ++i)
                     InputChannels.Add(new InputChannel(i) { Name = Inputs[i].Name });
 
-                ComputerAlgebra.Expression speakers = 0;
+                ComputerAlgebra.Expression outputs = 0;
 
                 foreach (Circuit.Component i in components)
                 {
@@ -161,8 +161,8 @@ namespace LiveSPICE
                         button.MouseLeave += (o, e) => button.Opacity = 0.5;
                     }
 
-                    if (i is Circuit.Speaker output)
-                        speakers += output.Out;
+                    if (i is Circuit.Output output)
+                        outputs += output.Out;
 
                     // Create input controls.
                     if (i is Circuit.Input input)
@@ -229,7 +229,7 @@ namespace LiveSPICE
                 // Create audio output channels.
                 for (int i = 0; i < Outputs.Length; ++i)
                 {
-                    OutputChannel c = new OutputChannel(i) { Name = Outputs[i].Name, Signal = speakers };
+                    OutputChannel c = new OutputChannel(i) { Name = Outputs[i].Name, Signal = outputs };
                     c.PropertyChanged += (o, e) => { if (e.PropertyName == "Signal") RebuildSolution(); };
                     OutputChannels.Add(c);
                 }

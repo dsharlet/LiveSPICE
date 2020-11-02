@@ -124,7 +124,7 @@ namespace Tests
             if (Outputs == null)
             {
                 Expression sum = 0;
-                foreach (Speaker i in C.Components.OfType<Speaker>())
+                foreach (Output i in C.Components.OfType<Output>())
                     sum += i.Out;
                 Outputs = new[] { sum };
             }

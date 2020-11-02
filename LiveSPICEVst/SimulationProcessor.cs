@@ -315,19 +315,19 @@ namespace LiveSPICEVst
                                 }
                                 else
                                 {
-                                    IEnumerable<Speaker> speakers = circuit.Components.OfType<Speaker>();
+                                    IEnumerable<Output> outputs = circuit.Components.OfType<Output>();
 
                                     Expression outputExpression = 0;
 
-                                    // Output is voltage drop across the speakers
-                                    foreach (Speaker speaker in speakers)
+                                    // Output is voltage drop across the outputs
+                                    foreach (Output output in outputs)
                                     {
-                                        outputExpression += speaker.Out;
+                                        outputExpression += output.Out;
                                     }
 
                                     if (outputExpression.EqualsZero())
                                     {
-                                        simulationUpdateException = new NotSupportedException("Circuit has no speaker outputs.");
+                                        simulationUpdateException = new NotSupportedException("Circuit has no outputs.");
                                     }
                                     else
                                     {
