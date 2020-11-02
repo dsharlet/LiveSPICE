@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Library>	
+<Library>
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1 μA" n="1" Type="Diode" Name="D1" PartNumber="Germanium Diode" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1 pA" n="1" Type="Diode" Name="D1" PartNumber="Silicon Diode" />
+	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1 fA" n="1" Type="Zener" Name="D1" PartNumber="Zener Diode" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="93 pA" n="3.73" Type="LED" Name="D1" PartNumber="Red LED" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
@@ -23,6 +25,9 @@
 			   IS="0.1 pA" n="2.07" Type="Diode" Name="D1" PartNumber="1N4448" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="0.1 pA" n="2.07" Type="Diode" Name="D1" PartNumber="1N916" />
+
+	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1.214 fA" n="1" Type="Zener" Name="D1" PartNumber="1N4733" />
 
 	<!--http://qrp.kd4ab.org/1998/980218/0042.html-->
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
