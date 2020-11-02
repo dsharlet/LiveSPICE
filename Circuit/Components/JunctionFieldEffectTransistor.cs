@@ -44,6 +44,10 @@ namespace Circuit
         [Serialize, Description("Saturation current.")]
         public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
 
+        protected Quantity _n = new Quantity(1, Units.None);
+        [Serialize, Description("Gate emission coefficient.")]
+        public Quantity n { get { return _n; } set { if (_n.Set(value)) NotifyChanged("n"); } }
+
         protected Quantity vt0 = new Quantity(-2, Units.V);
         [Spice.ParameterAlias("VTO")]
         [Serialize, Description("Threshold voltage.")]
@@ -67,8 +71,8 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Diode.Analyze(Mna, Gate, Source, IS, 1, VT);
-            Diode.Analyze(Mna, Gate, Drain, IS, 1, VT);
+            Diode.Analyze(Mna, Gate, Source, IS, n, VT);
+            Diode.Analyze(Mna, Gate, Drain, IS, n, VT);
 
             // The drain and source terminals are reversible in the JFET model, this 
             // formulation is simpler than explicitly identifying normal/inverted mode.
