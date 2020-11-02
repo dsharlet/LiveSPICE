@@ -18,7 +18,11 @@
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="2.52 nA" n="1.752" Type="Diode" Name="D1" PartNumber="1N4148" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="2.52 nA" n="1.752" Type="Diode" Name="D1" PartNumber="MA150" />
+	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="0.1 pA" n="2.07" Type="Diode" Name="D1" PartNumber="1N4448" />
+	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="0.1 pA" n="2.07" Type="Diode" Name="D1" PartNumber="1N916" />
 
 	<!--http://qrp.kd4ab.org/1998/980218/0042.html-->
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
