@@ -275,8 +275,8 @@ namespace LiveSPICE
                         simulation = new Circuit.Simulation(solution)
                         {
                             Log = Log,
-                            Input = inputs.Keys,
-                            Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)),
+                            Input = inputs.Keys.ToArray(),
+                            Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
                             Oversample = Oversample,
                             Iterations = Iterations,
                         };
@@ -308,8 +308,8 @@ namespace LiveSPICE
                             simulation = new Circuit.Simulation(s)
                             {
                                 Log = Log,
-                                Input = inputs.Keys,
-                                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)),
+                                Input = inputs.Keys.ToArray(),
+                                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
                                 Oversample = Oversample,
                                 Iterations = Iterations,
                             };
@@ -433,7 +433,7 @@ namespace LiveSPICE
                 {
                     probes.Add(probe);
                     if (simulation != null)
-                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal));
+                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray();
                 }
             }
         }
@@ -448,7 +448,7 @@ namespace LiveSPICE
                 {
                     probes.Remove(probe);
                     if (simulation != null)
-                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal));
+                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray();
                 }
             }
         }
