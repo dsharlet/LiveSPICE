@@ -217,7 +217,7 @@ namespace Circuit
                 && On.SequenceEqual(d.Arguments);
         }
 
-        private const double LinExpKnee = 50.0;
+        private const double LinExpKnee = 25.0;
         /// <summary>
         /// Similar to e^x, but uses a linear extension of e^x for large x. Useful for p-n junction
         /// i-V relationships to avoid numerical problems for large x.

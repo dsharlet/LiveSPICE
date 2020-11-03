@@ -66,11 +66,20 @@ namespace Circuit
                 Node nee = new Node() { Name = "nee" };
                 Mna.DeclNodes(ncc, nee);
 
+                // The "correct" values for these parameters is Is=8e-16, n=1.
+                // These alternative diode parameters avoid numerical instability
+                // in the model, at the cost of (hopefully...) negligible difference
+                // in behavior. The voltage across these diodes is very large, leading
+                // to really stiff non-linear systems with absurdly unrealistic amounts
+                // of current.
+                const decimal Is = 4e-7m;
+                const decimal n = 1.8m;
+
                 VoltageSource.Analyze(Mna, vcc, ncc, 2);
-                Diode.Analyze(Mna, pp1, ncc, 8e-16, 1);
+                Diode.Analyze(Mna, pp1, ncc, Is, n);
 
                 VoltageSource.Analyze(Mna, vee, nee, -2);
-                Diode.Analyze(Mna, nee, pp1, 8e-16, 1);
+                Diode.Analyze(Mna, nee, pp1, Is, n);
             }
 
             // Output current is buffered.
