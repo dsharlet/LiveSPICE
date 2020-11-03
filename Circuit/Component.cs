@@ -53,7 +53,7 @@ namespace Circuit
         /// <summary>
         /// Thermal voltage. We assume ~room temperature.
         /// </summary>
-        public static readonly Quantity VT = new Quantity(26e-3m, Units.V);
+        public static readonly Quantity VT = new Quantity(25.35e-3m, Units.V);
 
         private string name = "X1";
         [Serialize, Description("Unique name of this component.")]
