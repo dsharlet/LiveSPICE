@@ -56,31 +56,31 @@ namespace Circuit
         public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged("Vg"); } }
 
         private double gamma = 1.26;
-        [Serialize, Category("Dempwolf/Zolzer")]
+        [Serialize, Category("Dempwolf-Zolzer")]
         public double Gamma { get { return gamma; } set { gamma = value; NotifyChanged(nameof(Gamma)); } }
 
         private double _g = 2.242E-3;
-        [Serialize, Category("Dempwolf/Zolzer")]
+        [Serialize, Category("Dempwolf-Zolzer")]
         public double G { get { return _g; } set { _g = value; NotifyChanged(nameof(G)); } }
 
         private double gg = 6.177E-4;
-        [Serialize, Category("Dempwolf/Zolzer")]
+        [Serialize, Category("Dempwolf-Zolzer")]
         public double Gg { get { return gg; } set { gg = value; NotifyChanged(nameof(Gg)); } }
 
         private double c = 3.4;
-        [Serialize, Category("Dempwolf/Zolzer")]
+        [Serialize, Category("Dempwolf-Zolzer")]
         public double C { get { return c; } set { c = value; NotifyChanged(nameof(C)); } }
 
         private double cg = 9.901;
-        [Serialize, Category("Dempwolf")]
+        [Serialize, Category("Dempwolf-Zolzer")]
         public double Cg { get { return cg; } set { cg = value; NotifyChanged(nameof(Cg)); } }
 
         private double xi = 1.314;
-        [Serialize, Category("Dempwolf/Zolzer")]
+        [Serialize, Category("Dempwolf-Zolzer")]
         public double Xi { get { return xi; } set { xi = value; NotifyChanged(nameof(Xi)); } }
 
         private Quantity ig0 = new Quantity(8.025E-8, Units.A);
-        [Serialize, Category("Dempwolf/Zolzer")]
+        [Serialize, Category("Dempwolf-Zolzer")]
         public Quantity Ig0 { get { return ig0; } set { ig0 = value; NotifyChanged(nameof(Ig0)); } }
 
         private Terminal p, g, k;
@@ -127,10 +127,9 @@ namespace Circuit
                     ig = Call.Max(Vgk - Vg, 0) / Rgk;
                     break;
                 case TriodeModel.DempwolfZolzer:
-                    var cgVgk = Cg * Vgk;
-                    ig = Call.If(Vgk > -5, Gg * Binary.Power(Call.If(cgVgk < 5, Call.Ln(1 + LinExp(cgVgk)), cgVgk) / Cg, Xi), 0) + Ig0;
+                    ig = Call.If(Vgk > -5, Gg * Binary.Power(Ln1Exp(Cg * Vgk) / Cg, Xi), 0) + Ig0;
                     Expression ex = C * ((Vpk / Mu) + Vgk);
-                    var ik = Call.If(ex > -5, G * Binary.Power(Call.If(ex < 5, Call.Ln(1 + LinExp(ex)), ex) / C, Gamma), 0);
+                    var ik = Call.If(ex > -5, G * Binary.Power(Ln1Exp(ex) / C, Gamma), 0);
                     ip = ik - ig;
                     break;
                 default:
