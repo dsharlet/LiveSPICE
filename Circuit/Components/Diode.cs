@@ -32,7 +32,7 @@ namespace Circuit
 
         public Diode() { Name = "D1"; }
 
-        public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT)
+        public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression IS, Expression n)
         {
             // V = Va - Vc
             Expression Vac = Anode.V - Cathode.V;
@@ -46,9 +46,9 @@ namespace Circuit
 
             return i;
         }
-        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression IS, Expression n, Expression VT) { return Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, IS, n, VT); }
+        public static Expression Analyze(Analysis Mna, Node Anode, Node Cathode, Expression IS, Expression n) { return Analyze(Mna, Mna.AnonymousName(), Anode, Cathode, IS, n); }
 
-        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, IS, n, VT); }
+        public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode, IS, n); }
 
         public static void LayoutSymbol(SymbolLayout Sym, Terminal A, Terminal C, DiodeType Type, Func<string> Name, Func<string> Part)
         {

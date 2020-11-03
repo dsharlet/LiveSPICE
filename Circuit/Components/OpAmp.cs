@@ -67,10 +67,10 @@ namespace Circuit
                 Mna.DeclNodes(ncc, nee);
 
                 VoltageSource.Analyze(Mna, vcc, ncc, 2);
-                Diode.Analyze(Mna, pp1, ncc, 8e-16, 1, VT);
+                Diode.Analyze(Mna, pp1, ncc, 8e-16, 1);
 
                 VoltageSource.Analyze(Mna, vee, nee, -2);
-                Diode.Analyze(Mna, nee, pp1, 8e-16, 1, VT);
+                Diode.Analyze(Mna, nee, pp1, 8e-16, 1);
             }
 
             // Output current is buffered.

@@ -70,8 +70,8 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Diode.Analyze(Mna, Gate, Source, IS, n, VT);
-            Diode.Analyze(Mna, Gate, Drain, IS, n, VT);
+            Diode.Analyze(Mna, Gate, Source, IS, n);
+            Diode.Analyze(Mna, Gate, Drain, IS, n);
 
             // The drain and source terminals are reversible in the JFET model, this 
             // formulation is simpler than explicitly identifying normal/inverted mode.
