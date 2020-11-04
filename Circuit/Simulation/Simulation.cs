@@ -35,6 +35,7 @@ namespace Circuit
         protected static readonly Variable t = TransientSolution.t;
         protected Expression t0 { get { return t - Solution.TimeStep; } }
         protected Arrow t_t0 { get { return Arrow.New(t, t0); } }
+        protected Arrow t_2t0 { get { return Arrow.New(t, t - 2 * Solution.TimeStep); } }
 
         private long n = 0;
         /// <summary>
@@ -117,16 +118,20 @@ namespace Circuit
 
             // If any system depends on the previous value of an unknown, we need a global variable for it.
             foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
-                if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
-                    AddGlobal(i.Evaluate(t, t0));
+            {
+                if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t_t0))))
+                    AddGlobal(i.Evaluate(t_t0));
+                if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t_2t0))))
+                    AddGlobal(i.Evaluate(t_2t0));
+            }
             // Also need globals for any Newton's method unknowns.
             foreach (Expression i in Solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
-                AddGlobal(i.Evaluate(t, t0));
+                AddGlobal(i.Evaluate(t_t0));
 
             // Set the global values to the initial conditions of the solution.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
             {
-                Expression init = i.Key.Evaluate(t0, 0).Evaluate(Solution.InitialConditions);
+                Expression init = i.Key.Substitute(t - Solution.TimeStep, 0).Substitute(t - 2 * Solution.TimeStep, 0).Evaluate(Solution.InitialConditions);
                 i.Value.Value = init is Constant ? (double)init : 0.0;
             }
 
@@ -346,8 +351,14 @@ namespace Circuit
 
                         // Update the previous timestep variables.
                         foreach (SolutionSet S in Solution.Solutions)
+                        {
                             foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
+                            {
+                                if (globals.Keys.Contains(i.Evaluate(t_2t0)))
+                                    code.Add(LinqExpr.Assign(code[i.Evaluate(t_2t0)], code[i.Evaluate(t_t0)]));
                                 code.Add(LinqExpr.Assign(code[i.Evaluate(t_t0)], code[i]));
+                            }
+                        }
 
                         // Vo += i
                         foreach (Expression i in Output.Distinct())
