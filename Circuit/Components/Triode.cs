@@ -8,7 +8,8 @@ namespace Circuit
     public enum TriodeModel
     {
         ChildLangmuir,
-        Koren,
+        // TODO: This model is broken.
+        [Browsable(false)] Koren,
         DempwolfZolzer
     }
 
@@ -32,27 +33,27 @@ namespace Circuit
         public double K { get { return k_; } set { k_ = value; NotifyChanged("K"); } }
 
         private double ex = 1.4;
-        [Serialize, Category("Koren")]
+        [Serialize, Category("Koren"), Browsable(false)]
         public double Ex { get { return ex; } set { ex = value; NotifyChanged("Ex"); } }
 
         private double kg = 1060.0;
-        [Serialize, Category("Koren")]
+        [Serialize, Category("Koren"), Browsable(false)]
         public double Kg { get { return kg; } set { kg = value; NotifyChanged("Kg"); } }
 
         private double kp = 600.0;
-        [Serialize, Category("Koren")]
+        [Serialize, Category("Koren"), Browsable(false)]
         public double Kp { get { return kp; } set { kp = value; NotifyChanged("Kp"); } }
 
         private double kvb = 300;
-        [Serialize, Category("Koren")]
+        [Serialize, Category("Koren"), Browsable(false)]
         public double Kvb { get { return kvb; } set { kvb = value; NotifyChanged("Kvb"); } }
 
         private Quantity rgk = new Quantity(1e6, Units.Ohm);
-        [Serialize, Category("Koren")]
+        [Serialize, Category("Koren"), Browsable(false)]
         public Quantity Rgk { get { return rgk; } set { if (rgk.Set(value)) NotifyChanged("Rgk"); } }
 
         private Quantity vg = new Quantity(0.33, Units.V);
-        [Serialize, Category("Koren")]
+        [Serialize, Category("Koren"), Browsable(false)]
         public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged("Vg"); } }
 
         private double gamma = 1.26;
@@ -122,7 +123,7 @@ namespace Circuit
                     ig = 0;
                     break;
                 case TriodeModel.Koren:
-                    Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * (Kvb + Vpk ^ 2) ^ (-0.5))) * Vpk / Kp;
+                    Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk ^ 2, -0.5))) * Vpk / Kp;
                     ip = (Call.Max(E1, 0) ^ Ex) / Kg;
                     ig = Call.Max(Vgk - Vg, 0) / Rgk;
                     break;
