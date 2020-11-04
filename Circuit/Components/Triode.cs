@@ -22,39 +22,39 @@ namespace Circuit
     {
         protected TriodeModel model;
         [Serialize, Description("Model implementation to use")]
-        public TriodeModel Model { get { return model; } set { model = value; NotifyChanged("Model"); } }
+        public TriodeModel Model { get { return model; } set { model = value; NotifyChanged(nameof(Model)); } }
 
         private double mu = 100.0;
         [Serialize, Description("Voltage gain.")]
-        public double Mu { get { return mu; } set { mu = value; NotifyChanged("Mu"); } }
+        public double Mu { get { return mu; } set { mu = value; NotifyChanged(nameof(Mu)); } }
 
         protected double k_ = 1.73e-6;
         [Serialize, Description("Generalized perveance."), Category("Child-Langmuir")]
-        public double K { get { return k_; } set { k_ = value; NotifyChanged("K"); } }
+        public double K { get { return k_; } set { k_ = value; NotifyChanged(nameof(K)); } }
 
         private double ex = 1.4;
         [Serialize, Category("Koren"), Browsable(false)]
-        public double Ex { get { return ex; } set { ex = value; NotifyChanged("Ex"); } }
+        public double Ex { get { return ex; } set { ex = value; NotifyChanged(nameof(Ex)); } }
 
         private double kg = 1060.0;
         [Serialize, Category("Koren"), Browsable(false)]
-        public double Kg { get { return kg; } set { kg = value; NotifyChanged("Kg"); } }
+        public double Kg { get { return kg; } set { kg = value; NotifyChanged(nameof(Kg)); } }
 
         private double kp = 600.0;
         [Serialize, Category("Koren"), Browsable(false)]
-        public double Kp { get { return kp; } set { kp = value; NotifyChanged("Kp"); } }
+        public double Kp { get { return kp; } set { kp = value; NotifyChanged(nameof(Kp)); } }
 
         private double kvb = 300;
         [Serialize, Category("Koren"), Browsable(false)]
-        public double Kvb { get { return kvb; } set { kvb = value; NotifyChanged("Kvb"); } }
+        public double Kvb { get { return kvb; } set { kvb = value; NotifyChanged(nameof(Kvb)); } }
 
         private Quantity rgk = new Quantity(1e6, Units.Ohm);
         [Serialize, Category("Koren"), Browsable(false)]
-        public Quantity Rgk { get { return rgk; } set { if (rgk.Set(value)) NotifyChanged("Rgk"); } }
+        public Quantity Rgk { get { return rgk; } set { if (rgk.Set(value)) NotifyChanged(nameof(Rgk)); } }
 
         private Quantity vg = new Quantity(0.33, Units.V);
         [Serialize, Category("Koren"), Browsable(false)]
-        public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged("Vg"); } }
+        public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged(nameof(Vg)); } }
 
         private double gamma = 1.26;
         [Serialize, Category("Dempwolf-Zolzer")]

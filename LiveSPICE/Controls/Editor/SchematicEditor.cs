@@ -62,8 +62,8 @@ namespace LiveSPICE
         {
             filepath = FilePath;
             Touch();
-            NotifyChanged("FilePath");
-            NotifyChanged("Title");
+            NotifyChanged(nameof(FilePath));
+            NotifyChanged(nameof(Title));
         }
         public string FilePath { get { return filepath == null ? "Untitled" : filepath; } }
         public string Title { get { return filepath == null ? "<Untitled>" : System.IO.Path.GetFileNameWithoutExtension(filepath); } }

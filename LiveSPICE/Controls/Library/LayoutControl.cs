@@ -15,10 +15,10 @@ namespace LiveSPICE
         static LayoutControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(LayoutControl), new FrameworkPropertyMetadata(typeof(LayoutControl))); }
 
         private bool showText = true;
-        public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); NotifyChanged("ShowText"); } }
+        public bool ShowText { get { return showText; } set { showText = value; InvalidateVisual(); NotifyChanged(nameof(ShowText)); } }
 
         private Circuit.SymbolLayout layout = null;
-        public Circuit.SymbolLayout Layout { get { return layout; } set { layout = value; InvalidateVisual(); NotifyChanged("Layout"); } }
+        public Circuit.SymbolLayout Layout { get { return layout; } set { layout = value; InvalidateVisual(); NotifyChanged(nameof(Layout)); } }
 
         protected override Size MeasureOverride(Size constraint)
         {

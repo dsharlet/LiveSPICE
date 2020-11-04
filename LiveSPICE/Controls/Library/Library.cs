@@ -23,7 +23,7 @@ namespace LiveSPICE
         public Circuit.SymbolLayout Layout { get { return instance.LayoutSymbol(); } }
 
         private bool visible = true;
-        public bool IsVisible { get { return visible; } set { visible = value; NotifyChanged("IsVisible"); } }
+        public bool IsVisible { get { return visible; } set { visible = value; NotifyChanged(nameof(IsVisible)); } }
 
         public Component(Circuit.Component Instance, string Name, string Description)
         {
@@ -68,13 +68,13 @@ namespace LiveSPICE
         /// <summary>
         /// Name of this Category.
         /// </summary>
-        public string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
+        public string Name { get { return name; } set { name = value; NotifyChanged(nameof(Name)); } }
 
         private bool expanded = false;
         /// <summary>
         /// Whether or not the Category is expanded.
         /// </summary>
-        public bool IsExpanded { get { return expanded; } set { expanded = value; NotifyChanged("IsExpanded"); } }
+        public bool IsExpanded { get { return expanded; } set { expanded = value; NotifyChanged(nameof(IsExpanded)); } }
 
         /// <summary>
         /// Find an immediate sub-category of the given Name.

@@ -19,7 +19,7 @@ namespace LiveSPICE
     {
         public SignalCollection Signals { get { return oscilloscope.Signals; } }
 
-        public Signal SelectedSignal { get { return oscilloscope.SelectedSignal; } set { oscilloscope.SelectedSignal = value; NotifyChanged("SelectedSignal"); } }
+        public Signal SelectedSignal { get { return oscilloscope.SelectedSignal; } set { oscilloscope.SelectedSignal = value; NotifyChanged(nameof(SelectedSignal)); } }
 
         public Scope()
         {

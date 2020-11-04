@@ -34,19 +34,19 @@ namespace Circuit
 
         private BjtType type = BjtType.NPN;
         [Serialize, Description("BJT structure.")]
-        public BjtType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
+        public BjtType Type { get { return type; } set { type = value; NotifyChanged(nameof(Type)); } }
 
         protected Quantity _is = new Quantity(1e-12m, Units.A);
         [Serialize, Description("Saturation current.")]
-        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
+        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged(nameof(IS)); } }
 
         private Quantity bf = new Quantity(100, Units.None);
         [Serialize, Description("Forward common emitter current gain.")]
-        public Quantity BF { get { return bf; } set { if (bf.Set(value)) NotifyChanged("BF"); } }
+        public Quantity BF { get { return bf; } set { if (bf.Set(value)) NotifyChanged(nameof(BF)); } }
 
         private Quantity br = new Quantity(1, Units.None);
         [Serialize, Description("Reverse common emitter current gain.")]
-        public Quantity BR { get { return br; } set { if (br.Set(value)) NotifyChanged("BR"); } }
+        public Quantity BR { get { return br; } set { if (br.Set(value)) NotifyChanged(nameof(BR)); } }
 
         public BipolarJunctionTransistor()
         {

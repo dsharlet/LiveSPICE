@@ -14,7 +14,7 @@ namespace Circuit
     {
         private Quantity v0dBFS = new Quantity(1, Units.V);
         [Serialize, Description("Voltage of the full signal level at this component.")]
-        public Quantity V0dBFS { get { return v0dBFS; } set { v0dBFS = value; NotifyChanged("V0dBFS"); } }
+        public Quantity V0dBFS { get { return v0dBFS; } set { v0dBFS = value; NotifyChanged(nameof(V0dBFS)); } }
 
         public Input() { Name = "V1"; }
 

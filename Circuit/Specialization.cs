@@ -24,9 +24,9 @@ namespace Circuit
         public Specialization(Component Impl) { impl = Impl; }
 
         // Forward the interesting work to the implementation component.
-        public override string Name { get { AssertImpl(); return impl.Name; } set { AssertImpl(); impl.Name = value; NotifyChanged("Name"); } }
+        public override string Name { get { AssertImpl(); return impl.Name; } set { AssertImpl(); impl.Name = value; NotifyChanged(nameof(Name)); } }
         [Browsable(false)]
-        public override string PartNumber { get { AssertImpl(); return impl.PartNumber; } set { AssertImpl(); impl.PartNumber = value; NotifyChanged("PartNumber"); } }
+        public override string PartNumber { get { AssertImpl(); return impl.PartNumber; } set { AssertImpl(); impl.PartNumber = value; NotifyChanged(nameof(PartNumber)); } }
         public override IEnumerable<Terminal> Terminals { get { AssertImpl(); return impl.Terminals; } }
         public override void Analyze(Analysis Mna) { AssertImpl(); impl.Analyze(Mna); }
         public override void LayoutSymbol(SymbolLayout Sym) { AssertImpl(); impl.LayoutSymbol(Sym); }

@@ -17,10 +17,10 @@ namespace LiveSPICE
         private double width = double.NaN, height = double.NaN;
         [LocalizabilityAttribute(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverterAttribute(typeof(LengthConverter))]
-        public double ImageWidth { get { return width; } set { width = value; NotifyChanged("ImageWidth"); } }
+        public double ImageWidth { get { return width; } set { width = value; NotifyChanged(nameof(ImageWidth)); } }
         [LocalizabilityAttribute(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverterAttribute(typeof(LengthConverter))]
-        public double ImageHeight { get { return height; } set { height = value; NotifyChanged("ImageHeight"); } }
+        public double ImageHeight { get { return height; } set { height = value; NotifyChanged(nameof(ImageHeight)); } }
 
         public ImageSource Source
         {
@@ -45,7 +45,7 @@ namespace LiveSPICE
                     disabled = null;
                 }
                 Update();
-                NotifyChanged("Source");
+                NotifyChanged(nameof(Source));
             }
         }
 
