@@ -22,9 +22,9 @@ namespace Circuit
         private string text = "Label";
         private string subtext = "";
         [Serialize]
-        public string Text { get { return text; } set { text = value; NotifyChanged("Text"); } }
+        public string Text { get { return text; } set { text = value; NotifyChanged(nameof(Text)); } }
         [Serialize]
-        public string Subtext { get { return subtext; } set { subtext = value; NotifyChanged("Subtext"); } }
+        public string Subtext { get { return subtext; } set { subtext = value; NotifyChanged(nameof(Subtext)); } }
 
         public Label() { Name = "_1"; }
 

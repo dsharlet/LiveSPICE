@@ -32,7 +32,7 @@ namespace LiveSPICE
         public int Oversample
         {
             get { return oversample; }
-            set { oversample = value; RebuildSolution(); NotifyChanged("Oversample"); }
+            set { oversample = value; RebuildSolution(); NotifyChanged(nameof(Oversample)); }
         }
 
         protected int iterations = 8;
@@ -42,20 +42,20 @@ namespace LiveSPICE
         public int Iterations
         {
             get { return iterations; }
-            set { iterations = value; RebuildSolution(); NotifyChanged("Iterations"); }
+            set { iterations = value; RebuildSolution(); NotifyChanged(nameof(Iterations)); }
         }
 
         private double inputGain = 1.0;
         /// <summary>
         /// Overall input gain.
         /// </summary>
-        public double InputGain { get { return inputGain; } set { inputGain = value; NotifyChanged("InputGain"); } }
+        public double InputGain { get { return inputGain; } set { inputGain = value; NotifyChanged(nameof(InputGain)); } }
 
         private double outputGain = 1.0;
         /// <summary>
         /// Overall output gain.
         /// </summary>
-        public double OutputGain { get { return outputGain; } set { outputGain = value; NotifyChanged("OutputGain"); } }
+        public double OutputGain { get { return outputGain; } set { outputGain = value; NotifyChanged(nameof(OutputGain)); } }
 
         private SimulationSchematic Schematic { get { return (SimulationSchematic)schematic.Schematic; } set { schematic.Schematic = value; } }
 

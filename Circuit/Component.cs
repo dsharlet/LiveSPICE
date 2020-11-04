@@ -57,11 +57,11 @@ namespace Circuit
 
         private string name = "X1";
         [Serialize, Description("Unique name of this component.")]
-        public virtual string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
+        public virtual string Name { get { return name; } set { name = value; NotifyChanged(nameof(Name)); } }
 
         private string partNumber = "";
         [Serialize, DefaultValue(""), Description("Part name/number.")]
-        public virtual string PartNumber { get { return partNumber; } set { partNumber = value; NotifyChanged("PartNumber"); } }
+        public virtual string PartNumber { get { return partNumber; } set { partNumber = value; NotifyChanged(nameof(PartNumber)); } }
 
         private string description = "";
         [Serialize, DefaultValue(""), Description("Description of this component.")]
@@ -77,13 +77,13 @@ namespace Circuit
             set
             {
                 description = value;
-                NotifyChanged("Description");
+                NotifyChanged(nameof(Description));
             }
         }
 
         private object tag = null;
         [Browsable(false)]
-        public object Tag { get { return tag; } set { tag = value; NotifyChanged("Tag"); } }
+        public object Tag { get { return tag; } set { tag = value; NotifyChanged(nameof(Tag)); } }
 
         /// <summary>
         /// Access the terminals of this component.

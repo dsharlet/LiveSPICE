@@ -23,7 +23,7 @@ namespace LiveSPICE
         public MessageType Verbosity
         {
             get { return verbosity; }
-            set { App.Current.Settings.LogVerbosity = verbosity = value; NotifyChanged("Verbosity"); }
+            set { App.Current.Settings.LogVerbosity = verbosity = value; NotifyChanged(nameof(Verbosity)); }
         }
 
         public void WriteLine(MessageType Type, string Message, params object[] Format)

@@ -22,7 +22,7 @@ namespace LiveSPICE
                 this.value = value;
                 InvalidateVisual();
                 RaiseValueChanged(Value);
-                NotifyChanged("Value");
+                NotifyChanged(nameof(Value));
             }
         }
 

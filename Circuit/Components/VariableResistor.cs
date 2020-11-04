@@ -12,17 +12,17 @@ namespace Circuit
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Serialize, Description("Resistance of this variable resistor.")]
-        public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
+        public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged(nameof(Resistance)); } }
 
         protected double wipe = 0.5;
         [Serialize, Description("Position of the wiper on this variable resistor, between 0 and 1.")]
-        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged("Wipe"); } }
+        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); } }
         // IPotControl
         double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep mapping of the wiper.")]
-        public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged("Sweep"); } }
+        public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged(nameof(Sweep)); } }
 
         public VariableResistor() { Name = "R1"; }
 

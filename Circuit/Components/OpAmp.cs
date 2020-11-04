@@ -27,19 +27,19 @@ namespace Circuit
 
         protected Quantity rin = new Quantity(1e6, Units.Ohm);
         [Serialize, Description("Input resistance.")]
-        public Quantity Rin { get { return rin; } set { if (rin.Set(value)) NotifyChanged("Rin"); } }
+        public Quantity Rin { get { return rin; } set { if (rin.Set(value)) NotifyChanged(nameof(Rin)); } }
 
         protected Quantity rout = new Quantity(100m, Units.Ohm);
         [Serialize, Description("Output resistance.")]
-        public Quantity Rout { get { return rout; } set { if (rout.Set(value)) NotifyChanged("Rout"); } }
+        public Quantity Rout { get { return rout; } set { if (rout.Set(value)) NotifyChanged(nameof(Rout)); } }
 
         protected Quantity gain = new Quantity(1e6m, Units.None);
         [Serialize, Description("Open-loop gain.")]
-        public Quantity Aol { get { return gain; } set { if (gain.Set(value)) NotifyChanged("Aol"); } }
+        public Quantity Aol { get { return gain; } set { if (gain.Set(value)) NotifyChanged(nameof(Aol)); } }
 
         protected Quantity gbp = new Quantity(1e6m, Units.Hz);
         [Serialize, Description("Gain-bandwidth product, equivalent to the unity gain bandwidth.")]
-        public Quantity GBP { get { return gbp; } set { if (gbp.Set(value)) NotifyChanged("GBP"); } }
+        public Quantity GBP { get { return gbp; } set { if (gbp.Set(value)) NotifyChanged(nameof(GBP)); } }
 
         public override void Analyze(Analysis Mna)
         {

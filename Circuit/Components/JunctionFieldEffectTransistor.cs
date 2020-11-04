@@ -37,28 +37,28 @@ namespace Circuit
 
         private JfetType type = JfetType.N;
         [Serialize, Description("JFET structure.")]
-        public JfetType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
+        public JfetType Type { get { return type; } set { type = value; NotifyChanged(nameof(Type)); } }
 
         protected Quantity _is = new Quantity(1e-14m, Units.A);
         [Serialize, Description("Saturation current.")]
-        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
+        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged(nameof(IS)); } }
 
         protected Quantity _n = new Quantity(1, Units.None);
         [Serialize, Description("Gate emission coefficient.")]
-        public Quantity n { get { return _n; } set { if (_n.Set(value)) NotifyChanged("n"); } }
+        public Quantity n { get { return _n; } set { if (_n.Set(value)) NotifyChanged(nameof(n)); } }
 
         protected Quantity vt0 = new Quantity(-2, Units.V);
         [Spice.ParameterAlias("VTO")]
         [Serialize, Description("Threshold voltage.")]
-        public Quantity Vt0 { get { return vt0; } set { if (vt0.Set(value)) NotifyChanged("Vt0"); } }
+        public Quantity Vt0 { get { return vt0; } set { if (vt0.Set(value)) NotifyChanged(nameof(Vt0)); } }
 
         private Quantity beta = new Quantity(1e-4m, Units.None);// Units.A / Units.V ^ 2);
         [Serialize, Description("Transconductance.")]
-        public Quantity Beta { get { return beta; } set { if (beta.Set(value)) NotifyChanged("Beta"); } }
+        public Quantity Beta { get { return beta; } set { if (beta.Set(value)) NotifyChanged(nameof(Beta)); } }
 
         private Quantity lambda = new Quantity(0, Units.None);// Units.V ^ -1);
         [Serialize, Description("Channel length modulation.")]
-        public Quantity Lambda { get { return lambda; } set { if (lambda.Set(value)) NotifyChanged("Lambda"); } }
+        public Quantity Lambda { get { return lambda; } set { if (lambda.Set(value)) NotifyChanged(nameof(Lambda)); } }
 
         public JunctionFieldEffectTransistor()
         {

@@ -11,11 +11,11 @@ namespace Circuit
     {
         protected int position = 0;
         [Serialize, Description("Switch position.")]
-        public int Position { get { return position; } set { position = value; NotifyChanged("Position"); } }
+        public int Position { get { return position; } set { position = value; NotifyChanged(nameof(Position)); } }
 
         private string group = "";
         [Serialize, Description("Switch group this switch is a part of.")]
-        public string Group { get { return group; } set { group = value; NotifyChanged("Group"); } }
+        public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
 
         public void Click() { Position = (Position + 1) % throws.Length; }
 
@@ -94,7 +94,7 @@ namespace Circuit
     {
         protected bool closed = false;
         [Serialize, Description("Switch position.")]
-        public bool Closed { get { return closed; } set { closed = value; NotifyChanged("Closed"); } }
+        public bool Closed { get { return closed; } set { closed = value; NotifyChanged(nameof(Closed)); } }
 
         public Switch() { Name = "S1"; }
         public Switch(bool Closed) : this() { closed = Closed; }

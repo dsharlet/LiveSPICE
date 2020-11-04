@@ -47,7 +47,7 @@ namespace LiveSPICE
             set
             {
                 objects = value;
-                NotifyChanged("SelectedObjects");
+                NotifyChanged(nameof(SelectedObjects));
 
                 if (objects.Length > 1)
                 {
@@ -62,11 +62,11 @@ namespace LiveSPICE
                 {
                     multi = null;
                 }
-                NotifyChanged("Objects");
+                NotifyChanged(nameof(Objects));
 
                 properties.SelectedObjects = null;
                 properties.SelectedObjects = value;
-                NotifyChanged("SubSelectedObject");
+                NotifyChanged(nameof(SubSelectedObject));
             }
         }
 
@@ -78,12 +78,12 @@ namespace LiveSPICE
                 if (value == null)
                 {
                     properties.SelectedObjects = objects;
-                    NotifyChanged("SubSelectedObject");
+                    NotifyChanged(nameof(SubSelectedObject));
                 }
                 else
                 {
                     properties.SelectedObject = value;
-                    NotifyChanged("SubSelectedObject");
+                    NotifyChanged(nameof(SubSelectedObject));
                 }
             }
         }

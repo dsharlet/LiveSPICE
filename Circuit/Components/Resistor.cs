@@ -15,7 +15,7 @@ namespace Circuit
     {
         protected Quantity resistance = new Quantity(100, Units.Ohm);
         [Serialize, Description("Resistance of this resistor.")]
-        public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged("Resistance"); } }
+        public Quantity Resistance { get { return resistance; } set { if (resistance.Set(value)) NotifyChanged(nameof(Resistance)); } }
 
         public Resistor() { Name = "R1"; }
 

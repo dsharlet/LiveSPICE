@@ -22,7 +22,7 @@ namespace LiveSPICE
             {
                 a4.Set(value);
                 InvalidateVisual();
-                NotifyChanged("A4");
+                NotifyChanged(nameof(A4));
             }
         }
 
@@ -34,7 +34,7 @@ namespace LiveSPICE
             {
                 showNotes = value;
                 InvalidateVisual();
-                NotifyChanged("ShowNotes");
+                NotifyChanged(nameof(ShowNotes));
             }
         }
 
@@ -46,7 +46,7 @@ namespace LiveSPICE
             {
                 zoom = Math.Min(Math.Max(value, 16.0 / 48000.0), 2 * MaxPeriod);
                 InvalidateVisual();
-                NotifyChanged("Zoom");
+                NotifyChanged(nameof(Zoom));
             }
         }
 
@@ -58,7 +58,7 @@ namespace LiveSPICE
             {
                 mode = value;
                 InvalidateVisual();
-                NotifyChanged("Mode");
+                NotifyChanged(nameof(Mode));
             }
         }
 

@@ -20,15 +20,15 @@ namespace Circuit
     {
         protected Quantity _is = new Quantity(1e-12m, Units.A);
         [Serialize, Description("Saturation current.")]
-        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
+        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged(nameof(IS)); } }
 
         protected Quantity _n = new Quantity(1, Units.None);
         [Serialize, Description("Gate emission coefficient.")]
-        public Quantity n { get { return _n; } set { if (_n.Set(value)) NotifyChanged("n"); } }
+        public Quantity n { get { return _n; } set { if (_n.Set(value)) NotifyChanged(nameof(n)); } }
 
         protected DiodeType type = DiodeType.Diode;
         [Serialize, Description("Type of this diode. This property only affects the schematic symbol, it does not affect the simulation.")]
-        public DiodeType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
+        public DiodeType Type { get { return type; } set { type = value; NotifyChanged(nameof(Type)); } }
 
         public Diode() { Name = "D1"; }
 
