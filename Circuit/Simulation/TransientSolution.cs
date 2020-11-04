@@ -93,11 +93,11 @@ namespace Circuit
 
             SystemOfEquations dc = new SystemOfEquations(mna
                 // Derivatives, t, and T are zero in the steady state.
-                .Evaluate(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0)))
+                .Substitute(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0)))
                 // Use the initial conditions from analysis.
-                .Evaluate(Analysis.InitialConditions)
+                .Substitute(Analysis.InitialConditions)
                 // Evaluate variables at t=0.
-                .OfType<Equal>(), y.Select(j => j.Evaluate(t, 0)));
+                .OfType<Equal>(), y.Select(j => j.Substitute(t, 0)));
 
             // Solve partitions independently.
             foreach (SystemOfEquations i in dc.Partition())
@@ -124,8 +124,7 @@ namespace Circuit
             system.BackSubstitute(dy_dt);
             IEnumerable<Equal> integrated = system.Solve(dy_dt)
                 .NDIntegrate(t, h, IntegrationMethod.Trapezoid)
-                // NDIntegrate finds y[t + h] in terms of y[t], we need y[t] in terms of y[t - h].
-                .Evaluate(t, t - h).Cast<Arrow>()
+                .Cast<Arrow>()
                 .Select(i => Equal.New(i.Left, i.Right)).Buffer();
             system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
@@ -169,7 +168,7 @@ namespace Circuit
                     solved = Factor(solved);
 
                     // Initial guess for y[t] = y[t - h].
-                    IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Evaluate(t, t - h))).ToList();
+                    IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Substitute(t, t - h))).ToList();
                     guess = Factor(guess);
 
                     // Newton system equations.
