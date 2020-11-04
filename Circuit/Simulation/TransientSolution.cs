@@ -79,6 +79,7 @@ namespace Circuit
             // Define T = step size.
             Analysis.Add("T", h);
             // Define d[t] = delta function.
+            // TODO: This should probably be centered around 0, and also have an integral of 1 (i.e. a width of 1 / h).
             Analysis.Add(ExprFunction.New("d", Call.If((0 <= t) & (t < h), 1, 0), t));
             // Define u[t] = step function.
             Analysis.Add(ExprFunction.New("u", Call.If(t >= 0, 1, 0), t));
