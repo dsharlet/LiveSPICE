@@ -104,9 +104,12 @@ namespace LiveSPICEVst
             get { return sampleRate; }
             set
             {
-                sampleRate = value;
+                if (sampleRate != value)
+                {
+                    sampleRate = value;
 
-                needRebuild = true;
+                    needRebuild = true;
+                }
             }
         }
 
@@ -115,9 +118,12 @@ namespace LiveSPICEVst
             get { return oversample; }
             set
             {
-                oversample = value;
+                if (oversample != value)
+                {
+                    oversample = value;
 
-                needRebuild = true;
+                    needRebuild = true;
+                }
             }
         }
 
@@ -126,8 +132,12 @@ namespace LiveSPICEVst
             get { return iterations; }
             set
             {
-                iterations = value;
-                needRebuild = true;
+                if (iterations != value)
+                {
+                    iterations = value;
+
+                    needRebuild = true;
+                }
             }
         }
 
