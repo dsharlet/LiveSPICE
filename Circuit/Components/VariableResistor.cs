@@ -42,7 +42,7 @@ namespace Circuit
             }
 
             // Clamp to (0, 1).
-            return Math.Min(Math.Max(x, 1e-6), 1.0 - 1e-6);
+            return Math.Min(Math.Max(x, 1e-3), 1.0 - 1e-3);
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)
