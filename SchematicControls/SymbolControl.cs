@@ -220,7 +220,12 @@ namespace SchematicControls
             }
 
             foreach (Circuit.Terminal i in Layout.Terminals)
-                DrawTerminal(Context, T(Tx, Layout.MapTerminal(i)), i.ConnectedTo != null);
+            {
+                Point x = T(Tx, Layout.MapTerminal(i));
+                Vector dx = new Vector(TerminalSize / 2, TerminalSize / 2);
+                Pen pen = MapToPen(i.ConnectedTo is null ? Circuit.EdgeType.Red : Circuit.EdgeType.Wire);
+                Context.DrawRectangle(pen.Brush, pen, new Rect(x - dx, x + dx));
+            }
 
             Context.Pop();
         }

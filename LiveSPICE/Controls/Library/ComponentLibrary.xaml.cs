@@ -145,7 +145,7 @@ namespace LiveSPICE
                     foreach (Component i in root.Components)
                         i.IsVisible = i.Name.ToUpper().IndexOf(f) != -1;
                 }
-                NotifyChanged("Filter");
+                NotifyChanged(nameof(Filter));
             }
         }
         public void ClearFilter_Click(object sender, RoutedEventArgs e) { Filter = ""; }

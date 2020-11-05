@@ -11,10 +11,10 @@ namespace LiveSPICE
     public abstract class Channel : INotifyPropertyChanged
     {
         private string name = "";
-        public string Name { get { return name; } set { name = value; NotifyChanged("Name"); } }
+        public string Name { get { return name; } set { name = value; NotifyChanged(nameof(Name)); } }
 
         private Brush signalStatus = Brushes.Transparent;
-        public Brush SignalStatus { get { return signalStatus; } set { signalStatus = value; NotifyChanged("SignalStatus"); } }
+        public Brush SignalStatus { get { return signalStatus; } set { signalStatus = value; NotifyChanged(nameof(SignalStatus)); } }
 
         private double signalLevel = 0;
         public double SignalLevel { get { return signalLevel; } }
@@ -82,7 +82,7 @@ namespace LiveSPICE
         public int Index { get { return index; } }
 
         private ComputerAlgebra.Expression signal = 0;
-        public ComputerAlgebra.Expression Signal { get { return signal; } set { signal = value; NotifyChanged("Signal"); } }
+        public ComputerAlgebra.Expression Signal { get { return signal; } set { signal = value; NotifyChanged(nameof(Signal)); } }
 
         public OutputChannel(int Index) { index = Index; }
     }

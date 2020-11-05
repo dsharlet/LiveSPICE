@@ -15,7 +15,7 @@ namespace Circuit
 
         private string wire = "Name";
         [Serialize, Description("Name of the node connected to this named wire.")]
-        public string WireName { get { return wire; } set { wire = value; NotifyChanged("Wire"); } }
+        public string WireName { get { return wire; } set { wire = value; NotifyChanged(nameof(Wire)); } }
 
         public override void Analyze(Analysis Mna) { }
 

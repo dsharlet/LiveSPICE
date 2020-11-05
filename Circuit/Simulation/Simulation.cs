@@ -33,8 +33,10 @@ namespace Circuit
     public class Simulation
     {
         protected static readonly Variable t = TransientSolution.t;
-        protected Expression t0 { get { return t - Solution.TimeStep; } }
-        protected Arrow t_t0 { get { return Arrow.New(t, t0); } }
+
+        // Largest delay we expect to see. BDF6 is the largest possible
+        // realistic (or theoretically possible?) method.
+        protected const int MaxDelay = -6;
 
         private long n = 0;
         /// <summary>
@@ -115,18 +117,27 @@ namespace Circuit
         {
             solution = Solution;
 
-            // If any system depends on the previous value of an unknown, we need a global variable for it.
-            foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
-                if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t, t0))))
-                    AddGlobal(i.Evaluate(t, t0));
+            for (int n = MaxDelay; n < 0; n++)
+            {
+                Arrow t_tn = Arrow.New(t, t + n * Solution.TimeStep);
+                // If any system depends on the previous value of an unknown, we need a global variable for it.
+                foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
+                {
+                    if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t_tn))))
+                        AddGlobal(i.Evaluate(t_tn));
+                }
+            }
             // Also need globals for any Newton's method unknowns.
+            Arrow t_t1 = Arrow.New(t, t - Solution.TimeStep);
             foreach (Expression i in Solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
-                AddGlobal(i.Evaluate(t, t0));
+                AddGlobal(i.Evaluate(t_t1));
 
             // Set the global values to the initial conditions of the solution.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
             {
-                Expression init = i.Key.Evaluate(t0, 0).Evaluate(Solution.InitialConditions);
+                // Dumb hack to get f[t - x] -> f[0] for any x.
+                Expression i_t0 = i.Key.Evaluate(t, Real.Infinity).Substitute(Real.Infinity, 0);
+                Expression init = i_t0.Evaluate(Solution.InitialConditions);
                 i.Value.Value = init is Constant ? (double)init : 0.0;
             }
 
@@ -213,9 +224,11 @@ namespace Circuit
             foreach (Expression i in Output)
                 outputs.Add(new KeyValuePair<Expression, LinqExpr>(i, code.Decl<double[]>(Scope.Parameter, i.ToString())));
 
+            Arrow t_t1 = Arrow.New(Simulation.t, Simulation.t - Solution.TimeStep);
+
             // Create globals to store previous values of inputs.
             foreach (Expression i in Input.Distinct())
-                AddGlobal(i.Evaluate(t_t0));
+                AddGlobal(i.Evaluate(t_t1));
 
             // Define lambda body.
 
@@ -230,7 +243,7 @@ namespace Circuit
                 code.Add(LinqExpr.Assign(code.Decl(i.Key), i.Value));
 
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
-                code.Add(LinqExpr.Assign(code.Decl(i.Key), code[i.Key.Evaluate(t_t0)]));
+                code.Add(LinqExpr.Assign(code.Decl(i.Key), code[i.Key.Evaluate(t_t1)]));
 
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
@@ -346,8 +359,15 @@ namespace Circuit
 
                         // Update the previous timestep variables.
                         foreach (SolutionSet S in Solution.Solutions)
-                            foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_t0))))
-                                code.Add(LinqExpr.Assign(code[i.Evaluate(t_t0)], code[i]));
+                        {
+                            for (int m = MaxDelay; m < 0; m++)
+                            {
+                                Arrow t_tm = Arrow.New(Simulation.t, Simulation.t + m * Solution.TimeStep);
+                                Arrow t_tm1 = Arrow.New(Simulation.t, Simulation.t + (m + 1) * Solution.TimeStep);
+                                foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_tm))))
+                                    code.Add(LinqExpr.Assign(code[i.Evaluate(t_tm)], code[i.Evaluate(t_tm1)]));
+                            }
+                        }
 
                         // Vo += i
                         foreach (Expression i in Output.Distinct())
@@ -366,7 +386,7 @@ namespace Circuit
 
                         // Vi_t0 = Vi
                         foreach (Expression i in Input.Distinct())
-                            code.Add(LinqExpr.Assign(code[i.Evaluate(t_t0)], code[i]));
+                            code.Add(LinqExpr.Assign(code[i.Evaluate(t_t1)], code[i]));
 
                         // --ov;
                         code.Add(LinqExpr.PreDecrementAssign(ov));

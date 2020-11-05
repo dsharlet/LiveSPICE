@@ -34,19 +34,19 @@ namespace Circuit
 
         private BjtType type = BjtType.NPN;
         [Serialize, Description("BJT structure.")]
-        public BjtType Type { get { return type; } set { type = value; NotifyChanged("Type"); } }
+        public BjtType Type { get { return type; } set { type = value; NotifyChanged(nameof(Type)); } }
 
         protected Quantity _is = new Quantity(1e-12m, Units.A);
         [Serialize, Description("Saturation current.")]
-        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged("IS"); } }
+        public Quantity IS { get { return _is; } set { if (_is.Set(value)) NotifyChanged(nameof(IS)); } }
 
         private Quantity bf = new Quantity(100, Units.None);
         [Serialize, Description("Forward common emitter current gain.")]
-        public Quantity BF { get { return bf; } set { if (bf.Set(value)) NotifyChanged("BF"); } }
+        public Quantity BF { get { return bf; } set { if (bf.Set(value)) NotifyChanged(nameof(BF)); } }
 
         private Quantity br = new Quantity(1, Units.None);
         [Serialize, Description("Reverse common emitter current gain.")]
-        public Quantity BR { get { return br; } set { if (br.Set(value)) NotifyChanged("BR"); } }
+        public Quantity BR { get { return br; } set { if (br.Set(value)) NotifyChanged(nameof(BR)); } }
 
         public BipolarJunctionTransistor()
         {
@@ -66,26 +66,27 @@ namespace Circuit
                 default: throw new NotSupportedException("Unknown BJT structure.");
             }
 
-            Expression Vbc = Mna.AddUnknownEqualTo(Name + "bc", sign * (Base.V - Collector.V));
-            Expression Vbe = Mna.AddUnknownEqualTo(Name + "be", sign * (Base.V - Emitter.V));
+            Expression Vbc = sign * (Base.V - Collector.V);
+            Expression Vbe = sign * (Base.V - Emitter.V);
+            Vbc = Mna.AddUnknownEqualTo(Name + "bc", Vbc);
+            Vbe = Mna.AddUnknownEqualTo(Name + "be", Vbe);
 
             Expression aR = BR / (1 + (Expression)BR);
             Expression aF = BF / (1 + (Expression)BF);
 
             Expression iF = IS * (LinExp(Vbe / VT) - 1);
             Expression iR = IS * (LinExp(Vbc / VT) - 1);
-
-            // TODO: Algebraically rearranging these results in dramatically different stability behavior. 
-            // It would be nice to understand this.
-            //Expression ie = iF - aR * iR;
+            
+            Expression ie = iF - aR * iR;
             Expression ic = aF * iF - iR;
             Expression ib = (1 - aF) * iF + (1 - aR) * iR;
 
             ic = Mna.AddUnknownEqualTo("i" + Name + "c", ic);
             ib = Mna.AddUnknownEqualTo("i" + Name + "b", ib);
+            ie = Mna.AddUnknownEqualTo("i" + Name + "e", ie);
             Mna.AddTerminal(Collector, sign * ic);
             Mna.AddTerminal(Base, sign * ib);
-            Mna.AddTerminal(Emitter, -sign * (ic + ib));
+            Mna.AddTerminal(Emitter, -sign * ie);
         }
 
         public static void LayoutSymbol(SymbolLayout Sym, BjtType Type, Terminal C, Terminal B, Terminal E, Func<string> Name, Func<string> Part)

@@ -14,7 +14,7 @@ namespace Circuit
     {
         private Quantity capacitance = new Quantity(100e-6m, Units.F);
         [Serialize, Description("Capacitance of this capacitor.")]
-        public Quantity Capacitance { get { return capacitance; } set { if (capacitance.Set(value)) NotifyChanged("Capacitance"); } }
+        public Quantity Capacitance { get { return capacitance; } set { if (capacitance.Set(value)) NotifyChanged(nameof(Capacitance)); } }
 
         public Capacitor() { Name = "C1"; }
 

@@ -28,7 +28,7 @@ namespace LiveSPICE
                         Device = driver.Devices.First();
                 }
 
-                NotifyChanged("Driver");
+                NotifyChanged(nameof(Driver));
             }
         }
 
@@ -50,7 +50,7 @@ namespace LiveSPICE
                         outputs.Items.Add(new ListBoxItem() { Content = i.Name, Tag = i });
                 }
 
-                NotifyChanged("Device");
+                NotifyChanged(nameof(Device));
             }
         }
 
@@ -58,7 +58,7 @@ namespace LiveSPICE
         public Audio.Channel[] Outputs { get { return outputs.SelectedItems.Cast<ListBoxItem>().Select(i => i.Tag).Cast<Audio.Channel>().ToArray(); } }
 
         private bool enabled = true;
-        public bool Enabled { get { return enabled; } set { enabled = value; NotifyChanged("Enabled"); } }
+        public bool Enabled { get { return enabled; } set { enabled = value; NotifyChanged(nameof(Enabled)); } }
 
         private Audio.Stream stream = null;
 

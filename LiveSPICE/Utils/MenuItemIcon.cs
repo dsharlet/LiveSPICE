@@ -16,10 +16,10 @@ namespace LiveSPICE
         private double height = 16;
         [LocalizabilityAttribute(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverterAttribute(typeof(LengthConverter))]
-        public double IconWidth { get { return width; } set { width = value; NotifyChanged("IconWidth"); } }
+        public double IconWidth { get { return width; } set { width = value; NotifyChanged(nameof(IconWidth)); } }
         [LocalizabilityAttribute(LocalizationCategory.None, Readability = Readability.Unreadable)]
         [TypeConverterAttribute(typeof(LengthConverter))]
-        public double IconHeight { get { return height; } set { height = value; NotifyChanged("IconHeight"); } }
+        public double IconHeight { get { return height; } set { height = value; NotifyChanged(nameof(IconHeight)); } }
 
         public ImageSource IconSource
         {
@@ -44,7 +44,7 @@ namespace LiveSPICE
                     disabled = null;
                 }
                 Update();
-                NotifyChanged("IconSource");
+                NotifyChanged(nameof(IconSource));
             }
         }
 

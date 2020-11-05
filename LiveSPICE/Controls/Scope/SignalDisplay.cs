@@ -18,7 +18,7 @@ namespace LiveSPICE
             {
                 signals = value;
                 InvalidateVisual();
-                NotifyChanged("Signals");
+                NotifyChanged(nameof(Signals));
             }
         }
 
@@ -38,7 +38,7 @@ namespace LiveSPICE
         }
 
         private Signal selected;
-        public Signal SelectedSignal { get { return selected; } set { selected = value; NotifyChanged("SelectedSignal"); } }
+        public Signal SelectedSignal { get { return selected; } set { selected = value; NotifyChanged(nameof(SelectedSignal)); } }
 
         public void Clear()
         {

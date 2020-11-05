@@ -62,7 +62,7 @@ namespace LiveSPICE
         public string Status
         {
             get { return status != null ? status : "Ready"; }
-            set { status = value; NotifyChanged("Status"); }
+            set { status = value; NotifyChanged(nameof(Status)); }
         }
 
         private SchematicViewer AddViewer(SchematicEditor Schematic)

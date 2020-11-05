@@ -162,8 +162,8 @@ namespace Tests
             Plot p = new Plot()
             {
                 Title = Title,
-                Width = 800,
-                Height = 400,
+                Width = 1200,
+                Height = 800,
                 x0 = 0,
                 x1 = Outputs.Max(i => i.Value.Count),
                 xLabel = "Time (s)",
@@ -173,6 +173,8 @@ namespace Tests
             p.Series.AddRange(Outputs.Select(i => new Scatter(
                 i.Value.Select((k, n) => new KeyValuePair<double, double>(n, k)).ToArray())
             { Name = i.Key.ToString() }));
+
+            p.Save(Title + ".bmp");
         }
     }
 }

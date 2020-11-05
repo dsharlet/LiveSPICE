@@ -29,7 +29,7 @@ namespace Circuit
 
         protected Ratio turns = new Ratio(1, 1);
         [Serialize, Description("Primary:secondary turns ratio.")]
-        public Ratio Turns { get { return turns; } set { turns = value; NotifyChanged("Turns"); } }
+        public Ratio Turns { get { return turns; } set { turns = value; NotifyChanged(nameof(Turns)); } }
 
         public CenterTapTransformer()
         {
