@@ -328,8 +328,6 @@ namespace LiveSPICEVst
                                     IEnumerable<Output> outputs = circuit.Components.OfType<Output>();
 
                                     Expression outputExpression = 0;
-
-                                    // Output is voltage drop across the outputs
                                     foreach (Output output in outputs)
                                     {
                                         outputExpression += output.Out;
