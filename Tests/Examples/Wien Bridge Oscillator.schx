@@ -12,11 +12,6 @@
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-3" Flip="false" Position="50,-200">
     <Component _Type="Circuit.Capacitor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Capacitance="100 nF" Name="C2" Description="Standard capacitor component" />
   </Element>
-  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="0,-100">
-    <Component _Type="Circuit.Specialization, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Description="">
-      <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rin="2 MΩ" Rout="75 Ω" Aol="200 k" GBP="1 MHz" Name="X1" PartNumber="UA741" Description="Generic op-amp model. Model includes a single pole frequency response and saturation." />
-    </Component>
-  </Element>
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,-30" B="-200,0" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-140,-30" B="-140,0" />
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="-200,-110" B="-200,-70" />
@@ -74,5 +69,8 @@
   <Element Type="Circuit.Wire, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" A="200,-30" B="200,0" />
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="200,0">
     <Component _Type="Circuit.Ground, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="GND3" Description="" />
+  </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="true" Position="0,-100">
+    <Component _Type="Circuit.OpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rin="2 MΩ" Rout="75 Ω" Aol="200 k" GBP="1 MHz" Name="X1" PartNumber="UA741" Description="Generic op-amp model. Model includes a single pole frequency response and saturation." />
   </Element>
 </Schematic>
