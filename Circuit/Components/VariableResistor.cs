@@ -4,6 +4,19 @@ using System.ComponentModel;
 
 namespace Circuit
 {
+    /// <summary>
+    /// What kind of sweep a parameter should make.
+    /// </summary>
+    public enum SweepType
+    {
+        Linear,
+        Logarithmic,
+        // These are equivalent to just swapping around connections on potentiometers,
+        // but variable resistors sometimes need them.
+        ReverseLinear,
+        ReverseLogarithmic,
+    }
+
     [Category("Generic")]
     [DisplayName("Variable Resistor")]
     [DefaultProperty("Resistance")]
@@ -35,14 +48,19 @@ namespace Circuit
 
         public static double AdjustWipe(double x, SweepType Sweep)
         {
-            switch (Sweep)
-            {
-                case SweepType.Logarithmic: x = (Math.Exp(x) - 1.0) / (Math.E - 1.0); break;
-                default: break;
-            }
+            x = Math.Min(Math.Max(x, 1e-3), 1.0 - 1e-3);
+            
+            // If we want the parameter to be backwards, swap it.
+            if (Sweep == SweepType.ReverseLinear || Sweep == SweepType.ReverseLogarithmic)
+                x = 1 - x;
+            
+            // If we want the parameter to be logarithmic, apply an exponential curve
+            // passing through 0 and 1.
+            double exp = Math.Exp(2);
+            if (Sweep == SweepType.Logarithmic || Sweep == SweepType.ReverseLogarithmic)
+                x = (Math.Pow(exp, x) - 1.0) / (exp - 1.0);
 
-            // Clamp to (0, 1).
-            return Math.Min(Math.Max(x, 1e-3), 1.0 - 1e-3);
+            return x;
         }
 
         public override void LayoutSymbol(SymbolLayout Sym)

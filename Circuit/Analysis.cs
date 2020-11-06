@@ -14,16 +14,6 @@ namespace Circuit
     }
 
     /// <summary>
-    /// What kind of sweep a logarithmic parameter should make.
-    /// </summary>
-    public enum SweepType
-    {
-        Linear,
-        Logarithmic,
-        ReverseLogarithmic,
-    }
-
-    /// <summary>
     /// Helper class for building a system of MNA equations and unknowns.
     /// </summary>
     public class Analysis : DynamicNamespace
