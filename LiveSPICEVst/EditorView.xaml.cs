@@ -111,6 +111,7 @@ namespace LiveSPICEVst
                         DataContext = Plugin.SimulationProcessor.Schematic,
                         Title = Plugin.SimulationProcessor.SchematicName
                     };
+                    schematicWindow.Closed += (o, e2) => schematicWindow = null;
                 }
                 
                 schematicWindow.Show();
