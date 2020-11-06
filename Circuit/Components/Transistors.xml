@@ -53,6 +53,10 @@
 			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC109B" />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="7.049 fA" BF="677" BR="2.209" Type="NPN" Name="Q1" PartNumber="BC109C" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="4.679e-14 A" BF="458.7" BR="11.57" Type="NPN" Name="Q1" PartNumber="BC549B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="493.2" BR="2.886" Type="NPN" Name="Q1" PartNumber="BC549C" />
 
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="5 uA" BF="160" BR="5" Type="NPN" Name="Q1" PartNumber="AC127" />
