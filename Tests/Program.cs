@@ -11,9 +11,9 @@ namespace Tests
     class Program
     {
         // TODO: Make these command line arguments.
-        static int SampleRate = 48000;
+        static int SampleRate = 44100;
         static int Samples = 4800;
-        static int Oversample = 8;
+        static int Oversample = 4;
         static int Iterations = 8;
 
         static void Main(string[] args)
