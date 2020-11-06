@@ -29,6 +29,7 @@ namespace Circuit
         /// <summary>
         /// Expression describing the normalized input signal of this component.
         /// </summary>
+        [Browsable(false)]
         public Expression In { get { return DependentVariable(Name, t); } }
 
         public override void LayoutSymbol(SymbolLayout Sym)

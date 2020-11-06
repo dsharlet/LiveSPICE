@@ -25,6 +25,7 @@ namespace Circuit
         /// <summary>
         /// Expression describing the normalized output signal of this component.
         /// </summary>
+        [Browsable(false)]
         public Expression Out { get { return V / V0dBFS; } }
 
         public override void Analyze(Analysis Mna)
