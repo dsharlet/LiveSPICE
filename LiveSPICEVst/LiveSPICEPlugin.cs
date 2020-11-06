@@ -27,6 +27,7 @@ namespace LiveSPICEVst
 
         public SimulationProcessor SimulationProcessor { get; private set; }
         public EditorView EditorView { get; set; }
+        public string SchematicPath { get { return SimulationProcessor.SchematicPath; } }
 
         System.Windows.Window window;
 
