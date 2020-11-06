@@ -1,6 +1,4 @@
-﻿using Circuit;
-using Microsoft.Win32;
-using SharpSoundDevice;
+﻿using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Windows;
@@ -107,13 +105,13 @@ namespace LiveSPICEVst
                 {
                     schematicWindow = new SchematicWindow()
                     {
-                        Owner = Window.GetWindow(this),
                         DataContext = Plugin.SimulationProcessor.Schematic,
                         Title = Plugin.SimulationProcessor.SchematicName
                     };
                 }
-                
+
                 schematicWindow.Show();
+                schematicWindow.Activate();
             }
         }
     }
