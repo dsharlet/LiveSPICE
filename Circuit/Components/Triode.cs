@@ -128,9 +128,10 @@ namespace Circuit
                     ig = Call.Max(Vgk - Vg, 0) / Rgk;
                     break;
                 case TriodeModel.DempwolfZolzer:
-                    ig = Call.If(Vgk > -5, Gg * Binary.Power(Ln1Exp(Cg * Vgk) / Cg, Xi), 0) + Ig0;
-                    Expression ex = C * ((Vpk / Mu) + Vgk);
-                    var ik = Call.If(ex > -5, G * Binary.Power(Ln1Exp(ex) / C, Gamma), 0);
+                    Expression exg = Cg * Vgk;
+                    ig = Call.If(exg > -50, Gg * Binary.Power(Ln1Exp(exg) / Cg, Xi), 0) + Ig0;
+                    Expression exk = C * ((Vpk / Mu) + Vgk);
+                    var ik = Call.If(exk > -50, G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
                     ip = ik - ig;
                     break;
                 default:
