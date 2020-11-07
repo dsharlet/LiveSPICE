@@ -117,16 +117,18 @@ namespace Circuit
         {
             solution = Solution;
 
-            for (int n = MaxDelay; n < 0; n++)
+            // If any system depends on the previous value of an unknown, we need a global variable for it.
+            for (int n = -1; n >= MaxDelay; n--)
             {
                 Arrow t_tn = Arrow.New(t, t + n * Solution.TimeStep);
-                // If any system depends on the previous value of an unknown, we need a global variable for it.
+                IEnumerable<Expression> unknowns_tn = Solution.Solutions.SelectMany(i => i.Unknowns).Select(i => i.Evaluate(t_tn));
+                if (!Solution.Solutions.Any(i => i.DependsOn(unknowns_tn)))
+                    break;
+                
                 foreach (Expression i in Solution.Solutions.SelectMany(i => i.Unknowns))
-                {
-                    if (Solution.Solutions.Any(j => j.DependsOn(i.Evaluate(t_tn))))
-                        AddGlobal(i.Evaluate(t_tn));
-                }
+                    AddGlobal(i.Evaluate(t_tn));
             }
+
             // Also need globals for any Newton's method unknowns.
             Arrow t_t1 = Arrow.New(t, t - Solution.TimeStep);
             foreach (Expression i in Solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))

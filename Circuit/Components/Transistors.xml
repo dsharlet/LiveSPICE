@@ -53,6 +53,10 @@
 			   IS="7.049 fA" BF="381.7" BR="2.359" Type="NPN" Name="Q1" PartNumber="BC109B" />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="7.049 fA" BF="677" BR="2.209" Type="NPN" Name="Q1" PartNumber="BC109C" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="4.679e-14 A" BF="458.7" BR="11.57" Type="NPN" Name="Q1" PartNumber="BC549B" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="7.049 fA" BF="493.2" BR="2.886" Type="NPN" Name="Q1" PartNumber="BC549C" />
 
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="5 uA" BF="160" BR="5" Type="NPN" Name="Q1" PartNumber="AC127" />
@@ -72,6 +76,8 @@
 
 	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1e-14 A" Beta="1.3143e-3" Vt0="-2.021" Lambda="4e-3" Type="N" Name="Q1" PartNumber="2N5952" />
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="1e-14 A" Beta="1.125e-3" Vt0="-1.372" Lambda="2.3e-3" Type="N" Name="Q1" PartNumber="2N5457" />
 	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1e-14 A" Beta="488.9e-6" Vt0="-2.882" Lambda="3.167e-3" Type="N" Name="Q1" PartNumber="2N5458" />
 

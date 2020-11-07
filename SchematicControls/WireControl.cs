@@ -17,6 +17,9 @@ namespace SchematicControls
             MouseMove += (s, e) => ToolTip = wire.Node != null ? wire.Node.ToString() : null;
         }
 
+        // To avoid glitches, draw wire terminals a little smaller than regular terminals.
+        public static double WireTerminalSize = TerminalSize * 0.9;
+
         protected override void OnRender(DrawingContext dc)
         {
             dc.PushGuidelineSet(Guidelines);
@@ -24,15 +27,19 @@ namespace SchematicControls
             // This isn't pointless, it makes WPF mouse hit tests succeed near the wire instead of exactly on it.
             dc.DrawRectangle(Brushes.Transparent, null, new Rect(-2, -2, ActualWidth + 4, ActualHeight + 4));
 
+            Pen pen;
             if (Selected)
-                dc.DrawLine(SelectedWirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
+                pen = SelectedWirePen;
             else if (Highlighted)
-                dc.DrawLine(HighlightedWirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
+                pen = HighlightedWirePen;
             else
-                dc.DrawLine(WirePen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
+                pen = WirePen;
+            dc.DrawLine(pen, new Point(0, 0), new Point(ActualWidth, ActualHeight));
 
-            ElementControl.DrawTerminal(dc, ToPoint(wire.A - wire.LowerBound), wire.Anode.ConnectedTo != null);
-            ElementControl.DrawTerminal(dc, ToPoint(wire.B - wire.LowerBound), wire.Cathode.ConnectedTo != null);
+            // Don't use the pen to draw the terminals, because the terminals tend to get overdrawn by other components.
+            Vector dx = new Vector(WireTerminalSize / 2, WireTerminalSize / 2);
+            foreach (Point x in new[] { ToPoint(wire.A - wire.LowerBound), ToPoint(wire.B - wire.LowerBound) })
+                dc.DrawRectangle(WirePen.Brush, WirePen, new Rect(x - dx, x + dx));
 
             dc.Pop();
         }

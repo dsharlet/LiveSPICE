@@ -72,10 +72,10 @@ namespace SchematicControls
 
         public static ElementControl New(Circuit.Element E)
         {
-            if (E is Circuit.Wire)
-                return new WireControl((Circuit.Wire)E);
-            else if (E is Circuit.Symbol)
-                return new SymbolControl((Circuit.Symbol)E);
+            if (E is Circuit.Wire wire)
+                return new WireControl(wire);
+            else if (E is Circuit.Symbol symbol)
+                return new SymbolControl(symbol);
             else
                 throw new NotImplementedException();
         }
@@ -99,13 +99,6 @@ namespace SchematicControls
         public static Pen CyanPen = new Pen(Brushes.Cyan, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen MagentaPen = new Pen(Brushes.Magenta, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         public static Pen OrangePen = new Pen(Brushes.Orange, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-
-        public static void DrawTerminal(DrawingContext Context, Point x, bool Connected)
-        {
-            Vector dx = new Vector(TerminalSize / 2, TerminalSize / 2);
-            Pen pen = MapToPen(Connected ? Circuit.EdgeType.Wire : Circuit.EdgeType.Red);
-            Context.DrawRectangle(pen.Brush, pen, new Rect(x - dx, x + dx));
-        }
 
         public static Pen MapToPen(Circuit.EdgeType Edge)
         {

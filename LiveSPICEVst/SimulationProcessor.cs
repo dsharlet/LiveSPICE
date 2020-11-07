@@ -97,16 +97,19 @@ namespace LiveSPICEVst
 
         public Schematic Schematic { get; private set; }
         public string SchematicPath { get; private set; }
-        public string SchematicName { get; private set; }
+        public string SchematicName { get { return System.IO.Path.GetFileNameWithoutExtension(SchematicPath); } }
 
         public double SampleRate
         {
             get { return sampleRate; }
             set
             {
-                sampleRate = value;
+                if (sampleRate != value)
+                {
+                    sampleRate = value;
 
-                needRebuild = true;
+                    needRebuild = true;
+                }
             }
         }
 
@@ -115,9 +118,12 @@ namespace LiveSPICEVst
             get { return oversample; }
             set
             {
-                oversample = value;
+                if (oversample != value)
+                {
+                    oversample = value;
 
-                needRebuild = true;
+                    needRebuild = true;
+                }
             }
         }
 
@@ -126,8 +132,12 @@ namespace LiveSPICEVst
             get { return iterations; }
             set
             {
-                iterations = value;
-                needRebuild = true;
+                if (iterations != value)
+                {
+                    iterations = value;
+
+                    needRebuild = true;
+                }
             }
         }
 
@@ -155,14 +165,13 @@ namespace LiveSPICEVst
 
             Schematic = newSchematic;
 
-            SchematicName = System.IO.Path.GetFileNameWithoutExtension(path);
-
             SchematicPath = path;
         }
 
         public void ClearSchematic()
         {
             Schematic = null;
+            SchematicPath = "";
             circuit = null;
             InteractiveComponents.Clear();
         }

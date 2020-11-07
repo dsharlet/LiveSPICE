@@ -1,6 +1,4 @@
-﻿using Circuit;
-using Microsoft.Win32;
-using SharpSoundDevice;
+﻿using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Windows;
@@ -16,7 +14,6 @@ namespace LiveSPICEVst
         public LiveSPICEPlugin Plugin { get; private set; }
 
         SchematicWindow schematicWindow = null;
-        string schematicPath = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LiveSPICE"), "Examples");
 
         public EditorView(LiveSPICEPlugin plugin)
         {
@@ -76,18 +73,19 @@ namespace LiveSPICEVst
 
         private void LoadCircuitButton_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog dialog = new OpenFileDialog();
-
-            dialog.InitialDirectory = schematicPath;
-            dialog.Filter = "Circuit Schemas (*.schx)|*.schx";
+            string examples =
+               Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "LiveSPICE", "Examples");
+            string initialDirectory =
+                string.IsNullOrEmpty(Plugin.SchematicPath) ? examples : Path.GetDirectoryName(Plugin.SchematicPath);
+            OpenFileDialog dialog = new OpenFileDialog
+            {
+                InitialDirectory = initialDirectory,
+                Filter = "Circuit Schematics (*.schx)|*.schx"
+            };
 
             if (dialog.ShowDialog() == true)
             {
-                string path = dialog.FileName;
-
-                schematicPath = Path.GetDirectoryName(path);
-
-                Plugin.LoadSchematic(path);
+                Plugin.LoadSchematic(dialog.FileName);
 
                 UpdateSchematic();
             }
@@ -107,13 +105,13 @@ namespace LiveSPICEVst
                 {
                     schematicWindow = new SchematicWindow()
                     {
-                        Owner = Window.GetWindow(this),
                         DataContext = Plugin.SimulationProcessor.Schematic,
                         Title = Plugin.SimulationProcessor.SchematicName
                     };
                 }
-                
+
                 schematicWindow.Show();
+                schematicWindow.Activate();
             }
         }
     }
