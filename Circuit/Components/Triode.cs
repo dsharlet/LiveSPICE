@@ -8,9 +8,10 @@ namespace Circuit
     public enum TriodeModel
     {
         ChildLangmuir,
-        // TODO: This model is broken.
+        DempwolfZolzer,
+
+        // TODO: This model doesn't work very well. Not sure if it's a bug or the model is bad.
         [Browsable(false)] Koren,
-        DempwolfZolzer
     }
 
     /// <summary>
@@ -123,8 +124,8 @@ namespace Circuit
                     ig = 0;
                     break;
                 case TriodeModel.Koren:
-                    Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk ^ 2, -0.5))) * Vpk / Kp;
-                    ip = (Call.Max(E1, 0) ^ Ex) / Kg;
+                    Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
+                    ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
                     ig = Call.Max(Vgk - Vg, 0) / Rgk;
                     break;
                 case TriodeModel.DempwolfZolzer:
