@@ -329,4 +329,7 @@
   <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="-2" Flip="false" Position="-650,150">
     <Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" IS="1.214 fA" n="1" Type="Zener" Name="D2" PartNumber="1N4733" Description="" />
   </Element>
+  <Element Type="Circuit.Symbol, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Rotation="0" Flip="false" Position="-280,-410">
+    <Component _Type="Circuit.Label, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Text="MXR Phase 90" Subtext="https://www.electrosmash.com/mxr-phase90" Name="_1" Description="Displays a text label on a schematic." />
+  </Element>
 </Schematic>
