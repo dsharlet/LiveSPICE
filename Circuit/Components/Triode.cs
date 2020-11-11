@@ -8,9 +8,10 @@ namespace Circuit
     public enum TriodeModel
     {
         ChildLangmuir,
-        // TODO: This model is broken.
+        DempwolfZolzer,
+
+        // TODO: This model doesn't work very well. Not sure if it's a bug or the model is bad.
         [Browsable(false)] Koren,
-        DempwolfZolzer
     }
 
     /// <summary>
@@ -111,36 +112,44 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression Vpk = Mna.AddUnknownEqualTo(Name + "pk", p.V - k.V);
-            Expression Vgk = Mna.AddUnknownEqualTo(Name + "gk", g.V - k.V);
+            Expression Vpk = p.V - k.V;
+            Expression Vgk = g.V - k.V;
+            //Vpk = Mna.AddUnknownEqualTo(Name + "pk", Vpk);
+            //Vgk = Mna.AddUnknownEqualTo(Name + "gk", Vgk);
 
-            Expression ip, ig;
+            Expression ip, ig, ik;
             switch (model)
             {
                 case TriodeModel.ChildLangmuir:
                     Expression Ed = Mu * Vgk + Vpk;
                     ip = Call.If(Ed > 0, K * (Ed ^ 1.5), 0);
+                    //ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
                     ig = 0;
+                    ik = -(ip + ig);
                     break;
                 case TriodeModel.Koren:
-                    Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk ^ 2, -0.5))) * Vpk / Kp;
-                    ip = (Call.Max(E1, 0) ^ Ex) / Kg;
+                    Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
+                    ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
                     ig = Call.Max(Vgk - Vg, 0) / Rgk;
+                    //ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
+                    //ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
+                    ik = -(ip + ig);
                     break;
                 case TriodeModel.DempwolfZolzer:
-                    ig = Call.If(Vgk > -5, Gg * Binary.Power(Ln1Exp(Cg * Vgk) / Cg, Xi), 0) + Ig0;
-                    Expression ex = C * ((Vpk / Mu) + Vgk);
-                    var ik = Call.If(ex > -5, G * Binary.Power(Ln1Exp(ex) / C, Gamma), 0);
-                    ip = ik - ig;
+                    Expression exg = Cg * Vgk;
+                    ig = Call.If(exg > -50, Gg * Binary.Power(Ln1Exp(exg) / Cg, Xi), 0) + Ig0;
+                    Expression exk = C * ((Vpk / Mu) + Vgk);
+                    ik = Call.If(exk > -50, -G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
+                    //ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
+                    //ik = Mna.AddUnknownEqualTo("i" + Name + "k", ik);
+                    ip = -(ik + ig);
                     break;
                 default:
                     throw new NotImplementedException("Triode model " + model.ToString());
             }
-            ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
-            ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
             Mna.AddTerminal(p, ip);
             Mna.AddTerminal(g, ig);
-            Mna.AddTerminal(k, -(ip + ig));
+            Mna.AddTerminal(k, ik);
         }
 
         public void ConnectTo(Node P, Node G, Node K)

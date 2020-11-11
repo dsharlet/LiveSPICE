@@ -217,14 +217,22 @@ namespace Circuit
                 && On.SequenceEqual(d.Arguments);
         }
 
-        private const double LinExpKnee = 50.0;
         /// <summary>
-        /// Similar to e^x, but uses a linear extension of e^x for large x. Useful for p-n junction
+        /// Similar to e^x - 1, but uses a linear extension of e^x for large x. Useful for p-n junction
         /// i-V relationships to avoid numerical problems for large x.
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static Expression LinExp(Expression x) { return Call.If(x < LinExpKnee, Call.Exp(x), Math.Exp(LinExpKnee) * (1.0 + x - LinExpKnee)); }
+        public static Expression LinExpm1(Expression x)
+        {
+            const double LinExpKnee = 50.0;
+            // TODO: Do a proper e^x - 1. Right now this still helps with stability, just
+            // because the computer algebra simplifications don't cross Call.If, which is
+            // lame.
+            double expKnee = Math.Exp(LinExpKnee);
+            double kneeIntercept = expKnee - expKnee * LinExpKnee - 1.0;
+            return Call.If(x < LinExpKnee, Call.Exp(x) - 1, expKnee * x + kneeIntercept);
+        }
 
         /// <summary>
         /// Find a unique name among a set of names.

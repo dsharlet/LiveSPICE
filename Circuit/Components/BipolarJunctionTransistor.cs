@@ -74,8 +74,8 @@ namespace Circuit
             Expression aR = BR / (1 + (Expression)BR);
             Expression aF = BF / (1 + (Expression)BF);
 
-            Expression iF = IS * (LinExp(Vbe / VT) - 1);
-            Expression iR = IS * (LinExp(Vbc / VT) - 1);
+            Expression iF = IS * LinExpm1(Vbe / VT);
+            Expression iR = IS * LinExpm1(Vbc / VT);
             
             Expression ie = iF - aR * iR;
             Expression ic = aF * iF - iR;

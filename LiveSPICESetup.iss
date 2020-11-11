@@ -23,9 +23,9 @@ Name: "vst"; Description: "VST Plugin"; Types: full custom
 [Files]
 Source: "LiveSPICE\bin\Release\LiveSPICE.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LiveSPICE\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Circuit\Components\*.xml"; DestDir: "{app}\Components"; Flags: onlyifdoesntexist
-Source: "Circuit\Components\Readme.txt"; DestDir: "{autodocs}\LiveSPICE\Components"; Flags: onlyifdoesntexist
-Source: "Tests\Examples\*.schx"; DestDir: "{autodocs}\LiveSPICE\Examples"; Flags: onlyifdoesntexist
+Source: "Circuit\Components\*.xml"; DestDir: "{app}\Components"
+Source: "Circuit\Components\Readme.txt"; DestDir: "{userdocs}\LiveSPICE\Components"
+Source: "Tests\Examples\*.schx"; DestDir: "{userdocs}\LiveSPICE\Examples"
 
 Source: "LiveSPICEVst\bin\Release\*.dll"; DestDir: "{autopf}\Steinberg\VstPlugIns\LiveSPICE"; Flags: ignoreversion; Components: vst
 
