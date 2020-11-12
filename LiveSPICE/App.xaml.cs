@@ -97,7 +97,7 @@ namespace LiveSPICE
             {
                 try
                 {
-                    Assembly.LoadFile(dll);
+                    Assembly.LoadFrom(dll);
                 }
                 catch (FileLoadException Ex)
                 {
