@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MockVst", "MockVst\MockVst.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LiveSPICEVst", "LiveSPICEVst", "{6DD7DA6B-5277-45C3-ACBD-8306D27528D0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComputerAlgebra.Plotting", "ComputerAlgebra\ComputerAlgebra.Plotting\ComputerAlgebra.Plotting.csproj", "{51F8BCEC-5C29-46BA-8448-06B516715840}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
