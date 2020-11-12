@@ -113,7 +113,7 @@ namespace WaveAudio
             Log.Global.WriteLine(MessageType.Info, "Exiting streaming thread");
         }
 
-        private static void ConvertSamples(IntPtr In, WAVEFORMATEX InFormat, IntPtr Out, int Count)
+        private static void ConvertSamples(IntPtr In, WAVEFORMATEX InFormat, IntPtr Out, uint Count)
         {
             switch (InFormat.wBitsPerSample)
             {
@@ -123,7 +123,7 @@ namespace WaveAudio
             }
         }
 
-        private static void ConvertSamples(IntPtr In, IntPtr Out, WAVEFORMATEX OutFormat, int Count)
+        private static void ConvertSamples(IntPtr In, IntPtr Out, WAVEFORMATEX OutFormat, uint Count)
         {
             switch (OutFormat.wBitsPerSample)
             {
