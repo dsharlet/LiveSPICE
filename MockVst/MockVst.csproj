@@ -2,7 +2,11 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <OutputType>WinExe</OutputType>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>LiveSPICEApp</AssemblyName>
+    <Product>LiveSPICEApp</Product>
+    <Copyright>Copyright ©  2020</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>

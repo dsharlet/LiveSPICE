@@ -2,7 +2,11 @@
   <PropertyGroup>
     <TargetFrameworks>net48;netcoreapp3.1;net50-windows</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>CircuitTests</AssemblyName>
+    <Product>CircuitTests</Product>
+    <Copyright>Copyright ©  2020</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Circuit\Circuit.csproj" />
