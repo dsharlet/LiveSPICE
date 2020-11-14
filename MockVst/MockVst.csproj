@@ -1,26 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <OutputType>WinExe</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="SharpSoundDevice">
-      <HintPath>..\LiveSPICEVst\bin\$(Configuration)\SharpSoundDevice.dll</HintPath>
-    </Reference>
-    <Reference Include="Util">
-      <HintPath>..\LiveSPICEVst\bin\$(Configuration)\Util.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LiveSPICEVst\LiveSPICEVst.csproj" />
+    <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="SharpSoundDevice">
+      <HintPath>..\SharpSoundDevice\x64\Release\SharpSoundDevice.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
