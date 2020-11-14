@@ -596,8 +596,6 @@ namespace Circuit
                 throw new NotImplementedException("Constant");
         }
 
-        private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
-
         // Get a method of T with the given name/param types.
         private static MethodInfo GetMethod(Type T, string Name, params Type[] ParamTypes) { return T.GetMethod(Name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, ParamTypes, null); }
         private static MethodInfo GetMethod<T>(string Name, params Type[] ParamTypes) { return GetMethod(typeof(T), Name, ParamTypes); }
