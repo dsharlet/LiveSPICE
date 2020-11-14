@@ -482,13 +482,14 @@ namespace Circuit
                 }
 
                 // Swap pivot row with the current row.
-                double[] Abj = Ab[j];
                 if (pi != j)
                 {
-                    double[] Abpi = Ab[pi];
-                    for (int ij = j; ij <= N; ++ij)
-                        Swap(ref Abj[ij], ref Abpi[ij]);
+                    var Abpi = Ab[pi];
+                    Ab[pi] = Ab[j];
+                    Ab[j] = Abpi;
                 }
+
+                double[] Abj = Ab[j];
 
                 // Eliminate the rows after the pivot.
                 double p = Abj[j];
