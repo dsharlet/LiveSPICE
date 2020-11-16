@@ -240,6 +240,9 @@ namespace Circuit
             // double h = T / Oversample
             LinqExpr h = LinqExpr.Constant(TimeStep / (double)Oversample);
 
+            // double invOversample = 1 / Oversample
+            LinqExpr invOversample = LinqExpr.Constant(1.0 / (double)Oversample);
+
             // Load the globals to local variables and add them to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 code.Add(LinqExpr.Assign(code.Decl(i.Key), i.Value));
@@ -276,7 +279,7 @@ namespace Circuit
                         // dVi = (Vb - Va) / Oversample
                         code.Add(LinqExpr.Assign(
                             Decl<double>(code, dVi, i, "d" + i.ToString().Replace("[t]", "")),
-                            LinqExpr.Multiply(LinqExpr.Subtract(Vb, Va), LinqExpr.Constant(1.0 / (double)Oversample))));
+                            LinqExpr.Multiply(LinqExpr.Subtract(Vb, Va), invOversample)));
                     }
 
                     // Prepare output sample accumulators for low pass filtering.
@@ -396,7 +399,7 @@ namespace Circuit
 
                     // Output[i][n] = Vo / Oversample
                     foreach (KeyValuePair<Expression, LinqExpr> i in outputs)
-                        code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], LinqExpr.Constant(1.0 / (double)Oversample))));
+                        code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], invOversample)));
 
                     // Every 256 samples, check for divergence.
                     if (Vo.Any())
@@ -438,7 +441,6 @@ namespace Circuit
             }
 
             // Gaussian elimination on this turd.
-            //RowReduce(code, Ab, M, N);
             code.Add(LinqExpr.Call(
                 GetMethod<Simulation>("RowReduce", Ab.Type, typeof(int), typeof(int)),
                 Ab,
@@ -504,70 +506,6 @@ namespace Circuit
             }
         }
 
-        // Generate code to perform row reduction.
-        private static void RowReduce(CodeGen code, LinqExpr Ab, int M, int N)
-        {
-            // For each variable in the system...
-            for (int j = 0; j + 1 < N; ++j)
-            {
-                LinqExpr _j = LinqExpr.Constant(j);
-                LinqExpr Abj = code.ReDeclInit<double[]>("Abj", LinqExpr.ArrayAccess(Ab, _j));
-                // int pi = j
-                LinqExpr pi = code.ReDeclInit<int>("pi", _j);
-                // double max = |Ab[j][j]|
-                LinqExpr max = code.ReDeclInit<double>("max", Abs(LinqExpr.ArrayAccess(Abj, _j)));
-
-                // Find a pivot row for this variable.
-                //code.For(j + 1, M, _i =>
-                //{
-                for (int i = j + 1; i < M; ++i)
-                {
-                    LinqExpr _i = LinqExpr.Constant(i);
-
-                    // if(|Ab[i][j]| > max) { pi = i, max = |Ab[i][j]| }
-                    LinqExpr maxj = code.ReDeclInit<double>("maxj", Abs(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(Ab, _i), _j)));
-                    code.Add(LinqExpr.IfThen(
-                        LinqExpr.GreaterThan(maxj, max),
-                        LinqExpr.Block(
-                            LinqExpr.Assign(pi, _i),
-                            LinqExpr.Assign(max, maxj))));
-                }
-
-                // (Maybe) swap the pivot row with the current row.
-                LinqExpr Abpi = code.ReDecl<double[]>("Abpi");
-                code.Add(LinqExpr.IfThen(
-                    LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
-                        new[] { LinqExpr.Assign(Abpi, LinqExpr.ArrayAccess(Ab, pi)) }.Concat(
-                        Enumerable.Range(j, N + 1 - j).Select(x => Swap(
-                            LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(x)),
-                            LinqExpr.ArrayAccess(Abpi, LinqExpr.Constant(x)),
-                            code.ReDecl<double>("swap")))))));
-
-                //// It's hard to believe this swap isn't faster than the above...
-                //code.Add(LinqExpr.IfThen(LinqExpr.NotEqual(_j, pi), LinqExpr.Block(
-                //    Swap(LinqExpr.ArrayAccess(Ab, _j), LinqExpr.ArrayAccess(Ab, pi), Redeclare<double[]>(code, "temp")),
-                //    LinqExpr.Assign(Abj, LinqExpr.ArrayAccess(Ab, _j)))));
-
-                // Eliminate the rows after the pivot.
-                LinqExpr p = code.ReDeclInit<double>("p", LinqExpr.ArrayAccess(Abj, _j));
-                //code.For(j + 1, M, _i =>
-                //{
-                for (int i = j + 1; i < M; ++i)
-                {
-                    LinqExpr _i = LinqExpr.Constant(i);
-                    LinqExpr Abi = code.ReDeclInit<double[]>("Abi", LinqExpr.ArrayAccess(Ab, _i));
-
-                    // s = Ab[i][j] / p
-                    LinqExpr s = code.ReDeclInit<double>("scale", LinqExpr.Divide(LinqExpr.ArrayAccess(Abi, _j), p));
-                    // Ab[i] -= Ab[j] * s
-                    for (int ji = j + 1; ji < N + 1; ++ji)
-                        code.Add(LinqExpr.SubtractAssign(
-                            LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(ji)),
-                            LinqExpr.Multiply(LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(ji)), s)));
-                }
-            }
-        }
-
         // Returns a throw SimulationDiverged expression at At.
         private LinqExpr ThrowSimulationDiverged(LinqExpr At)
         {
@@ -616,13 +554,5 @@ namespace Circuit
         }
         // Round x to zero if it is sub-normal.
         private static LinqExpr RoundDenormToZero(LinqExpr x) { return x; }
-        // Generate expression to swap a and b, using t as a temporary.
-        private static LinqExpr Swap(LinqExpr a, LinqExpr b, LinqExpr t)
-        {
-            return LinqExpr.Block(
-                LinqExpr.Assign(t, a),
-                LinqExpr.Assign(a, b),
-                LinqExpr.Assign(b, t));
-        }
     }
 }
