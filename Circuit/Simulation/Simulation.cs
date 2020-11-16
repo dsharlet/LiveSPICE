@@ -482,13 +482,14 @@ namespace Circuit
                 }
 
                 // Swap pivot row with the current row.
-                double[] Abj = Ab[j];
                 if (pi != j)
                 {
-                    double[] Abpi = Ab[pi];
-                    for (int ij = j; ij <= N; ++ij)
-                        Swap(ref Abj[ij], ref Abpi[ij]);
+                    var Abpi = Ab[pi];
+                    Ab[pi] = Ab[j];
+                    Ab[j] = Abpi;
                 }
+
+                double[] Abj = Ab[j];
 
                 // Eliminate the rows after the pivot.
                 double p = Abj[j];
@@ -594,8 +595,6 @@ namespace Circuit
             else
                 throw new NotImplementedException("Constant");
         }
-
-        private static void Swap(ref double a, ref double b) { double t = a; a = b; b = t; }
 
         // Get a method of T with the given name/param types.
         private static MethodInfo GetMethod(Type T, string Name, params Type[] ParamTypes) { return T.GetMethod(Name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, ParamTypes, null); }
