@@ -341,7 +341,7 @@ namespace Circuit
                                         LinqExpr dv = code[NewtonIteration.Delta(i)];
 
                                         // done &= (|dv| < |v|*epsilon)
-                                        code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(LinqExpr.Multiply(Abs(dv), LinqExpr.Constant(1e4)), LinqExpr.Add(Abs(v), LinqExpr.Constant(1e-6)))));
+                                        code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), MultiplyAdd(Abs(v), LinqExpr.Constant(1e-4), LinqExpr.Constant(1e-6)))));
                                         // v += dv
                                         code.Add(LinqExpr.AddAssign(v, dv));
                                     }
@@ -538,6 +538,8 @@ namespace Circuit
         private static MethodInfo GetMethod(Type T, string Name, params Type[] ParamTypes) { return T.GetMethod(Name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, ParamTypes, null); }
         private static MethodInfo GetMethod<T>(string Name, params Type[] ParamTypes) { return GetMethod(typeof(T), Name, ParamTypes); }
 
+        // Returns a * b + c.
+        private static LinqExpr MultiplyAdd(LinqExpr a, LinqExpr b, LinqExpr c) { return LinqExpr.Add(LinqExpr.Multiply(a, b), c); }
         // Returns 1 / x.
         private static LinqExpr Reciprocal(LinqExpr x) { return LinqExpr.Divide(ConstantExpr(1.0, x.Type), x); }
         // Returns abs(x).
