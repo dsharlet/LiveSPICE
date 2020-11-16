@@ -1,6 +1,7 @@
-﻿using System.Text;
+﻿using AvalonDock;
+using AvalonDock.Layout.Serialization;
+using System.Text;
 using System.Xml;
-using Xceed.Wpf.AvalonDock;
 
 namespace LiveSPICE
 {
@@ -8,7 +9,7 @@ namespace LiveSPICE
     {
         public static string SaveLayout(this DockingManager This)
         {
-            Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(This);
+            var serializer = new XmlLayoutSerializer(This);
             StringBuilder config = new StringBuilder();
             using (XmlWriter writer = XmlWriter.Create(config))
             {
@@ -34,7 +35,7 @@ namespace LiveSPICE
         {
             if (Config != "")
             {
-                Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer serializer = new Xceed.Wpf.AvalonDock.Layout.Serialization.XmlLayoutSerializer(This);
+                var serializer = new XmlLayoutSerializer(This);
                 serializer.Deserialize(XmlReader.Create(new System.IO.StringReader(Config)));
             }
         }

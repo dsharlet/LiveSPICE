@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Audio
@@ -6,59 +7,60 @@ namespace Audio
     public static class Util
     {
         // C# is great, but man generics suck compared to templates.
-        public static unsafe void LEi16ToLEf64(IntPtr In, IntPtr Out, int Count)
+        // TODO: simd?
+        public static unsafe void LEi16ToLEf64(IntPtr source, IntPtr destination, uint count)
         {
-            short* from = (short*)In.ToPointer();
-            double* to = (double*)Out.ToPointer();
+            short* from = (short*)source.ToPointer();
+            double* to = (double*)destination.ToPointer();
             double scale = 1.0 / ((1 << 15) - 1);
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < count; i++)
                 to[i] = from[i] * scale;
         }
-        public static unsafe void LEi32ToLEf64(IntPtr In, IntPtr Out, int Count)
+        public static unsafe void LEi32ToLEf64(IntPtr source, IntPtr destination, uint count)
         {
-            int* from = (int*)In.ToPointer();
-            double* to = (double*)Out.ToPointer();
+            int* from = (int*)source.ToPointer();
+            double* to = (double*)destination.ToPointer();
             double scale = 1.0 / ((1L << 31) - 1);
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < count; i++)
                 to[i] = from[i] * scale;
         }
-        public static unsafe void LEf32ToLEf64(IntPtr In, IntPtr Out, int Count)
+        public static unsafe void LEf32ToLEf64(IntPtr source, IntPtr destination, uint count)
         {
-            float* from = (float*)In.ToPointer();
-            double* to = (double*)Out.ToPointer();
-            for (int i = 0; i < Count; i++)
+            float* from = (float*)source.ToPointer();
+            double* to = (double*)destination.ToPointer();
+            for (int i = 0; i < count; i++)
                 to[i] = from[i];
         }
 
-        public static unsafe void LEf64ToLEi16(IntPtr In, IntPtr Out, int Count)
+        public static unsafe void LEf64ToLEi16(IntPtr source, IntPtr destination, uint count)
         {
-            double* from = (double*)In.ToPointer();
-            short* to = (short*)Out.ToPointer();
+            double* from = (double*)source.ToPointer();
+            short* to = (short*)destination.ToPointer();
             double max = (1 << 15) - 1;
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < count; i++)
                 to[i] = (short)Math.Max(Math.Min(from[i] * max, max), -max);
         }
-        public static unsafe void LEf64ToLEi32(IntPtr In, IntPtr Out, int Count)
+        public static unsafe void LEf64ToLEi32(IntPtr source, IntPtr destination, uint count)
         {
-            double* from = (double*)In.ToPointer();
-            int* to = (int*)Out.ToPointer();
+            double* from = (double*)source.ToPointer();
+            int* to = (int*)destination.ToPointer();
             double max = (1L << 31) - 1;
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < count; i++)
                 to[i] = (int)Math.Max(Math.Min(from[i] * max, max), -max);
         }
-        public static unsafe void LEf64ToLEf32(IntPtr In, IntPtr Out, int Count)
+        public static unsafe void LEf64ToLEf32(IntPtr source, IntPtr destination, uint count)
         {
-            double* from = (double*)In.ToPointer();
-            float* to = (float*)Out.ToPointer();
-            for (int i = 0; i < Count; i++)
+            double* from = (double*)source.ToPointer();
+            float* to = (float*)destination.ToPointer();
+            for (int i = 0; i < count; i++)
                 to[i] = (float)from[i];
         }
 
-        public static unsafe double Amplify(IntPtr Samples, int Count, double Gain)
+        public static unsafe double Amplify(IntPtr Samples, uint count, double Gain)
         {
             double* s = (double*)Samples.ToPointer();
             double peak = 0.0;
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < count; i++)
             {
                 s[i] = s[i] * Gain;
                 // TODO: Absolute value of s[i]?
@@ -67,7 +69,8 @@ namespace Audio
             return peak;
         }
 
-        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)] public static extern void CopyMemory(IntPtr dest, IntPtr src, int size);
-        [DllImport("Kernel32.dll", EntryPoint = "RtlZeroMemory", SetLastError = false)] public static extern void ZeroMemory(IntPtr dest, int size);
+        public static unsafe void CopyMemory(IntPtr destination, IntPtr source, uint count) => Unsafe.CopyBlock(destination.ToPointer(), source.ToPointer(), count);
+
+        public static unsafe void ZeroMemory(IntPtr startAddress, uint count) => Unsafe.InitBlockUnaligned(startAddress.ToPointer(), 0, count);
     }
 }

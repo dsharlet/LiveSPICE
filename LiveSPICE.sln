@@ -3,29 +3,31 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Circuit", "Circuit\Circuit.csproj", "{5E788E8B-995B-4B54-B3A9-040D65D5509A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Circuit", "Circuit\Circuit.csproj", "{5E788E8B-995B-4B54-B3A9-040D65D5509A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveSPICE", "LiveSPICE\LiveSPICE.csproj", "{CB1CDB4D-01FE-4ACF-BE67-C99516FF15BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiveSPICE", "LiveSPICE\LiveSPICE.csproj", "{CB1CDB4D-01FE-4ACF-BE67-C99516FF15BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audio", "Audio\Audio.csproj", "{F53399E8-B038-4111-B89D-F5C4AB0CCB14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Audio", "Audio\Audio.csproj", "{F53399E8-B038-4111-B89D-F5C4AB0CCB14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComputerAlgebra", "ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj", "{2877C441-FD0B-4441-A469-E677003EE35A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComputerAlgebra", "ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj", "{2877C441-FD0B-4441-A469-E677003EE35A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asio", "Asio\Asio.csproj", "{CF21310E-204B-4E9D-A6DE-AD511B3F3013}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Asio", "Asio\Asio.csproj", "{CF21310E-204B-4E9D-A6DE-AD511B3F3013}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "Util\Util.csproj", "{0A3DB5CB-3C02-4779-B73A-927D2E1EBE54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Util", "Util\Util.csproj", "{0A3DB5CB-3C02-4779-B73A-927D2E1EBE54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveAudio", "WaveAudio\WaveAudio.csproj", "{8190C5B2-71F3-4074-8FB8-3E53E7B28675}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WaveAudio", "WaveAudio\WaveAudio.csproj", "{8190C5B2-71F3-4074-8FB8-3E53E7B28675}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchematicControls", "SchematicControls\SchematicControls.csproj", "{489DE6F5-C984-46B0-A4FB-997649231224}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchematicControls", "SchematicControls\SchematicControls.csproj", "{489DE6F5-C984-46B0-A4FB-997649231224}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveSPICEVst", "LiveSPICEVst\LiveSPICEVst.csproj", "{5278D253-919C-4BB3-ABA7-B945326D33A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiveSPICEVst", "LiveSPICEVst\LiveSPICEVst.csproj", "{5278D253-919C-4BB3-ABA7-B945326D33A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockVst", "MockVst\MockVst.csproj", "{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MockVst", "MockVst\MockVst.csproj", "{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LiveSPICEVst", "LiveSPICEVst", "{6DD7DA6B-5277-45C3-ACBD-8306D27528D0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComputerAlgebra.Plotting", "ComputerAlgebra\ComputerAlgebra.Plotting\ComputerAlgebra.Plotting.csproj", "{51F8BCEC-5C29-46BA-8448-06B516715840}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,10 +51,10 @@ Global
 		{2877C441-FD0B-4441-A469-E677003EE35A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2877C441-FD0B-4441-A469-E677003EE35A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2877C441-FD0B-4441-A469-E677003EE35A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Debug|Any CPU.Build.0 = Debug|x86
-		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Release|Any CPU.ActiveCfg = Release|x86
-		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Release|Any CPU.Build.0 = Release|x86
+		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4B39FD-06B8-4062-AE0E-1ABA9001A546}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CF21310E-204B-4E9D-A6DE-AD511B3F3013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CF21310E-204B-4E9D-A6DE-AD511B3F3013}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF21310E-204B-4E9D-A6DE-AD511B3F3013}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -77,6 +79,10 @@ Global
 		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD8DCC49-44C5-4E36-8F06-F100C5A7BAD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51F8BCEC-5C29-46BA-8448-06B516715840}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

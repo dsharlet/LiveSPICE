@@ -7,8 +7,8 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Xceed.Wpf.AvalonDock.Layout;
 using SchematicControls;
+using AvalonDock.Layout;
 
 namespace LiveSPICE
 {
