@@ -77,8 +77,8 @@ namespace LiveSPICE
             }
         }
 
-        private double VectorToValue(Vector dx) { return Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 3 / 5 + 0.5; }
-        private Vector ValueToVector(double V)
+        private static double VectorToValue(Vector dx) { return Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 3 / 5 + 0.5; }
+        private static Vector ValueToVector(double V)
         {
             double th = (V - 0.5) * Math.PI * 5 / 3;
             return new Vector(Math.Sin(th), -Math.Cos(th));
