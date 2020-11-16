@@ -1,120 +1,16 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{5E788E8B-995B-4B54-B3A9-040D65D5509A}</ProjectGuid>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Circuit</RootNamespace>
     <AssemblyName>Circuit</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Product>Circuit</Product>
+    <Copyright>Copyright ©  2020</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Components\CenterTapTransformer.cs" />
-    <Compile Include="Components\JunctionFieldEffectTransistor.cs" />
-    <Compile Include="Components\Input.cs" />
-    <Compile Include="Specialization.cs" />
-    <Compile Include="Components\Transformer.cs" />
-    <Compile Include="Components\Rail.cs" />
-    <Compile Include="Components\Unserialized.cs" />
-    <Compile Include="Components\Speaker.cs" />
-    <Compile Include="Components\Label.cs" />
-    <Compile Include="Components\DelayBuffer.cs" />
-    <Compile Include="Components\OpAmp.cs" />
-    <Compile Include="Components\NamedWire.cs" />
-    <Compile Include="Components\VariableResistor.cs" />
-    <Compile Include="Components\Conductor.cs" />
-    <Compile Include="Analysis.cs" />
-    <Compile Include="Simulation\TransientSolution.cs" />
-    <Compile Include="Schematic\Element.cs" />
-    <Compile Include="Schematic\Symbol.cs" />
-    <Compile Include="Schematic\Schematic.cs" />
-    <Compile Include="Schematic\ElementCollection.cs" />
-    <Compile Include="Schematic\Wire.cs" />
-    <Compile Include="Spice\Element.cs" />
-    <Compile Include="Spice\Subcircuit.cs" />
-    <Compile Include="Spice\Model.cs" />
-    <Compile Include="Spice\TokenList.cs" />
-    <Compile Include="Spice\Statement.cs" />
-    <Compile Include="Spice\Statements.cs" />
-    <Compile Include="Utils\ComponentCollection.cs" />
-    <Compile Include="Components\BaseComponents.cs" />
-    <Compile Include="Components\BipolarJunctionTransistor.cs" />
-    <Compile Include="Components\Triode.cs" />
-    <Compile Include="Components\Definitions.cs" />
-    <Compile Include="Components\Switch.cs" />
-    <Compile Include="Components\CurrentSource.cs" />
-    <Compile Include="Components\Ground.cs" />
-    <Compile Include="Components\Inductor.cs" />
-    <Compile Include="Components\Buffer.cs" />
-    <Compile Include="Circuit.cs" />
-    <Compile Include="Components\IdealOpAmp.cs" />
-    <Compile Include="Components\Port.cs" />
-    <Compile Include="Components\Potentiometer.cs" />
-    <Compile Include="Utils\RatioConverter.cs" />
-    <Compile Include="Utils\Matrix.cs" />
-    <Compile Include="Utils\Point.cs" />
-    <Compile Include="Utils\NodeCollection.cs" />
-    <Compile Include="Utils\Ratio.cs" />
-    <Compile Include="Utils\Units.cs" />
-    <Compile Include="Utils\QuantityConverter.cs" />
-    <Compile Include="Utils\Coord.cs" />
-    <Compile Include="Simulation\Simulation.cs" />
-    <Compile Include="SymbolLayout.cs" />
-    <Compile Include="Component.cs" />
-    <Compile Include="Components\Capacitor.cs" />
-    <Compile Include="Components\Resistor.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Components\Diode.cs" />
-    <Compile Include="Terminal.cs" />
-    <Compile Include="Utils\Quantity.cs" />
-    <Compile Include="Components\VoltageSource.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj">
-      <Project>{2877c441-fd0b-4441-a469-e677003ee35a}</Project>
-      <Name>ComputerAlgebra</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Util\Util.csproj">
-      <Project>{0a3db5cb-3c02-4779-b73a-927d2e1ebe54}</Project>
-      <Name>Util</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj" />
+    <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Components\Diodes.xml" />
@@ -123,12 +19,8 @@
     <Content Include="Components\Transistors.xml" />
     <Content Include="Components\Tubes.xml" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
 </Project>

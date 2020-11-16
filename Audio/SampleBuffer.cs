@@ -12,7 +12,7 @@ namespace Audio
         /// <summary>
         /// Number of samples contained in this buffer.
         /// </summary>
-        public int Count { get { return Samples.Length; } }
+        public uint Count => (uint)Samples.Length;
 
         /// <summary>
         /// Samples in this buffer.
