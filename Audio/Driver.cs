@@ -18,17 +18,24 @@ namespace Audio
             {
                 foreach (Assembly i in AppDomain.CurrentDomain.GetAssemblies().Where(i => !i.IsDynamic))
                 {
-                    foreach (Type j in i.GetExportedTypes().Where(x => !x.IsAbstract && !drivers.Any(j => j.GetType() == x) && typeof(Driver).IsAssignableFrom(x)))
+                    try
                     {
-                        try
+                        foreach (Type j in i.GetExportedTypes().Where(x => !x.IsAbstract && !drivers.Any(j => j.GetType() == x) && typeof(Driver).IsAssignableFrom(x)))
                         {
-                            drivers.Add((Driver)Activator.CreateInstance(j));
-                            Log.Global.WriteLine(MessageType.Info, "Loaded Audio implementation class '{0}'.", j.FullName);
+                            try
+                            {
+                                drivers.Add((Driver)Activator.CreateInstance(j));
+                                Log.Global.WriteLine(MessageType.Info, "Loaded Audio implementation class '{0}'.", j.FullName);
+                            }
+                            catch (Exception Ex)
+                            {
+                                Log.Global.WriteLine(MessageType.Error, "Error instantiating Audio implementation class '{0}': {1}", j.FullName, Ex.Message);
+                            }
                         }
-                        catch (Exception Ex)
-                        {
-                            Log.Global.WriteLine(MessageType.Error, "Error instantiating Audio implementation class '{0}': {1}", j.FullName, Ex.Message);
-                        }
+                    } 
+                    catch (Exception Ex)
+                    {
+                        Log.Global.WriteLine(MessageType.Error, "Error enumerating types in '{0}': {1}", i.FullName, Ex.Message);
                     }
                 }
                 return drivers;
