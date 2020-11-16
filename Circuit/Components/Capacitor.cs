@@ -21,9 +21,11 @@ namespace Circuit
         public static Expression Analyze(Analysis Mna, string Name, Node Anode, Node Cathode, Expression C)
         {
             // Ensure that V is not multiple variables.
-            Expression V = Mna.AddUnknownEqualTo("V" + Name, Anode.V - Cathode.V);
+            Expression V = Anode.V - Cathode.V;
+            V = Mna.AddUnknownEqualTo("V" + Name, V);
             // i = C*dV/dt
             Expression i = C * D(V, t);
+            //i = Mna.AddUnknownEqualTo("i" + Name, i);
             Mna.AddPassiveComponent(Anode, Cathode, i);
             return i;
         }
