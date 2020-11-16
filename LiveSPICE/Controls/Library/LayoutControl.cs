@@ -38,8 +38,9 @@ namespace LiveSPICE
             transform.Translate(-center.x, -center.y);
             transform.Scale(scale, -scale);
             transform.Translate(ActualWidth / 2, ActualHeight / 2);
+            double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
 
-            SymbolControl.DrawLayout(layout, drawingContext, transform, ShowText ? FontFamily : null, FontWeight, FontSize);
+            SymbolControl.DrawLayout(layout, drawingContext, transform, ShowText ? FontFamily : null, FontWeight, FontSize, pixelsPerDip);
         }
 
         public static readonly DependencyProperty LayoutProperty = DependencyProperty.Register(

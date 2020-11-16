@@ -110,7 +110,7 @@ namespace LiveSPICE
                         v.ToString("G3"),
                         CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
                         new Typeface(FontFamily, FontStyles.Normal, FontWeight, FontStretches.Normal), FontSize,
-                        Brushes.Black);
+                        Brushes.Black, VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
                     DC.DrawText(label, (Point)(Center + dx * r * 1.15 - new Vector(label.Width, label.Height) * 0.5));
                 }

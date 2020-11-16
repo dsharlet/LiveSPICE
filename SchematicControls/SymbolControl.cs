@@ -122,7 +122,9 @@ namespace SchematicControls
             dc = drawingContext;
             dc.PushGuidelineSet(SymbolControl.Guidelines);
 
-            DrawLayout(layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize);
+            DrawLayout(
+                layout, dc, transform, Pen, ShowText ? FontFamily : null, FontWeight, FontSize,
+                VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
             Rect bounds = new Rect(T(transform, layout.LowerBound), T(transform, layout.UpperBound));
             if (Selected)
@@ -137,9 +139,8 @@ namespace SchematicControls
         private static Point T(Matrix Tx, Circuit.Point x) { return Tx.Transform(new Point(x.x, x.y)); }
 
         public static void DrawLayout(
-            Circuit.SymbolLayout Layout,
-            DrawingContext Context, Matrix Tx,
-            Pen Pen, FontFamily FontFamily, FontWeight FontWeight, double FontSize)
+            Circuit.SymbolLayout Layout, DrawingContext Context, Matrix Tx, Pen Pen, FontFamily FontFamily,
+            FontWeight FontWeight, double FontSize, double PixelsPerDip)
         {
             Context.PushGuidelineSet(Guidelines);
 
@@ -198,7 +199,7 @@ namespace SchematicControls
                         i.String,
                         CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
                         new Typeface(FontFamily, FontStyles.Normal, FontWeight, FontStretches.Normal), FontSize * scale * size,
-                        Brushes.Black);
+                        Brushes.Black, PixelsPerDip);
 
                     Point p = T(Tx, i.x);
                     Vector p1 = T(Tx, new Circuit.Point(i.x.x - MapAlignment(i.HorizontalAlign), i.x.y + (1 - MapAlignment(i.VerticalAlign)))) - p;
@@ -233,24 +234,24 @@ namespace SchematicControls
         public static void DrawLayout(
             Circuit.SymbolLayout Layout,
             DrawingContext Context, Matrix Tx,
-            FontFamily FontFamily, FontWeight FontWeight, double FontSize)
+            FontFamily FontFamily, FontWeight FontWeight, double FontSize, double PixelsPerDip)
         {
-            DrawLayout(Layout, Context, Tx, null, FontFamily, FontWeight, FontSize);
+            DrawLayout(Layout, Context, Tx, null, FontFamily, FontWeight, FontSize, PixelsPerDip);
         }
 
         public static void DrawLayout(
             Circuit.SymbolLayout Layout,
             DrawingContext Context, Matrix Tx,
-            FontFamily FontFamily)
+            FontFamily FontFamily, double PixelsPerDip)
         {
-            DrawLayout(Layout, Context, Tx, null, FontFamily, FontWeights.Normal, 10.0);
+            DrawLayout(Layout, Context, Tx, null, FontFamily, FontWeights.Normal, 10.0, PixelsPerDip);
         }
 
         public static void DrawLayout(
             Circuit.SymbolLayout Layout,
-            DrawingContext Context, Matrix Tx)
+            DrawingContext Context, Matrix Tx, double PixelsPerDip)
         {
-            DrawLayout(Layout, Context, Tx, new FontFamily("Courier New"));
+            DrawLayout(Layout, Context, Tx, new FontFamily("Courier New"), PixelsPerDip);
         }
     }
 }

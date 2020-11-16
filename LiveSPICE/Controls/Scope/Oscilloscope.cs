@@ -196,6 +196,7 @@ namespace LiveSPICE
 
             double tmin = MapToTime(Bounds, 0);
             double dt = Partition(MapToTime(Bounds, 80) - MapToTime(Bounds, 0));
+            double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
             for (double t = -dt; t > tmin; t -= dt)
             {
                 double x = MapFromTime(Bounds, t);
@@ -209,7 +210,7 @@ namespace LiveSPICE
                     System.Globalization.CultureInfo.CurrentCulture,
                     System.Windows.FlowDirection.LeftToRight,
                     typeface, FontSize,
-                    AxisPen.Brush);
+                    AxisPen.Brush, pixelsPerDip);
                 DC.DrawText(time, new Point(x - time.Width / 2, y - time.Height - 2));
 
                 FormattedText freq = new FormattedText(
@@ -217,7 +218,7 @@ namespace LiveSPICE
                     System.Globalization.CultureInfo.CurrentCulture,
                     System.Windows.FlowDirection.LeftToRight,
                     typeface, FontSize,
-                    AxisPen.Brush);
+                    AxisPen.Brush, pixelsPerDip);
                 DC.DrawText(freq, new Point(x - freq.Width / 2, y + 3));
             }
         }
@@ -233,7 +234,7 @@ namespace LiveSPICE
             labels = (labels / 2) * 2;
 
             Typeface typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
-
+            double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
             for (double v = -Vmax + (2 * Vmax - (labels * dv)) / 2 + Vmean; v < Vmax + Vmean; v += dv)
             {
                 double y = MapFromSignal(Bounds, v);
@@ -249,7 +250,7 @@ namespace LiveSPICE
                         System.Globalization.CultureInfo.CurrentCulture,
                         System.Windows.FlowDirection.LeftToRight,
                         typeface, FontSize,
-                        AxisPen.Brush);
+                        AxisPen.Brush, pixelsPerDip);
                     DC.DrawText(volts, new Point(x - volts.Width - 3, y - volts.Height / 2));
                 }
             }
@@ -301,6 +302,7 @@ namespace LiveSPICE
             DC.DrawLine(TracePen, new Point(At.X, Bounds.Top), new Point(At.X, Bounds.Bottom));
 
             Typeface typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
+            double pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
 
             double t = MapToTime(Bounds, At.X);
             FormattedText time = new FormattedText(
@@ -308,14 +310,14 @@ namespace LiveSPICE
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
                 typeface, FontSize,
-                TracePen.Brush);
+                TracePen.Brush, pixelsPerDip);
             DC.DrawText(time, new Point(At.X - time.Width - 2, (Bounds.Top + Bounds.Bottom) / 2 - time.Height - 2));
             FormattedText freq = new FormattedText(
                 FrequencyToString(1.0 / Math.Abs(t)),
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
                 typeface, FontSize,
-                TracePen.Brush);
+                TracePen.Brush, pixelsPerDip);
             DC.DrawText(freq, new Point(At.X - freq.Width - 2, (Bounds.Top + Bounds.Bottom) / 2 + 3));
 
             double v = MapToSignal(Bounds, At.Y);
@@ -324,7 +326,7 @@ namespace LiveSPICE
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
                 typeface, FontSize,
-                TracePen.Brush);
+                TracePen.Brush, pixelsPerDip);
             DC.DrawText(volts, new Point(Bounds.Right - volts.Width - 4, At.Y));
         }
 
@@ -340,7 +342,7 @@ namespace LiveSPICE
                 System.Globalization.CultureInfo.CurrentCulture,
                 System.Windows.FlowDirection.LeftToRight,
                 new Typeface(FontFamily, FontStyle, FontWeight, FontStretch), FontSize,
-                Brush);
+                Brush, VisualTreeHelper.GetDpi(this).PixelsPerDip);
             DC.DrawText(stats, Bounds.TopLeft);
         }
 
