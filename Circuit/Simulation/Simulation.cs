@@ -90,13 +90,13 @@ namespace Circuit
         /// <summary>
         /// Expressions representing input samples.
         /// </summary>
-        public Expression[] Input { get { return input; } set { input = value; InvalidateProcess(); } }
+        public IEnumerable<Expression> Input { get { return input; } set { input = value.ToArray(); InvalidateProcess(); } }
 
         private Expression[] output = new Expression[] { };
         /// <summary>
         /// Expressions for output samples.
         /// </summary>
-        public Expression[] Output { get { return output; } set { output = value; InvalidateProcess(); } }
+        public IEnumerable<Expression> Output { get { return output; } set { output = value.ToArray(); InvalidateProcess(); } }
 
         // Stores any global state in the simulation (previous state values, mostly).
         private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
@@ -162,7 +162,7 @@ namespace Circuit
             {
                 try
                 {
-                    _process(N, n*TimeStep, Input.ToArray(), Output.ToArray());
+                    _process(N, n*TimeStep, Input.AsArray(), Output.AsArray());
                     n += N;
                 }
                 catch (TargetInvocationException Ex)
@@ -210,15 +210,15 @@ namespace Circuit
             var outs = code.Decl<double[][]>(Scope.Parameter, "outs");
 
             // Create buffer parameters for each input...
-            for (int i = 0; i < Input.Length; i++)
+            for (int i = 0; i < input.Length; i++)
             {
-                inputs.Add(new KeyValuePair<Expression, LinqExpr>(Input[i], LinqExpr.ArrayAccess(ins, LinqExpr.Constant(i))));
+                inputs.Add(new KeyValuePair<Expression, LinqExpr>(input[i], LinqExpr.ArrayAccess(ins, LinqExpr.Constant(i))));
             }
 
             // ... and output.
-            for (int i = 0; i < Output.Length; i++)
+            for (int i = 0; i < output.Length; i++)
             {
-                outputs.Add(new KeyValuePair<Expression, LinqExpr>(Output[i], LinqExpr.ArrayAccess(outs, LinqExpr.Constant(i))));
+                outputs.Add(new KeyValuePair<Expression, LinqExpr>(output[i], LinqExpr.ArrayAccess(outs, LinqExpr.Constant(i))));
             }
 
             Arrow t_t1 = Arrow.New(Simulation.t, Simulation.t - Solution.TimeStep);
