@@ -180,15 +180,10 @@ namespace Circuit
         public void Run(double[] Input, double[] Output) { Run(Input.Length, new[] { Input }, new[] { Output }); }
 
         private Action<int, double, double[][], double[][]> _process;
-        // Rebuild the process function.
+        // Force rebuilding of the process function.
         private void InvalidateProcess()
         {
-            try
-            {
-                _process = null;
-                _process = DefineProcess();
-            }
-            catch (Exception) { }
+            _process = null;
         }
 
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
