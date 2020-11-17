@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using AvalonDock.Layout;
+using Circuit;
 using SchematicControls;
 using Util;
 
@@ -85,7 +86,7 @@ namespace LiveSPICE
                 InitializeComponent();
 
                 // Make a clone of the schematic so we can mess with it.
-                Circuit.Schematic clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
+                var clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
                 clone.Elements.ItemAdded += OnElementAdded;
                 clone.Elements.ItemRemoved += OnElementRemoved;
                 Schematic = new SimulationSchematic(clone);
@@ -114,9 +115,9 @@ namespace LiveSPICE
                         continue;
 
                     // Create potentiometers.
-                    if (i is Circuit.IPotControl c)
+                    if (i is Circuit.IPotControl potentiometer)
                     {
-                        PotControl pot = new PotControl()
+                        var potControl = new PotControl()
                         {
                             Width = 80,
                             Height = 80,
@@ -124,15 +125,22 @@ namespace LiveSPICE
                             FontSize = 15,
                             FontWeight = FontWeights.Bold,
                         };
-                        Schematic.Overlays.Children.Add(pot);
-                        Canvas.SetLeft(pot, Canvas.GetLeft(tag) - pot.Width / 2 + tag.Width / 2);
-                        Canvas.SetTop(pot, Canvas.GetTop(tag) - pot.Height / 2 + tag.Height / 2);
+                        Schematic.Overlays.Children.Add(potControl);
+                        Canvas.SetLeft(potControl, Canvas.GetLeft(tag) - potControl.Width / 2 + tag.Width / 2);
+                        Canvas.SetTop(potControl, Canvas.GetTop(tag) - potControl.Height / 2 + tag.Height / 2);
 
-                        pot.Value = c.PotValue;
-                        pot.ValueChanged += x => { c.PotValue = x; UpdateSimulation(false); };
+                        potControl.Value = potentiometer.PotValue;
+                        potControl.ValueChanged += x =>
+                        {
+                            foreach (var p in components.OfType<IPotControl>().Where(p => p.Group == potentiometer.Group))
+                            {
+                                p.PotValue = x;
+                            }
+                            UpdateSimulation(false);
+                        };
 
-                        pot.MouseEnter += (o, e) => pot.Opacity = 0.95;
-                        pot.MouseLeave += (o, e) => pot.Opacity = 0.5;
+                        potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
+                        potControl.MouseLeave += (o, e) => potControl.Opacity = 0.5;
                     }
 
                     // Create Buttons.
@@ -494,7 +502,8 @@ namespace LiveSPICE
 
         private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Dispatcher.InvokeAsync(() => {
+            Dispatcher.InvokeAsync(() =>
+            {
                 // TODO: Figure out how to calculate the processing speed to set statusSampleRate.Text.
                 foreach (Channel i in InputChannels)
                     i.SignalStatus = MapSignalToBrush(i.SignalLevel);

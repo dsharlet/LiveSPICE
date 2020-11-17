@@ -59,6 +59,10 @@ namespace Circuit
         [Serialize, Description("Sweep mapping of the wiper.")]
         public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged(nameof(Sweep)); } }
 
+        private string group = "";
+        [Serialize, Description("Potentiometer group this potentiometer is a section of.")]
+        public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
+
         public VariableResistor() { Name = "R1"; }
 
         public override void Analyze(Analysis Mna)

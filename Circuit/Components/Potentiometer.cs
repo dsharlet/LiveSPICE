@@ -13,10 +13,10 @@ namespace Circuit
     [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")]
     public class Potentiometer : Component, IPotControl
     {
-        protected Terminal anode, cathode, wiper;
-        [Browsable(false)] public Terminal Anode { get { return anode; } }
-        [Browsable(false)] public Terminal Cathode { get { return cathode; } }
-        [Browsable(false)] public Terminal Wiper { get { return wiper; } }
+        private Terminal anode, cathode, wiper;
+        [Browsable(false)] public Terminal Anode => anode;
+        [Browsable(false)] public Terminal Cathode => cathode;
+        [Browsable(false)] public Terminal Wiper => wiper;
 
         public override IEnumerable<Terminal> Terminals
         {
@@ -49,6 +49,10 @@ namespace Circuit
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep progression of this potentiometer.")]
         public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged(nameof(Sweep)); } }
+
+        private string group = "";
+        [Serialize, Description("Potentiometer group this potentiometer is a section of.")]
+        public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
 
         public void ConnectTo(Node A, Node C, Node W)
         {
