@@ -129,15 +129,13 @@ namespace Tests
                 Outputs = new[] { sum };
             }
 
-            Simulation S = null;
-            double simTime = Benchmark(1, () => S = new Simulation(TS)
+            Simulation S = new Simulation(TS)
             {
                 Oversample = Oversample,
                 Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
-            });
-            System.Console.WriteLine("Simulation.Simulation time: {0} ms", simTime * 1000);
+            };
 
             int N = 1000;
             double[] inputBuffer = new double[N];
