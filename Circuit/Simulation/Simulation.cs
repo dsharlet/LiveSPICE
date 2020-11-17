@@ -245,10 +245,10 @@ namespace Circuit
 
             // Load the globals to local variables and add them to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                code.Add(LinqExpr.Assign(code.Decl(i.Key), i.Value));
+                code.DeclInit(i.Key, i.Value);
 
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
-                code.Add(LinqExpr.Assign(code.Decl(i.Key), code[i.Key.Evaluate(t_t1)]));
+                code.DeclInit(i.Key, code[i.Key.Evaluate(t_t1)]);
 
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
