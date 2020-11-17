@@ -86,17 +86,17 @@ namespace Circuit
         /// </summary>
         public Expression SampleRate { get { return 1 / (Solution.TimeStep * oversample); } }
 
-        private IEnumerable<Expression> input = new Expression[] { };
+        private Expression[] input = new Expression[] { };
         /// <summary>
         /// Expressions representing input samples.
         /// </summary>
-        public IEnumerable<Expression> Input { get { return input; } set { input = value.Buffer(); InvalidateProcess(); } }
+        public Expression[] Input { get { return input; } set { input = value; InvalidateProcess(); } }
 
-        private IEnumerable<Expression> output = new Expression[] { };
+        private Expression[] output = new Expression[] { };
         /// <summary>
         /// Expressions for output samples.
         /// </summary>
-        public IEnumerable<Expression> Output { get { return output; } set { output = value.Buffer(); InvalidateProcess(); } }
+        public Expression[] Output { get { return output; } set { output = value; InvalidateProcess(); } }
 
         // Stores any global state in the simulation (previous state values, mostly).
         private Dictionary<Expression, GlobalExpr<double>> globals = new Dictionary<Expression, GlobalExpr<double>>();
@@ -155,25 +155,14 @@ namespace Circuit
         /// <param name="Output">Buffers to receive output samples.</param>
         public void Run(int N, IEnumerable<double[]> Input, IEnumerable<double[]> Output)
         {
-            if (process == null)
-                process = DefineProcess();
-
-            // Build parameter list for the processor.
-            object[] parameters = new object[2 + Input.Count() + Output.Count()];
-            int p = 0;
-
-            parameters[p++] = N;
-            parameters[p++] = n * TimeStep;
-            foreach (double[] i in Input)
-                parameters[p++] = i;
-            foreach (double[] i in Output)
-                parameters[p++] = i;
+            if (_process == null)
+                _process = DefineProcess();
 
             try
             {
                 try
                 {
-                    process.DynamicInvoke(parameters);
+                    _process(N, n*TimeStep, Input.ToArray(), Output.ToArray());
                     n += N;
                 }
                 catch (TargetInvocationException Ex)
@@ -190,14 +179,14 @@ namespace Circuit
         public void Run(double[] Input, IEnumerable<double[]> Output) { Run(Input.Length, new[] { Input }, Output); }
         public void Run(double[] Input, double[] Output) { Run(Input.Length, new[] { Input }, new[] { Output }); }
 
-        private Delegate process = null;
+        private Action<int, double, double[][], double[][]> _process;
         // Rebuild the process function.
         private void InvalidateProcess()
         {
             try
             {
-                process = null;
-                process = DefineProcess();
+                _process = null;
+                _process = DefineProcess();
             }
             catch (Exception) { }
         }
@@ -205,11 +194,11 @@ namespace Circuit
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ...)
         //  { ... }
-        private Delegate DefineProcess()
+        private Action<int, double, double[][], double[][]> DefineProcess()
         {
             // Map expressions to identifiers in the syntax tree.
-            List<KeyValuePair<Expression, LinqExpr>> inputs = new List<KeyValuePair<Expression, LinqExpr>>();
-            List<KeyValuePair<Expression, LinqExpr>> outputs = new List<KeyValuePair<Expression, LinqExpr>>();
+            var inputs = new List<KeyValuePair<Expression, LinqExpr>>();
+            var outputs = new List<KeyValuePair<Expression, LinqExpr>>();
 
             // Lambda code generator.
             CodeGen code = new CodeGen();
@@ -217,14 +206,20 @@ namespace Circuit
             // Create parameters for the basic simulation info (N, t, Iterations).
             ParamExpr SampleCount = code.Decl<int>(Scope.Parameter, "SampleCount");
             ParamExpr t = code.Decl(Scope.Parameter, Simulation.t);
+            var ins = code.Decl<double[][]>(Scope.Parameter, "ins");
+            var outs = code.Decl<double[][]>(Scope.Parameter, "outs");
 
             // Create buffer parameters for each input...
-            foreach (Expression i in Input)
-                inputs.Add(new KeyValuePair<Expression, LinqExpr>(i, code.Decl<double[]>(Scope.Parameter, i.ToString())));
+            for (int i = 0; i < Input.Length; i++)
+            {
+                inputs.Add(new KeyValuePair<Expression, LinqExpr>(Input[i], LinqExpr.ArrayAccess(ins, LinqExpr.Constant(i))));
+            }
 
             // ... and output.
-            foreach (Expression i in Output)
-                outputs.Add(new KeyValuePair<Expression, LinqExpr>(i, code.Decl<double[]>(Scope.Parameter, i.ToString())));
+            for (int i = 0; i < Output.Length; i++)
+            {
+                outputs.Add(new KeyValuePair<Expression, LinqExpr>(Output[i], LinqExpr.ArrayAccess(outs, LinqExpr.Constant(i))));
+            }
 
             Arrow t_t1 = Arrow.New(Simulation.t, Simulation.t - Solution.TimeStep);
 
@@ -413,9 +408,8 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 code.Add(LinqExpr.Assign(i.Value, code[i.Key]));
 
-            LinqExprs.LambdaExpression lambda = code.Build();
-            Delegate ret = lambda.Compile();
-            return ret;
+            var lambda = code.Build<Action<int, double, double[][], double[][]>>();
+            return lambda.Compile();
         }
 
         // Solve a system of linear equations
