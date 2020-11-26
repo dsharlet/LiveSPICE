@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
     <AssemblyName>LiveSPICEVst</AssemblyName>
     <Product>LiveSPICEVst</Product>
@@ -9,15 +9,19 @@
     <FileVersion>1.0.0.0</FileVersion>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SharpSoundDevice, Version=1.5.2.40816, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="AudioPlugSharp, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\SharpSoundDevice\x64\Release\SharpSoundDevice.dll</HintPath>
+      <HintPath>..\..\AudioPlugSharp\x64\Debug\AudioPlugSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="AudioPlugSharpWPF, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\AudioPlugSharp\AudioPlugSharpWPF\bin\Debug\net5.0-windows\AudioPlugSharpWPF.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -44,7 +48,5 @@
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
   <PropertyGroup />
-  <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)SharpSoundDevice\x64\Release\BridgeGenerator.exe $(TargetDir)LiveSPICEVst.dll LiveSPICEVstBridge.dll</PostBuildEvent>
-  </PropertyGroup>
+  <PropertyGroup />
 </Project>

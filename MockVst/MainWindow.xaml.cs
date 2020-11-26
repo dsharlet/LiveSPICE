@@ -20,7 +20,7 @@ namespace MockVst
             InitializeComponent();
 
             plugin = new LiveSPICEPlugin();
-            plugin.HostInfo = new DummyHostInfo();
+            plugin.Host = new DummyHost();
             plugin.Start();
 
             MainGrid.Children.Add(new EditorView(plugin));
