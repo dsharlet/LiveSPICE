@@ -22,5 +22,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\AudioPlugSharp\x64\Debug\AudioPlugSharp.dll</HintPath>
     </Reference>
+    <Reference Include="AudioPlugSharpWPF, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\AudioPlugSharp\AudioPlugSharpWPF\bin\Debug\net5.0-windows\AudioPlugSharpWPF.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

@@ -224,19 +224,18 @@ namespace LiveSPICEVst
 
         public override void Process()
         {
-            double[][] inBuffers = monoInput.GetAudioBuffers();
-            double[][] outBuffers = monoOutput.GetAudioBuffers();
-
-            // Read input samples from unmanaged memory
-            monoInput.ReadData();
-
             if (haveSimulationError)
             {
-                // If we had an error running the simulation, bypass it
-                Array.Copy(inBuffers[0], outBuffers[0], inBuffers.Length);
+                monoInput.PassThroughTo(monoOutput);
             }
             else
             {
+                double[][] inBuffers = monoInput.GetAudioBuffers();
+                double[][] outBuffers = monoOutput.GetAudioBuffers();
+
+                // Read input samples from unmanaged memory
+                monoInput.ReadData();
+
                 try
                 {
                     SimulationProcessor.RunSimulation(inBuffers, outBuffers, inBuffers[0].Length);
@@ -250,10 +249,10 @@ namespace LiveSPICEVst
                         MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }).Start();
                 }
-            }
 
-            // Write outout samples to unmanaged memory
-            monoOutput.WriteData();
+                // Write outout samples to unmanaged memory
+                monoOutput.WriteData();
+            }
         }
     }
 }

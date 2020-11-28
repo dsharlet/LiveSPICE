@@ -4,13 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LiveSPICEVst"
-             xmlns:Circuit="clr-namespace:Circuit;assembly=Circuit"
+             xmlns:AudioPlugSharpWPF="clr-namespace:AudioPlugSharpWPF;assembly=AudioPlugSharpWPF"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary  Source="/LiveSPICEVst;component/Themes/Generic.xaml"/>
+                <ResourceDictionary Source="/AudioPlugSharpWPF;component/Themes/Generic.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -34,7 +35,7 @@
                                         <Setter.Value>
                                             <DataTemplate>
                                                 <StackPanel>
-                                                    <local:Dial x:Name="ParameterDial"
+                                                    <AudioPlugSharpWPF:Dial x:Name="ParameterDial"
                                                         Minimum="0" Maximum="1" Value="{Binding PotValue}"
                                                         Margin="2,2,2,0"/>
                                                     <Popup PlacementTarget="{Binding ElementName=ParameterDial}" Placement="Center" VerticalOffset="25"
