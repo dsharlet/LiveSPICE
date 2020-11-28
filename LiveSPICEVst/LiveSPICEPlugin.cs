@@ -21,10 +21,9 @@ namespace LiveSPICEVst
         public EditorView EditorView { get; set; }
         public string SchematicPath { get { return SimulationProcessor.SchematicPath; } }
 
-        System.Windows.Window window;
-
         AudioIOPort monoInput;
         AudioIOPort monoOutput;
+        EditorWindow editorWindow;
 
         bool haveSimulationError = false;
 
@@ -87,26 +86,33 @@ namespace LiveSPICEVst
             SimulationProcessor.SampleRate = Host.SampleRate;
         }
 
+        public override void ResizeEditor(uint newWidth, uint newHeight)
+        {
+            base.ResizeEditor(newWidth, newHeight);
+
+            if (editorWindow != null)
+            {
+                editorWindow.Width = EditorWidth;
+                editorWindow.Height = EditorHeight;
+            }
+        }
+
         public override bool ShowEditor(IntPtr parentWindow)
         {
             Logger.Log("Open editor");
 
             if (EditorView == null)
             {
-                EditorView = new EditorView(this)
-                {
-                    Width = EditorWidth,
-                    Height = EditorHeight
-                };
+                EditorView = new EditorView(this);
             }
 
-            EditorWindow window = new EditorWindow(this, EditorView)
+            editorWindow = new EditorWindow(this, EditorView)
             {
                 Width = EditorWidth,
                 Height = EditorHeight
             };
 
-            window.Show(parentWindow);
+            editorWindow.Show(parentWindow);
 
             return true;
         }
