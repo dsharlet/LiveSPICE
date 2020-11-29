@@ -125,7 +125,6 @@ namespace Circuit
             system.BackSubstitute(dy_dt);
             IEnumerable<Equal> integrated = system.Solve(dy_dt)
                 .NDIntegrate(t, h, IntegrationMethod.BackwardDifferenceFormula2)
-                .Cast<Arrow>()
                 .Select(i => Equal.New(i.Left, i.Right)).Buffer();
             system.AddRange(integrated);
             LogExpressions(Log, MessageType.Verbose, "Integrated solutions:", integrated);
