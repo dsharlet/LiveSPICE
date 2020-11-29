@@ -21,10 +21,9 @@ namespace LiveSPICEVst
         public EditorView EditorView { get; set; }
         public string SchematicPath { get { return SimulationProcessor.SchematicPath; } }
 
-        System.Windows.Window window;
-
         AudioIOPort monoInput;
         AudioIOPort monoOutput;
+        EditorWindow editorWindow;
 
         bool haveSimulationError = false;
 
@@ -87,26 +86,33 @@ namespace LiveSPICEVst
             SimulationProcessor.SampleRate = Host.SampleRate;
         }
 
+        public override void ResizeEditor(uint newWidth, uint newHeight)
+        {
+            base.ResizeEditor(newWidth, newHeight);
+
+            if (editorWindow != null)
+            {
+                editorWindow.Width = EditorWidth;
+                editorWindow.Height = EditorHeight;
+            }
+        }
+
         public override bool ShowEditor(IntPtr parentWindow)
         {
             Logger.Log("Open editor");
 
             if (EditorView == null)
             {
-                EditorView = new EditorView(this)
-                {
-                    Width = EditorWidth,
-                    Height = EditorHeight
-                };
+                EditorView = new EditorView(this);
             }
 
-            EditorWindow window = new EditorWindow(this, EditorView)
+            editorWindow = new EditorWindow(this, EditorView)
             {
                 Width = EditorWidth,
                 Height = EditorHeight
             };
 
-            window.Show(parentWindow);
+            editorWindow.Show(parentWindow);
 
             return true;
         }
@@ -224,19 +230,18 @@ namespace LiveSPICEVst
 
         public override void Process()
         {
-            double[][] inBuffers = monoInput.GetAudioBuffers();
-            double[][] outBuffers = monoOutput.GetAudioBuffers();
-
-            // Read input samples from unmanaged memory
-            monoInput.ReadData();
-
             if (haveSimulationError)
             {
-                // If we had an error running the simulation, bypass it
-                Array.Copy(inBuffers[0], outBuffers[0], inBuffers.Length);
+                monoInput.PassThroughTo(monoOutput);
             }
             else
             {
+                double[][] inBuffers = monoInput.GetAudioBuffers();
+                double[][] outBuffers = monoOutput.GetAudioBuffers();
+
+                // Read input samples from unmanaged memory
+                monoInput.ReadData();
+
                 try
                 {
                     SimulationProcessor.RunSimulation(inBuffers, outBuffers, inBuffers[0].Length);
@@ -250,10 +255,10 @@ namespace LiveSPICEVst
                         MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }).Start();
                 }
-            }
 
-            // Write outout samples to unmanaged memory
-            monoOutput.WriteData();
+                // Write outout samples to unmanaged memory
+                monoOutput.WriteData();
+            }
         }
     }
 }

@@ -28,20 +28,10 @@
     <Resource Include="Images\MetalAlpha.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\DialBackground.png" />
-    <Resource Include="Images\DialBackgroundWhite.png" />
-    <Resource Include="Images\DialPointer.png" />
-    <Resource Include="Images\DialPointerBlack.png" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Circuit\Circuit.csproj" />
     <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj" />
     <ProjectReference Include="..\SchematicControls\SchematicControls.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\PowerOff.png" />
-    <Resource Include="Images\PowerOn.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -50,6 +40,6 @@
   <PropertyGroup />
   <PropertyGroup />
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy $(SolutionDir)AudioPlugSharp\x64\$(ConfigurationName)\AudioPlugSharpVst.vst3 $(TargetDir)$(TargetName)Bridge.vst3&#xD;&#xA;copy $(SolutionDir)AudioPlugSharp\x64\$(ConfigurationName)\wpf.runtimeconfig.json $(TargetDir)$(TargetName)Bridge.runtimeconfig.json&#xD;&#xA;copy $(SolutionDir)AudioPlugSharp\x64\$(ConfigurationName)\AudioPlugSharpVst.deps.json $(TargetDir)$(TargetName)Bridge.deps.json&#xD;&#xA;copy $(SolutionDir)AudioPlugSharp\x64\$(ConfigurationName)\Ijwhost.dll $(TargetDir)" />
+    <Exec Command="copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\AudioPlugSharpVst.vst3 $(TargetDir)$(TargetName)Bridge.vst3&#xD;&#xA;copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\wpf.runtimeconfig.json $(TargetDir)$(TargetName)Bridge.runtimeconfig.json&#xD;&#xA;copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\AudioPlugSharpVst.deps.json $(TargetDir)$(TargetName)Bridge.deps.json&#xD;&#xA;copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\Ijwhost.dll $(TargetDir)" />
   </Target>
 </Project>
