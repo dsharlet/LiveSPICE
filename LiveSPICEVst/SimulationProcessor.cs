@@ -157,11 +157,7 @@ namespace LiveSPICEVst
 
         public void LoadSchematic(string path)
         {
-            Schematic newSchematic = Circuit.Schematic.Load(path, Log.Global);
-
-            AudioPlugSharp.Logger.Log("Log is: " + Log.Global.ToString());
-
-            newSchematic.Log = Log.Global;
+            Schematic newSchematic = Circuit.Schematic.Load(path);
 
             Circuit.Circuit circuit = newSchematic.Build();
 

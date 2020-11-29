@@ -46,26 +46,6 @@ namespace LiveSPICEVst
             GCSettings.LatencyMode = GCLatencyMode.LowLatency;
 
             SimulationProcessor = new SimulationProcessor();
-
-            //AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-        }
-
-        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            Logger.Log("****assembly resolve " + args.Name);
-
-            AppDomain domain = (AppDomain)sender;
-            foreach (Assembly asm in domain.GetAssemblies())
-            {
-                if (asm.FullName == args.Name)
-                {
-
-                    Logger.Log("** got it");
-                    return asm;
-                }
-            }
-
-            return null;
         }
 
         public override void Initialize()
