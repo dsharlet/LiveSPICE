@@ -6,6 +6,7 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Xml.Serialization;
 using AudioPlugSharp;
 using AudioPlugSharpWPF;
@@ -15,7 +16,7 @@ namespace LiveSPICEVst
     /// <summary>
     /// Managed VST class to be loaded by SharpSoundDevice
     /// </summary>
-    public class LiveSPICEPlugin : AudioPluginBase
+    public class LiveSPICEPlugin : AudioPluginWPF
     {
         public SimulationProcessor SimulationProcessor { get; private set; }
         public EditorView EditorView { get; set; }
@@ -66,35 +67,9 @@ namespace LiveSPICEVst
             SimulationProcessor.SampleRate = Host.SampleRate;
         }
 
-        public override void ResizeEditor(uint newWidth, uint newHeight)
+        public override UserControl GetEditorView()
         {
-            base.ResizeEditor(newWidth, newHeight);
-
-            if (editorWindow != null)
-            {
-                editorWindow.Width = EditorWidth;
-                editorWindow.Height = EditorHeight;
-            }
-        }
-
-        public override bool ShowEditor(IntPtr parentWindow)
-        {
-            Logger.Log("Open editor");
-
-            if (EditorView == null)
-            {
-                EditorView = new EditorView(this);
-            }
-
-            editorWindow = new EditorWindow(this, EditorView)
-            {
-                Width = EditorWidth,
-                Height = EditorHeight
-            };
-
-            editorWindow.Show(parentWindow);
-
-            return true;
+            return new EditorView(this);
         }
 
         /// <summary>

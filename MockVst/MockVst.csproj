@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
@@ -20,11 +20,11 @@
   <ItemGroup>
     <Reference Include="AudioPlugSharp, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\AudioPlugSharp\x64\Debug\AudioPlugSharp.dll</HintPath>
+      <HintPath>..\..\AudioPlugSharp\x64\Release\AudioPlugSharp.dll</HintPath>
     </Reference>
     <Reference Include="AudioPlugSharpWPF, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\AudioPlugSharp\AudioPlugSharpWPF\bin\Debug\net5.0-windows\AudioPlugSharpWPF.dll</HintPath>
+      <HintPath>..\..\AudioPlugSharp\AudioPlugSharpWPF\bin\Release\net5.0-windows\AudioPlugSharpWPF.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
