@@ -17,11 +17,11 @@
   <ItemGroup>
     <Reference Include="AudioPlugSharp, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\AudioPlugSharp\x64\Release\AudioPlugSharp.dll</HintPath>
+      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharp.dll</HintPath>
     </Reference>
     <Reference Include="AudioPlugSharpWPF, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\AudioPlugSharp\AudioPlugSharpWPF\bin\Release\net5.0-windows\AudioPlugSharpWPF.dll</HintPath>
+      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharpWPF.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -40,6 +40,6 @@
   <PropertyGroup />
   <PropertyGroup />
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\AudioPlugSharpVst.vst3 $(TargetDir)$(TargetName)Bridge.vst3&#xD;&#xA;copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\wpf.runtimeconfig.json $(TargetDir)$(TargetName)Bridge.runtimeconfig.json&#xD;&#xA;copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\AudioPlugSharpVst.deps.json $(TargetDir)$(TargetName)Bridge.deps.json&#xD;&#xA;copy $(SolutionDir)..\AudioPlugSharp\x64\$(ConfigurationName)\Ijwhost.dll $(TargetDir)" />
+    <Exec Command="copy $(SolutionDir)AudioPlugSharp\x64\AudioPlugSharpVst.vst3 $(TargetDir)$(TargetName)Bridge.vst3&#xD;&#xA;copy $(SolutionDir)AudioPlugSharp\x64\wpf.runtimeconfig.json $(TargetDir)$(TargetName)Bridge.runtimeconfig.json&#xD;&#xA;copy $(SolutionDir)AudioPlugSharp\x64\AudioPlugSharpVst.deps.json $(TargetDir)$(TargetName)Bridge.deps.json&#xD;&#xA;copy $(SolutionDir)AudioPlugSharp\x64\Ijwhost.dll $(TargetDir)" />
   </Target>
 </Project>

@@ -20,11 +20,11 @@
   <ItemGroup>
     <Reference Include="AudioPlugSharp, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\AudioPlugSharp\x64\Release\AudioPlugSharp.dll</HintPath>
+      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharp.dll</HintPath>
     </Reference>
     <Reference Include="AudioPlugSharpWPF, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\AudioPlugSharp\AudioPlugSharpWPF\bin\Release\net5.0-windows\AudioPlugSharpWPF.dll</HintPath>
+      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharpWPF.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
