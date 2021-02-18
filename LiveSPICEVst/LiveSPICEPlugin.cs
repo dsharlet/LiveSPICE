@@ -44,7 +44,7 @@ namespace LiveSPICEVst
             EditorWidth = 350;
             EditorHeight = 200;
 
-            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
+            //GCSettings.LatencyMode = GCLatencyMode.LowLatency;
 
             SimulationProcessor = new SimulationProcessor();
         }
