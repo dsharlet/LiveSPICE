@@ -39,9 +39,12 @@ namespace LiveSPICEVst
 
             set
             {
-                pot.PotValue = value;
+                if (pot.PotValue != value)
+                {
+                    pot.PotValue = value;
 
-                NeedUpdate = true;
+                    NeedUpdate = true;
+                }
             }
         }
     }
@@ -109,6 +112,8 @@ namespace LiveSPICEVst
                     sampleRate = value;
 
                     needRebuild = true;
+
+                    delayUpdateSamples = (int)(sampleRate * .1);
                 }
             }
         }
@@ -141,18 +146,23 @@ namespace LiveSPICEVst
             }
         }
 
-        double sampleRate = 44100;
+        double sampleRate;
         int oversample = 2;
         int iterations = 8;
 
         Circuit.Circuit circuit = null;
         Simulation simulation = null;
+        bool needUpdate = false;
         bool needRebuild = false;
+        int updateSamplesElapsed = 0;
+        int delayUpdateSamples = 0;
         Exception simulationUpdateException = null;
 
         public SimulationProcessor()
         {
             InteractiveComponents = new ObservableCollection<ComponentWrapper>();
+
+            SampleRate = 44100;
         }
 
         public void LoadSchematic(string path)
@@ -258,8 +268,6 @@ namespace LiveSPICEVst
             }
             else
             {
-                bool needUpdate = false;
-
                 lock (sync)
                 {
                     foreach (ComponentWrapper component in InteractiveComponents)
@@ -269,6 +277,8 @@ namespace LiveSPICEVst
                             needUpdate = true;
 
                             component.NeedUpdate = false;
+
+                            updateSamplesElapsed = 0;
                         }
 
                         if (component.NeedRebuild)
@@ -281,9 +291,18 @@ namespace LiveSPICEVst
 
                     if (needUpdate || needRebuild)
                     {
-                        UpdateSimulation(needRebuild);
+                        // Delay updates until user input settles
+                        if (needRebuild || (updateSamplesElapsed > delayUpdateSamples))
+                        {
+                            UpdateSimulation(needRebuild);
 
-                        needRebuild = false;
+                            needRebuild = false;
+                            needUpdate = false;
+                        }
+                        else
+                        {
+                            updateSamplesElapsed += numSamples;
+                        }
                     }
 
                     simulation.Run(numSamples, audioInputs, audioOutputs);
@@ -362,6 +381,7 @@ namespace LiveSPICEVst
                 {
                     simulationUpdateException = ex;
                 }
+
             }). Start(scheduler);
         }
     }

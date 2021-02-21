@@ -1,5 +1,4 @@
-﻿using SharpSoundDevice;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -7,152 +6,79 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Xml.Serialization;
+using AudioPlugSharp;
+using AudioPlugSharpWPF;
 
 namespace LiveSPICEVst
 {
     /// <summary>
     /// Managed VST class to be loaded by SharpSoundDevice
     /// </summary>
-    public unsafe class LiveSPICEPlugin : IAudioDevice
+    public class LiveSPICEPlugin : AudioPluginWPF
     {
-        private DeviceInfo DevInfo;
-
-        public int CurrentProgram { get; private set; }
-        public DeviceInfo DeviceInfo { get { return DevInfo; } }
-        public IHostInfo HostInfo { get; set; }
-        public Parameter[] ParameterInfo { get; private set; }
-        public SharpSoundDevice.Port[] PortInfo { get; private set; }
-        public int DeviceId { get; set; }
-
         public SimulationProcessor SimulationProcessor { get; private set; }
         public EditorView EditorView { get; set; }
         public string SchematicPath { get { return SimulationProcessor.SchematicPath; } }
 
-        System.Windows.Window window;
+        AudioIOPort monoInput;
+        AudioIOPort monoOutput;
+        EditorWindow editorWindow;
 
-        double[][] inputBuffers = null;
-        double[][] outputBuffers = null;
-        int currentBufferSize = 0;
         bool haveSimulationError = false;
 
         public LiveSPICEPlugin()
         {
-            DevInfo = new DeviceInfo();
-            DevInfo.Developer = "";
-            DevInfo.DeviceID = "LiveSPICEVst";
-            DevInfo.EditorHeight = 200;
-            DevInfo.EditorWidth = 350;
-            DevInfo.HasEditor = true;
-            DevInfo.Name = "LiveSPICEVst";
-            DevInfo.ProgramCount = 1;
-            DevInfo.Type = DeviceType.Effect;
-            DevInfo.UnsafeProcessing = true;
-            DevInfo.Version = 1000;
-            DevInfo.VstId = DeviceUtilities.GenerateIntegerId(DevInfo.DeviceID);
+            Company = "";
+            Website = "livespice.org";
+            Contact = "";
+            PluginName = "LiveSPICEVst";
+            PluginCategory = "Fx";
+            PluginVersion = "1.1.0";
 
-            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-            UriBuilder uri = new UriBuilder(codeBase);
-            string path = Uri.UnescapeDataString(uri.Path);
+            // Unique 64bit ID for the plugin
+            PluginID = 0xDC8558DC41A44872;
 
-            // Not sure if this helps, but...
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            HasUserInterface = true;
+            EditorWidth = 350;
+            EditorHeight = 200;
 
-            ParameterInfo = new Parameter[0];
-
-            PortInfo = new SharpSoundDevice.Port[2]
-            {
-                new SharpSoundDevice.Port() { Direction = PortDirection.Input, Name = "Mono Input", NumberOfChannels = 1 },
-                new SharpSoundDevice.Port() { Direction = PortDirection.Output, Name = "Mono Output", NumberOfChannels = 1 }
-            };
-
-            // Initialize as arrays of arrays, even though we are only using one channel, since that is what the simulation takes
-            inputBuffers = new double[1][];
-            inputBuffers[0] = null;
-
-            outputBuffers = new double[1][];
-            outputBuffers[0] = null;
+            //GCSettings.LatencyMode = GCLatencyMode.LowLatency;
 
             SimulationProcessor = new SimulationProcessor();
         }
 
-        public void Debug(String debugStr)
+        public override void Initialize()
         {
-            Logging.Log(debugStr);
+            base.Initialize();
+
+            InputPorts = new AudioIOPort[] { monoInput = new AudioIOPort("Mono Input", EAudioChannelConfiguration.Mono) };
+            OutputPorts = new AudioIOPort[] { monoOutput = new AudioIOPort("Mono Output", EAudioChannelConfiguration.Mono) };
         }
 
-        public void InitializeDevice()
+        public override void InitializeProcessing()
         {
+            base.InitializeProcessing();
+
+            Logger.Log("Initialize Processing");
+            Logger.Log("Sample rate: " + Host.SampleRate + " Max Buffer Size: " + Host.MaxAudioBufferSize);
+
+            SimulationProcessor.SampleRate = Host.SampleRate;
         }
 
-        public void DisposeDevice()
+        public override UserControl GetEditorView()
         {
-
-        }
-
-        public void Start()
-        {
-            Logging.Log("Starting");
-            Logging.Log("Sample rate: " + HostInfo.SampleRate + " Buffer Size: " + HostInfo.BlockSize);
-
-            SimulationProcessor.SampleRate = HostInfo.SampleRate;
-        }
-        public void Stop() { }
-
-        public void OpenEditor(IntPtr parentWindow)
-        {
-            Logging.Log("Open editor");
-
-            if (EditorView == null)
-            {
-                EditorView = new EditorView(this) { Width = DevInfo.EditorWidth, Height = DevInfo.EditorHeight };
-            }
-
-            DevInfo.EditorWidth = (int)EditorView.Width;
-            DevInfo.EditorHeight = (int)EditorView.Height;
-            HostInfo.SendEvent(DeviceId, new Event { Data = null, EventIndex = 0, Type = EventType.WindowSize });
-            window = new System.Windows.Window() { Content = EditorView };
-            window.Width = EditorView.Width;
-            window.Height = EditorView.Height;
-            DeviceUtilities.DockWpfWindow(window, parentWindow);
-            window.Show();
-        }
-
-        public void CloseEditor()
-        {
-        }
-
-        public void HostChanged() { }
-
-        // We handle unsafe buffer data, so this is unused
-        public void ProcessSample(double[][] input, double[][] output, uint bufferSize)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SendEvent(Event ev)
-        {
-            return true;
-        }
-
-        public void SetParam(int index, double value)
-        {
+            return new EditorView(this);
         }
 
         /// <summary>
         /// Save our current plugin state
         /// </summary>
-        /// <param name="index">Program index</param>
-        /// <returns></returns>
-        public Program GetProgramData(int index)
+        /// <returns>A byte array of data</returns>
+        public override byte[] SaveState()
         {
-            Logging.Log("Save program: " + index);
-
-            // We only have one program
-
-            var program = new Program();
-            program.Name = null; // "Program 1";
-            program.Data = null;
+            byte[] stateData = null;
 
             VstProgramParameters programParameters = new VstProgramParameters
             {
@@ -179,26 +105,23 @@ namespace LiveSPICEVst
             {
                 serializer.Serialize(memoryStream, programParameters);
 
-                program.Data = memoryStream.ToArray();
+                stateData = memoryStream.ToArray();
             }
 
-            return program;
+            return stateData;
         }
 
         /// <summary>
-        /// Set plugin state from program data
+        /// Restore plugin state
         /// </summary>
-        /// <param name="program">The program data</param>
-        /// <param name="index">The index of the program</param>
-        public void SetProgramData(Program program, int index)
+        /// <param name="stateData">Byte array of data to restore</param>
+        public override void RestoreState(byte[] stateData)
         {
-            Logging.Log("Load program: " + index);
-
             XmlSerializer serializer = new XmlSerializer(typeof(VstProgramParameters));
 
             try
             {
-                using (MemoryStream memoryStream = new MemoryStream(program.Data))
+                using (MemoryStream memoryStream = new MemoryStream(stateData))
                 {
                     VstProgramParameters programParameters = serializer.Deserialize(memoryStream) as VstProgramParameters;
 
@@ -242,7 +165,7 @@ namespace LiveSPICEVst
             }
             catch (Exception ex)
             {
-                Logging.Log("Load program failed: " + ex.Message);
+                Logger.Log("Load state failed: " + ex.Message);
             }
         }
 
@@ -256,55 +179,27 @@ namespace LiveSPICEVst
             }
             catch (Exception ex)
             {
-                MessageBox.Show(String.Format("Error loading schematic from: {0}\n\n{1}", path, ex.Message), "Schematic Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(String.Format("Error loading schematic from: {0}\n\n{1}", path, ex.ToString()), "Schematic Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        /// <summary>
-        /// Process a buffer of samples from the VST host
-        /// </summary>
-        /// <param name="input">IntPtr to a double** of input samples</param>
-        /// <param name="output">IntPtr to a double** of output samples</param>
-        /// <param name="inChannelCount">The number of input channels</param>
-        /// <param name="outChannelCount">The number of output channels</param>
-        /// <param name="bufferSize">The buffer size in samples</param>
-        public void ProcessSample(IntPtr input, IntPtr output, uint inChannelCount, uint outChannelCount, uint bufferSize)
+        public override void Process()
         {
             if (haveSimulationError)
             {
-                // If we had an error running the simulation, bypass it
-
-                uint bytesToCopy = bufferSize * sizeof(double);
-
-                Buffer.MemoryCopy((void *)((double**)input)[0], (void *)((double**)output)[0], bytesToCopy, bytesToCopy);
+                monoInput.PassThroughTo(monoOutput);
             }
             else
             {
-                // Check if our buffer size has changed
-                if (currentBufferSize != bufferSize)
-                {
-                    if (currentBufferSize < bufferSize)
-                    {
-                        currentBufferSize = (int)bufferSize;
+                double[][] inBuffers = monoInput.GetAudioBuffers();
+                double[][] outBuffers = monoOutput.GetAudioBuffers();
 
-                        Array.Resize<double>(ref inputBuffers[0], currentBufferSize);
-                        Array.Resize<double>(ref outputBuffers[0], currentBufferSize);
-                    }
-                    else
-                    {
-                        currentBufferSize = (int)bufferSize;
-                    }
-                }
-
-                // We are doing mono processing, so just grab the left input and output channel
-                IntPtr leftIn = (IntPtr)((double**)input)[0];
-                IntPtr leftOut = (IntPtr)((double**)output)[0];
-
-                Marshal.Copy(leftIn, inputBuffers[0], 0, currentBufferSize);
+                // Read input samples from unmanaged memory
+                monoInput.ReadData();
 
                 try
                 {
-                    SimulationProcessor.RunSimulation(inputBuffers, outputBuffers, currentBufferSize);
+                    SimulationProcessor.RunSimulation(inBuffers, outBuffers, inBuffers[0].Length);
                 }
                 catch (Exception ex)
                 {
@@ -316,7 +211,8 @@ namespace LiveSPICEVst
                     }).Start();
                 }
 
-                Marshal.Copy(outputBuffers[0], 0, leftOut, currentBufferSize);
+                // Write outout samples to unmanaged memory
+                monoOutput.WriteData();
             }
         }
     }

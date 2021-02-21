@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
     <AssemblyName>LiveSPICEApp</AssemblyName>
     <Product>LiveSPICEApp</Product>
@@ -18,8 +18,13 @@
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="SharpSoundDevice">
-      <HintPath>..\SharpSoundDevice\x64\Release\SharpSoundDevice.dll</HintPath>
+    <Reference Include="AudioPlugSharp, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="AudioPlugSharpWPF, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharpWPF.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
