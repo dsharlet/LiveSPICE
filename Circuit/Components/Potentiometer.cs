@@ -83,7 +83,7 @@ namespace Circuit
 
             Resistor.Draw(Sym, -10, -16, 16, 7);
 
-            Sym.DrawText(() => Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Sweep.GetCode()+Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => Wipe.ToString("G3"), new Coord(-4, 4), Alignment.Near, Alignment.Near);
             Sym.DrawText(() => Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
         }
