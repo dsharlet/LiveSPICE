@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Xml.Serialization;
 using AudioPlugSharp;
 using AudioPlugSharpWPF;
+using LiveSPICEVst.ViewModels;
 
 namespace LiveSPICEVst
 {
@@ -87,15 +88,16 @@ namespace LiveSPICEVst
                 Iterations = SimulationProcessor.Iterations
             };
 
-            foreach (ComponentWrapper wrapper in SimulationProcessor.InteractiveComponents)
+            foreach (var wrapper in SimulationProcessor.InteractiveComponents)
             {
-                if (wrapper is PotWrapper)
+                switch (wrapper)
                 {
-                    programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = (wrapper as PotWrapper).PotValue });
-                }
-                else if (wrapper is ButtonWrapper)
-                {
-                    programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = (wrapper as ButtonWrapper).Engaged ? 1 : 0 });
+                    case PotViewModel pot:
+                        programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = pot.PotValue });
+                        break;
+                    case ButtonGroupViewModel button:
+                        programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = button.Position });
+                        break;
                 }
             }
 
@@ -139,28 +141,25 @@ namespace LiveSPICEVst
                     SimulationProcessor.Oversample = programParameters.OverSample;
                     SimulationProcessor.Iterations = programParameters.Iterations;
 
-                    foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
+                    foreach (var controlParameter in programParameters.ControlParameters)
                     {
-                        ComponentWrapper wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
+                        ComponentViewModel wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
 
-                        if (wrapper != null)
+                        if (wrapper != null && wrapper.Name == controlParameter.Name)
                         {
-                            if (wrapper.Name == controlParameter.Name)
+                            switch (wrapper)
                             {
-                                if (wrapper is PotWrapper)
-                                {
-                                    (wrapper as PotWrapper).PotValue = controlParameter.Value;
-                                }
-                                else if (wrapper is ButtonWrapper)
-                                {
-                                    (wrapper as ButtonWrapper).Engaged = (controlParameter.Value == 1);
-                                }
+                                case PotViewModel pot:
+                                    pot.PotValue = controlParameter.Value;
+                                    break;
+                                case ButtonGroupViewModel button:
+                                    button.Position = (int)controlParameter.Value;
+                                    break;
                             }
                         }
                     }
 
-                    if (EditorView != null)
-                        EditorView.UpdateSchematic();
+                    EditorView?.UpdateSchematic();
                 }
             }
             catch (Exception ex)

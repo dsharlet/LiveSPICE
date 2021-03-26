@@ -1,175 +1,100 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Data;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Circuit;
 using ComputerAlgebra;
+using LiveSPICEVst.ViewModels;
 using Util;
 
 namespace LiveSPICEVst
 {
-    public class ComponentWrapper
-    {
-        public string Name { get; set; }
-        public bool NeedUpdate { get; set; }
-        public bool NeedRebuild { get; set; }
-    }
-
-    /// <summary>
-    /// Simple wrapper around IPotControl to make UI integration easier
-    /// </summary>
-    public class PotWrapper : ComponentWrapper
-    {
-        IPotControl pot = null;
-
-        public PotWrapper(IPotControl pot, string name)
-        {
-            this.pot = pot;
-            this.Name = name;
-        }
-
-        public double PotValue
-        {
-            get
-            {
-                return pot.PotValue;
-            }
-
-            set
-            {
-                if (pot.PotValue != value)
-                {
-                    pot.PotValue = value;
-
-                    NeedUpdate = true;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Simple wrapper around IButtonControl to make UI integration easier
-    /// </summary>
-    public class ButtonWrapper : ComponentWrapper
-    {
-        List<IButtonControl> buttons = new List<IButtonControl>();
-        bool engaged = false;
-
-        public ButtonWrapper(string name)
-        {
-            this.Name = name;
-        }
-
-        public bool Engaged
-        {
-            get
-            {
-                return engaged;
-            }
-
-            set
-            {
-                if (value != engaged)
-                {
-                    engaged = !engaged;
-
-                    foreach (IButtonControl button in buttons)
-                    {
-                        button.Click();
-                    }
-
-                    NeedRebuild = true;
-                }
-            }
-        }
-
-        public void AddButton(IButtonControl button)
-        {
-            buttons.Add(button);
-        }
-    }
 
     /// <summary>
     /// Manages single-channel audio circuit simulation
     /// </summary>
     public class SimulationProcessor
     {
-        public ObservableCollection<ComponentWrapper> InteractiveComponents { get; private set; }
-
+        public ObservableCollection<ComponentViewModel> InteractiveComponents { get; }
         public Schematic Schematic { get; private set; }
         public string SchematicPath { get; private set; }
-        public string SchematicName { get { return System.IO.Path.GetFileNameWithoutExtension(SchematicPath); } }
+        public string SchematicName => Path.GetFileNameWithoutExtension(SchematicPath);
 
         public double SampleRate
         {
-            get { return sampleRate; }
+            get { return _sampleRate; }
             set
             {
-                if (sampleRate != value)
+                if (_sampleRate != value)
                 {
-                    sampleRate = value;
+                    _sampleRate = value;
 
-                    needRebuild = true;
+                    _needRebuild = true;
 
-                    delayUpdateSamples = (int)(sampleRate * .1);
+                    _delayUpdateSamples = (int)(_sampleRate * .1);
                 }
             }
         }
 
         public int Oversample
         {
-            get { return oversample; }
+            get { return _oversample; }
             set
             {
-                if (oversample != value)
+                if (_oversample != value)
                 {
-                    oversample = value;
+                    _oversample = value;
 
-                    needRebuild = true;
+                    _needRebuild = true;
                 }
             }
         }
 
         public int Iterations
         {
-            get { return iterations; }
+            get { return _iterations; }
             set
             {
-                if (iterations != value)
+                if (_iterations != value)
                 {
-                    iterations = value;
+                    _iterations = value;
 
-                    needRebuild = true;
+                    _needRebuild = true;
                 }
             }
         }
 
-        double sampleRate;
-        int oversample = 2;
-        int iterations = 8;
+        double _sampleRate;
+        int _oversample = 2;
+        int _iterations = 8;
 
-        Circuit.Circuit circuit = null;
-        Simulation simulation = null;
-        bool needUpdate = false;
-        bool needRebuild = false;
-        int updateSamplesElapsed = 0;
-        int delayUpdateSamples = 0;
-        Exception simulationUpdateException = null;
+        Circuit.Circuit _circuit;
+        Simulation _simulation;
+        bool _needUpdate;
+        bool _needRebuild;
+        int _updateSamplesElapsed;
+        int _delayUpdateSamples;
+        Exception _simulationUpdateException;
 
         public SimulationProcessor()
         {
-            InteractiveComponents = new ObservableCollection<ComponentWrapper>();
+            InteractiveComponents = new ObservableCollection<ComponentViewModel>();
 
             SampleRate = 44100;
         }
 
         public void LoadSchematic(string path)
         {
-            Schematic newSchematic = Circuit.Schematic.Load(path);
+            Schematic newSchematic = Schematic.Load(path);
 
-            Circuit.Circuit circuit = newSchematic.Build();
+            var circuit = newSchematic.Build();
 
             SetCircuit(circuit);
 
@@ -182,53 +107,46 @@ namespace LiveSPICEVst
         {
             Schematic = null;
             SchematicPath = "";
-            circuit = null;
+            _circuit = null;
             InteractiveComponents.Clear();
         }
 
         void SetCircuit(Circuit.Circuit circuit)
         {
-            this.circuit = circuit;
+            _circuit = circuit;
 
             InteractiveComponents.Clear();
 
-            Dictionary<string, ButtonWrapper> buttonGroups = new Dictionary<string, ButtonWrapper>();
+            Dictionary<string, ButtonGroupViewModel> buttonGroups = new Dictionary<string, ButtonGroupViewModel>();
 
-            foreach (Circuit.Component i in circuit.Components)
+            foreach (var component in circuit.Components)
             {
-                if (i is IPotControl)
+                switch (component)
                 {
-                    InteractiveComponents.Add(new PotWrapper((i as IPotControl), i.Name));
-                }
-                else if (i is IButtonControl)
-                {
-                    IButtonControl button = (i as IButtonControl);
+                    case IPotControl pot:
+                        InteractiveComponents.Add(new PotViewModel(pot, component.Name));
+                        break;
 
-                    ButtonWrapper wrapper = null;
-
-                    if (string.IsNullOrEmpty(button.Group))
-                    {
-                        wrapper = new ButtonWrapper(i.Name);
-                        InteractiveComponents.Add(wrapper);
-                    }
-                    else if (buttonGroups.ContainsKey(button.Group))
-                    {
-                        wrapper = buttonGroups[button.Group];
-                    }
-                    else
-                    {
-                        wrapper = new ButtonWrapper(button.Group);
-
-                        buttonGroups[button.Group] = wrapper;
-
-                        InteractiveComponents.Add(wrapper);
-                    }
-
-                    wrapper.AddButton(button);
+                    case IButtonControl button:
+                        if (string.IsNullOrEmpty(button.Group))
+                        {
+                            InteractiveComponents.Add(new ButtonGroupViewModel(component.Name, button));
+                        }
+                        else if (buttonGroups.TryGetValue(button.Group, out var wrapper))
+                        {
+                            wrapper.AddButton(button);
+                        }
+                        else
+                        {
+                            wrapper = new ButtonGroupViewModel(button.Group, button);
+                            buttonGroups.Add(button.Group, wrapper);
+                            InteractiveComponents.Add(wrapper);
+                        }
+                        break;
                 }
             }
 
-            needRebuild = true;
+            _needRebuild = true;
         }
 
         /// <summary>
@@ -240,29 +158,23 @@ namespace LiveSPICEVst
         public void RunSimulation(double[][] audioInputs, double[][] audioOutputs, int numSamples)
         {
             // Throw any exception generated by asynchronous simulation updates
-            if (simulationUpdateException != null)
+            if (_simulationUpdateException != null)
             {
-                Exception toThrow = simulationUpdateException;
+                Exception toThrow = _simulationUpdateException;
 
-                simulationUpdateException = null;
+                _simulationUpdateException = null;
 
                 throw toThrow;
             }
 
-            if (simulation == null)
+            if (_simulation == null && _needRebuild && _circuit != null)
             {
-                if (needRebuild)
-                {
-                    if (circuit != null)
-                    {
-                        UpdateSimulation(needRebuild);
+                UpdateSimulation(_needRebuild);
 
-                        needRebuild = false;
-                    }
-                }
+                _needRebuild = false;
             }
 
-            if ((circuit == null) || (simulation == null))
+            if ((_circuit == null) || (_simulation == null))
             {
                 audioInputs[0].CopyTo(audioOutputs[0], 0);
             }
@@ -270,48 +182,48 @@ namespace LiveSPICEVst
             {
                 lock (sync)
                 {
-                    foreach (ComponentWrapper component in InteractiveComponents)
+                    foreach (ComponentViewModel component in InteractiveComponents)
                     {
                         if (component.NeedUpdate)
                         {
-                            needUpdate = true;
+                            _needUpdate = true;
 
                             component.NeedUpdate = false;
 
-                            updateSamplesElapsed = 0;
+                            _updateSamplesElapsed = 0;
                         }
 
                         if (component.NeedRebuild)
                         {
-                            needRebuild = true;
+                            _needRebuild = true;
 
                             component.NeedRebuild = false;
                         }
                     }
 
-                    if (needUpdate || needRebuild)
+                    if (_needUpdate || _needRebuild)
                     {
                         // Delay updates until user input settles
-                        if (needRebuild || (updateSamplesElapsed > delayUpdateSamples))
+                        if (_needRebuild || (_updateSamplesElapsed > _delayUpdateSamples))
                         {
-                            UpdateSimulation(needRebuild);
+                            UpdateSimulation(_needRebuild);
 
-                            needRebuild = false;
-                            needUpdate = false;
+                            _needRebuild = false;
+                            _needUpdate = false;
                         }
                         else
                         {
-                            updateSamplesElapsed += numSamples;
+                            _updateSamplesElapsed += numSamples;
                         }
                     }
 
-                    simulation.Run(numSamples, audioInputs, audioOutputs);
+                    _simulation.Run(numSamples, audioInputs, audioOutputs);
                 }
             }
         }
 
         int clock = -1;
-        int update = 0;
+        int update;
         TaskScheduler scheduler = new RedundantTaskScheduler(1);
         object sync = new object();
 
@@ -326,8 +238,8 @@ namespace LiveSPICEVst
             {
                 try
                 {
-                    Analysis analysis = circuit.Analyze();
-                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
+                    Analysis analysis = _circuit.Analyze();
+                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (_sampleRate * _oversample));
 
                     lock (sync)
                     {
@@ -335,15 +247,15 @@ namespace LiveSPICEVst
                         {
                             if (rebuild)
                             {
-                                Expression inputExpression = circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
+                                Expression inputExpression = _circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
 
                                 if (inputExpression == null)
                                 {
-                                    simulationUpdateException = new NotSupportedException("Circuit has no inputs.");
+                                    _simulationUpdateException = new NotSupportedException("Circuit has no inputs.");
                                 }
                                 else
                                 {
-                                    IEnumerable<Speaker> speakers = circuit.Components.OfType<Speaker>();
+                                    IEnumerable<Speaker> speakers = _circuit.Components.OfType<Speaker>();
 
                                     Expression outputExpression = 0;
 
@@ -355,14 +267,14 @@ namespace LiveSPICEVst
 
                                     if (outputExpression.EqualsZero())
                                     {
-                                        simulationUpdateException = new NotSupportedException("Circuit has no speaker outputs.");
+                                        _simulationUpdateException = new NotSupportedException("Circuit has no speaker outputs.");
                                     }
                                     else
                                     {
-                                        simulation = new Simulation(ts)
+                                        _simulation = new Simulation(ts)
                                         {
-                                            Oversample = oversample,
-                                            Iterations = iterations,
+                                            Oversample = _oversample,
+                                            Iterations = _iterations,
                                             Input = new[] { inputExpression },
                                             Output = new[] { outputExpression }
                                         };
@@ -371,7 +283,7 @@ namespace LiveSPICEVst
                             }
                             else
                             {
-                                simulation.Solution = ts;
+                                _simulation.Solution = ts;
                                 clock = id;
                             }
                         }
@@ -379,7 +291,7 @@ namespace LiveSPICEVst
                 }
                 catch (Exception ex)
                 {
-                    simulationUpdateException = ex;
+                    _simulationUpdateException = ex;
                 }
 
             }). Start(scheduler);

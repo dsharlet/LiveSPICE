@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:LiveSPICEVst"
-             xmlns:AudioPlugSharpWPF="clr-namespace:AudioPlugSharpWPF;assembly=AudioPlugSharpWPF"
+             xmlns:viewModels="clr-namespace:LiveSPICEVst.ViewModels"
+             xmlns:AudioPlugSharpWPF="clr-namespace:AudioPlugSharpWPF;assembly=AudioPlugSharpWPF" xmlns:converters="clr-namespace:LiveSPICEVst.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -13,6 +13,14 @@
                 <ResourceDictionary  Source="/LiveSPICEVst;component/Themes/Generic.xaml"/>
                 <ResourceDictionary Source="/AudioPlugSharpWPF;component/Themes/Generic.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <converters:PositionToColorConverter x:Key="ColorConverter" Default="Purple">
+                <converters:PositionToColorConverter.Brushes>
+                    <SolidColorBrush Color="LightGray" />
+                    <SolidColorBrush Color="YellowGreen" />
+                    <SolidColorBrush Color="Orange" />
+                    <SolidColorBrush Color="Tomato" />
+                </converters:PositionToColorConverter.Brushes>
+            </converters:PositionToColorConverter>
         </ResourceDictionary>
     </UserControl.Resources>
     <ItemsControl ItemsSource="{Binding InteractiveComponents}" HorizontalAlignment="Center" VerticalAlignment="Top">
@@ -29,41 +37,50 @@
                                    FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" Margin="2">
                         </TextBlock>
                         <ContentControl DockPanel.Dock="Top" Content="{Binding}">
-                            <ContentControl.Style>
-                                <Style TargetType="ContentControl">
-                                    <Setter Property="ContentTemplate">
+                            <ContentControl.Resources>
+                                <Style x:Key="LedButton" TargetType="Button">
+                                    <Setter Property="Template">
                                         <Setter.Value>
-                                            <DataTemplate>
-                                                <StackPanel>
-                                                    <AudioPlugSharpWPF:Dial x:Name="ParameterDial"
-                                                        Minimum="0" Maximum="1" Value="{Binding PotValue}"
-                                                        Margin="2,0,2,0"/>
-                                                    <Popup PlacementTarget="{Binding ElementName=ParameterDial}" Placement="Center" VerticalOffset="25"
-                                                            IsOpen="{Binding IsMouseCaptured, ElementName=ParameterDial, Mode=OneWay}"
-                                                            AllowsTransparency = "True" PopupAnimation = "Fade">
-                                                        <Border Background="White" BorderBrush="Gray" BorderThickness="1">
-                                                            <TextBlock Text="{Binding PotValue, StringFormat=N2}" Margin="2"/>
-                                                        </Border>
-                                                    </Popup>
-                                                </StackPanel>
-                                            </DataTemplate>
+                                            <ControlTemplate>
+                                                <Grid>
+                                                    <Ellipse Height="16" Width="16" Fill="#444"/>
+                                                    <Ellipse Height="13" Width="13" Fill="{Binding Background, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                                                    <Ellipse Height="13" Width="13">
+                                                        <Ellipse.Fill>
+                                                            <RadialGradientBrush Center=".25,.25">
+                                                                <GradientStop Color="#99FFFFFF" Offset="0"/>
+                                                                <GradientStop Color="#77FFFFFF" Offset="0.3"/>
+                                                                <GradientStop Color="Transparent" Offset=".75"/>
+                                                            </RadialGradientBrush>
+                                                        </Ellipse.Fill>
+                                                    </Ellipse>
+                                                </Grid>
+                                            </ControlTemplate>
                                         </Setter.Value>
                                     </Setter>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=DataContext, Converter={StaticResource OjbectTypeConverter}}" Value="{x:Type local:ButtonWrapper}">
-                                            <Setter Property="ContentTemplate">
-                                                <Setter.Value>
-                                                    <DataTemplate>
-                                                        <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2" IsChecked="{Binding Engaged, Mode=TwoWay}"
-                                                            Style="{StaticResource PowerButton}">
-                                                        </ToggleButton>
-                                                    </DataTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-                                    </Style.Triggers>
                                 </Style>
-                            </ContentControl.Style>
+                                <DataTemplate DataType="{x:Type viewModels:ButtonGroupViewModel}">
+                                    <Button Command="{Binding ClickCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2"
+                                                  Style="{StaticResource LedButton}"
+                                            Background="{Binding Position, Converter={StaticResource ColorConverter}}">
+                                    </Button>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type viewModels:PotViewModel}">
+                                    <StackPanel>
+                                        <AudioPlugSharpWPF:Dial x:Name="Dial"
+                                                        HorizontalAlignment="Stretch"
+                                                        Minimum="0" Maximum="1" Value="{Binding PotValue}"
+                                                        Margin="2,0"/>
+                                        <Popup PlacementTarget="{Binding ElementName=Dial}" Placement="Center" VerticalOffset="32"
+                                               IsOpen="{Binding IsMouseCaptured, ElementName=Dial, Mode=OneWay}" 
+                                               AllowsTransparency="True" PopupAnimation="Fade">
+                                            <Border Background="White" BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Stretch">
+                                                <TextBlock Text="{Binding PotValue, StringFormat=N2}" Margin="4,2"/>
+                                            </Border>
+                                        </Popup>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ContentControl.Resources>
                         </ContentControl>
                     </DockPanel>
                 </Grid>

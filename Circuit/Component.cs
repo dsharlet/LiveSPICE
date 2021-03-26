@@ -28,6 +28,8 @@ namespace Circuit
     {
         void Click();
 
+        int Position { get; set; }
+
         string Group { get; }
     }
 
