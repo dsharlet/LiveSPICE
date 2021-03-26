@@ -52,7 +52,7 @@ namespace LiveSPICEVst
     /// <summary>
     /// Simple wrapper around IButtonControl to make UI integration easier
     /// </summary>
-    public class ButtonWrapper : ComponentWrapper
+    public abstract class ButtonWrapper : ComponentWrapper
     {
         protected List<IButtonControl> buttons = new List<IButtonControl>();
 
@@ -262,7 +262,7 @@ namespace LiveSPICEVst
                     {
                         if (button.NumPositions == 2)
                         {
-                            wrapper = new ButtonWrapper(button.Group);
+                            wrapper = new DoubleThrowWrapper(button.Group);
                         }
                         else
                         {
