@@ -54,12 +54,26 @@ namespace LiveSPICEVst
     /// </summary>
     public class ButtonWrapper : ComponentWrapper
     {
-        List<IButtonControl> buttons = new List<IButtonControl>();
-        bool engaged = false;
+        protected List<IButtonControl> buttons = new List<IButtonControl>();
 
         public ButtonWrapper(string name)
         {
             this.Name = name;
+        }
+
+        public void AddButton(IButtonControl button)
+        {
+            buttons.Add(button);
+        }
+    }
+
+    public class DoubleThrowWrapper : ButtonWrapper
+    {
+        bool engaged = false;
+
+        public DoubleThrowWrapper(string name)
+            : base(name)
+        {
         }
 
         public bool Engaged
@@ -84,10 +98,31 @@ namespace LiveSPICEVst
                 }
             }
         }
+    }
 
-        public void AddButton(IButtonControl button)
+    public class MultiThrowWrapper : ButtonWrapper
+    {
+        public MultiThrowWrapper(string name)
+            : base(name)
         {
-            buttons.Add(button);
+        }
+
+        public int Position
+        {
+            get
+            {
+                return buttons[0].Position;
+            }
+
+            set
+            {
+                if (value != buttons[0].Position)
+                {
+                    buttons[0].Position = value;
+
+                    NeedRebuild = true;
+                }
+            }
         }
     }
 
@@ -208,8 +243,16 @@ namespace LiveSPICEVst
 
                     if (string.IsNullOrEmpty(button.Group))
                     {
-                        wrapper = new ButtonWrapper(i.Name);
-                        InteractiveComponents.Add(wrapper);
+                        if (button.NumPositions == 2)
+                        {
+                            wrapper = new DoubleThrowWrapper(i.Name);
+                            InteractiveComponents.Add(wrapper);
+                        }
+                        else
+                        {
+                            wrapper = new MultiThrowWrapper(i.Name);
+                            InteractiveComponents.Add(wrapper);
+                        }
                     }
                     else if (buttonGroups.ContainsKey(button.Group))
                     {
@@ -217,7 +260,14 @@ namespace LiveSPICEVst
                     }
                     else
                     {
-                        wrapper = new ButtonWrapper(button.Group);
+                        if (button.NumPositions == 2)
+                        {
+                            wrapper = new ButtonWrapper(button.Group);
+                        }
+                        else
+                        {
+                            wrapper = new MultiThrowWrapper(i.Name);
+                        }
 
                         buttonGroups[button.Group] = wrapper;
 
