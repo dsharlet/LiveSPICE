@@ -13,7 +13,7 @@
                 <ResourceDictionary  Source="/LiveSPICEVst;component/Themes/Generic.xaml"/>
                 <ResourceDictionary Source="/AudioPlugSharpWPF;component/Themes/Generic.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <converters:IntegerToBrushConverter x:Key="ColorConverter" Default="Purple">
+            <converters:IntegerToBrushConverter x:Key="ColorConverter" Default="LightGray">
                 <converters:IntegerToBrushConverter.Brushes>
                     <SolidColorBrush Color="LightGray" />
                     <SolidColorBrush Color="YellowGreen" />
