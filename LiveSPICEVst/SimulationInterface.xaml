@@ -13,14 +13,14 @@
                 <ResourceDictionary  Source="/LiveSPICEVst;component/Themes/Generic.xaml"/>
                 <ResourceDictionary Source="/AudioPlugSharpWPF;component/Themes/Generic.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <converters:PositionToColorConverter x:Key="ColorConverter" Default="Purple">
-                <converters:PositionToColorConverter.Brushes>
+            <converters:IntegerToBrushConverter x:Key="ColorConverter" Default="Purple">
+                <converters:IntegerToBrushConverter.Brushes>
                     <SolidColorBrush Color="LightGray" />
                     <SolidColorBrush Color="YellowGreen" />
                     <SolidColorBrush Color="Orange" />
                     <SolidColorBrush Color="Tomato" />
-                </converters:PositionToColorConverter.Brushes>
-            </converters:PositionToColorConverter>
+                </converters:IntegerToBrushConverter.Brushes>
+            </converters:IntegerToBrushConverter>
         </ResourceDictionary>
     </UserControl.Resources>
     <ItemsControl ItemsSource="{Binding InteractiveComponents}" HorizontalAlignment="Center" VerticalAlignment="Top">
