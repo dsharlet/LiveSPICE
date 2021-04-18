@@ -102,7 +102,7 @@ namespace Circuit
         /// Define the schematic layout of this component.
         /// </summary>
         /// <param name="S"></param>
-        public abstract void LayoutSymbol(SymbolLayout Sym);
+        protected internal abstract void LayoutSymbol(SymbolLayout Sym);
 
         public SymbolLayout LayoutSymbol()
         {

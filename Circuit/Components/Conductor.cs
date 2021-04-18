@@ -24,7 +24,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Name, Anode, Cathode); }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
             Sym.AddWire(Anode, Cathode);

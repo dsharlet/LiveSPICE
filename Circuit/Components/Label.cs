@@ -28,7 +28,7 @@ namespace Circuit
 
         public Label() { Name = "_1"; }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.DrawLine(EdgeType.Gray, new Point(-20, -10), new Point(20, -10));
             Sym.DrawLine(EdgeType.Gray, new Point(-20, -10), new Point(-20, 10));

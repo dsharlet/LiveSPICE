@@ -19,7 +19,7 @@ namespace Circuit
             Mna.AddEquation(Anode.V.Evaluate(t, t - T), Cathode.V);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 

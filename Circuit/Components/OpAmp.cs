@@ -93,6 +93,6 @@ namespace Circuit
                 Sym.DrawText(Part, new Coord(12, 4), Alignment.Near, Alignment.Near);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, vcc, vee, () => Name, () => PartNumber); }
+        protected internal override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, vcc, vee, () => Name, () => PartNumber); }
     }
 }

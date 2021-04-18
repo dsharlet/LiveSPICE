@@ -47,7 +47,7 @@ namespace Circuit
                 Conductor.Analyze(Mna, Name, Common, Throws[Position]);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.AddTerminal(common, new Coord(0, -20), new Coord(0, -12));
             Sym.AddCircle(EdgeType.Black, new Coord(0, -12), 2);
@@ -105,7 +105,7 @@ namespace Circuit
                 Conductor.Analyze(Mna, Name, Anode, Cathode);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 

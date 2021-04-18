@@ -37,8 +37,6 @@ namespace Circuit
     /// </summary>
     public class SymbolLayout
     {
-        public SymbolLayout() { }
-
         protected Coord x1 = new Coord(int.MaxValue, int.MaxValue);
         protected Coord x2 = new Coord(int.MinValue, int.MinValue);
         public Coord LowerBound { get { return x1; } }

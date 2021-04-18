@@ -27,7 +27,7 @@ namespace LiveSPICE
 
         public override void Analyze(Analysis Mna) { }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected override void LayoutSymbol(SymbolLayout Sym)
         {
             Coord w = new Coord(0, 0);
             Sym.AddTerminal(Terminal, w);

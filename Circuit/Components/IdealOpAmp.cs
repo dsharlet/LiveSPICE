@@ -65,6 +65,6 @@ namespace Circuit
             Sym.DrawText(Name, new Coord(12, -4), Alignment.Near, Alignment.Far);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, () => Name); }
+        protected internal override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Positive, Negative, Out, () => Name); }
     }
 }

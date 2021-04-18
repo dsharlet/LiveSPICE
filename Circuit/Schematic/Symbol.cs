@@ -68,8 +68,7 @@ namespace Circuit
             component = Component;
             component.Tag = this;
 
-            layout = new SymbolLayout();
-            component.LayoutSymbol(layout);
+            layout = component.LayoutSymbol();
         }
 
         // Element interface.

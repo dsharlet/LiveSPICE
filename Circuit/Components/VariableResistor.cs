@@ -63,7 +63,7 @@ namespace Circuit
             return x;
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 

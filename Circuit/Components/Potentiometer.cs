@@ -68,7 +68,7 @@ namespace Circuit
             Resistor.Analyze(Mna, Anode, Wiper, R2);
         }
 
-        public override sealed void LayoutSymbol(SymbolLayout Sym)
+        protected internal override sealed void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.InBounds(new Coord(-20, -20), new Coord(10, 20));
 
