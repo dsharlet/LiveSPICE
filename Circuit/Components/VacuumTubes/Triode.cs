@@ -25,6 +25,11 @@ namespace Circuit
         [Serialize, Description("Model implementation to use")]
         public TriodeModel Model { get { return model; } set { model = value; NotifyChanged(nameof(Model)); } }
 
+        private bool simulateCapacitances;
+
+        [Serialize, Category("Dempwolf-Zolzer")]
+        public bool SimulateCapacitances { get { return simulateCapacitances; } set { simulateCapacitances = value; NotifyChanged(nameof(SimulateCapacitances)); } }
+
         private double mu = 100.0;
         [Serialize, Description("Voltage gain.")]
         public double Mu { get { return mu; } set { mu = value; NotifyChanged(nameof(Mu)); } }
@@ -142,6 +147,12 @@ namespace Circuit
                     ik = Call.If(exk > -50, -G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
                     //ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
                     //ik = Mna.AddUnknownEqualTo("i" + Name + "k", ik);
+                    if (SimulateCapacitances)
+                    {
+                        Capacitor.Analyze(Mna, Name + "_cpg", p, g, 2.4e-12);
+                        Capacitor.Analyze(Mna, Name + "_cgk", g, k, 2.3e-12);
+                        //Capacitor.Analyze(Mna, Name + "_cpk", p, k, .9e-12);
+                    }
                     ip = -(ik + ig);
                     break;
                 default:
@@ -150,13 +161,6 @@ namespace Circuit
             Mna.AddTerminal(p, ip);
             Mna.AddTerminal(g, ig);
             Mna.AddTerminal(k, ik);
-        }
-
-        public void ConnectTo(Node P, Node G, Node K)
-        {
-            p.ConnectTo(P);
-            g.ConnectTo(G);
-            k.ConnectTo(K);
         }
 
         protected internal override void LayoutSymbol(SymbolLayout Sym)
@@ -177,9 +181,12 @@ namespace Circuit
             Sym.DrawText(() => Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
         }
 
+
         // ln(1+e^x) = x for large x, and large x causes numerical issues.
         private static Expression Ln1Exp(Expression x)
         {
+            //return Call.Ln(1 + Call.Exp(x));
+
             return Call.If(x > 50, x, Call.Ln(1 + Call.Exp(x)));
         }
     }
