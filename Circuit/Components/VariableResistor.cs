@@ -17,6 +17,28 @@ namespace Circuit
         ReverseLogarithmic,
     }
 
+    static class SweepTypeMethods
+    {
+        /// <summary>
+        /// Return the Asian/American marking letter of the sweep.
+        /// </summary>
+        public static string GetCode(this SweepType sweep)
+        {
+            switch (sweep)
+            {
+                case SweepType.Linear:
+                case SweepType.ReverseLinear:
+                    return "B";
+                case SweepType.Logarithmic:
+                    return "A";
+                case SweepType.ReverseLogarithmic:
+                    return "C";
+                default:
+                    return "";
+            }
+        }
+    }
+
     [Category("Generic")]
     [DisplayName("Variable Resistor")]
     [DefaultProperty("Resistance")]
@@ -75,7 +97,7 @@ namespace Circuit
 
             Sym.DrawArrow(EdgeType.Black, new Coord(-6, -15), new Coord(6, 15), 0.1);
 
-            Sym.DrawText(() => Resistance.ToString(), new Coord(-7, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Sweep.GetCode()+Resistance.ToString(), new Coord(-7, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => Wipe.ToString("G3"), new Coord(9, 3), Alignment.Near, Alignment.Near);
             Sym.DrawText(() => Name, new Coord(9, -3), Alignment.Near, Alignment.Far);
         }
