@@ -90,6 +90,19 @@ namespace Circuit
         [Serialize, Category("Dempwolf-Zolzer")]
         public Quantity Ig0 { get { return ig0; } set { ig0 = value; NotifyChanged(nameof(Ig0)); } }
 
+        private double _cgp = 2.4e-12;
+        [Serialize, Description("Grid to plate capacitance.")]
+        public double Cgp { get { return _cgp; } set { _cgp = value; NotifyChanged(nameof(Cgp)); } }
+
+        private double _cgk = 2.3e-12;
+        [Serialize, Description("Grid to cathode capacitance.")]
+        public double Cgk { get { return _cgk; } set { _cgk = value; NotifyChanged(nameof(Cgk)); } }
+
+        private double _cpk = .9e-12;
+        [Serialize, Description("Plate to cathode capacitance.")]
+        public double Cpk { get { return _cpk; } set { _cgk = value; NotifyChanged(nameof(Cpk)); } }
+
+
         private Terminal p, g, k;
         public override IEnumerable<Terminal> Terminals
         {
@@ -119,8 +132,6 @@ namespace Circuit
         {
             Expression Vpk = p.V - k.V;
             Expression Vgk = g.V - k.V;
-            //Vpk = Mna.AddUnknownEqualTo(Name + "pk", Vpk);
-            //Vgk = Mna.AddUnknownEqualTo(Name + "gk", Vgk);
 
             Expression ip, ig, ik;
             switch (model)
@@ -128,7 +139,6 @@ namespace Circuit
                 case TriodeModel.ChildLangmuir:
                     Expression Ed = Mu * Vgk + Vpk;
                     ip = Call.If(Ed > 0, K * (Ed ^ 1.5), 0);
-                    //ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
                     ig = 0;
                     ik = -(ip + ig);
                     break;
@@ -136,8 +146,6 @@ namespace Circuit
                     Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
                     ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
                     ig = Call.Max(Vgk - Vg, 0) / Rgk;
-                    //ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
-                    //ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
                     ik = -(ip + ig);
                     break;
                 case TriodeModel.DempwolfZolzer:
@@ -145,13 +153,11 @@ namespace Circuit
                     ig = Call.If(exg > -50, Gg * Binary.Power(Ln1Exp(exg) / Cg, Xi), 0) + Ig0;
                     Expression exk = C * ((Vpk / Mu) + Vgk);
                     ik = Call.If(exk > -50, -G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
-                    //ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
-                    //ik = Mna.AddUnknownEqualTo("i" + Name + "k", ik);
                     if (SimulateCapacitances)
                     {
-                        Capacitor.Analyze(Mna, Name + "_cpg", p, g, 2.4e-12);
-                        Capacitor.Analyze(Mna, Name + "_cgk", g, k, 2.3e-12);
-                        //Capacitor.Analyze(Mna, Name + "_cpk", p, k, .9e-12);
+                        Capacitor.Analyze(Mna, Name + "_cgp", p, g, _cgp);
+                        Capacitor.Analyze(Mna, Name + "_cgk", g, k, _cgk);
+                        Capacitor.Analyze(Mna, Name + "_cpk", p, k, _cpk);
                     }
                     ip = -(ik + ig);
                     break;
