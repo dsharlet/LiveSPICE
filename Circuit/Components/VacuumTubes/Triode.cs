@@ -90,17 +90,17 @@ namespace Circuit
         [Serialize, Category("Dempwolf-Zolzer")]
         public Quantity Ig0 { get { return ig0; } set { ig0 = value; NotifyChanged(nameof(Ig0)); } }
 
-        private double _cgp = 2.4e-12;
+        private Quantity _cgp = new Quantity(2.4e-12m, Units.F);
         [Serialize, Description("Grid to plate capacitance.")]
-        public double Cgp { get { return _cgp; } set { _cgp = value; NotifyChanged(nameof(Cgp)); } }
+        public Quantity Cgp { get { return _cgp; } set { _cgp = value; NotifyChanged(nameof(Cgp)); } }
 
-        private double _cgk = 2.3e-12;
+        private Quantity _cgk = new Quantity(2.3e-12m, Units.F);
         [Serialize, Description("Grid to cathode capacitance.")]
-        public double Cgk { get { return _cgk; } set { _cgk = value; NotifyChanged(nameof(Cgk)); } }
+        public Quantity Cgk { get { return _cgk; } set { _cgk = value; NotifyChanged(nameof(Cgk)); } }
 
-        private double _cpk = .9e-12;
+        private Quantity _cpk = new Quantity(9e-13m, Units.F);
         [Serialize, Description("Plate to cathode capacitance.")]
-        public double Cpk { get { return _cpk; } set { _cgk = value; NotifyChanged(nameof(Cpk)); } }
+        public Quantity Cpk { get { return _cpk; } set { _cpk = value; NotifyChanged(nameof(Cpk)); } }
 
 
         private Terminal p, g, k;
