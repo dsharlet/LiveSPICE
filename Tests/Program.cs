@@ -1,50 +1,66 @@
 ﻿using System;
 using System.IO;
 using Circuit;
-using ComputerAlgebra;
 using System.Collections.Generic;
 using Util;
 using System.Linq;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.Threading.Tasks;
 
 namespace Tests
 {
     class Program
     {
-        // TODO: Make these command line arguments.
-        static int SampleRate = 48000;
-        static int Samples = 4800;
-        static int Oversample = 8;
-        static int Iterations = 8;
-
-        static void Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            bool test = args.Contains("--test");
-            bool benchmark = args.Contains("--benchmark");
-            bool plot = args.Contains("--plot");
+            var rootCommand = new RootCommand().WithCommand("test", "Run tests", c => c
+                                                    .WithArgument<string>("searchPath", "Files to test")
+                                                    .WithOption<bool>(new[] { "--plot" }, "Plot results")
+                                                    .WithHandler(CommandHandler.Create<string, bool, int, int, int, int>(Test)))
+                                               .WithCommand("benchmark", "Run benchmarks", c => c
+                                                    .WithArgument<string>("searchPath", "Files to benchmark")
+                                                    .WithHandler(CommandHandler.Create<string, int, int, int>(Benchmark)))
+                                               .WithGlobalOption(new Option<int>("--sampleRate", () => 48000, "Sample Rate"))
+                                               .WithGlobalOption(new Option<int>("--samples", () => 4800, "Samples"))
+                                               .WithGlobalOption(new Option<int>("--oversample", () => 8, "Oversample"))
+                                               .WithGlobalOption(new Option<int>("--iterations", () => 8, "Iterations"));
 
-            Log log = new ConsoleLog() { Verbosity = MessageType.Info };
-            Test tester = new Test();
+            return rootCommand.InvokeAsync(args).Result;
+        }
 
-            foreach (string i in args.Where(i => !i.StartsWith("--")))
+        public static void Test(string searchPath, bool plot, int sampleRate, int samples, int oversample, int iterations)
+        {
+            var log = new ConsoleLog() { Verbosity = MessageType.Info };
+            var tester = new Test();
+
+            foreach (var circuit in GetCircuits(searchPath, log))
             {
-                foreach (string File in Globber.Glob(i))
+                var outputs = tester.Run(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, samples, oversample, iterations);
+                if (plot)
                 {
-                    System.Console.WriteLine(File);
-                    Circuit.Circuit C = Schematic.Load(File, log).Build();
-                    C.Name = Path.GetFileNameWithoutExtension(File);
-                    if (test)
-                    {
-                        Dictionary<Expression, List<double>> outputs =
-                            tester.Run(C, t => Harmonics(t, 0.5, 82, 2), SampleRate, Samples, Oversample, Iterations);
-                        if (plot)
-                            tester.PlotAll(C.Name, outputs);
-                    }
-                    if (benchmark)
-                        tester.Benchmark(C, t => Harmonics(t, 0.5, 82, 2), SampleRate, Oversample, Iterations);
-                    System.Console.WriteLine("");
+                    tester.PlotAll(circuit.Name, outputs);
                 }
             }
         }
+
+        public static void Benchmark(string searchPath, int sampleRate, int oversample, int iterations)
+        {
+            var log = new ConsoleLog() { Verbosity = MessageType.Info };
+            var tester = new Test();
+            foreach (var circuit in GetCircuits(searchPath, log))
+            {
+                tester.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);
+            }
+        }
+
+        private static IEnumerable<Circuit.Circuit> GetCircuits(string glob, ILog log) => Globber.Glob(glob).Select(filename =>
+        {
+            log.WriteLine(MessageType.Info, filename);
+            var circuit = Schematic.Load(filename, log).Build();
+            circuit.Name = Path.GetFileNameWithoutExtension(filename);
+            return circuit;
+        });
 
         // Generate a function with the first N harmonics of f0.
         private static double Harmonics(double t, double A, double f0, int N)

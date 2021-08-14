@@ -106,14 +106,15 @@ namespace Tests
             int Oversample,
             int Iterations,
             Expression Input = null,
-            IEnumerable<Expression> Outputs = null)
+            IEnumerable<Expression> Outputs = null,
+            ILog log = null)
         {
             Analysis analysis = null;
             double analyzeTime = Benchmark(1, () => analysis = C.Analyze());
             System.Console.WriteLine("Circuit.Analyze time: {0:G3} ms", analyzeTime * 1000);
 
             TransientSolution TS = null;
-            double solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample)));
+            double solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample), log));
             System.Console.WriteLine("TransientSolution.Solve time: {0:G3} ms", solveTime * 1000);
 
             // By default, pass Vin to each input of the circuit.
