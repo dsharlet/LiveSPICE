@@ -15,26 +15,26 @@ namespace Tests
         static async Task<int> Main(string[] args)
         {
             var rootCommand = new RootCommand().WithCommand("test", "Run tests", c => c
-                                                    .WithArgument<string>("searchPath", "Files to test")
+                                                    .WithArgument<string>("pattern", "Glob pattern for files to test")
                                                     .WithOption<bool>(new[] { "--plot" }, "Plot results")
+                                                    .WithOption(new[] { "--samples" }, () => 4800, "Samples")
                                                     .WithHandler(CommandHandler.Create<string, bool, int, int, int, int>(Test)))
                                                .WithCommand("benchmark", "Run benchmarks", c => c
-                                                    .WithArgument<string>("searchPath", "Files to benchmark")
+                                                    .WithArgument<string>("pattern", "Glob pattern for files to benchmark")
                                                     .WithHandler(CommandHandler.Create<string, int, int, int>(Benchmark)))
                                                .WithGlobalOption(new Option<int>("--sampleRate", () => 48000, "Sample Rate"))
-                                               .WithGlobalOption(new Option<int>("--samples", () => 4800, "Samples"))
                                                .WithGlobalOption(new Option<int>("--oversample", () => 8, "Oversample"))
                                                .WithGlobalOption(new Option<int>("--iterations", () => 8, "Iterations"));
 
-            return rootCommand.InvokeAsync(args).Result;
+            return await rootCommand.InvokeAsync(args);
         }
 
-        public static void Test(string searchPath, bool plot, int sampleRate, int samples, int oversample, int iterations)
+        public static void Test(string pattern, bool plot, int sampleRate, int samples, int oversample, int iterations)
         {
             var log = new ConsoleLog() { Verbosity = MessageType.Info };
             var tester = new Test();
 
-            foreach (var circuit in GetCircuits(searchPath, log))
+            foreach (var circuit in GetCircuits(pattern, log))
             {
                 var outputs = tester.Run(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, samples, oversample, iterations);
                 if (plot)
@@ -44,11 +44,11 @@ namespace Tests
             }
         }
 
-        public static void Benchmark(string searchPath, int sampleRate, int oversample, int iterations)
+        public static void Benchmark(string pattern, int sampleRate, int oversample, int iterations)
         {
             var log = new ConsoleLog() { Verbosity = MessageType.Info };
             var tester = new Test();
-            foreach (var circuit in GetCircuits(searchPath, log))
+            foreach (var circuit in GetCircuits(pattern, log))
             {
                 tester.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);
             }
