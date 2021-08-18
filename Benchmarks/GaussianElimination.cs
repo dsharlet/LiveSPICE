@@ -210,8 +210,6 @@ namespace Benchmarks
             {
                 var Ab = _data[iteration].JaggedArray;
 
-                const double tiny = 0.00001;
-
                 // Solve for dx.
                 // For each variable in the system...
                 for (int j = 0; j + 1 < N; ++j)
@@ -245,7 +243,7 @@ namespace Benchmarks
                     for (int i = j + 1; i < M; ++i)
                     {
                         double s = Ab[i][j] / p;
-                        if (Math.Abs(s) >= tiny)
+                        if (s != 0.0)
                         {
                             int jj;
                             for (jj = j + 1; jj <= (N - vectorLength); jj += vectorLength)
