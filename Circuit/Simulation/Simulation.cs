@@ -6,8 +6,8 @@ using System.Linq;
 using System.Reflection;
 using Util;
 using LinqExpr = System.Linq.Expressions.Expression;
-using LinqExprs = System.Linq.Expressions;
 using ParamExpr = System.Linq.Expressions.ParameterExpression;
+using System.Numerics;
 
 namespace Circuit
 {
@@ -431,7 +431,7 @@ namespace Circuit
 
             // Gaussian elimination on this turd.
             code.Add(LinqExpr.Call(
-                GetMethod<Simulation>("RowReduce", Ab.Type, typeof(int), typeof(int)),
+                GetMethod<Simulation>(nameof(RowReduceVector), Ab.Type, typeof(int), typeof(int)),
                 Ab,
                 LinqExpr.Constant(M),
                 LinqExpr.Constant(N)));
@@ -491,6 +491,63 @@ namespace Circuit
                     if (s != 0.0)
                         for (int ij = j + 1; ij <= N; ++ij)
                             Abi[ij] -= Abj[ij] * s;
+                }
+            }
+        }
+
+
+        private static void RowReduceVector(double[][] Ab, int M, int N)
+        {
+            const double tiny = 0.00001;
+
+            // Solve for dx.
+            // For each variable in the system...
+            for (int j = 0; j + 1 < N; ++j)
+            {
+                int pi = j;
+                double max = Math.Abs(Ab[j][j]);
+
+                // Find a pivot row for this variable.
+                for (int i = j + 1; i < M; ++i)
+                {
+                    // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
+                    double maxj = Math.Abs(Ab[i][j]);
+                    if (maxj > max)
+                    {
+                        pi = i;
+                        max = maxj;
+                    }
+                }
+
+                // Swap pivot row with the current row.
+                if (pi != j)
+                {
+                    var tmp = Ab[pi];
+                    Ab[pi] = Ab[j];
+                    Ab[j] = tmp;
+                }
+
+                var vectorLength = Vector<double>.Count;
+                // Eliminate the rows after the pivot.
+                double p = Ab[j][j];
+                for (int i = j + 1; i < M; ++i)
+                {
+                    double s = Ab[i][j] / p;
+                    if (Math.Abs(s) >= tiny)
+                    {
+                        int jj;
+                        for (jj = j + 1; jj <= (N - vectorLength); jj += vectorLength)
+                        {
+                            var source = new Vector<double>(Ab[j], jj);
+                            var target = new Vector<double>(Ab[i], jj);
+                            var res = target - (source * s);
+                            res.CopyTo(Ab[i], jj);
+                        }
+                        for (; jj <= N; ++jj)
+                        {
+                            Ab[i][jj] -= Ab[j][jj] * s;
+                        }
+                    }
                 }
             }
         }

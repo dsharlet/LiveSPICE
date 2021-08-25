@@ -68,8 +68,8 @@ namespace Circuit
 
             Expression Vbc = sign * (Base.V - Collector.V);
             Expression Vbe = sign * (Base.V - Emitter.V);
-            Vbc = Mna.AddUnknownEqualTo(Name + "bc", Vbc);
-            Vbe = Mna.AddUnknownEqualTo(Name + "be", Vbe);
+            //Vbc = Mna.AddUnknownEqualTo(Name + "bc", Vbc);
+            //Vbe = Mna.AddUnknownEqualTo(Name + "be", Vbe);
 
             Expression aR = BR / (1 + (Expression)BR);
             Expression aF = BF / (1 + (Expression)BF);
@@ -81,9 +81,9 @@ namespace Circuit
             Expression ic = aF * iF - iR;
             Expression ib = (1 - aF) * iF + (1 - aR) * iR;
 
-            ic = Mna.AddUnknownEqualTo("i" + Name + "c", ic);
-            ib = Mna.AddUnknownEqualTo("i" + Name + "b", ib);
-            ie = Mna.AddUnknownEqualTo("i" + Name + "e", ie);
+            //ic = Mna.AddUnknownEqualTo("i" + Name + "c", ic);
+            //ib = Mna.AddUnknownEqualTo("i" + Name + "b", ib);
+            //ie = Mna.AddUnknownEqualTo("i" + Name + "e", ie);
             Mna.AddTerminal(Collector, sign * ic);
             Mna.AddTerminal(Base, sign * ib);
             Mna.AddTerminal(Emitter, -sign * ie);
