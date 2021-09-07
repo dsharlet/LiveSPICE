@@ -14,8 +14,7 @@ The LiveSPICE solution requires the ComputerAlgebra project: https://github.com/
 To clone the LiveSPICE repo, run the following commands:
 
 ```bash
-git clone https://github.com/dsharlet/LiveSPICE.git LiveSPICE
-git clone https://github.com/dsharlet/ComputerAlgebra.git LiveSPICE\ComputerAlgebra
+git clone --recursive https://github.com/dsharlet/LiveSPICE.git LiveSPICE
 ```
 
 The VST plugin depends on https://github.com/mikeoliphant/AudioPlugSharp
