@@ -5,7 +5,6 @@ namespace LiveSPICEVst
     /// <summary>
     /// Simple wrapper around IButtonControl to make UI integration easier
     /// </summary>
-
     public class DoubleThrowWrapper : ComponentWrapper<IButtonControl>
     {
         bool engaged = false;
