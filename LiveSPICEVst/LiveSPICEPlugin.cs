@@ -87,7 +87,7 @@ namespace LiveSPICEVst
                 Iterations = SimulationProcessor.Iterations
             };
 
-            foreach (ComponentWrapper wrapper in SimulationProcessor.InteractiveComponents)
+            foreach (var wrapper in SimulationProcessor.InteractiveComponents)
             {
                 switch (wrapper)
                 {
@@ -147,7 +147,7 @@ namespace LiveSPICEVst
 
                     foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
                     {
-                        ComponentWrapper wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
+                        var wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
 
                         if (wrapper != null)
                         {
