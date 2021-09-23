@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using AvalonDock.Layout;
@@ -61,7 +62,7 @@ namespace LiveSPICE
         private SimulationSchematic Schematic { get { return (SimulationSchematic)schematic.Schematic; } set { schematic.Schematic = value; } }
 
         protected Circuit.Circuit circuit = null;
-        protected Circuit.Simulation simulation = null;
+        protected Simulation simulation = null;
 
         private List<Probe> probes = new List<Probe>();
 
@@ -79,7 +80,7 @@ namespace LiveSPICE
         // A timer for continuously refreshing controls.
         protected System.Timers.Timer timer;
 
-        public LiveSimulation(Circuit.Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
+        public LiveSimulation(Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
         {
             try
             {
@@ -106,7 +107,7 @@ namespace LiveSPICE
 
                 foreach (Circuit.Component i in components)
                 {
-                    Circuit.Symbol S = i.Tag as Circuit.Symbol;
+                    Symbol S = i.Tag as Symbol;
                     if (S == null)
                         continue;
 
@@ -115,7 +116,7 @@ namespace LiveSPICE
                         continue;
 
                     // Create potentiometers.
-                    if (i is Circuit.IPotControl potentiometer)
+                    if (i is IPotControl potentiometer)
                     {
                         var potControl = new PotControl()
                         {
@@ -129,22 +130,34 @@ namespace LiveSPICE
                         Canvas.SetLeft(potControl, Canvas.GetLeft(tag) - potControl.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(potControl, Canvas.GetTop(tag) - potControl.Height / 2 + tag.Height / 2);
 
-                        potControl.Value = potentiometer.PotValue;
-                        potControl.ValueChanged += x =>
+                        var binding = new Binding
                         {
-                            foreach (var p in components.OfType<IPotControl>().Where(p => p.Group == potentiometer.Group))
+                            Source = potentiometer,
+                            Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.PotValue))),
+                            Mode = BindingMode.TwoWay,
+                            NotifyOnSourceUpdated = true
+                        };
+
+                        potControl.SetBinding(PotControl.ValueProperty, binding);
+
+                        potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
+                        {
+                            if (!string.IsNullOrEmpty(potentiometer.Group))
                             {
-                                p.PotValue = x;
+                                foreach (var p in components.OfType<IPotControl>().Where(p => p != potentiometer && p.Group == potentiometer.Group))
+                                {
+                                    p.PotValue = (o as PotControl).Value;
+                                }
                             }
                             UpdateSimulation(false);
-                        };
+                        }));
 
                         potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
                         potControl.MouseLeave += (o, e) => potControl.Opacity = 0.5;
                     }
 
                     // Create Buttons.
-                    if (i is Circuit.IButtonControl b)
+                    if (i is IButtonControl b)
                     {
                         Button button = new Button()
                         {
@@ -159,9 +172,13 @@ namespace LiveSPICE
 
                         button.Click += (o, e) =>
                         {
+                            b.Click();
                             // Click all the buttons in the group.
-                            foreach (Circuit.IButtonControl j in components.OfType<Circuit.IButtonControl>().Where(x => x.Group == b.Group))
-                                j.Click();
+                            if (!string.IsNullOrEmpty(b.Group))
+                            {
+                                foreach (var j in components.OfType<IButtonControl>().Where(x => x != b && x.Group == b.Group))
+                                    j.Click();
+                            }
                             UpdateSimulation(true);
                         };
 
@@ -169,11 +186,11 @@ namespace LiveSPICE
                         button.MouseLeave += (o, e) => button.Opacity = 0.5;
                     }
 
-                    if (i is Circuit.Speaker output)
+                    if (i is Speaker output)
                         speakers += output.Out;
 
                     // Create input controls.
-                    if (i is Circuit.Input input)
+                    if (i is Input input)
                     {
                         tag.ShowText = false;
 
@@ -278,9 +295,9 @@ namespace LiveSPICE
                     try
                     {
                         ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                        Circuit.TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
+                        TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
 
-                        simulation = new Circuit.Simulation(solution)
+                        simulation = new Simulation(solution)
                         {
                             Log = Log,
                             Input = inputs.Keys.ToArray(),
@@ -306,14 +323,14 @@ namespace LiveSPICE
             new Task(() =>
             {
                 ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                Circuit.TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
+                TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
                 lock (sync)
                 {
                     if (id > clock)
                     {
                         if (Rebuild)
                         {
-                            simulation = new Circuit.Simulation(s)
+                            simulation = new Simulation(s)
                             {
                                 Log = Log,
                                 Input = inputs.Keys.ToArray(),
@@ -405,7 +422,7 @@ namespace LiveSPICE
                 foreach (Probe i in probes)
                     i.Signal.AddSamples(clock, i.Buffer);
             }
-            catch (Circuit.SimulationDiverged Ex)
+            catch (SimulationDiverged Ex)
             {
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 Log.WriteLine(MessageType.Error, "Error: " + Ex.Message);
@@ -425,11 +442,11 @@ namespace LiveSPICE
             }
         }
 
-        private void OnElementAdded(object sender, Circuit.ElementEventArgs e)
+        private void OnElementAdded(object sender, ElementEventArgs e)
         {
-            if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
+            if (e.Element is Symbol && ((Symbol)e.Element).Component is Probe)
             {
-                Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
+                Probe probe = (Probe)((Symbol)e.Element).Component;
                 probe.Signal = new Signal()
                 {
                     Name = probe.V.ToString(),
@@ -446,11 +463,11 @@ namespace LiveSPICE
             }
         }
 
-        private void OnElementRemoved(object sender, Circuit.ElementEventArgs e)
+        private void OnElementRemoved(object sender, ElementEventArgs e)
         {
-            if (e.Element is Circuit.Symbol && ((Circuit.Symbol)e.Element).Component is Probe)
+            if (e.Element is Symbol && ((Symbol)e.Element).Component is Probe)
             {
-                Probe probe = (Probe)((Circuit.Symbol)e.Element).Component;
+                Probe probe = (Probe)((Symbol)e.Element).Component;
                 Scope.Signals.Remove(probe.Signal);
                 lock (sync)
                 {
@@ -463,7 +480,7 @@ namespace LiveSPICE
 
         private void OnProbeSelected(object sender, EventArgs e)
         {
-            IEnumerable<Circuit.Symbol> selected = SimulationSchematic.ProbesOf(Schematic.Selected);
+            IEnumerable<Symbol> selected = SimulationSchematic.ProbesOf(Schematic.Selected);
             if (selected.Any())
                 Scope.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
@@ -484,15 +501,15 @@ namespace LiveSPICE
 
             Schematic.Tool = new FindRelevantTool(Schematic)
             {
-                Relevant = (x) => x is Circuit.Symbol symbol && symbol.Component is Circuit.TwoTerminal,
+                Relevant = (x) => x is Symbol symbol && symbol.Component is TwoTerminal,
                 Clicked = (x) =>
                 {
                     if (x.Any())
                     {
                         ComputerAlgebra.Expression init = (Keyboard.Modifiers & ModifierKeys.Control) != 0 ? ch.Signal : 0;
-                        ch.Signal = x.OfType<Circuit.Symbol>()
+                        ch.Signal = x.OfType<Symbol>()
                             .Select(i => i.Component)
-                            .OfType<Circuit.TwoTerminal>()
+                            .OfType<TwoTerminal>()
                             .Aggregate(init, (sum, c) => sum + c.V);
                     }
                     Schematic.Tool = tool;
@@ -520,7 +537,7 @@ namespace LiveSPICE
                 Anchorable.Show();
         }
 
-        private static Pen MapToSignalPen(Circuit.EdgeType Color)
+        private static Pen MapToSignalPen(EdgeType Color)
         {
             switch (Color)
             {

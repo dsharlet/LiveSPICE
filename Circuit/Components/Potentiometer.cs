@@ -42,7 +42,7 @@ namespace Circuit
 
         protected double wipe = 0.5;
         [Serialize, Description("Position of the wiper, between 0 and 1.")]
-        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); } }
+        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); NotifyChanged(nameof(IPotControl.PotValue)); } }
         // IPotControl
         double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
 

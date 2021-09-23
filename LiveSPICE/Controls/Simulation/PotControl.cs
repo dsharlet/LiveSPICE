@@ -13,18 +13,15 @@ namespace LiveSPICE
     {
         static PotControl() { DefaultStyleKeyProperty.OverrideMetadata(typeof(PotControl), new FrameworkPropertyMetadata(typeof(PotControl))); }
 
-        private double value = 0.5;
         public double Value
         {
-            get { return Math.Max(Math.Min(value, 1.0), 0.0); }
-            set
-            {
-                this.value = value;
-                InvalidateVisual();
-                RaiseValueChanged(Value);
-                NotifyChanged(nameof(Value));
-            }
+            get { return (double)GetValue(ValueProperty); }
+            set { SetValue(ValueProperty, value); }
         }
+
+        public static readonly DependencyProperty ValueProperty =
+            DependencyProperty.Register("Value", typeof(double), typeof(PotControl), new FrameworkPropertyMetadata(.5, FrameworkPropertyMetadataOptions.AffectsRender));
+
 
         public PotControl()
         {
@@ -32,16 +29,10 @@ namespace LiveSPICE
             MouseDown += OnMouseDown;
             MouseUp += OnMouseUp;
 
-            //Style = CloneStyle(Application.Current.TryFindResource(ToolBar.ButtonStyleKey) as Style, Control.BorderBrushProperty, Control.BackgroundProperty, Control.ForegroundProperty, Control.BorderThicknessProperty);
-
             Background = new SolidColorBrush(new Color() { A = 64, R = 192, G = 192, B = 192 });
             BorderBrush = Brushes.Gray;
             Foreground = Brushes.Red;
         }
-
-        private List<Action<double>> valueChanged = new List<Action<double>>();
-        protected void RaiseValueChanged(double x) { foreach (Action<double> i in valueChanged) i(x); }
-        public event Action<double> ValueChanged { add { valueChanged.Add(value); } remove { valueChanged.Remove(value); } }
 
         private Point Center { get { return new Point(ActualWidth / 2, ActualHeight / 2); } }
 
@@ -117,30 +108,6 @@ namespace LiveSPICE
             }
             DrawNotch(DC, new Pen(Foreground, 1.5), ValueToVector(Value), r * 0.7, r * 1.15);
         }
-
-        //private static Style CloneStyle(Style From, params DependencyProperty[] Keys)
-        //{
-        //    Style clone = new Style(typeof(PotControl));
-        //    while (From != null)
-        //    {
-        //        foreach (Setter j in From.Setters.OfType<Setter>().Where(x => Keys.Contains(x.Property)))
-        //            clone.Setters.Add(j);
-        //        foreach (Trigger j in From.Triggers.OfType<Trigger>())
-        //        {
-        //            Trigger t = new Trigger()
-        //            {
-        //                Property = j.Property,
-        //                Value = j.Value,
-        //            };
-        //            foreach (Setter k in j.Setters.OfType<Setter>().Where(x => Keys.Contains(x.Property)))
-        //                t.Setters.Add(k);
-        //            if (t.Setters.Any())
-        //                clone.Triggers.Add(t);
-        //        }
-        //        From = From.BasedOn;
-        //    }
-        //    return clone;
-        //}
 
         // INotifyPropertyChanged interface.
         protected void NotifyChanged(string p)
