@@ -26,7 +26,6 @@ namespace LiveSPICE
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
                 Visibility = Visibility.Hidden,
-                SnapsToDevicePixels = true,
                 Data = new RectangleGeometry()
             };
         }
