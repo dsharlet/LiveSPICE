@@ -22,8 +22,6 @@ namespace SchematicControls
 
         protected override void OnRender(DrawingContext dc)
         {
-            dc.PushGuidelineSet(Guidelines);
-
             // This isn't pointless, it makes WPF mouse hit tests succeed near the wire instead of exactly on it.
             dc.DrawRectangle(Brushes.Transparent, null, new Rect(-2, -2, ActualWidth + 4, ActualHeight + 4));
 
@@ -40,8 +38,6 @@ namespace SchematicControls
             Vector dx = new Vector(WireTerminalSize / 2, WireTerminalSize / 2);
             foreach (Point x in new[] { ToPoint(wire.A - wire.LowerBound), ToPoint(wire.B - wire.LowerBound) })
                 dc.DrawRectangle(WirePen.Brush, WirePen, new Rect(x - dx, x + dx));
-
-            dc.Pop();
         }
 
         protected static Pen SelectedWirePen = new Pen(Brushes.Blue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };

@@ -9,6 +9,5 @@
     <ScrollViewer x:Name="scroll" 
                   HorizontalScrollBarVisibility="Auto" 
                   VerticalScrollBarVisibility="Auto" 
-                  Background="LightGray"
-                  UseLayoutRounding="True" />
+                  Background="LightGray" />
 </UserControl>

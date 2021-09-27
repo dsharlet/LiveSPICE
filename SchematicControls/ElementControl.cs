@@ -63,7 +63,6 @@ namespace SchematicControls
             element = E;
             element.Tag = this;
 
-            UseLayoutRounding = true;
             Background = Brushes.Transparent;
 
             foreach (Circuit.Terminal i in E.Terminals)
