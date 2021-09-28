@@ -28,7 +28,7 @@ namespace LiveSPICE
             {
                 if (value != null)
                 {
-                    enabled = new Image() { Source = value, SnapsToDevicePixels = true };
+                    enabled = new Image() { Source = value };
                     if (enabled != null)
                     {
                         disabled = ImageButton.MakeDisabledImage(enabled);
