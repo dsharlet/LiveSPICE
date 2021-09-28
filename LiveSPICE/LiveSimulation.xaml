@@ -1,4 +1,4 @@
-﻿<Window x:Class="LiveSPICE.LiveSimulation" x:Name="_this"
+﻿<Window x:Class="LiveSPICE.LiveSimulation"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
@@ -25,9 +25,6 @@
                                    Text="{Binding Name}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
                                    ToolTip="{Binding Name}" 
                                    TextAlignment="Left" VerticalAlignment="Center" />
-                        <!--TextBlock DockPanel.Dock="Right" 
-                                   Text="{Binding Signal}" 
-                                   TextAlignment="Left" VerticalAlignment="Center" /-->
                     </DockPanel>
                 </DockPanel>
             </Border>
@@ -83,7 +80,7 @@
         <ToolBarTray Grid.Row="2">
             <ToolBar Band="1" BandIndex="1">
                 <TextBlock Text="Oversample:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <ComboBox Width="40" IsEditable="True" Text="{Binding ElementName=_this, Path=Oversample, UpdateSourceTrigger=LostFocus}">
+                <ComboBox Width="40" IsEditable="True" Text="{Binding Oversample, UpdateSourceTrigger=PropertyChanged, Delay=1000}">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
                     <ComboBoxItem>3</ComboBoxItem>
@@ -95,7 +92,7 @@
                 </ComboBox>
 
                 <TextBlock Text="Iterations:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <xctk:IntegerUpDown Value="{Binding ElementName=_this, Path=Iterations}" Minimum="1" Maximum="64" />
+                <xctk:IntegerUpDown Value="{Binding Iterations, Delay=1000}" Minimum="1" Maximum="64" />
 
                 <Separator />
                 
@@ -106,7 +103,7 @@
                 <ls:ImageButton CommandImage="NavigationCommands.Zoom" ImageHeight="16" />
                 <ls:ImageButton CommandImage="NavigationCommands.DecreaseZoom" ImageHeight="16" />
                 <ls:ImageButton CommandImage="{x:Static ls:Commands.ZoomFit}" ImageHeight="16" />
-                <ComboBox Width="40" SelectedValue="{Binding ElementName=schematic, Path=Zoom}">
+                <ComboBox Width="40" Text="{Binding Zoom, ElementName=schematic, Mode=TwoWay}">
                     <ComboBoxItem Content="0.5" />
                     <ComboBoxItem Content="1.0" />
                     <ComboBoxItem Content="2.0" />
@@ -131,12 +128,12 @@
                                                        Text="Gain: " 
                                                        TextAlignment="Right" VerticalAlignment="Center" />
                                             <TextBox DockPanel.Dock="Left" Width="50" 
-                                                     Text="{Binding ElementName=_this, Path=InputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB}" 
+                                                     Text="{Binding InputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB}" 
                                                      TextAlignment="Left" VerticalAlignment="Center" />
                                             <Slider DockPanel.Dock="Right" 
-                                                    Value="{Binding ElementName=_this, Path=InputGain, Converter={StaticResource dBConverter}}" Minimum="-40" Maximum="40" />
+                                                    Value="{Binding InputGain, Converter={StaticResource dBConverter}}" Minimum="-40" Maximum="40" />
                                         </DockPanel>
-                                        <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=InputChannels}" />
+                                        <ItemsControl Margin="3" ItemsSource="{Binding InputChannels}" />
                                         <Separator />
                                         <DockPanel Margin="5">
                                             <TextBlock DockPanel.Dock="Left" Width="40"
@@ -145,12 +142,12 @@
                                                        Text="Gain: " 
                                                        TextAlignment="Right" VerticalAlignment="Center" />
                                             <TextBox DockPanel.Dock="Left" Width="50" 
-                                                     Text="{Binding ElementName=_this, Path=OutputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB}" 
+                                                     Text="{Binding OutputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB}" 
                                                      TextAlignment="Left" VerticalAlignment="Center" />
                                             <Slider DockPanel.Dock="Right" 
-                                                    Value="{Binding ElementName=_this, Path=OutputGain, Converter={StaticResource dBConverter}}" Minimum="-40" Maximum="40" />
+                                                    Value="{Binding OutputGain, Converter={StaticResource dBConverter}}" Minimum="-40" Maximum="40" />
                                         </DockPanel>
-                                        <ItemsControl Margin="3" ItemsSource="{Binding ElementName=_this, Path=OutputChannels}" />
+                                        <ItemsControl Margin="3" ItemsSource="{Binding OutputChannels}" />
                                     </StackPanel>
                                 </ScrollViewer>
                             </xcad:LayoutAnchorable>
