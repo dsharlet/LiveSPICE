@@ -34,7 +34,7 @@ namespace LiveSPICE
         public int Oversample
         {
             get { return oversample; }
-            set { oversample = value; RebuildSolution(); NotifyChanged(nameof(Oversample)); }
+            set { oversample = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Oversample)); }
         }
 
         protected int iterations = 8;
@@ -44,7 +44,7 @@ namespace LiveSPICE
         public int Iterations
         {
             get { return iterations; }
-            set { iterations = value; RebuildSolution(); NotifyChanged(nameof(Iterations)); }
+            set { iterations = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Iterations)); }
         }
 
         private double inputGain = 1.0;
