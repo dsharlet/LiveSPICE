@@ -11,9 +11,17 @@ using Util;
 namespace Circuit
 {
     /// <summary>
+    /// Interface for components with grouping ability.
+    /// </summary>
+    public interface IGroupableComponent
+    {
+        string Group { get; }
+    }
+
+    /// <summary>
     /// Interface for components that expose a pot controlled value.
     /// </summary>
-    public interface IPotControl
+    public interface IPotControl: IGroupableComponent
     {
         /// <summary>
         /// The value of the pot.
@@ -24,7 +32,7 @@ namespace Circuit
     /// <summary>
     /// Interface for components that expose a button controlled value.
     /// </summary>
-    public interface IButtonControl
+    public interface IButtonControl: IGroupableComponent
     {
         void Click();
         int Position { get; set; }
