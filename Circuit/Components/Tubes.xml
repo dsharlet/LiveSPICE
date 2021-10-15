@@ -9,12 +9,16 @@
 			   Ex="1.3" Kg="1180" Kp="84" Kvb="300" Rgk="1 MΩ" Vg="330 mV" />
 	<Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   Mu="83.5" K="1.73E-06" Model="DempwolfZolzer" Name="V1" PartNumber="12AX7"
-			   Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV" 
+			   Ex="1.4" Kg="1060" Kp="600" Kvb="300" Rgk="1 MΩ" Vg="330 mV"
 			   Gamma="1.26" G="2.242e-3" Gg="6.177e-4" C="3.4" Cg="9.901" Xi="1.314" Ig0="8.025e-8 A" />
 	<Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   Mu="44.16" K="1.73E-06" Name="V1" PartNumber="12AY7"
 			   Ex="1.113" Kg="1192.4" Kp="409.96" Kvb="300" Rgk="1 MΩ" Vg="330 mV" />
 	<Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-			   Mu="74.08" K="1.73E-06" Name="V1" PartNumber="12AZ7" 
+			   Mu="74.08" K="1.73E-06" Name="V1" PartNumber="12AZ7"
 			   Ex="1.371" Kg="382" Kp="190.11" Kvb="300" Rgk="1 MΩ" Vg="330 mV" />
+	<!-- http://www.frank.mif.pg.gda.pl/other/docs/Koren_Tubes.cir -->
+	<Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   Mu="75.89" Name="V1" PartNumber="6SL7GT"
+			   Ex="1.233" Kg="1735.2" Kp="1725.27" Kvb="7.0" Rgk="2 kΩ" />
 </Library>
