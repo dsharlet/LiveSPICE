@@ -85,6 +85,7 @@ namespace LiveSPICE
             try
             {
                 InitializeComponent();
+                DataContext = this;
 
                 // Make a clone of the schematic so we can mess with it.
                 var clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
