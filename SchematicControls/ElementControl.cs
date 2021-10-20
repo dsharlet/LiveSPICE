@@ -16,8 +16,8 @@ namespace SchematicControls
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ElementControl), new FrameworkPropertyMetadata(typeof(ElementControl)));
         }
 
-        public static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash };
-        public static Pen SelectedPen = new Pen(Brushes.Blue, 0.5f) { DashStyle = DashStyles.Dash };
+        public static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash }.GetAsFrozen() as Pen;
+        public static Pen SelectedPen = new Pen(Brushes.Blue, 0.5f) { DashStyle = DashStyles.Dash }.GetAsFrozen() as Pen;
 
         private Pen pen = null;
         public Pen Pen { get { return pen; } set { pen = value; InvalidateVisual(); } }
@@ -63,7 +63,6 @@ namespace SchematicControls
             element = E;
             element.Tag = this;
 
-            UseLayoutRounding = true;
             Background = Brushes.Transparent;
 
             foreach (Circuit.Terminal i in E.Terminals)
@@ -84,21 +83,20 @@ namespace SchematicControls
 
         public static double TerminalSize = 2.0;
         public static double EdgeThickness = 1.0;
-        public static GuidelineSet Guidelines = new GuidelineSet(new double[] { EdgeThickness / 2 }, new double[] { EdgeThickness / 2 });
 
         public static Brush WireBrush = Brushes.DarkBlue;
-        public static Pen WirePen = new Pen(WireBrush, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen TerminalPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen WirePen = new Pen(WireBrush, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen TerminalPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
 
-        public static Pen BlackPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen GreenPen = new Pen(Brushes.Lime, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen BluePen = new Pen(Brushes.Blue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen YellowPen = new Pen(Brushes.Yellow, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen CyanPen = new Pen(Brushes.Cyan, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen MagentaPen = new Pen(Brushes.Magenta, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
-        public static Pen OrangePen = new Pen(Brushes.Orange, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        public static Pen BlackPen = new Pen(Brushes.Black, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen GrayPen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen RedPen = new Pen(Brushes.Red, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen GreenPen = new Pen(Brushes.Lime, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen BluePen = new Pen(Brushes.Blue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen YellowPen = new Pen(Brushes.Yellow, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen CyanPen = new Pen(Brushes.Cyan, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen MagentaPen = new Pen(Brushes.Magenta, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
+        public static Pen OrangePen = new Pen(Brushes.Orange, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }.GetAsFrozen() as Pen;
 
         public static Pen MapToPen(Circuit.EdgeType Edge)
         {

@@ -12,6 +12,7 @@ namespace Circuit
         protected int position = 0;
         [Serialize, Description("Switch position.")]
         public int Position { get { return position; } set { position = value; NotifyChanged(nameof(Position)); } }
+        public int NumPositions { get; private set; }
 
         private string group = "";
         [Serialize, Description("Switch group this switch is a part of.")]
@@ -37,6 +38,8 @@ namespace Circuit
                 throws[i] = new Terminal(this, "Throw" + i.ToString());
 
             common = new Terminal(this, "Common");
+
+            this.NumPositions = ThrowCount;
 
             Name = "S1";
         }

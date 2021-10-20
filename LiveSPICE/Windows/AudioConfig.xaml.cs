@@ -60,6 +60,8 @@ namespace LiveSPICE
         private bool enabled = true;
         public bool Enabled { get { return enabled; } set { enabled = value; NotifyChanged(nameof(Enabled)); } }
 
+        public bool TestEnabled { get { return Inputs.Any() || Outputs.Any(); } }
+
         private Audio.Stream stream = null;
 
         public AudioConfig()
@@ -150,6 +152,11 @@ namespace LiveSPICE
             scope.Signals.Clear();
 
             Enabled = true;
+        }
+
+        private void inputs_outputs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            NotifyChanged(nameof(TestEnabled));
         }
 
         // INotifyPropertyChanged.

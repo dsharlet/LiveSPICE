@@ -38,13 +38,13 @@
             <ComboBox Grid.Row="1" Grid.Column="1" x:Name="devices" Margin="4" SelectedValue="{Binding ElementName=_this, Path=Device}" SelectedValuePath="Tag"  IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Inputs: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-            <ListBox Grid.Row="2" Grid.Column="1" x:Name="inputs" Margin="4" SelectionMode="Multiple" IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
+            <ListBox Grid.Row="2" Grid.Column="1" x:Name="inputs" Margin="4" SelectionMode="Multiple" IsEnabled="{Binding ElementName=_this, Path=Enabled}" SelectionChanged="inputs_outputs_SelectionChanged" />
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Outputs: " Margin="4" HorizontalAlignment="Right" VerticalAlignment="Center" />
-            <ListBox Grid.Row="3" Grid.Column="1" x:Name="outputs" Margin="4" SelectionMode="Multiple" IsEnabled="{Binding ElementName=_this, Path=Enabled}" />
+            <ListBox Grid.Row="3" Grid.Column="1" x:Name="outputs" Margin="4" SelectionMode="Multiple" IsEnabled="{Binding ElementName=_this, Path=Enabled}" SelectionChanged="inputs_outputs_SelectionChanged" />
         </Grid>
         <StackPanel DockPanel.Dock="Top" Margin="4" Orientation="Horizontal" HorizontalAlignment="Center">
-            <ToggleButton Content="Test" Width="80" Margin="4" Checked="BeginTest" Unchecked="EndTest" IsEnabled="{Binding ElementName=_this, Path=Device, Converter={StaticResource ObjectNotNullConverter}}" />
+            <ToggleButton Content="Test" Width="80" Margin="4" Checked="BeginTest" Unchecked="EndTest" IsEnabled="{Binding ElementName=_this, Path=TestEnabled}" />
             <Button Content="OK" Width="80" Margin="4" Click="OK" IsDefault="True" />
             <Button Content="Cancel" Width="80" Margin="4" IsCancel="True" />
         </StackPanel>

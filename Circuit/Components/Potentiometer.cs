@@ -13,10 +13,10 @@ namespace Circuit
     [Description("Represents a potentiometer. When Wipe is 0, the wiper is at the cathode.")]
     public class Potentiometer : Component, IPotControl
     {
-        protected Terminal anode, cathode, wiper;
-        [Browsable(false)] public Terminal Anode { get { return anode; } }
-        [Browsable(false)] public Terminal Cathode { get { return cathode; } }
-        [Browsable(false)] public Terminal Wiper { get { return wiper; } }
+        private Terminal anode, cathode, wiper;
+        [Browsable(false)] public Terminal Anode => anode;
+        [Browsable(false)] public Terminal Cathode => cathode;
+        [Browsable(false)] public Terminal Wiper => wiper;
 
         public override IEnumerable<Terminal> Terminals
         {
@@ -42,13 +42,17 @@ namespace Circuit
 
         protected double wipe = 0.5;
         [Serialize, Description("Position of the wiper, between 0 and 1.")]
-        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); } }
+        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); NotifyChanged(nameof(IPotControl.PotValue)); } }
         // IPotControl
         double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep progression of this potentiometer.")]
         public SweepType Sweep { get { return sweep; } set { sweep = value; NotifyChanged(nameof(Sweep)); } }
+
+        private string group = "";
+        [Serialize, Description("Potentiometer group this potentiometer is a section of.")]
+        public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
 
         public void ConnectTo(Node A, Node C, Node W)
         {
@@ -83,7 +87,7 @@ namespace Circuit
 
             Resistor.Draw(Sym, -10, -16, 16, 7);
 
-            Sym.DrawText(() => Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Sweep.GetCode()+Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => Wipe.ToString("G3"), new Coord(-4, 4), Alignment.Near, Alignment.Near);
             Sym.DrawText(() => Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
         }

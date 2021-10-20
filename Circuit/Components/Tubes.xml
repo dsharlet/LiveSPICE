@@ -14,7 +14,7 @@
   <Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   Mu="44.16" K="1.73E-06" Name="V1" PartNumber="12AY7"
 			   Ex="1.113" Kg="1192.4" Kp="409.96" Kvb="300" Rgk="1 MΩ" Vg="330 mV" />
-  <Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+	<Component _Type="Circuit.Triode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   Mu="74.08" K="1.73E-06" Name="V1" PartNumber="12AZ7"
 			   Ex="1.371" Kg="382" Kp="190.11" Kvb="300" Rgk="1 MΩ" Vg="330 mV" />
   <!-- http://www.frank.mif.pg.gda.pl/other/docs/Koren_Tubes.cir -->

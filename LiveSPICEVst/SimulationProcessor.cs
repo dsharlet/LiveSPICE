@@ -7,96 +7,17 @@ using System.Threading.Tasks;
 using Circuit;
 using ComputerAlgebra;
 using Util;
+using ButtonWrapper = LiveSPICEVst.ComponentWrapper<Circuit.IButtonControl>;
 
 namespace LiveSPICEVst
 {
-    public class ComponentWrapper
-    {
-        public string Name { get; set; }
-        public bool NeedUpdate { get; set; }
-        public bool NeedRebuild { get; set; }
-    }
-
-    /// <summary>
-    /// Simple wrapper around IPotControl to make UI integration easier
-    /// </summary>
-    public class PotWrapper : ComponentWrapper
-    {
-        IPotControl pot = null;
-
-        public PotWrapper(IPotControl pot, string name)
-        {
-            this.pot = pot;
-            this.Name = name;
-        }
-
-        public double PotValue
-        {
-            get
-            {
-                return pot.PotValue;
-            }
-
-            set
-            {
-                if (pot.PotValue != value)
-                {
-                    pot.PotValue = value;
-
-                    NeedUpdate = true;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Simple wrapper around IButtonControl to make UI integration easier
-    /// </summary>
-    public class ButtonWrapper : ComponentWrapper
-    {
-        List<IButtonControl> buttons = new List<IButtonControl>();
-        bool engaged = false;
-
-        public ButtonWrapper(string name)
-        {
-            this.Name = name;
-        }
-
-        public bool Engaged
-        {
-            get
-            {
-                return engaged;
-            }
-
-            set
-            {
-                if (value != engaged)
-                {
-                    engaged = !engaged;
-
-                    foreach (IButtonControl button in buttons)
-                    {
-                        button.Click();
-                    }
-
-                    NeedRebuild = true;
-                }
-            }
-        }
-
-        public void AddButton(IButtonControl button)
-        {
-            buttons.Add(button);
-        }
-    }
 
     /// <summary>
     /// Manages single-channel audio circuit simulation
     /// </summary>
     public class SimulationProcessor
     {
-        public ObservableCollection<ComponentWrapper> InteractiveComponents { get; private set; }
+        public ObservableCollection<IComponentWrapper> InteractiveComponents { get; private set; }
 
         public Schematic Schematic { get; private set; }
         public string SchematicPath { get; private set; }
@@ -160,7 +81,7 @@ namespace LiveSPICEVst
 
         public SimulationProcessor()
         {
-            InteractiveComponents = new ObservableCollection<ComponentWrapper>();
+            InteractiveComponents = new ObservableCollection<IComponentWrapper>();
 
             SampleRate = 44100;
         }
@@ -193,38 +114,63 @@ namespace LiveSPICEVst
             InteractiveComponents.Clear();
 
             Dictionary<string, ButtonWrapper> buttonGroups = new Dictionary<string, ButtonWrapper>();
+            Dictionary<string, PotWrapper> potGroups = new Dictionary<string, PotWrapper>();
 
             foreach (Circuit.Component i in circuit.Components)
             {
-                if (i is IPotControl)
+                if (i is IPotControl pot)
                 {
-                    InteractiveComponents.Add(new PotWrapper((i as IPotControl), i.Name));
+                    if (string.IsNullOrEmpty(pot.Group))
+                    {
+                        InteractiveComponents.Add(new PotWrapper(pot, i.Name));
+                    }
+                    else if (potGroups.TryGetValue(pot.Group, out var wrapper))
+                    {
+                        wrapper.AddSection(pot);
+                    }
+                    else
+                    {
+                        wrapper = new PotWrapper(pot, pot.Group);
+                        potGroups.Add(pot.Group, wrapper);
+                        InteractiveComponents.Add(wrapper);
+                    }
                 }
-                else if (i is IButtonControl)
+                else if (i is IButtonControl button)
                 {
-                    IButtonControl button = (i as IButtonControl);
-
-                    ButtonWrapper wrapper = null;
-
+                    ButtonWrapper wrapper;
                     if (string.IsNullOrEmpty(button.Group))
                     {
-                        wrapper = new ButtonWrapper(i.Name);
-                        InteractiveComponents.Add(wrapper);
+                        if (button.NumPositions == 2)
+                        {
+                            wrapper = new DoubleThrowWrapper(button, i.Name);
+                            InteractiveComponents.Add(wrapper);
+                        }
+                        else
+                        {
+                            wrapper = new MultiThrowWrapper(button, i.Name);
+                            InteractiveComponents.Add(wrapper);
+                        }
                     }
                     else if (buttonGroups.ContainsKey(button.Group))
                     {
                         wrapper = buttonGroups[button.Group];
+                        wrapper.AddSection(button);
                     }
                     else
                     {
-                        wrapper = new ButtonWrapper(button.Group);
+                        if (button.NumPositions == 2)
+                        {
+                            wrapper = new DoubleThrowWrapper(button, button.Group);
+                        }
+                        else
+                        {
+                            wrapper = new MultiThrowWrapper(button, i.Name);
+                        }
 
                         buttonGroups[button.Group] = wrapper;
 
                         InteractiveComponents.Add(wrapper);
                     }
-
-                    wrapper.AddButton(button);
                 }
             }
 
@@ -270,7 +216,7 @@ namespace LiveSPICEVst
             {
                 lock (sync)
                 {
-                    foreach (ComponentWrapper component in InteractiveComponents)
+                    foreach (var component in InteractiveComponents)
                     {
                         if (component.NeedUpdate)
                         {
@@ -382,7 +328,7 @@ namespace LiveSPICEVst
                     simulationUpdateException = ex;
                 }
 
-            }). Start(scheduler);
+            }).Start(scheduler);
         }
     }
 }

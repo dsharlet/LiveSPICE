@@ -29,7 +29,7 @@ namespace LiveSPICE
             {
                 if (value != null)
                 {
-                    enabled = new Image() { Source = value, SnapsToDevicePixels = true };
+                    enabled = new Image() { Source = value };
                     if (enabled != null)
                     {
                         disabled = MakeDisabledImage(enabled);
@@ -97,7 +97,7 @@ namespace LiveSPICE
             bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
 
             bitmap.Unlock();
-            return new Image() { Source = bitmap, SnapsToDevicePixels = true };
+            return new Image() { Source = bitmap };
         }
     }
 }

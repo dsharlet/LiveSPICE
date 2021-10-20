@@ -87,17 +87,23 @@ namespace LiveSPICEVst
                 Iterations = SimulationProcessor.Iterations
             };
 
-            foreach (ComponentWrapper wrapper in SimulationProcessor.InteractiveComponents)
+            foreach (var wrapper in SimulationProcessor.InteractiveComponents)
             {
-                if (wrapper is PotWrapper)
+                switch (wrapper)
                 {
-                    programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = (wrapper as PotWrapper).PotValue });
+                    case PotWrapper potWrapper:
+                        programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = potWrapper.PotValue });
+                        break;
+
+                    case DoubleThrowWrapper doubleThrowWrapper:
+                        programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = doubleThrowWrapper.Engaged ? 1 : 0 });
+                        break;
+
+                    case MultiThrowWrapper multiThrowWrapper:
+                        programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = multiThrowWrapper.Position });
+                        break;
                 }
-                else if (wrapper is ButtonWrapper)
-                {
-                    programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = (wrapper as ButtonWrapper).Engaged ? 1 : 0 });
-                }
-            }
+             }
 
             XmlSerializer serializer = new XmlSerializer(typeof(VstProgramParameters));
 
@@ -141,20 +147,23 @@ namespace LiveSPICEVst
 
                     foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
                     {
-                        ComponentWrapper wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
+                        var wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
 
                         if (wrapper != null)
                         {
-                            if (wrapper.Name == controlParameter.Name)
+                            switch (wrapper)
                             {
-                                if (wrapper is PotWrapper)
-                                {
-                                    (wrapper as PotWrapper).PotValue = controlParameter.Value;
-                                }
-                                else if (wrapper is ButtonWrapper)
-                                {
-                                    (wrapper as ButtonWrapper).Engaged = (controlParameter.Value == 1);
-                                }
+                                case PotWrapper potWrapper:
+                                    potWrapper.PotValue = controlParameter.Value;
+                                    break;
+
+                                case DoubleThrowWrapper doubleThrowWrapper:
+                                    doubleThrowWrapper.Engaged = (controlParameter.Value == 1);
+                                    break;
+
+                                case MultiThrowWrapper multiThrowWrapper:
+                                    multiThrowWrapper.Position = (int)controlParameter.Value;
+                                    break;
                             }
                         }
                     }
