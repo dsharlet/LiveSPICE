@@ -271,6 +271,62 @@ namespace Benchmarks
         }
 
         [Benchmark]
+        public void ArrayOfArraysVectorizedNoTailLoop()
+        {
+            for (int iteration = 0; iteration < Size; iteration++)
+            {
+                var Ab = _data[iteration].JaggedArray;
+
+                // Solve for dx.
+                // For each variable in the system...
+                for (int j = 0; j + 1 < N; ++j)
+                {
+                    int pi = j;
+                    double max = Math.Abs(Ab[j][j]);
+
+                    // Find a pivot row for this variable.
+                    for (int i = j + 1; i < M; ++i)
+                    {
+                        // if(|JxF[i][j]| > max) { pi = i, max = |JxF[i][j]| }
+                        double maxj = Math.Abs(Ab[i][j]);
+                        if (maxj > max)
+                        {
+                            pi = i;
+                            max = maxj;
+                        }
+                    }
+
+                    // Swap pivot row with the current row.
+                    if (pi != j)
+                    {
+                        var tmp = Ab[pi];
+                        Ab[pi] = Ab[j];
+                        Ab[j] = tmp;
+                    }
+
+                    var vectorLength = System.Numerics.Vector<double>.Count;
+                    // Eliminate the rows after the pivot.
+                    double p = Ab[j][j];
+                    for (int i = j + 1; i < M; ++i)
+                    {
+                        double s = Ab[i][j] / p;
+                        if (s != 0.0)
+                        {
+                            int jj;
+                            for (jj = j + 1; jj <= (N - vectorLength); jj += vectorLength)
+                            {
+                                var source = new System.Numerics.Vector<double>(Ab[j], jj);
+                                var target = new System.Numerics.Vector<double>(Ab[i], jj);
+                                var res = target - (source * s);
+                                res.CopyTo(Ab[i], jj);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [Benchmark]
         public void MathNetSolve()
         {
             for (int iteration = 0; iteration < Size; iteration++)
