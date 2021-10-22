@@ -1,13 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
+using Circuit;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Complex;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Benchmarks
 {
@@ -153,6 +149,17 @@ namespace Benchmarks
         }
 
         [Benchmark(Baseline = true)]
+        public void Current()
+        {
+            for (int iteration = 0; iteration < Size; iteration++)
+            {
+                var Ab = _data[iteration].JaggedArray;
+
+                Simulation.RowReduce(Ab, M, N);
+            }
+        }
+
+        [Benchmark]
         public void ArrayOfArrays()
         {
             for (int iteration = 0; iteration < Size; iteration++)

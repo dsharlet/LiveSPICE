@@ -452,7 +452,7 @@ namespace Circuit
         }
 
         // A human readable implementation of RowReduce.
-        private static void RowReduce(double[][] Ab, int M, int N)
+        public static void RowReduce(double[][] Ab, int M, int N)
         {
             // Solve for dx.
             // For each variable in the system...
