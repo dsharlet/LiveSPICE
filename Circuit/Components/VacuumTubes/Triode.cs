@@ -171,14 +171,14 @@ namespace Circuit
 
         protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
-            Sym.AddTerminal(p, new Coord(0, 20), new Coord(0, 4));
-            Sym.AddWire(new Coord(-10, 4), new Coord(10, 4));
+            Sym.AddTerminal(p, new Coord(0, 20), new Coord(0, 5));
+            Sym.AddWire(new Coord(-10, 5), new Coord(10, 5));
 
             Sym.AddTerminal(g, new Coord(-20, 0), new Coord(-12, 0));
-            for (int i = -8; i < 16; i += 8)
+            for (int i = -10; i < 10; i += 8)
                 Sym.AddWire(new Coord(i, 0), new Coord(i + 4, 0));
 
-            Sym.AddTerminal(k, new Coord(-10, -20), new Coord(-10, -6), new Coord(-8, -4), new Coord(8, -4), new Coord(10, -6));
+            Sym.AddTerminal(k, new Coord(-10, -20), new Coord(-10, -7), new Coord(-8, -5), new Coord(8, -5), new Coord(10, -7));
 
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
 
