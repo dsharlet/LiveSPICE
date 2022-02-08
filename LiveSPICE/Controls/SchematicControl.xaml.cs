@@ -23,7 +23,7 @@ namespace LiveSPICE
     /// </summary>
     public partial class SchematicControl : UserControl, INotifyPropertyChanged
     {
-        protected static readonly int Grid = 10;
+        protected static readonly int Grid = 5;
         protected static readonly Vector AutoScrollBorder = new Vector(1, 1);
 
         private Circuit.Schematic schematic;

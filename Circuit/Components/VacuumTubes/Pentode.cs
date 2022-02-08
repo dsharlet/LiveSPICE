@@ -57,22 +57,28 @@ namespace Circuit.Components
 
         protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
-            Sym.AddTerminal(_plate, new Coord(0, 20), new Coord(0, 8));
-            Sym.AddWire(new Coord(-10, 8), new Coord(10, 8));
+            Sym.AddTerminal(_plate, new Coord(0, 30), new Coord(0, 15));
+            Sym.AddWire(new Coord(-10, 15), new Coord(10, 15));
 
             Sym.AddTerminal(_grid, new Coord(-20, 0), new Coord(-12, 0));
-            Sym.AddTerminal(_grid2, new Coord(20, 4), new Coord(12, 4));
-            for (int i = -8; i < 16; i += 8)
+            Sym.AddTerminal(_grid2, new Coord(20, 5), new Coord(12, 5));
+            for (int i = -10; i < 10; i += 8)
             {
                 Sym.AddWire(new Coord(i, 0), new Coord(i + 4, 0));
-                Sym.AddWire(new Coord(i, 4), new Coord(i + 4, 4));
-            }
-            Sym.AddTerminal(_cathode, new Coord(-10, -20), new Coord(-10, -6), new Coord(-8, -4), new Coord(8, -4), new Coord(10, -6));
+                Sym.AddWire(new Coord(i, 5), new Coord(i + 4, 5));
+                Sym.AddWire(new Coord(i, 10), new Coord(i + 4, 10));
 
-            Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
+            }
+            Sym.AddTerminal(_cathode, new Coord(-10, -20), new Coord(-10, -7), new Coord(-8, -5), new Coord(8, -5), new Coord(10, -7));
+
+            Sym.DrawArc(EdgeType.Black, new Coord(0, 10), 20d, 0, Math.PI, Direction.Counterclockwise);
+            Sym.DrawArc(EdgeType.Black, new Coord(0, 0), 20d, 0, Math.PI);
+            Sym.AddLine(EdgeType.Black, new Coord(-20, 0), new Coord(-20, 10));
+            Sym.AddLine(EdgeType.Black, new Coord(20, 0), new Coord(20, 10));
+
 
             if (PartNumber != null)
-                Sym.DrawText(() => PartNumber, new Coord(-2, 20), Alignment.Far, Alignment.Near);
+                Sym.DrawText(() => PartNumber, new Coord(-2, 30), Alignment.Far, Alignment.Near);
             Sym.DrawText(() => Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
 
         }
