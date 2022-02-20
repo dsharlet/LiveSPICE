@@ -184,7 +184,7 @@ namespace SchematicControls
                 using (var ctx = arcGeometry.Open())
                 {
                     ctx.BeginFigure(start, false, false);
-                    ctx.ArcTo(end, new Size(arc.Radius, arc.Radius), 0, isLargeArc, sweepDir, true, true);
+                    ctx.ArcTo(end, new Size(Math.Abs(arc.Radius * Tx.M11), Math.Abs(arc.Radius * Tx.M22)), 0, isLargeArc, sweepDir, true, true);
                 }
                 arcGeometry.Freeze();
                 Context.DrawGeometry(null, Pen ?? MapToPen(arc.Type), arcGeometry);
