@@ -38,7 +38,7 @@ namespace Benchmarks
 
                 return (RowMajorArray: ab.ToRowMajorArray(),
                         ColumnMajorArray: ab.ToColumnMajorArray(),
-                        JaggedArray: ab.ToRowArrays(),
+                        JaggedArray: ab.ToRowArrays().Select(a => a.Concat(Enumerable.Repeat(0d, System.Numerics.Vector<double>.Count)).ToArray()).ToArray(),
                         A: A,
                         b: b);
 
@@ -313,7 +313,7 @@ namespace Benchmarks
                         if (s != 0.0)
                         {
                             int jj;
-                            for (jj = j + 1; jj <= (N - vectorLength); jj += vectorLength)
+                            for (jj = j + 1; jj <= N; jj += vectorLength)
                             {
                                 var source = new System.Numerics.Vector<double>(Ab[j], jj);
                                 var target = new System.Numerics.Vector<double>(Ab[i], jj);
