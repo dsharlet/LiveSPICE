@@ -83,6 +83,18 @@ namespace Circuit
     [Description("single pole triple-throw switch.")]
     public class SP3T : SinglePoleSwitch { public SP3T() : base(3) { } }
 
+    [Category("Generic")]
+    [DisplayName("SP4T")]
+    [DefaultProperty("Position")]
+    [Description("single pole quadruple-throw switch.")]
+    public class SP4T : SinglePoleSwitch { public SP4T() : base(4) { } }
+
+    [Category("Generic")]
+    [DisplayName("SP5T")]
+    [DefaultProperty("Position")]
+    [Description("single pole quintuple-throw switch.")]
+    public class SP5T : SinglePoleSwitch { public SP5T() : base(5) { } }
+
 
     /// <summary>
     /// Switch component that is open or closed. 
