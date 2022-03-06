@@ -3,6 +3,7 @@ using ComputerAlgebra.LinqCompiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using Util;
 using LinqExpr = System.Linq.Expressions.Expression;
@@ -243,9 +244,11 @@ namespace Circuit
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
             int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.UnknownDeltas.Count(), 0) + 1;
+            Log.WriteLine(MessageType.Info, Vector.IsHardwareAccelerated ? "Vector hardware acceleration enabled" : "No vector hardware acceleration");
+
             LinqExpr JxF = code.DeclInit<double[][]>("JxF", LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
             for (int j = 0; j < M; ++j)
-                code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), LinqExpr.Constant(N))));
+                code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(JxF, LinqExpr.Constant(j)), LinqExpr.NewArrayBounds(typeof(double), Vector.IsHardwareAccelerated ? LinqExpr.Constant(N + Vector<double>.Count - 1) : LinqExpr.Constant(N))));
 
             // for (int n = 0; n < SampleCount; ++n)
             ParamExpr n = code.Decl<int>("n");
@@ -431,7 +434,7 @@ namespace Circuit
 
             // Gaussian elimination on this turd.
             code.Add(LinqExpr.Call(
-                GetMethod<Simulation>(nameof(RowReduceVector), Ab.Type, typeof(int), typeof(int)),
+                GetMethod<Simulation>(Vector.IsHardwareAccelerated ? nameof(RowReduceVector) : nameof(RowReduce), Ab.Type, typeof(int), typeof(int)),
                 Ab,
                 LinqExpr.Constant(M),
                 LinqExpr.Constant(N)));
@@ -495,11 +498,9 @@ namespace Circuit
             }
         }
 
-
+        //This algorith has no tail-loop - it requires arrays to be padded to N + Vector.Count - 1
         private static void RowReduceVector(double[][] Ab, int M, int N)
         {
-            const double tiny = 0.00001;
-
             // Solve for dx.
             // For each variable in the system...
             for (int j = 0; j + 1 < N; ++j)
@@ -533,19 +534,15 @@ namespace Circuit
                 for (int i = j + 1; i < M; ++i)
                 {
                     double s = Ab[i][j] / p;
-                    if (Math.Abs(s) >= tiny)
+                    if (s != 0.0)
                     {
                         int jj;
-                        for (jj = j + 1; jj <= (N - vectorLength); jj += vectorLength)
+                        for (jj = j + 1; jj <= N; jj += vectorLength)
                         {
                             var source = new Vector<double>(Ab[j], jj);
                             var target = new Vector<double>(Ab[i], jj);
                             var res = target - (source * s);
                             res.CopyTo(Ab[i], jj);
-                        }
-                        for (; jj <= N; ++jj)
-                        {
-                            Ab[i][jj] -= Ab[j][jj] * s;
                         }
                     }
                 }
