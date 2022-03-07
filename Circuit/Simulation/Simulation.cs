@@ -8,7 +8,6 @@ using System.Reflection;
 using Util;
 using LinqExpr = System.Linq.Expressions.Expression;
 using ParamExpr = System.Linq.Expressions.ParameterExpression;
-using System.Numerics;
 
 namespace Circuit
 {
