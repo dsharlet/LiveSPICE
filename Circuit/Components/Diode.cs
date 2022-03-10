@@ -36,11 +36,11 @@ namespace Circuit
         {
             // V = Va - Vc
             Expression Vac = Anode.V - Cathode.V;
-            //Vac = Mna.AddUnknownEqualTo("V" + Name, Vac);
+            Vac = Mna.AddUnknownEqualTo("V" + Name, Vac);
 
             // Evaluate the model.
             Expression i = IS * LinExpm1(Vac / (n * VT));
-            //i = Mna.AddUnknownEqualTo("i" + Name, i);
+            i = Mna.AddUnknownEqualTo("i" + Name, i);
 
             Mna.AddPassiveComponent(Anode, Cathode, i);
 
