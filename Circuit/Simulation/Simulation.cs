@@ -243,7 +243,7 @@ namespace Circuit
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
             int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.UnknownDeltas.Count(), 0) + 1;
-            Log.WriteLine(MessageType.Info, Vector.IsHardwareAccelerated ? "Vector hardware acceleration enabled" : "No vector hardware acceleration");
+            Log.WriteLine(MessageType.Verbose, Vector.IsHardwareAccelerated ? "Vector hardware acceleration enabled" : "No vector hardware acceleration");
 
             LinqExpr JxF = code.DeclInit<double[][]>("JxF", LinqExpr.NewArrayBounds(typeof(double[]), LinqExpr.Constant(M)));
             for (int j = 0; j < M; ++j)
