@@ -161,13 +161,13 @@ namespace Circuit
                 int prefix = Math.Max(Math.Min((int)Real.Floor(order / 3) * 3, MaxPrefix), MinPrefix);
 
                 Value /= (((Real)10) ^ prefix);
-                SB.Append(((IFormattable)Value).ToString(format, formatProvider));
+                SB.Append(Value.ToString(format, formatProvider));
                 SB.Append(" ");
                 SB.Append(Prefixes.Single(i => i.Value == prefix).Key);
             }
             else if (Value != null)
             {
-                SB.Append(Value.ToString());
+                SB.Append(Convert.ToString((object)Value, formatProvider));
                 SB.Append(" ");
             }
             else

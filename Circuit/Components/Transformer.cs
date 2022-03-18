@@ -52,7 +52,7 @@ namespace Circuit
             Mna.AddEquation(Vp, turns * Vs);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.AddTerminal(pa, new Coord(-10, 20));
             Sym.AddTerminal(pc, new Coord(-10, -20));

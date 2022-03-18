@@ -13,7 +13,7 @@ namespace Circuit
             Mna.Define(Name, V);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 
@@ -37,7 +37,7 @@ namespace Circuit
             Mna.Define(Name, Conductor.Analyze(Mna, Anode, Cathode));
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 

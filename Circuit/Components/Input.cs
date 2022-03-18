@@ -32,7 +32,7 @@ namespace Circuit
         [Browsable(false)]
         public Expression In { get { return DependentVariable(Name, t); } }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 

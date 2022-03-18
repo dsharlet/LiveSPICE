@@ -172,6 +172,23 @@ namespace SchematicControls
                     x1 = x2;
                 }
             }
+            foreach (var arc in Layout.Arcs)
+            {
+                var sweepDir = arc.Direction == Circuit.Direction.Clockwise ^ Tx.Determinant > 0d ? SweepDirection.Clockwise : SweepDirection.Counterclockwise;
+                bool isLargeArc = Math.Abs(arc.StartAngle - arc.EndAngle) > Math.PI;
+
+                var start = T(Tx, arc.Center + (new Circuit.Point(Math.Cos(arc.StartAngle), Math.Sin(arc.StartAngle)) * arc.Radius));
+                var end = T(Tx, arc.Center + (new Circuit.Point(Math.Cos(arc.EndAngle), Math.Sin(arc.EndAngle)) * arc.Radius));
+
+                var arcGeometry = new StreamGeometry();
+                using (var ctx = arcGeometry.Open())
+                {
+                    ctx.BeginFigure(start, false, false);
+                    ctx.ArcTo(end, new Size(Math.Abs(arc.Radius * Tx.M11), Math.Abs(arc.Radius * Tx.M22)), 0, isLargeArc, sweepDir, true, true);
+                }
+                arcGeometry.Freeze();
+                Context.DrawGeometry(null, Pen ?? MapToPen(arc.Type), arcGeometry);
+            }
 
             if (FontFamily != null)
             {

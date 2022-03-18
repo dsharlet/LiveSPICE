@@ -59,7 +59,7 @@ namespace Circuit
             Mna.AddEquation(Vp, Vs2 * turns * 2);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             int h = 20;
 

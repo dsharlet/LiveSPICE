@@ -25,7 +25,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna) { Analyze(Mna, Terminal); }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.AddTerminal(Terminal, new Coord(0, 0));
 

@@ -117,6 +117,6 @@ namespace Circuit
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Type, Source, Gate, Drain, () => Name, () => PartNumber); }
+        protected internal override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, Type, Source, Gate, Drain, () => Name, () => PartNumber); }
     }
 }

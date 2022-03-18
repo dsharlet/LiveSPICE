@@ -30,7 +30,7 @@ namespace Circuit
             }
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             // Get the ports to add to the symbol.
             List<Port> ports = Components.OfType<Port>().OrderBy(i => i.Name).ToList();

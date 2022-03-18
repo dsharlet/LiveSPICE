@@ -32,13 +32,17 @@ namespace Circuit
         Large,
     }
 
+    public enum Direction
+    {
+        Clockwise,
+        Counterclockwise
+    }
+
     /// <summary>
     /// 
     /// </summary>
     public class SymbolLayout
     {
-        public SymbolLayout() { }
-
         protected Coord x1 = new Coord(int.MaxValue, int.MaxValue);
         protected Coord x2 = new Coord(int.MinValue, int.MinValue);
         public Coord LowerBound { get { return x1; } }
@@ -99,6 +103,12 @@ namespace Circuit
 
             DrawCurve(Type, Points.Select(i => (Point)i));
         }
+
+        internal void DrawArc(EdgeType type, Coord center, double radius, double startAngle, double endAngle, Direction direction = Direction.Clockwise)
+        {
+            arcs.Add(new Arc(type, center, radius, startAngle, endAngle, direction));
+        }
+
         public void AddCurve(EdgeType Type, params Coord[] Points) { AddCurve(Type, Points.AsEnumerable()); }
         public void AddLoop(EdgeType Type, IEnumerable<Coord> Points)
         {
@@ -187,12 +197,14 @@ namespace Circuit
         private List<Shape> ellipses = new List<Shape>();
         private List<Text> texts = new List<Text>();
         private List<Curve> curves = new List<Curve>();
+        private readonly List<Arc> arcs = new List<Arc>();
 
-        public IEnumerable<Shape> Lines { get { return lines; } }
-        public IEnumerable<Shape> Rectangles { get { return rectangles; } }
-        public IEnumerable<Shape> Ellipses { get { return ellipses; } }
-        public IEnumerable<Text> Texts { get { return texts; } }
-        public IEnumerable<Curve> Curves { get { return curves; } }
+        public IReadOnlyCollection<Shape> Lines => lines;
+        public IReadOnlyCollection<Shape> Rectangles => rectangles;
+        public IReadOnlyCollection<Shape> Ellipses => ellipses;
+        public IReadOnlyCollection<Text> Texts => texts;
+        public IReadOnlyCollection<Curve> Curves => curves;
+        public IReadOnlyCollection<Arc> Arcs => arcs;
 
         // Raw drawing functions. These functions don't update the bounds.
         public void DrawLine(EdgeType Type, Point x1, Point x2) { lines.Add(new Shape(Type, x1, x2, false)); }
@@ -241,5 +253,25 @@ namespace Circuit
             DrawCurve(Type, Points);
         }
         public void DrawFunction(EdgeType Type, Func<double, double> xt, Func<double, double> yt, double t1, double t2) { DrawFunction(Type, xt, yt, t1, t2, 16); }
+
+        public struct Arc
+        {
+            public EdgeType Type { get; set; }
+            public Point Center { get; set; }
+            public double Radius { get; set; }
+            public double StartAngle { get; set; }
+            public double EndAngle { get; set; }
+            public Direction Direction { get; set; }
+
+            public Arc(EdgeType type, Coord center, double radius, double startAngle, double endAngle, Direction direction)
+            {
+                Type = type;
+                Center = center;
+                Radius = radius;
+                StartAngle = startAngle;
+                EndAngle = endAngle;
+                Direction = direction;
+            }
+        }
     }
 }

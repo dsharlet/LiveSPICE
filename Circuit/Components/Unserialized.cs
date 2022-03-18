@@ -39,7 +39,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna) { throw new AnalysisException("Cannot analyze a circuit with Error component."); }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.InBounds(new Coord(-20, 20), new Coord(20, -20));
             Sym.AddLoop(EdgeType.Red,
@@ -63,7 +63,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna) { }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.InBounds(new Coord(-20, 20), new Coord(20, -20));
             Sym.AddLoop(EdgeType.Orange,

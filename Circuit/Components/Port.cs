@@ -31,7 +31,7 @@ namespace Circuit
             Conductor.Analyze(Mna, Terminal, External);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 

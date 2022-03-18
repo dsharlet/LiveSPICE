@@ -33,7 +33,7 @@ namespace Circuit
             Resistor.Analyze(Mna, Name, Anode, Cathode, Impedance);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 

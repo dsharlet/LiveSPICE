@@ -11,15 +11,10 @@ namespace Circuit
     /// </summary>
     public class Node
     {
-        private string name;
         /// <summary>
         /// Name of this node.
         /// </summary>
-        public string Name { get { return name; } set { name = value; } }
-
-        private object tag = null;
-        [Browsable(false)]
-        public object Tag { get { return tag; } set { tag = value; } }
+        public string Name { get; set; }
 
         public Node() { Name = "_v1"; }
 
@@ -39,31 +34,22 @@ namespace Circuit
         /// </summary>
         public IEnumerable<Terminal> Connected { get { return connected; } }
 
-        private Call v = null;
+        private Call _v;
         /// <summary>
         /// Voltage at this node.
         /// </summary>
-        public Expression V
-        {
-            get
-            {
-                if (!(v is null))
-                    return v;
-                else
-                    return Call.New(name, Component.t);
-            }
-        }
+        public Expression V => _v ?? Call.New(Name, Component.t);
 
         /// <summary>
         /// Begin analysis with this node in the given context.
         /// </summary>
-        /// <param name="Context"></param>
-        public void BeginAnalysis(string Context)
+        /// <param name="context"></param>
+        public void BeginAnalysis(string context)
         {
-            if (!(v is null))
-                throw new InvalidOperationException("Node '" + name + "' is already part of an analysis.");
+            if (!(_v is null))
+                throw new InvalidOperationException("Node '" + Name + "' is already part of an analysis.");
 
-            v = Call.New(Context + name, Component.t);
+            _v = Call.New(context + Name, Component.t);
         }
 
         /// <summary>
@@ -71,7 +57,7 @@ namespace Circuit
         /// </summary>
         public void EndAnalysis()
         {
-            v = null;
+            _v = null;
         }
 
         public override string ToString() { return Name; }

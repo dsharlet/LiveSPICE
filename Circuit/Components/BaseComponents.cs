@@ -38,7 +38,7 @@ namespace Circuit
         [Browsable(false)]
         public Expression V { get { return Terminal.V; } }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.AddTerminal(Terminal, new Coord(0, 0));
         }
@@ -79,7 +79,7 @@ namespace Circuit
             Cathode.ConnectTo(C);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             Sym.AddTerminal(Anode, new Coord(0, 20));
             Sym.AddTerminal(Cathode, new Coord(0, -20));

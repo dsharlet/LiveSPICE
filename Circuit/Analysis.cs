@@ -251,19 +251,19 @@ namespace Circuit
         /// <returns></returns>
         public string AnonymousName() { return context.AnonymousName(); }
 
-        private void AddKcl(Dictionary<Expression, Expression> Kcl, Expression V, Expression i)
+        private void AddKcl(Dictionary<Expression, Expression> kcl, Expression V, Expression i)
         {
-            if (Kcl.TryGetValue(V, out Expression sumi))
+            if (kcl.TryGetValue(V, out var sumi))
             {
                 // preserve null (arbitrary current).
                 if (i is null)
-                    Kcl[V] = null;
-                else if (sumi is object)
-                    Kcl[V] = sumi + i;
+                    kcl[V] = null;
+                else if (sumi != null)
+                    kcl[V] = sumi + i;
             }
             else
             {
-                Kcl[V] = i;
+                kcl[V] = i;
             }
         }
 

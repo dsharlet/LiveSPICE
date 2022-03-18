@@ -25,6 +25,11 @@ namespace Circuit
         [Serialize, Description("Model implementation to use")]
         public TriodeModel Model { get { return model; } set { model = value; NotifyChanged(nameof(Model)); } }
 
+        private bool simulateCapacitances;
+
+        [Serialize, Category("Dempwolf-Zolzer")]
+        public bool SimulateCapacitances { get { return simulateCapacitances; } set { simulateCapacitances = value; NotifyChanged(nameof(SimulateCapacitances)); } }
+
         private double mu = 100.0;
         [Serialize, Description("Voltage gain.")]
         public double Mu { get { return mu; } set { mu = value; NotifyChanged(nameof(Mu)); } }
@@ -85,6 +90,19 @@ namespace Circuit
         [Serialize, Category("Dempwolf-Zolzer")]
         public Quantity Ig0 { get { return ig0; } set { ig0 = value; NotifyChanged(nameof(Ig0)); } }
 
+        private Quantity _cgp = new Quantity(2.4e-12m, Units.F);
+        [Serialize, Description("Grid to plate capacitance.")]
+        public Quantity Cgp { get { return _cgp; } set { _cgp = value; NotifyChanged(nameof(Cgp)); } }
+
+        private Quantity _cgk = new Quantity(2.3e-12m, Units.F);
+        [Serialize, Description("Grid to cathode capacitance.")]
+        public Quantity Cgk { get { return _cgk; } set { _cgk = value; NotifyChanged(nameof(Cgk)); } }
+
+        private Quantity _cpk = new Quantity(9e-13m, Units.F);
+        [Serialize, Description("Plate to cathode capacitance.")]
+        public Quantity Cpk { get { return _cpk; } set { _cpk = value; NotifyChanged(nameof(Cpk)); } }
+
+
         private Terminal p, g, k;
         public override IEnumerable<Terminal> Terminals
         {
@@ -114,8 +132,6 @@ namespace Circuit
         {
             Expression Vpk = p.V - k.V;
             Expression Vgk = g.V - k.V;
-            //Vpk = Mna.AddUnknownEqualTo(Name + "pk", Vpk);
-            //Vgk = Mna.AddUnknownEqualTo(Name + "gk", Vgk);
 
             Expression ip, ig, ik;
             switch (model)
@@ -123,7 +139,6 @@ namespace Circuit
                 case TriodeModel.ChildLangmuir:
                     Expression Ed = Mu * Vgk + Vpk;
                     ip = Call.If(Ed > 0, K * (Ed ^ 1.5), 0);
-                    //ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
                     ig = 0;
                     ik = -(ip + ig);
                     break;
@@ -131,8 +146,6 @@ namespace Circuit
                     Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
                     ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
                     ig = Call.Max(Vgk - Vg, 0) / Rgk;
-                    //ip = Mna.AddUnknownEqualTo("i" + Name + "p", ip);
-                    //ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
                     ik = -(ip + ig);
                     break;
                 case TriodeModel.DempwolfZolzer:
@@ -140,8 +153,12 @@ namespace Circuit
                     ig = Call.If(exg > -50, Gg * Binary.Power(Ln1Exp(exg) / Cg, Xi), 0) + Ig0;
                     Expression exk = C * ((Vpk / Mu) + Vgk);
                     ik = Call.If(exk > -50, -G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
-                    //ig = Mna.AddUnknownEqualTo("i" + Name + "g", ig);
-                    //ik = Mna.AddUnknownEqualTo("i" + Name + "k", ik);
+                    if (SimulateCapacitances)
+                    {
+                        Capacitor.Analyze(Mna, Name + "_cgp", p, g, _cgp);
+                        Capacitor.Analyze(Mna, Name + "_cgk", g, k, _cgk);
+                        Capacitor.Analyze(Mna, Name + "_cpk", p, k, _cpk);
+                    }
                     ip = -(ik + ig);
                     break;
                 default:
@@ -152,36 +169,30 @@ namespace Circuit
             Mna.AddTerminal(k, ik);
         }
 
-        public void ConnectTo(Node P, Node G, Node K)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
-            p.ConnectTo(P);
-            g.ConnectTo(G);
-            k.ConnectTo(K);
-        }
+            Sym.AddTerminal(p, new Coord(0, 20), new Coord(0, 5));
+            Sym.AddWire(new Coord(-10, 5), new Coord(10, 5));
 
-        public static void LayoutSymbol(SymbolLayout Sym, Terminal P, Terminal G, Terminal K, Func<string> Name, Func<string> Part)
-        {
-            Sym.AddTerminal(P, new Coord(0, 20), new Coord(0, 4));
-            Sym.AddWire(new Coord(-10, 4), new Coord(10, 4));
-
-            Sym.AddTerminal(G, new Coord(-20, 0), new Coord(-12, 0));
-            for (int i = -8; i < 16; i += 8)
+            Sym.AddTerminal(g, new Coord(-20, 0), new Coord(-12, 0));
+            for (int i = -10; i < 10; i += 8)
                 Sym.AddWire(new Coord(i, 0), new Coord(i + 4, 0));
 
-            Sym.AddTerminal(K, new Coord(-10, -20), new Coord(-10, -6), new Coord(-8, -4), new Coord(8, -4), new Coord(10, -6));
+            Sym.AddTerminal(k, new Coord(-10, -20), new Coord(-10, -7), new Coord(-8, -5), new Coord(8, -5), new Coord(10, -7));
 
             Sym.AddCircle(EdgeType.Black, new Coord(0, 0), 20);
 
-            if (Part != null)
-                Sym.DrawText(Part, new Coord(-2, 20), Alignment.Far, Alignment.Near);
-            Sym.DrawText(Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
+            if (PartNumber != null)
+                Sym.DrawText(() => PartNumber, new Coord(-2, 20), Alignment.Far, Alignment.Near);
+            Sym.DrawText(() => Name, new Point(-8, -20), Alignment.Near, Alignment.Far);
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym) { LayoutSymbol(Sym, p, g, k, () => Name, () => PartNumber); }
 
         // ln(1+e^x) = x for large x, and large x causes numerical issues.
         private static Expression Ln1Exp(Expression x)
         {
+            //return Call.Ln(1 + Call.Exp(x));
+
             return Call.If(x > 50, x, Call.Ln(1 + Call.Exp(x)));
         }
     }

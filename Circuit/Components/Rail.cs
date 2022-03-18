@@ -33,7 +33,7 @@ namespace Circuit
                 Mna.AddInitialConditions(Arrow.New(V0, 0));
         }
 
-        public override void LayoutSymbol(SymbolLayout Sym)
+        protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);
 
