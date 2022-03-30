@@ -9,9 +9,7 @@ namespace Circuit
     {
         ChildLangmuir,
         DempwolfZolzer,
-
-        // TODO: This model doesn't work very well. Not sure if it's a bug or the model is bad.
-        [Browsable(false)] Koren,
+        Koren,
     }
 
     /// <summary>
@@ -55,11 +53,15 @@ namespace Circuit
         public double Kvb { get { return kvb; } set { kvb = value; NotifyChanged(nameof(Kvb)); } }
 
         private Quantity rgk = new Quantity(1e6, Units.Ohm);
-        [Serialize, Category("Koren"), Browsable(false)]
+        [Serialize, Category("Koren")]
         public Quantity Rgk { get { return rgk; } set { if (rgk.Set(value)) NotifyChanged(nameof(Rgk)); } }
 
+        private Quantity kn = new Quantity(.5, Units.V);
+        [Serialize, Category("Koren"), Description("Knee size")]
+        public Quantity Kn { get { return kn; } set { if (kn.Set(value)) NotifyChanged(nameof(Kn)); } }
+
         private Quantity vg = new Quantity(0.33, Units.V);
-        [Serialize, Category("Koren"), Browsable(false)]
+        [Serialize, Category("Koren")]
         public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged(nameof(Vg)); } }
 
         private double gamma = 1.26;
@@ -144,13 +146,22 @@ namespace Circuit
                     break;
                 case TriodeModel.Koren:
                     Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
-                    ip = Call.If(E1 > 0, (E1 ^ Ex) / Kg, 0);
-                    ig = Call.Max(Vgk - Vg, 0) / Rgk;
-                    ik = -(ip + ig);
+                    ip = Call.If(E1 > 0, 2d * (E1 ^ Ex) / Kg, 0);
+                    
+                    var vg = (double)Vg;
+                    var knee = (double)Kn;
+                    var rg1 = (double)Rgk;
+
+                    var a = 1 / (4 * knee * rg1);
+                    var b = (knee - vg) / (2 * knee * rg1);
+                    var c = (-a * Math.Pow(vg - knee, 2)) - (b * (vg - knee));
+
+                    ig = Call.If(Vgk < vg - knee, 0, Call.If(Vgk > vg + knee, (Vgk - vg) / rg1, a * Vgk * Vgk + b * Vgk + c));
+                    ik = -(ip+ig);
                     break;
                 case TriodeModel.DempwolfZolzer:
-                    Expression exg = Cg * Vgk;
-                    ig = Call.If(exg > -50, Gg * Binary.Power(Ln1Exp(exg) / Cg, Xi), 0) + Ig0;
+                    Expression exg2 = Cg * Vgk;
+                    ig = Call.If(exg2 > -50, Gg * Binary.Power(Ln1Exp(exg2) / Cg, Xi), 0) + Ig0;
                     Expression exk = C * ((Vpk / Mu) + Vgk);
                     ik = Call.If(exk > -50, -G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
                     if (SimulateCapacitances)

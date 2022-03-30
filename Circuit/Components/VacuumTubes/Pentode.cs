@@ -36,6 +36,18 @@ namespace Circuit.Components
         [Serialize, Category("Koren"), Browsable(true)]
         public double Ex { get { return _ex; } set { _ex = value; NotifyChanged(nameof(Ex)); } }
 
+        private Quantity rgk = new Quantity(2e4, Units.Ohm);
+        [Serialize, Category("Koren"), Description("Grid resistance")]
+        public Quantity Rgk { get { return rgk; } set { if (rgk.Set(value)) NotifyChanged(nameof(Rgk)); } }
+
+        private Quantity kn = new Quantity(3, Units.V);
+        [Serialize, Category("Koren"), Description("Knee size")]
+        public Quantity Kn { get { return kn; } set { if (kn.Set(value)) NotifyChanged(nameof(Kn)); } }
+
+        private Quantity vg = new Quantity(13, Units.V);
+        [Serialize, Category("Koren")]
+        public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged(nameof(Vg)); } }
+
         public Pentode()
         {
             _plate = new Terminal(this, "P");
@@ -93,9 +105,9 @@ namespace Circuit.Components
             var iKoren = Call.If(E1 > 0, Binary.Power(E1, Ex), 0);
             var ip = Call.If(vpk > 0, iKoren / Kg1 * Call.ArcTan(vpk / Kvb), 0);
 
-            var vg = 13d;
-            var knee = 3d;
-            var rg1 = 2000d;
+            var vg = (double)Vg;
+            var knee = (double)Kn;
+            var rg1 = (double)Rgk;
 
             var a = 1 / (4 * knee * rg1);
             var b = (knee - vg) / (2 * knee * rg1);
