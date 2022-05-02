@@ -68,7 +68,7 @@ namespace LiveSPICE
             }
         }
 
-        private static double VectorToValue(Vector dx) { return Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 3 / 5 + 0.5; }
+        private static double VectorToValue(Vector dx) => Math.Max(0d, Math.Min(Math.Atan2(dx.X, -dx.Y) / (Math.PI) * 3 / 5 + 0.5, 1d));
         private static Vector ValueToVector(double V)
         {
             double th = (V - 0.5) * Math.PI * 5 / 3;
