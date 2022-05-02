@@ -15,7 +15,7 @@ namespace Circuit
         { }
     }
 
-    [TypeConverter(typeof(QuantityConverter))]
+    [TypeConverter("Circuit.QuantityConverter")]
     public class Quantity : IEquatable<Quantity>, IFormattable
     {
         private Expression x = 0;

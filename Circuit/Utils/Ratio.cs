@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace Circuit
 {
-    [TypeConverter(typeof(RatioConverter))]
+    [TypeConverter("Circuit.RatioConverter")]
     public class Ratio : IEquatable<Ratio>
     {
         private int n, d;
