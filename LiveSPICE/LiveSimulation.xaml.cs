@@ -80,7 +80,7 @@ namespace LiveSPICE
         // A timer for continuously refreshing controls.
         protected System.Timers.Timer timer;
 
-        public LiveSimulation(SchematicEditor Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
+        public LiveSimulation(Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
         {
             try
             {
