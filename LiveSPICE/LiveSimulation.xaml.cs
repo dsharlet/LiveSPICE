@@ -80,7 +80,7 @@ namespace LiveSPICE
         // A timer for continuously refreshing controls.
         protected System.Timers.Timer timer;
 
-        public LiveSimulation(Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
+        public LiveSimulation(SchematicEditor Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
         {
             try
             {
@@ -134,7 +134,7 @@ namespace LiveSPICE
                         var binding = new Binding
                         {
                             Source = potentiometer,
-                            Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.PotValue))),
+                            Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.Position))),
                             Mode = BindingMode.TwoWay,
                             NotifyOnSourceUpdated = true
                         };
@@ -143,14 +143,19 @@ namespace LiveSPICE
 
                         potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
                         {
+                            var updateSimulation = !potentiometer.Dynamic;
                             if (!string.IsNullOrEmpty(potentiometer.Group))
                             {
                                 foreach (var p in components.OfType<IPotControl>().Where(p => p != potentiometer && p.Group == potentiometer.Group))
                                 {
-                                    p.PotValue = (o as PotControl).Value;
+                                    p.Position = (o as PotControl).Value;
+                                    updateSimulation |= !p.Dynamic;
                                 }
                             }
+                            if (updateSimulation)
+                            {
                             UpdateSimulation(false);
+                            }
                         }));
 
                         potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
@@ -229,7 +234,7 @@ namespace LiveSPICE
                             }
                         };
 
-                        combo.AddHandler(TextBox.KeyDownEvent, new KeyEventHandler((o, e) =>
+                        combo.AddHandler(KeyDownEvent, new KeyEventHandler((o, e) =>
                         {
                             try
                             {
@@ -324,7 +329,7 @@ namespace LiveSPICE
             new Task(() =>
             {
                 ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
+                TransientSolution s = TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
                 lock (sync)
                 {
                     if (id > clock)

@@ -42,9 +42,11 @@ namespace Circuit
 
         protected double wipe = 0.5;
         [Serialize, Description("Position of the wiper, between 0 and 1.")]
-        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); NotifyChanged(nameof(IPotControl.PotValue)); } }
+        public double Wipe { get => wipe; set { wipe = value; NotifyChanged(nameof(Wipe)); NotifyChanged(nameof(IPotControl.Position)); } }
         // IPotControl
-        double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
+        double IPotControl.Position { get { return Wipe; } set { Wipe = value; } }
+
+         double IPotControl.Value => VariableResistor.AdjustWipe(Wipe, sweep);
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep progression of this potentiometer.")]
@@ -53,6 +55,9 @@ namespace Circuit
         private string group = "";
         [Serialize, Description("Potentiometer group this potentiometer is a section of.")]
         public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
+
+        [Serialize]
+        public bool Dynamic { get; set; } = true;
 
         public void ConnectTo(Node A, Node C, Node W)
         {
@@ -63,13 +68,13 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = VariableResistor.AdjustWipe(wipe, sweep);
+            Expression P = Dynamic ? Mna.AddParameter(this, Name, () => wipe) : VariableResistor.AdjustWipe(wipe, sweep);
 
-            Expression R1 = Resistance * P;
-            Expression R2 = Resistance * (1 - P);
+            Expression R2 = Resistance * P;
+            Expression R1 = Resistance * (1 - P);
 
-            Resistor.Analyze(Mna, Cathode, Wiper, R1);
-            Resistor.Analyze(Mna, Anode, Wiper, R2);
+            Resistor.Analyze(Mna, Anode, Wiper, R1);
+            Resistor.Analyze(Mna, Wiper, Cathode, R2);
         }
 
         protected internal override sealed void LayoutSymbol(SymbolLayout Sym)

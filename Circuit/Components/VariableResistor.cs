@@ -66,7 +66,7 @@ namespace Circuit
         [Serialize, Description("Position of the wiper on this variable resistor, between 0 and 1.")]
         public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); } }
         // IPotControl
-        double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
+        double IPotControl.Position { get => Wipe; set => Wipe = value; }
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep mapping of the wiper.")]
@@ -76,13 +76,18 @@ namespace Circuit
         [Serialize, Description("Potentiometer group this potentiometer is a section of.")]
         public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
 
+        public double Value => AdjustWipe(Wipe, Sweep);
+
+        [Serialize]
+        public bool Dynamic { get; set; } = true;
+
         public VariableResistor() { Name = "R1"; }
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = AdjustWipe(wipe, sweep);
+            Expression P = Dynamic ? Mna.AddParameter(this, Name, () => wipe) : AdjustWipe(wipe, sweep);
 
-            Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * P);
+            Resistor.Analyze(Mna, Name, Anode, Cathode, Resistance * P);
         }
 
         public static double AdjustWipe(double x, SweepType Sweep)

@@ -233,6 +233,11 @@ namespace Circuit
             // double invOversample = 1 / Oversample
             LinqExpr invOversample = LinqExpr.Constant(1.0 / (double)Oversample);
 
+            foreach (var param in Solution.Parameters)
+            {
+                code.DeclInit(param.Expression, LinqExpr.Property(LinqExpr.Constant(param.Owner), typeof(IPotControl), nameof(IPotControl.Value)));
+            }
+
             // Load the globals to local variables and add them to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 code.DeclInit(i.Key, i.Value);

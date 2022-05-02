@@ -33,6 +33,8 @@ namespace Circuit
         /// </summary>
         public IEnumerable<Arrow> InitialConditions { get { return initialConditions; } }
 
+        public IEnumerable<Analysis.Parameter> Parameters { get; }
+
         /// <summary>
         /// 
         /// </summary>
@@ -40,12 +42,14 @@ namespace Circuit
         /// <param name="Solutions">Enumeration of SolutionSets describing the unknowns solved by this solution.</param>
         /// <param name="InitialConditions">Initial conditions for which the solution is valid.</param>
         /// <param name="Parameters">Description of the parameters in the solution.</param>
-        public TransientSolution(
+        private TransientSolution(
             Expression TimeStep,
             IEnumerable<SolutionSet> Solutions,
-            IEnumerable<Arrow> InitialConditions)
+            IEnumerable<Arrow> InitialConditions,
+            IEnumerable<Analysis.Parameter> parameters)
         {
             h = TimeStep;
+            Parameters = parameters;
             solutions = Solutions.Buffer();
             initialConditions = InitialConditions.Buffer();
         }
@@ -96,7 +100,11 @@ namespace Circuit
             LogExpressions(Log, MessageType.Verbose, "Initial conditions for solve:", initial);
             LogExpressions(Log, MessageType.Verbose, "Initial conditions from analysis:", Analysis.InitialConditions);
 
+            var arguments = Analysis.Parameters.Select(i => Arrow.New(i.Expression, i.Value)).ToList();
+
             SystemOfEquations dc = new SystemOfEquations(mna
+                // Substitute default arguments for the parameters.
+                .Evaluate(arguments)
                 // Derivatives, t, and T are zero in the steady state.
                 .Substitute(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0), SinglePoleSwitch.IncludeOpen))
                 // Use the initial conditions from analysis.
@@ -152,7 +160,7 @@ namespace Circuit
                 IEnumerable<Arrow> linear = F.Solve();
                 if (linear.Any())
                 {
-                    linear = Factor(linear);
+                    //linear = Factor(linear);
                     solutions.Add(new LinearSolutions(linear));
                     LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
                 }
@@ -175,11 +183,11 @@ namespace Circuit
                     // Find linear solutions for dy. 
                     nonlinear.RowReduce(ly);
                     IEnumerable<Arrow> solved = nonlinear.Solve(ly);
-                    solved = Factor(solved);
+                    //solved = Factor(solved);
 
                     // Initial guess for y[t] = y[t - h].
                     IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Substitute(t, t - h))).ToList();
-                    guess = Factor(guess);
+                    //guess = Factor(guess);
 
                     // Newton system equations.
                     IEnumerable<LinearCombination> equations = nonlinear.Equations.Buffer();
@@ -198,7 +206,8 @@ namespace Circuit
             return new TransientSolution(
                 h,
                 solutions,
-                initial);
+                initial,
+                Analysis.Parameters);
         }
         public static TransientSolution Solve(Analysis Analysis, Expression TimeStep, ILog Log) { return Solve(Analysis, TimeStep, new Arrow[] { }, Log); }
         public static TransientSolution Solve(Analysis Analysis, Expression TimeStep) { return Solve(Analysis, TimeStep, new Arrow[] { }, new NullLog()); }
