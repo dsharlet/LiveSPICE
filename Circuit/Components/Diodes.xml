@@ -24,6 +24,10 @@
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="0.1 pA" n="2.07" Type="Diode" Name="D1" PartNumber="1N4448" />
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="9.05 fA" n="1.1" Type="Zener" Name="D1" PartNumber="1N4739A" />
+	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="6.87 fA" n="1.49" Type="Zener" Name="D1" PartNumber="1N4742A" />
+	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="0.1 pA" n="2.07" Type="Diode" Name="D1" PartNumber="1N916" />
 
 	<Component _Type="Circuit.Diode, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"

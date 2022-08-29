@@ -73,6 +73,12 @@
 			   IS="6.734 fA" BF="254.1" BR="2.683" Type="PNP" Name="Q1" PartNumber="2N5087" />
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="10.0004 fA" BF="239.283" BR="5" Type="PNP" Name="Q1" PartNumber="2SA1015" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="159 fA" BF="70.4" BR="17.6" Type="PNP" Name="Q1" PartNumber="MPSA43" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="9.62586 pA" BF="246.647" BR="0.1" Type="PNP" Name="Q1" PartNumber="MPSA56" />
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="95.3 fA" BF="98" BR="4.78" Type="PNP" Name="Q1" PartNumber="MPSA92" />
 
 	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1e-14 A" Beta="1.3143e-3" Vt0="-2.021" Lambda="4e-3" Type="N" Name="Q1" PartNumber="2N5952" />
@@ -80,6 +86,17 @@
 			   IS="1e-14 A" Beta="1.125e-3" Vt0="-1.372" Lambda="2.3e-3" Type="N" Name="Q1" PartNumber="2N5457" />
 	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 			   IS="1e-14 A" Beta="488.9e-6" Vt0="-2.882" Lambda="3.167e-3" Type="N" Name="Q1" PartNumber="2N5458" />
+	<!-- https://ltwiki.org/index.php?title=Standard.jft -->
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="4.908e-16 A" Beta="4.225e-3" Vt0="-2.208" Lambda="6.403e-2" Type="N" Name="Q1" PartNumber="2N4392" />
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="8.879e-16 A" Beta="5.972e-3" Vt0="-2.33" Lambda="23.198e-3" Type="N" Name="Q1" PartNumber="J112" />
+	<Component _Type="Circuit.JunctionFieldEffectTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="9.72750e-16 A" Beta="1.24461e-3" Vt0="-7.1507" Lambda="2.01968e-2" Type="P" Name="Q1" PartNumber="J174" />
+
+	<!-- https://my.centralsemi.com/product/partpage2.php?part=MPS8599 -->
+	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+			   IS="120.32e-15 fA" BF="188.84" BR="24.295" Type="PNP" Name="Q1" PartNumber="MPS8599" />
 
 	<!-- http://pdf.datasheetcatalog.com/datasheet/fairchild/BC239.pdf These models are missing IS and BR. -->
 	<Component _Type="Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
