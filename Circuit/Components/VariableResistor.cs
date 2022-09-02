@@ -10,11 +10,17 @@ namespace Circuit
     public enum SweepType
     {
         Linear,
+        Sigmoid,
+        AntiSigmoid,
         Logarithmic,
+        AntiLogarithmic,
         // These are equivalent to just swapping around connections on potentiometers,
         // but variable resistors sometimes need them.
         ReverseLinear,
+        ReverseSigmoid,
+        ReverseAntiSigmoid,
         ReverseLogarithmic,
+        ReverseAntiLogarithmic,
     }
 
     static class SweepTypeMethods
@@ -29,9 +35,16 @@ namespace Circuit
                 case SweepType.Linear:
                 case SweepType.ReverseLinear:
                     return "B";
+                case SweepType.Sigmoid:
+                case SweepType.ReverseSigmoid:
+                case SweepType.AntiSigmoid:
+                case SweepType.ReverseAntiSigmoid:
+                    return "W";
                 case SweepType.Logarithmic:
-                    return "A";
                 case SweepType.ReverseLogarithmic:
+                    return "A";
+                case SweepType.AntiLogarithmic:
+                case SweepType.ReverseAntiLogarithmic:
                     return "C";
                 default:
                     return "";
@@ -77,16 +90,37 @@ namespace Circuit
             x = Math.Min(Math.Max(x, 1e-3), 1.0 - 1e-3);
             
             // If we want the parameter to be backwards, swap it.
-            if (Sweep == SweepType.ReverseLinear || Sweep == SweepType.ReverseLogarithmic)
+            if (Sweep == SweepType.ReverseLinear || Sweep == SweepType.ReverseSigmoid ||
+                Sweep == SweepType.ReverseLogarithmic || Sweep == SweepType.ReverseAntiLogarithmic)
                 x = 1 - x;
-            
-            // If we want the parameter to be logarithmic, apply an exponential curve
-            // passing through 0 and 1.
-            double exp = Math.Exp(2);
-            if (Sweep == SweepType.Logarithmic || Sweep == SweepType.ReverseLogarithmic)
-                x = (Math.Pow(exp, x) - 1.0) / (exp - 1.0);
 
-            return x;
+            double exp = Math.Exp(2);
+            const double k = 1.8; // Sigmoid shape factor.
+            switch (Sweep)
+            {
+                // If we want the parameter to be logarithmic, apply an exponential curve
+                // passing through 0 and 1.
+                case SweepType.Logarithmic:
+                case SweepType.ReverseLogarithmic:
+                    return (Math.Pow(exp, x) - 1.0) / (exp - 1.0);
+                // If we want the parameter to be anti-logarithmic, apply an exponential curve
+                // passing through 0 and 1.
+                case SweepType.AntiLogarithmic:
+                case SweepType.ReverseAntiLogarithmic:
+                    return 1 - (Math.Pow(exp, 1-x) - 1.0) / (exp - 1.0);
+                // If we want the parameter to be s-shaped, apply an sigmoid curve
+                // passing through 0 and 1.
+                case SweepType.Sigmoid:
+                case SweepType.ReverseSigmoid:
+                    return 1 / (1 + Math.Pow(x/(1-x), -k));
+                // If we want the parameter to be s-shaped inverted, apply an sigmoid curve
+                // passing through 0 and 1.
+                case SweepType.AntiSigmoid:
+                case SweepType.ReverseAntiSigmoid:
+                    return 1 / (1 + Math.Pow(x/(1-x), -1/k));
+                default:
+                    return x;
+            }
         }
 
         protected internal override void LayoutSymbol(SymbolLayout Sym)
