@@ -77,13 +77,14 @@ namespace Circuit
 
             // Evaluate for simulation functions.
             // Define T = step size.
-            Analysis.Add("T", h);
+            DynamicNamespace globals = new DynamicNamespace();
+            globals.Add("T", h);
             // Define d[t] = delta function.
-            // TODO: This should probably be centered around 0, and also have an integral of 1 (i.e. a width of 1 / h).
-            Analysis.Add(ExprFunction.New("d", Call.If((0 <= t) & (t < h), 1, 0), t));
+            // TODO: This should probably be centered around 0, and also have an integral of 1 (i.e. a height of 1 / h).
+            globals.Add(ExprFunction.New("d", Call.If((0 <= t) & (t < h), 1, 0), t));
             // Define u[t] = step function.
-            Analysis.Add(ExprFunction.New("u", Call.If(t >= 0, 1, 0), t));
-            mna = mna.Resolve(Analysis).OfType<Equal>().ToList();
+            globals.Add(ExprFunction.New("u", Call.If(t >= 0, 1, 0), t));
+            mna = mna.Resolve(Analysis).Resolve(globals).OfType<Equal>().ToList();
 
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
