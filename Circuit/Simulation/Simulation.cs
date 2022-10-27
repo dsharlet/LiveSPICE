@@ -430,6 +430,15 @@ namespace Circuit
                     LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(N)),
                     code.Compile(eqs[i][1])));
             }
+            // In case we have fewer equations than unknowns, we can avoid dumb failures to converge by just
+            // avoiding "uninitialized" memory left over in the buffer from previous solutions.
+            for (int i = M; i < N; ++i)
+            {
+                LinqExpr Abi = code.ReDeclInit<double[]>("Abi", LinqExpr.ArrayAccess(Ab, LinqExpr.Constant(i)));
+                code.Add(LinqExpr.Assign(
+                    LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(N)), 
+                    LinqExpr.Constant(0.0)));
+            }
 
             // Gaussian elimination on this turd.
             code.Add(LinqExpr.Call(

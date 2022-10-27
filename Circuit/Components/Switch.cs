@@ -52,7 +52,7 @@ namespace Circuit
         // resistances, capacitances, and inductances, multipled by 1000 or something like that. Just using
         // an absurdly huge value like 1e100 will ruin the precision of the numerical solvers.
         public static Expression OpenSwitchResistance = Variable.New("_OSR");
-        public static Arrow IncludeOpenSwitches = Arrow.New(SinglePoleSwitch.OpenSwitchResistance, 1e12);
+        public static Arrow IncludeOpenSwitches = Arrow.New(SinglePoleSwitch.OpenSwitchResistance, 1e12d);
         public static Arrow ExcludeOpenSwitches = Arrow.New(SinglePoleSwitch.OpenSwitchResistance, Real.Infinity);
 
         public override void Analyze(Analysis Mna)
