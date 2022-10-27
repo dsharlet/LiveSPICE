@@ -92,10 +92,12 @@ namespace Circuit
             // Find steady state solution for initial conditions.
             List<Arrow> initial = InitialConditions.ToList();
             Log.WriteLine(MessageType.Info, "Performing steady state analysis...");
+            LogExpressions(Log, MessageType.Verbose, "Initial conditions for solve:", initial);
+            LogExpressions(Log, MessageType.Verbose, "Initial conditions from analysis:", Analysis.InitialConditions);
 
             SystemOfEquations dc = new SystemOfEquations(mna
                 // Derivatives, t, and T are zero in the steady state.
-                .Substitute(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0)))
+                .Substitute(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0), SinglePoleSwitch.IncludeOpenSwitches))
                 // Use the initial conditions from analysis.
                 .Substitute(Analysis.InitialConditions)
                 // Evaluate variables at t=0.
@@ -104,11 +106,12 @@ namespace Circuit
             // Solve partitions independently.
             foreach (SystemOfEquations i in dc.Partition())
             {
+                LogExpressions(Log, MessageType.Verbose, "Steady state system for partition:", i.Select(j => Equal.New(j, 0)));
                 try
                 {
                     List<Arrow> part = i.Equations.Select(j => Equal.New(j, 0)).NSolve(i.Unknowns.Select(j => Arrow.New(j, 0)));
                     initial.AddRange(part);
-                    LogExpressions(Log, MessageType.Verbose, "Initial conditions:", part);
+                    LogExpressions(Log, MessageType.Verbose, "Initial conditions:", part); 
                 }
                 catch (Exception)
                 {
@@ -119,7 +122,7 @@ namespace Circuit
             // Transient analysis of the system.
             Log.WriteLine(MessageType.Info, "Performing transient analysis...");
 
-            SystemOfEquations system = new SystemOfEquations(mna, dy_dt.Concat(y));
+            SystemOfEquations system = new SystemOfEquations(mna.Substitute(SinglePoleSwitch.ExcludeOpenSwitches).OfType<Equal>(), dy_dt.Concat(y));
 
             // Solve the diff eq for dy/dt and integrate the results.
             system.RowReduce(dy_dt);
