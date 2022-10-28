@@ -51,9 +51,9 @@ namespace Circuit
         // easy to determine a reasonable fake resistance. We should probably use the max of all component
         // resistances, capacitances, and inductances, multipled by 1000 or something like that. Just using
         // an absurdly huge value like 1e100 will ruin the precision of the numerical solvers.
-        public static Expression OpenSwitchResistance = Variable.New("_OSR");
-        public static Arrow IncludeOpenSwitches = Arrow.New(SinglePoleSwitch.OpenSwitchResistance, 1e12d);
-        public static Arrow ExcludeOpenSwitches = Arrow.New(SinglePoleSwitch.OpenSwitchResistance, Real.Infinity);
+        public static Expression OpenResistance = Variable.New("_OSR");
+        public static Arrow IncludeOpen = Arrow.New(OpenResistance, 1e12d);
+        public static Arrow ExcludeOpen = Arrow.New(OpenResistance, Real.Infinity);
 
         public override void Analyze(Analysis Mna)
         {
@@ -70,7 +70,7 @@ namespace Circuit
             {
                 // A truly unconnected throw terminal makes solving for initial conditions very difficult.
                 // Rather than fully disconnect the terminal, insert a fake resistor.
-                Resistor.Analyze(Mna, Name, Anode, Cathode, OpenSwitchResistance);
+                Resistor.Analyze(Mna, Name, Anode, Cathode, OpenResistance);
             }
         }
 

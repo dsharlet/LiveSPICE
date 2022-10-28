@@ -97,7 +97,7 @@ namespace Circuit
 
             SystemOfEquations dc = new SystemOfEquations(mna
                 // Derivatives, t, and T are zero in the steady state.
-                .Substitute(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0), SinglePoleSwitch.IncludeOpenSwitches))
+                .Substitute(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0), SinglePoleSwitch.IncludeOpen))
                 // Use the initial conditions from analysis.
                 .Substitute(Analysis.InitialConditions)
                 // Evaluate variables at t=0.
@@ -122,7 +122,7 @@ namespace Circuit
             // Transient analysis of the system.
             Log.WriteLine(MessageType.Info, "Performing transient analysis...");
 
-            SystemOfEquations system = new SystemOfEquations(mna.Substitute(SinglePoleSwitch.ExcludeOpenSwitches).OfType<Equal>(), dy_dt.Concat(y));
+            SystemOfEquations system = new SystemOfEquations(mna.Substitute(SinglePoleSwitch.ExcludeOpen).OfType<Equal>(), dy_dt.Concat(y));
 
             // Solve the diff eq for dy/dt and integrate the results.
             system.RowReduce(dy_dt);
