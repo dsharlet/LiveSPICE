@@ -37,8 +37,6 @@ namespace Circuit
         void Click();
         int Position { get; set; }
         int NumPositions { get; }
-
-        string Group { get; }
     }
 
     /// <summary>

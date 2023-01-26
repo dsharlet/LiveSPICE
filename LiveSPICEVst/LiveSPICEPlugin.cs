@@ -19,12 +19,11 @@ namespace LiveSPICEVst
     public class LiveSPICEPlugin : AudioPluginWPF
     {
         public SimulationProcessor SimulationProcessor { get; private set; }
-        public EditorView EditorView { get; set; }
+        new public EditorView EditorView { get; set; }
         public string SchematicPath { get { return SimulationProcessor.SchematicPath; } }
 
         AudioIOPort monoInput;
         AudioIOPort monoOutput;
-        EditorWindow editorWindow;
 
         bool haveSimulationError = false;
 
