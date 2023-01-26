@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
     <AssemblyName>LiveSPICEApp</AssemblyName>
     <Product>LiveSPICEApp</Product>
@@ -16,15 +16,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="AudioPlugSharp, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="AudioPlugSharpWPF, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\AudioPlugSharp\x64\AudioPlugSharpWPF.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>

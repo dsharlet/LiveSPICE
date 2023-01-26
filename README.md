@@ -16,11 +16,3 @@ To clone the LiveSPICE repo, run the following commands:
 ```bash
 git clone --recursive https://github.com/dsharlet/LiveSPICE.git LiveSPICE
 ```
-
-The VST plugin depends on https://github.com/mikeoliphant/AudioPlugSharp
-
-To enable building the VST plugin, do the following from a shell in the LiveSPICE root folder:
-```bash
-curl https://github.com/mikeoliphant/AudioPlugSharp/releases/download/v0.2/AudioPlugSharp.zip -O AudioPlugSharp.zip
-powershell -command "Expand-Archive -Force AudioPlugSharp.zip"
-```
