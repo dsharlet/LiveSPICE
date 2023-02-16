@@ -30,7 +30,7 @@ namespace LiveSPICE
         {
             if (Type > verbosity)
                 return;
-            string append = String.Format(Message, Format) + "\r\n";
+            string append = (Format.Length > 0 ? string.Format(Message, Format) : Message) + "\r\n";
             Dispatcher.InvokeAsync(() =>
             {
                 bool atEnd = text.VerticalOffset + text.ViewportHeight >= text.ExtentHeight - 1.0;

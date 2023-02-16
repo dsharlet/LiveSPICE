@@ -88,7 +88,7 @@ namespace Circuit
                     // Linear region.
                     AbsVds * (2 * Vgds_t0 - 1),
                     // Saturation region.
-                    Vgds_t0 ^ 2);
+                    Binary.Power(Vgds_t0, 2));
 
             id = Mna.AddUnknownEqualTo("i" + Name + "d", id);
             CurrentSource.Analyze(Mna, Drain, Source, id);

@@ -189,10 +189,10 @@ namespace LiveSPICEVst
                     var parameter = new AudioPluginParameter { Name = item.Name, ID = item.Name };
                     parameter.PropertyChanged += (e, args) =>
                     {
-                        if (item is PotWrapper pot && args.PropertyName == nameof(parameter.Value))
-                        {
-                            pot.PotValue = parameter.Value;
-                        }
+                        //if (item is PotWrapper pot && args.PropertyName == nameof(parameter.Value))
+                        //{
+                        //    pot.PotValue = parameter.Value;
+                        //}
                     };
                     AddParameter(parameter);
 

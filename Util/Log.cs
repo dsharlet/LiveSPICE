@@ -58,13 +58,12 @@ namespace Util
         {
             if (verbosity >= Type)
                 WriteLine(
-                    String.Format(tag,
+                    string.Format(tag,
                         Type,
                         Thread.CurrentThread.Name != null ? Thread.CurrentThread.Name : Thread.CurrentThread.ManagedThreadId.ToString(),
-                        DateTime.Now - t0) +
-                    String.Format(
+                        DateTime.Now - t0) + ((Args.Length > 0) ? string.Format(
                         Format,
-                        Args));
+                        Args) : Format));
         }
         public void WriteLines(MessageType Type, IEnumerable<string> Lines)
         {

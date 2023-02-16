@@ -1,10 +1,12 @@
 ﻿using ComputerAlgebra;
 using ComputerAlgebra.LinqCompiler;
+using ExpressionTreeToString;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Reflection.Emit;
 using Util;
 using LinqExpr = System.Linq.Expressions.Expression;
 using ParamExpr = System.Linq.Expressions.ParameterExpression;
@@ -162,7 +164,8 @@ namespace Circuit
             {
                 try
                 {
-                    _process(N, n*TimeStep, Input.AsArray(), Output.AsArray());
+                    var parameters = Solution.Parameters.Select(p => p.Value).ToArray();
+                    _process(N, n*TimeStep, Input.AsArray(), Output.AsArray(), parameters);
                     n += N;
                 }
                 catch (TargetInvocationException Ex)
@@ -179,7 +182,7 @@ namespace Circuit
         public void Run(double[] Input, IEnumerable<double[]> Output) { Run(Input.Length, new[] { Input }, Output); }
         public void Run(double[] Input, double[] Output) { Run(Input.Length, new[] { Input }, new[] { Output }); }
 
-        private Action<int, double, double[][], double[][]> _process;
+        private Action<int, double, double[][], double[][], double[]> _process;
         // Force rebuilding of the process function.
         private void InvalidateProcess()
         {
@@ -189,7 +192,7 @@ namespace Circuit
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ...)
         //  { ... }
-        private Action<int, double, double[][], double[][]> DefineProcess()
+        private Action<int, double, double[][], double[][], double[]> DefineProcess()
         {
             // Map expressions to identifiers in the syntax tree.
             var inputs = new List<KeyValuePair<Expression, LinqExpr>>();
@@ -203,6 +206,8 @@ namespace Circuit
             ParamExpr t = code.Decl(Scope.Parameter, Simulation.t);
             var ins = code.Decl<double[][]>(Scope.Parameter, "ins");
             var outs = code.Decl<double[][]>(Scope.Parameter, "outs");
+
+            var parameters = code.Decl<double[]>(Scope.Parameter, "params");
 
             // Create buffer parameters for each input...
             for (int i = 0; i < input.Length; i++)
@@ -233,9 +238,9 @@ namespace Circuit
             // double invOversample = 1 / Oversample
             LinqExpr invOversample = LinqExpr.Constant(1.0 / (double)Oversample);
 
-            foreach (var param in Solution.Parameters)
+            foreach (var (param, index) in Solution.Parameters.Select((p, i) => (p, i)))
             {
-                code.DeclInit(param.Expression, LinqExpr.Property(LinqExpr.Constant(param.Owner), typeof(IPotControl), nameof(IPotControl.Value)));
+                code.Map(Scope.Intermediate, param.Expression, LinqExpr.ArrayAccess(parameters, LinqExpr.Constant(index)));
             }
 
             // Load the globals to local variables and add them to the map.
@@ -243,7 +248,7 @@ namespace Circuit
                 code.DeclInit(i.Key, i.Value);
 
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
-                code.DeclInit(i.Key, code[i.Key.Evaluate(t_t1)]);
+                code.Map(Scope.Intermediate, i.Key, code[i.Key.Evaluate(t_t1)]);
 
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
@@ -308,6 +313,8 @@ namespace Circuit
                         {
                             if (ss is LinearSolutions)
                             {
+                                code.Add(LinqExpr.Label(LinqExpr.Label("linear_solutions")));
+
                                 // Linear solutions are easy.
                                 LinearSolutions S = (LinearSolutions)ss;
                                 foreach (Arrow i in S.Solutions)
@@ -315,6 +322,8 @@ namespace Circuit
                             }
                             else if (ss is NewtonIteration)
                             {
+                                code.Add(LinqExpr.Label(LinqExpr.Label("newton_iterations")));
+
                                 NewtonIteration S = (NewtonIteration)ss;
 
                                 // Start with the initial guesses from the solution.
@@ -326,8 +335,12 @@ namespace Circuit
                                 // do { ... --it } while(it > 0)
                                 code.DoWhile((Break) =>
                                 {
+                                    code.Add(LinqExpr.Label(LinqExpr.Label("solve")));
+
                                     // Solve the un-solved system.
                                     Solve(code, JxF, S.Equations, S.UnknownDeltas);
+
+                                    code.Add(LinqExpr.Label(LinqExpr.Label("after_solve")));
 
                                     // Compile the pre-solved solutions.
                                     if (S.KnownDeltas != null)
@@ -352,14 +365,6 @@ namespace Circuit
                                     // --it;
                                     code.Add(LinqExpr.PreDecrementAssign(it));
                                 }, LinqExpr.GreaterThan(it, Zero));
-
-                                //// bool failed = false
-                                //LinqExpr failed = Decl(code, code, "failed", LinqExpr.Constant(false));
-                                //for (int i = 0; i < eqs.Length; ++i)
-                                //    // failed |= |JxFi| > epsilon
-                                //    code.Add(LinqExpr.OrAssign(failed, LinqExpr.GreaterThan(Abs(eqs[i].ToExpression().Compile(map)), LinqExpr.Constant(1e-3))));
-
-                                //code.Add(LinqExpr.IfThen(failed, ThrowSimulationDiverged(n)));
                             }
                         }
 
@@ -414,9 +419,45 @@ namespace Circuit
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
                 code.Add(LinqExpr.Assign(i.Value, code[i.Key]));
 
-            var lambda = code.Build<Action<int, double, double[][], double[][]>>();
+            var lambda = code.Build<Action<int, double, double[][], double[][], double[]>>();
+            //var str = lambda.ToString("C#");
+            //log.WriteLine(MessageType.Info, "Generated code:");
+            //log.WriteLine(MessageType.Info, str);
+#if NET48
+            return GetCompiledDelegate(lambda);
+#else
             return lambda.Compile();
+#endif
         }
+
+#if NET48
+        public static T GetCompiledDelegate<T>(System.Linq.Expressions.Expression<T> expr)
+        {
+            var assemblyName = new AssemblyName("DelegateHostAssembly") { Version = new Version("1.0.0.0") };
+
+            var assemblyBuilder =
+                AppDomain.CurrentDomain.DefineDynamicAssembly(
+                    assemblyName,
+                    AssemblyBuilderAccess.RunAndSave);
+            var moduleBuilder = assemblyBuilder.DefineDynamicModule("DelegateHostAssembly", "DelegateHostAssembly.dll");
+            var typeBuilder = moduleBuilder.DefineType("DelegateHostAssembly." + "foo", TypeAttributes.Public);
+            var methBldr = typeBuilder.DefineMethod("Execute", MethodAttributes.Public | MethodAttributes.Static);
+
+            expr.CompileToMethod(methBldr);
+            Type myType = typeBuilder.CreateType();
+
+            assemblyBuilder.Save("DelegateHostAssembly.dll");
+
+
+            var mi = myType.GetMethod("Execute");
+
+            // have to box to object because .NET doesn't allow Delegates as generic constraints,
+            // nor does it allow casting of Delegates to generic type variables like "T"
+            object foo = Delegate.CreateDelegate(typeof(T), mi);
+
+            return (T)foo;
+        }
+#endif
 
         // Solve a system of linear equations
         private static void Solve(CodeGen code, LinqExpr Ab, IEnumerable<LinearCombination> Equations, IEnumerable<Expression> Unknowns)
@@ -460,7 +501,7 @@ namespace Circuit
             for (int j = N - 1; j >= 0; --j)
             {
                 LinqExpr _j = LinqExpr.Constant(j);
-                LinqExpr Abj = code.ReDeclInit<double[]>("Abj", LinqExpr.ArrayAccess(Ab, _j));
+                LinqExpr Abj = code.ReDeclInit<double[]>("Abi", LinqExpr.ArrayAccess(Ab, _j));
 
                 LinqExpr r = LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(N));
                 for (int ji = j + 1; ji < N; ++ji)

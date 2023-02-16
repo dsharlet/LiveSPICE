@@ -66,6 +66,8 @@ namespace LiveSPICE
 
         private List<Probe> probes = new List<Probe>();
 
+        protected Dictionary<ComputerAlgebra.Expression, double> arguments = new Dictionary<ComputerAlgebra.Expression, double>();
+
         private object sync = new object();
 
         protected Audio.Stream stream = null;
@@ -80,7 +82,7 @@ namespace LiveSPICE
         // A timer for continuously refreshing controls.
         protected System.Timers.Timer timer;
 
-        public LiveSimulation(Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
+        public LiveSimulation(SchematicEditor Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
         {
             try
             {
@@ -88,7 +90,8 @@ namespace LiveSPICE
                 DataContext = this;
 
                 // Make a clone of the schematic so we can mess with it.
-                var clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
+                _editor = Simulate;
+                var clone = Circuit.Schematic.Deserialize(Simulate.Schematic.Serialize(), Log);
                 clone.Elements.ItemAdded += OnElementAdded;
                 clone.Elements.ItemRemoved += OnElementRemoved;
                 Schematic = new SimulationSchematic(clone);
@@ -119,6 +122,7 @@ namespace LiveSPICE
                     // Create potentiometers.
                     if (i is IPotControl potentiometer)
                     {
+                        _pots.Add(potentiometer);
                         var potControl = new PotControl()
                         {
                             Width = 80,
@@ -143,18 +147,19 @@ namespace LiveSPICE
 
                         potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
                         {
-                            var updateSimulation = !potentiometer.Dynamic;
+                            var update = !potentiometer.Dynamic;
+
                             if (!string.IsNullOrEmpty(potentiometer.Group))
                             {
                                 foreach (var p in components.OfType<IPotControl>().Where(p => p != potentiometer && p.Group == potentiometer.Group))
                                 {
                                     p.Position = (o as PotControl).Value;
-                                    updateSimulation |= !p.Dynamic;
+                                    update |= !p.Dynamic;
                                 }
                             }
-                            if (updateSimulation)
+                            if (update)
                             {
-                            UpdateSimulation(false);
+                                UpdateSimulation();
                             }
                         }));
 
@@ -234,7 +239,7 @@ namespace LiveSPICE
                             }
                         };
 
-                        combo.AddHandler(KeyDownEvent, new KeyEventHandler((o, e) =>
+                        combo.AddHandler(TextBox.KeyDownEvent, new KeyEventHandler((o, e) =>
                         {
                             try
                             {
@@ -291,7 +296,7 @@ namespace LiveSPICE
             }
         }
 
-        private void RebuildSolution()
+        private void RebuildSolution(bool permutate = false)
         {
             lock (sync)
             {
@@ -301,7 +306,7 @@ namespace LiveSPICE
                     try
                     {
                         ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                        TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
+                        TransientSolution solution = TransientSolution.Solve(circuit.Analyze(permutate), h, Log);
 
                         simulation = new Simulation(solution)
                         {
@@ -323,13 +328,16 @@ namespace LiveSPICE
         private int clock = -1;
         private int update = 0;
         private TaskScheduler scheduler = new RedundantTaskScheduler(1);
-        private void UpdateSimulation(bool Rebuild)
+        private SchematicEditor _editor;
+        private List<IPotControl> _pots = new List<IPotControl>();
+
+        private void UpdateSimulation(bool Rebuild = false)
         {
             int id = Interlocked.Increment(ref update);
             new Task(() =>
             {
                 ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                TransientSolution s = TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
+                TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
                 lock (sync)
                 {
                     if (id > clock)
@@ -491,9 +499,27 @@ namespace LiveSPICE
                 Scope.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
 
-        private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) { RebuildSolution(); }
+        private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) { RebuildSolution(true); }
 
-        private void Exit_Executed(object sender, ExecutedRoutedEventArgs e) { Close(); }
+        private void Exit_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Close(); 
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            if (simulation != null)
+            {
+                var elements = Schematic.Schematic.Elements;
+                var symbols = elements.OfType<Symbol>();
+                var probes = symbols.Where(s => s.Component is Probe);
+                var other = elements.Except(symbols);
+                _editor.Schematic.Elements.Clear();
+                _editor.Schematic.Elements.AddRange(symbols.OrderBy(el => Schematic.Schematic.Circuit.Components.IndexOf(el.Component)).Concat(other).Except(probes));
+                _editor.Edits.Dirty = true;
+            }
+        }
 
         private void ViewScope_Click(object sender, RoutedEventArgs e) { ToggleVisible(scope); }
         private void ViewAudio_Click(object sender, RoutedEventArgs e) { ToggleVisible(audio); }
@@ -545,13 +571,15 @@ namespace LiveSPICE
 
         private static Pen MapToSignalPen(EdgeType Color)
         {
-            switch (Color)
+            var color = Color switch
             {
                 // These two need to be brighter than the normal colors.
-                case Circuit.EdgeType.Red: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 80, 80)), 1.0);
-                case Circuit.EdgeType.Blue: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 180, 255)), 1.0);
-                default: return ElementControl.MapToPen(Color);
-            }
+                EdgeType.Red => new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 80, 80)), 1.0),
+                EdgeType.Blue => new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 180, 255)), 1.0),
+                _ => ElementControl.MapToPen(Color)
+            };
+
+            return (Pen)color.GetCurrentValueAsFrozen();
         }
 
         private static Brush MapSignalToBrush(double Peak)

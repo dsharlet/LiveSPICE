@@ -19,9 +19,9 @@ namespace LiveSPICEVst
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
+        protected void SetProperty<TProperty>(ref TProperty field, TProperty newValue, [CallerMemberName] string propertyName = null)
         {
-            if (!EqualityComparer<T>.Default.Equals(field, newValue))
+            if (!EqualityComparer<TProperty>.Default.Equals(field, newValue))
             {
                 field = newValue;
                 OnPropertyChanged(propertyName);

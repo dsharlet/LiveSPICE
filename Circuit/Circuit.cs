@@ -76,14 +76,33 @@ namespace Circuit
             Mna.PopContext();
         }
 
-        public Analysis Analyze()
+        public Analysis Analyze(bool shuffle = false)
         {
             Analysis mna = new Analysis();
             mna.PushContext(null, Nodes);
+            if (shuffle)
+            {
+                Shuffle(Components);
+            }
             foreach (Component c in Components)
                 c.Analyze(mna);
             mna.PopContext();
             return mna;
+        }
+
+        private static Random rng = new Random();
+
+        public static void Shuffle<T>(IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
         }
 
         public override XElement Serialize()

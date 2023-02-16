@@ -12,7 +12,7 @@ namespace LiveSPICE
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return Math.Pow(10, (double)value / 20);
+            return Math.Pow(10, System.Convert.ToDouble(value) / 20);
         }
     }
 }

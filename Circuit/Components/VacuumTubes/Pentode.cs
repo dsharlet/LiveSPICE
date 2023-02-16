@@ -100,7 +100,7 @@ namespace Circuit.Components
             var vgk = _grid.V - _cathode.V;
             var vg2k = _grid2.V - _cathode.V;
 
-            var E1 = vpk / Kp * Ln1Exp(Kp * ((1.0 / Mu) + (vgk * Binary.Power(Kvb + vg2k * vg2k, -.5))));
+            var E1 = vpk / Kp * Call.Ln(1+ Call.Exp(Kp * ((1.0 / Mu) + (vgk * Binary.Power(Kvb + vg2k * vg2k, -.5)))));
             var iKoren = Call.If(E1 > 0, Binary.Power(E1, Ex), 0);
             var ip = Call.If(vpk > 0, iKoren / Kg1 * Call.ArcTan(vpk / Kvb), 0);
 

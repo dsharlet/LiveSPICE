@@ -23,12 +23,15 @@ namespace LiveSPICEVst
             {
                 if (Sections[0].Position != value)
                 {
+                    bool needUpdate = false;
                     foreach (var section in Sections)
                     {
                         section.Position = value;
+                        needUpdate |= !section.Dynamic;
                     }
 
-                    NeedUpdate = true;
+                    NeedUpdate = needUpdate;
+                    OnPropertyChanged();
                 }
             }
         }

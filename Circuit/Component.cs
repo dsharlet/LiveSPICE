@@ -37,6 +37,11 @@ namespace Circuit
         /// Defines if pot value can be adjusted dynamically during the simulation.
         /// </summary>
         bool Dynamic { get; }
+
+        /// <summary>
+        /// Potentiometer name.
+        /// </summary>
+        string Name { get; }
     }
 
     /// <summary>

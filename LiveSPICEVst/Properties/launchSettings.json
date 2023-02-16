@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "LiveSPICEVst": {
+      "commandName": "Project",
+      "hotReloadEnabled": false,
+      "nativeDebugging": true
+    }
+  }
+}

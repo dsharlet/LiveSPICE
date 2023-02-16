@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <AssemblyName>CircuitTests</AssemblyName>
     <Product>CircuitTests</Product>
@@ -9,6 +10,7 @@
     <FileVersion>1.0.0.0</FileVersion>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Circuit\Circuit.csproj" />

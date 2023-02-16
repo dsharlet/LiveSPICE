@@ -85,7 +85,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = Dynamic ? Mna.AddParameter(this, Name, () => wipe) : AdjustWipe(wipe, sweep);
+            Expression P = Dynamic ? Mna.AddParameter(this, Name, () => AdjustWipe(wipe, sweep)) : AdjustWipe(wipe, sweep);
 
             Resistor.Analyze(Mna, Name, Anode, Cathode, Resistance * P);
         }
