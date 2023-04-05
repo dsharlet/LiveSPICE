@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30611.23
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31521.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Circuit", "Circuit\Circuit.csproj", "{5E788E8B-995B-4B54-B3A9-040D65D5509A}"
 EndProject
@@ -28,6 +28,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LiveSPICEVst", "LiveSPICEVst", "{6DD7DA6B-5277-45C3-ACBD-8306D27528D0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComputerAlgebra.Plotting", "ComputerAlgebra\ComputerAlgebra.Plotting\ComputerAlgebra.Plotting.csproj", "{51F8BCEC-5C29-46BA-8448-06B516715840}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{ECCE5E4E-730F-4A2D-A772-3AC922D9ACD2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,10 @@ Global
 		{51F8BCEC-5C29-46BA-8448-06B516715840}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51F8BCEC-5C29-46BA-8448-06B516715840}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51F8BCEC-5C29-46BA-8448-06B516715840}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECCE5E4E-730F-4A2D-A772-3AC922D9ACD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECCE5E4E-730F-4A2D-A772-3AC922D9ACD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECCE5E4E-730F-4A2D-A772-3AC922D9ACD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECCE5E4E-730F-4A2D-A772-3AC922D9ACD2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
