@@ -1,0 +1,62 @@
+name: Release
+on:
+  release:
+    types: [created]
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
+jobs:
+  release:
+    name: Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: actions/setup-dotnet@v2
+        with:
+          # https://dotnet.microsoft.com/en-us/download/dotnet
+          dotnet-version: '6.0.x'
+      - name: Collect metadata
+        id: METADATA
+        shell: pwsh
+        run: |
+          $commit = git rev-parse HEAD
+          $commit_short = $commit.SubString(0, 7)
+
+          echo "commit=$commit" >> $env:GITHUB_OUTPUT
+          echo "commit_short=$commit_short" >> $env:GITHUB_OUTPUT
+          echo "build_id=$commit_short-${{ github.run_id }}"  >> $env:GITHUB_OUTPUT
+      - name: Build LiveSPICE
+        shell: pwsh
+        run: |
+          $workdir = Get-Location
+
+          cd LiveSPICE
+          dotnet publish -c Release --framework net50-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
+      - name: Package LiveSPICE
+        shell: pwsh
+        run: |
+          $workdir = Get-Location
+
+          # Build InnoSetup installer
+          iscc LiveSPICESetup.iss
+
+          # Package portable tarball
+          cd LiveSPICE
+          Get-ChildItem $workdir\Circuit\Components\ -Filter *.xml | Copy-Item -Destination bin\Release\net50-windows\Components\ -Force -PassThru
+          dir bin\Release\net50-windows\
+          dir bin\Release\net50-windows\Components\
+          cd bin\Release
+
+          ren net50-windows LiveSPICE
+          Compress-Archive -Path LiveSPICE -DestinationPath $workdir\LiveSPICE-${{ github.ref_name }}.zip
+      - name: Publish LiveSPICE artifacts
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            LiveSPICESetup.exe
+            LiveSPICE-${{ github.ref_name }}.zip

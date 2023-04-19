@@ -1,0 +1,25 @@
+name: Test
+on:
+- push
+- pull_request
+- workflow_dispatch
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
+jobs:
+  test:
+    name: Test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: actions/setup-dotnet@v2
+        with:
+          # https://dotnet.microsoft.com/en-us/download/dotnet
+          dotnet-version: '6.0.x'
+      - name: Test LiveSPICE build
+        shell: pwsh
+        working-directory: LiveSPICE
+        run: dotnet publish -c Release --framework net50-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
