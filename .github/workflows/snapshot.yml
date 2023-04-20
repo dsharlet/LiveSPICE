@@ -30,6 +30,7 @@ jobs:
           echo "commit=$commit" >> $env:GITHUB_OUTPUT
           echo "commit_short=$commit_short" >> $env:GITHUB_OUTPUT
           echo "build_id=$commit_short-${{ github.run_id }}"  >> $env:GITHUB_OUTPUT
+
       - name: Snapshot LiveSPICE
         shell: pwsh
         run: |
@@ -39,14 +40,35 @@ jobs:
           dotnet publish -c Release --framework net50-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
 
           Get-ChildItem $workdir\Circuit\Components\ -Filter *.xml | Copy-Item -Destination bin\Release\net50-windows\Components\ -Force -PassThru
-          dir bin\Release\net50-windows\
-          dir bin\Release\net50-windows\Components\
           cd bin\Release
 
           ren net50-windows LiveSPICE
           Compress-Archive -Path LiveSPICE -DestinationPath $workdir\LiveSPICE.zip
-      - name: Publish snapshot artifact
+      - name: Publish LiveSPICE snapshot
         uses: actions/upload-artifact@v3
         with:
           path: LiveSPICE.zip
           name: LiveSPICE-${{ steps.METADATA.outputs.build_id }}.zip
+
+      - name: Snapshot LiveSPICEVst
+        shell: pwsh
+        run: |
+          $workdir = Get-Location
+
+          cd LiveSPICEVst
+          dotnet publish -c Release --framework net6.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
+
+          New-Item -Name "LiveSPICEVst" -ItemType "directory"
+          New-Item -Name "LiveSPICEVst\Components" -ItemType "directory"
+
+          Copy-Item bin\Release\net6.0-windows\LiveSPICEVstBridge.vst3 -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.dll | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.json | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem $workdir\Circuit\Components\ -Filter *.xml | Copy-Item -Destination LiveSPICEVst\Components\ -Force -PassThru
+
+          Compress-Archive -Path LiveSPICEVst -DestinationPath $workdir\LiveSPICEVst.zip
+      - name: Publish LiveSPICEVst snapshot
+        uses: actions/upload-artifact@v3
+        with:
+          path: LiveSPICEVst.zip
+          name: LiveSPICEVst-${{ steps.METADATA.outputs.build_id }}.zip

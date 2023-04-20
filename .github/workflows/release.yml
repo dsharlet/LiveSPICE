@@ -31,27 +31,38 @@ jobs:
       - name: Build LiveSPICE
         shell: pwsh
         run: |
-          $workdir = Get-Location
-
           cd LiveSPICE
           dotnet publish -c Release --framework net50-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
-      - name: Package LiveSPICE
+      - name: Build LiveSPICEVst
+        shell: pwsh
+        run: |
+          cd LiveSPICEVst
+          dotnet publish -c Release --framework net6.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
+      - name: Package LiveSPICE Setup version
+        shell: pwsh
+        run: iscc LiveSPICESetup.iss
+      - name: Package LiveSPICE Portable version
         shell: pwsh
         run: |
           $workdir = Get-Location
 
-          # Build InnoSetup installer
-          iscc LiveSPICESetup.iss
-
-          # Package portable tarball
-          cd LiveSPICE
+          cd $workdir\LiveSPICE
           Get-ChildItem $workdir\Circuit\Components\ -Filter *.xml | Copy-Item -Destination bin\Release\net50-windows\Components\ -Force -PassThru
-          dir bin\Release\net50-windows\
-          dir bin\Release\net50-windows\Components\
           cd bin\Release
 
           ren net50-windows LiveSPICE
           Compress-Archive -Path LiveSPICE -DestinationPath $workdir\LiveSPICE-${{ github.ref_name }}.zip
+
+          cd $workdir\LiveSPICEVst
+          New-Item -Name "LiveSPICEVst" -ItemType "directory"
+          New-Item -Name "LiveSPICEVst\Components" -ItemType "directory"
+
+          Copy-Item bin\Release\net6.0-windows\LiveSPICEVstBridge.vst3 -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.dll | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.json | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem $workdir\Circuit\Components\ -Filter *.xml | Copy-Item -Destination LiveSPICEVst\Components\ -Force -PassThru
+
+          Compress-Archive -Path LiveSPICEVst -DestinationPath $workdir\LiveSPICEVst-${{ github.ref_name }}.zip
       - name: Publish LiveSPICE artifacts
         uses: softprops/action-gh-release@v1
         env:
@@ -60,3 +71,4 @@ jobs:
           files: |
             LiveSPICESetup.exe
             LiveSPICE-${{ github.ref_name }}.zip
+            LiveSPICEVst-${{ github.ref_name }}.zip

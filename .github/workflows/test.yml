@@ -23,3 +23,7 @@ jobs:
         shell: pwsh
         working-directory: LiveSPICE
         run: dotnet publish -c Release --framework net50-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
+      - name: Test LiveSPICEVst build
+        shell: pwsh
+        working-directory: LiveSPICEVst
+        run: dotnet publish -c Release --framework net6.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
