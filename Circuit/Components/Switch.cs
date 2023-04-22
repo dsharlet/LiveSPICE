@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -44,10 +45,33 @@ namespace Circuit
             Name = "S1";
         }
 
+        // This the value of resistors inserted into unconnected switches, which can be substituted to
+        // either be included or excluded in a circuit equation. We don't use a fake large resistance
+        // unconditionally because it could impact the performance of simulations, and it's not that
+        // easy to determine a reasonable fake resistance. We should probably use the max of all component
+        // resistances, capacitances, and inductances, multipled by 1000 or something like that. Just using
+        // an absurdly huge value like 1e100 will ruin the precision of the numerical solvers.
+        public static Expression OpenResistance = Variable.New("_OSR");
+        public static Arrow IncludeOpen = Arrow.New(OpenResistance, 1e12d);
+        public static Arrow ExcludeOpen = Arrow.New(OpenResistance, Real.Infinity);
+
         public override void Analyze(Analysis Mna)
         {
-            if (0 <= position && position < Throws.Length)
-                Conductor.Analyze(Mna, Name, Common, Throws[Position]);
+            for (int i = 0; i < Throws.Length; ++i)
+                Analyze(Mna, Name, Common, Throws[i], i == Position);
+        }
+        public static void Analyze(Analysis Mna, string Name, Terminal Anode, Terminal Cathode, bool Closed)
+        {
+            if (Closed)
+            {
+                Conductor.Analyze(Mna, Name, Anode, Cathode);
+            }
+            else
+            {
+                // A truly unconnected throw terminal makes solving for initial conditions very difficult.
+                // Rather than fully disconnect the terminal, insert a fake resistor.
+                Resistor.Analyze(Mna, Name, Anode, Cathode, OpenResistance);
+            }
         }
 
         protected internal override void LayoutSymbol(SymbolLayout Sym)
@@ -116,8 +140,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            if (closed)
-                Conductor.Analyze(Mna, Name, Anode, Cathode);
+            SinglePoleSwitch.Analyze(Mna, Name, Anode, Cathode, Closed);
         }
 
         protected internal override void LayoutSymbol(SymbolLayout Sym)
