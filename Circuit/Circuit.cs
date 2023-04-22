@@ -90,6 +90,16 @@ namespace Circuit
             return mna;
         }
 
+        public Analysis Analyze(int[] permutation)
+        {
+            Analysis mna = new Analysis();
+            mna.PushContext(null, Nodes);
+            foreach (var idx in permutation)
+                components[idx].Analyze(mna);
+            mna.PopContext();
+            return mna;
+        }
+
         private static Random rng = new Random();
 
         public static void Shuffle<T>(IList<T> list)

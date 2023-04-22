@@ -14,6 +14,12 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="AudioPlugSharp\**" />
+    <EmbeddedResource Remove="AudioPlugSharp\**" />
+    <None Remove="AudioPlugSharp\**" />
+    <Page Remove="AudioPlugSharp\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="Images\MetalAlpha.png" />
   </ItemGroup>
   <ItemGroup>
@@ -21,6 +27,8 @@
     <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj" />
     <ProjectReference Include="..\SchematicControls\SchematicControls.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
+    <ProjectReference Include="AudioPlugSharp\AudioPlugSharpWPF\AudioPlugSharpWPF.csproj" />
+    <ProjectReference Include="AudioPlugSharp\AudioPlugSharp\AudioPlugSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AudioPlugSharp" Version="0.5.1" />

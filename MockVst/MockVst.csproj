@@ -15,8 +15,6 @@
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AudioPlugSharp" Version="0.5.0" />
-    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>

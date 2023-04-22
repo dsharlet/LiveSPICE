@@ -6,11 +6,11 @@
              xmlns:local="clr-namespace:LiveSPICEVst"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="350"
-             Background="#555555"
+             Background="#FFFAFAFA"
              x:Name="MyEditorView">
     <Grid Margin="8,6">
-        <local:PluginBorder />
-        <local:SchematicDisplay x:Name="OverlaySchematic" Opacity="0.5" IsHitTestVisible="False" />
+        <!--<local:PluginBorder />-->
+        <!--<local:SchematicDisplay x:Name="OverlaySchematic" Opacity="0.5" IsHitTestVisible="False" />-->
         <DockPanel Margin="8,6">
             <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="5">
                 <Button DockPanel.Dock="Right" x:Name="ShowAboutButton" Click="ShowAboutButton_Click" HorizontalAlignment="Right">

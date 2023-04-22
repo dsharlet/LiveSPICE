@@ -68,9 +68,11 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = Dynamic ? Mna.AddParameter(this, Name, () => VariableResistor.AdjustWipe(wipe, sweep)) : VariableResistor.AdjustWipe(wipe, sweep);
-            Expression R2 = Resistance * P;
-            Expression R1 = Resistance * (1 - P);
+            Expression P = Dynamic ? Mna.AddParameter(this, Name, () => wipe) : VariableResistor.AdjustWipe(wipe, sweep);
+            var mapped = Dynamic ? Mna.AddUnknownEqualTo(Name + "_m", VariableResistor.ApplySweep(P, sweep)) : P;
+
+            Expression R2 = Mna.AddUnknownEqualTo(Name + "b", Resistance * mapped);
+            Expression R1 = Mna.AddUnknownEqualTo(Name + "t", Resistance * (1 - mapped));
 
             Resistor.Analyze(Mna, Anode, Wiper, R1);
             Resistor.Analyze(Mna, Wiper, Cathode, R2);

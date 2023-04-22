@@ -43,17 +43,35 @@ namespace LiveSPICEVst
             EditorWidth = 350;
             EditorHeight = 200;
 
-            //GCSettings.LatencyMode = GCLatencyMode.LowLatency;
-
             SimulationProcessor = new SimulationProcessor();
         }
 
         public override void Initialize()
         {
+
             base.Initialize();
 
             InputPorts = new AudioIOPort[] { monoInput = new AudioIOPort("Mono Input", EAudioChannelConfiguration.Mono) };
             OutputPorts = new AudioIOPort[] { monoOutput = new AudioIOPort("Mono Output", EAudioChannelConfiguration.Mono) };
+
+            AddParameter(new AudioPluginParameter
+            {
+                ID = $"Switch",
+                Name = $"Switch",
+                Type = EAudioPluginParameterType.Bool,
+                DefaultValue = 0
+            });
+
+            for (int i = 0; i < 10; i++)
+            {
+                AddParameter(new AudioPluginParameter
+                {
+                    ID = $"Param{i}",
+                    Name = $"Param{i}",
+                    Type = EAudioPluginParameterType.Float,
+                    DefaultValue = 0
+                });
+            }
         }
 
         public override void InitializeProcessing()
@@ -83,7 +101,8 @@ namespace LiveSPICEVst
             {
                 SchematicPath = SimulationProcessor.SchematicPath,
                 OverSample = SimulationProcessor.Oversample,
-                Iterations = SimulationProcessor.Iterations
+                Iterations = SimulationProcessor.Iterations,
+                Size = new EditorSize(EditorWidth, EditorHeight)
             };
 
             foreach (var wrapper in SimulationProcessor.InteractiveComponents)
@@ -144,6 +163,9 @@ namespace LiveSPICEVst
                     SimulationProcessor.Oversample = programParameters.OverSample;
                     SimulationProcessor.Iterations = programParameters.Iterations;
 
+                    var (width, height) = programParameters.Size;
+                    ResizeEditor(width, height);
+
                     foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
                     {
                         var wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
@@ -184,17 +206,16 @@ namespace LiveSPICEVst
             try
             {
                 SimulationProcessor.LoadSchematic(path);
-                foreach (var item in SimulationProcessor.InteractiveComponents)
+                foreach (var (item, index) in SimulationProcessor.InteractiveComponents.Select((item, index) => (item, index)))
                 {
-                    var parameter = new AudioPluginParameter { Name = item.Name, ID = item.Name };
+                    var parameter = Parameters[index];
                     parameter.PropertyChanged += (e, args) =>
                     {
-                        //if (item is PotWrapper pot && args.PropertyName == nameof(parameter.Value))
-                        //{
-                        //    pot.PotValue = parameter.Value;
-                        //}
+                        if (item is PotWrapper pot && args.PropertyName == nameof(parameter.NormalizedProcessValue))
+                        {
+                            pot.PotValue = parameter.NormalizedProcessValue;
+                        }
                     };
-                    AddParameter(parameter);
 
                 }
             }

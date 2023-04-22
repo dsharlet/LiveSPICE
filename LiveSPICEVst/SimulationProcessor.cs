@@ -174,7 +174,7 @@ namespace LiveSPICEVst
                 }
             }
 
-            needRebuild = true;
+            UpdateSimulation(true);
         }
 
         /// <summary>
@@ -208,51 +208,49 @@ namespace LiveSPICEVst
                 }
             }
 
-            if ((circuit == null) || (simulation == null))
+            if ((circuit == null) || (simulation == null) || !simulation.CanProcess)
             {
                 audioInputs[0].CopyTo(audioOutputs[0], 0);
+                return;
             }
-            else
+            lock (sync)
             {
-                lock (sync)
+                foreach (var component in InteractiveComponents)
                 {
-                    foreach (var component in InteractiveComponents)
+                    if (component.NeedUpdate)
                     {
-                        if (component.NeedUpdate)
-                        {
-                            needUpdate = true;
+                        needUpdate = true;
 
-                            component.NeedUpdate = false;
+                        component.NeedUpdate = false;
 
-                            updateSamplesElapsed = 0;
-                        }
-
-                        if (component.NeedRebuild)
-                        {
-                            needRebuild = true;
-
-                            component.NeedRebuild = false;
-                        }
+                        updateSamplesElapsed = 0;
                     }
 
-                    if (needUpdate || needRebuild)
+                    if (component.NeedRebuild)
                     {
-                        // Delay updates until user input settles
-                        if (needRebuild || (updateSamplesElapsed > delayUpdateSamples))
-                        {
-                            UpdateSimulation(needRebuild);
+                        needRebuild = true;
 
-                            needRebuild = false;
-                            needUpdate = false;
-                        }
-                        else
-                        {
-                            updateSamplesElapsed += numSamples;
-                        }
+                        component.NeedRebuild = false;
                     }
-
-                    simulation.Run(numSamples, audioInputs, audioOutputs);
                 }
+
+                if (needUpdate || needRebuild)
+                {
+                    // Delay updates until user input settles
+                    if (needRebuild || (updateSamplesElapsed > delayUpdateSamples))
+                    {
+                        UpdateSimulation(needRebuild);
+
+                        needRebuild = false;
+                        needUpdate = false;
+                    }
+                    else
+                    {
+                        updateSamplesElapsed += numSamples;
+                    }
+                }
+
+                simulation.Run(numSamples, audioInputs, audioOutputs);
             }
         }
 
@@ -270,58 +268,52 @@ namespace LiveSPICEVst
             int id = Interlocked.Increment(ref update);
             new Task(() =>
             {
+                if (id <= clock)
+                    return;
+
                 try
                 {
                     Analysis analysis = circuit.Analyze();
-                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
+                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample), new NullLog(), optimize: false);
 
-                    lock (sync)
+                    if (rebuild)
                     {
-                        if (id > clock)
+                        Expression inputExpression = circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
+
+                        if (inputExpression == null)
+                            throw new NotSupportedException("Circuit has no inputs.");
+
+                        IEnumerable<Speaker> speakers = circuit.Components.OfType<Speaker>();
+
+                        Expression outputExpression = 0;
+
+                        // Output is voltage drop across the speakers
+                        foreach (Speaker speaker in speakers)
                         {
-                            if (rebuild)
-                            {
-                                Expression inputExpression = circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
-
-                                if (inputExpression == null)
-                                {
-                                    simulationUpdateException = new NotSupportedException("Circuit has no inputs.");
-                                }
-                                else
-                                {
-                                    IEnumerable<Speaker> speakers = circuit.Components.OfType<Speaker>();
-
-                                    Expression outputExpression = 0;
-
-                                    // Output is voltage drop across the speakers
-                                    foreach (Speaker speaker in speakers)
-                                    {
-                                        outputExpression += speaker.Out;
-                                    }
-
-                                    if (outputExpression.EqualsZero())
-                                    {
-                                        simulationUpdateException = new NotSupportedException("Circuit has no speaker outputs.");
-                                    }
-                                    else
-                                    {
-                                        simulation = new Simulation(ts)
-                                        {
-                                            Oversample = oversample,
-                                            Iterations = iterations,
-                                            Input = new[] { inputExpression },
-                                            Output = new[] { outputExpression }
-                                        };
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                simulation.Solution = ts;
-                                clock = id;
-                            }
+                            outputExpression += speaker.Out;
                         }
+
+                        if (outputExpression.EqualsZero())
+                            throw new NotSupportedException("Circuit has no speaker outputs.");
+
+                        var newSimulation = new Simulation(ts, optimize: true)
+                        {
+                            Oversample = oversample,
+                            Iterations = iterations,
+                            Input = new[] { inputExpression },
+                            Output = new[] { outputExpression }
+                        };
+                        newSimulation.Compile();
+                        simulation = newSimulation;
+
                     }
+                    else
+                    {
+                        simulation.Solution = ts;
+                        simulation.Compile();
+                        clock = id;
+                    }
+
                 }
                 catch (Exception ex)
                 {

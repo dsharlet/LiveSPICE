@@ -1,3 +1,6 @@
 [submodule "ComputerAlgebra"]
 	path = ComputerAlgebra
 	url = https://github.com/dsharlet/ComputerAlgebra.git
+[submodule "LiveSPICEVst/AudioPlugSharp"]
+	path = LiveSPICEVst/AudioPlugSharp
+	url = https://github.com/Federerer/AudioPlugSharp.git

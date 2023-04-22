@@ -137,7 +137,7 @@ namespace Circuit
             /// </summary>
             public string Name { get; }
 
-            public double Value => _valueAccessor.Invoke();
+            public double Value => _valueAccessor();
 
             public Parameter(Component owner, string name, Expression expression, Func<double> valueAccessor)
             {
@@ -161,7 +161,7 @@ namespace Circuit
         /// <returns></returns>
         public Expression AddParameter(Component Of, string Name, Func<double> valueAccessor)
         {
-            Expression expr = (context.Prefix + Name).Replace(' ', '_');
+            Expression expr = Component.DependentVariable((context.Prefix + Name).Replace(' ', '_'), Component.t);
             parameters.Add(new Parameter(Of, Name, expr, valueAccessor));
             return expr;
         }

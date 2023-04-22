@@ -301,14 +301,14 @@ namespace LiveSPICE
             lock (sync)
             {
                 simulation = null;
-                ProgressDialog.RunAsync(this, "Building circuit solution...", () =>
+                ProgressDialog.RunAsync(this, "Building circuit solution...", (cancel, progress) =>
                 {
                     try
                     {
                         ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
                         TransientSolution solution = TransientSolution.Solve(circuit.Analyze(permutate), h, Log);
 
-                        simulation = new Simulation(solution)
+                        simulation = new Simulation(solution, optimize: true)
                         {
                             Log = Log,
                             Input = inputs.Keys.ToArray(),

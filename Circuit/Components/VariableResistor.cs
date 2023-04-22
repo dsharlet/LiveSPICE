@@ -128,6 +128,44 @@ namespace Circuit
             }
         }
 
+        public static Expression ApplySweep(Expression x, SweepType Sweep)
+        {
+            x = Call.Min(Call.Max(x, 1e-3), 1.0 - 1e-3);
+
+            // If we want the parameter to be backwards, swap it.
+            if (Sweep == SweepType.ReverseLinear || Sweep == SweepType.ReverseSigmoid ||
+                Sweep == SweepType.ReverseLogarithmic || Sweep == SweepType.ReverseAntiLogarithmic)
+                x = 1 - x;
+
+            double exp = Math.Exp(2);
+            const double k = 1.8; // Sigmoid shape factor.
+            switch (Sweep)
+            {
+                // If we want the parameter to be logarithmic, apply an exponential curve
+                // passing through 0 and 1.
+                case SweepType.Logarithmic:
+                case SweepType.ReverseLogarithmic:
+                    return (Binary.Power(exp, x) - 1.0) / (exp - 1.0);
+                // If we want the parameter to be anti-logarithmic, apply an exponential curve
+                // passing through 0 and 1.
+                case SweepType.AntiLogarithmic:
+                case SweepType.ReverseAntiLogarithmic:
+                    return 1 - (Binary.Power(exp, 1 - x) - 1.0) / (exp - 1.0);
+                // If we want the parameter to be s-shaped, apply an sigmoid curve
+                // passing through 0 and 1.
+                case SweepType.Sigmoid:
+                case SweepType.ReverseSigmoid:
+                    return 1 / (1 + Binary.Power(x / (1 - x), -k));
+                // If we want the parameter to be s-shaped inverted, apply an sigmoid curve
+                // passing through 0 and 1.
+                case SweepType.AntiSigmoid:
+                case SweepType.ReverseAntiSigmoid:
+                    return 1 / (1 + Binary.Power(x / (1 - x), -1 / k));
+                default:
+                    return x;
+            }
+        }
+
         protected internal override void LayoutSymbol(SymbolLayout Sym)
         {
             base.LayoutSymbol(Sym);

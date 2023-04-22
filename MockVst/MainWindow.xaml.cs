@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows;
 using LiveSPICEVst;
 
@@ -10,7 +11,6 @@ namespace MockVst
     public partial class MainWindow : Window
     {
         LiveSPICEPlugin plugin;
-        private System.Timers.Timer simulateTimer;
         double[][] inputs = new double[1][];
         double[][] outputs = new double[1][];
         int numSamples = 128;
@@ -21,32 +21,31 @@ namespace MockVst
 
             plugin = new LiveSPICEPlugin();
             plugin.Host = new DummyHost();
+            plugin.Initialize();
             plugin.Start();
 
             MainGrid.Children.Add(new EditorView(plugin));
 
-            simulateTimer = new System.Timers.Timer(100);
-            simulateTimer.Elapsed += SimulateTimer_Elapsed;
-            simulateTimer.Start();
-
             inputs[0] = new double[numSamples];
             outputs[0] = new double[numSamples];
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        plugin.SimulationProcessor.RunSimulation(inputs, outputs, numSamples);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    await Task.Delay(100);
+                }
+            });
         }
 
-        private void SimulateTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            try
-            {
-                plugin.SimulationProcessor.RunSimulation(inputs, outputs, numSamples);
-            }
-            catch (Exception ex)
-            {
-                simulateTimer.Enabled = false;
 
-                MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                simulateTimer.Enabled = true;
-            }
-        }
     }
 }

@@ -111,5 +111,6 @@
     <PackageReference Include="AgileObjects.NetStandardPolyfills" Version="1.4.1" />
     <PackageReference Include="AgileObjects.ReadableExpressions" Version="2.5.1" />
     <PackageReference Include="MathNet.Numerics" Version="4.12.0" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 </Project>
