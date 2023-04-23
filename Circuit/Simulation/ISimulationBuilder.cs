@@ -6,7 +6,7 @@ namespace Circuit
 {
     public abstract record SimulationSettings(int SampleRate, int Oversample)
     {
-        public double TimeStep => 1d / SampleRate;
+        public Expression TimeStep => (Real)1 / SampleRate;
     }
 
     public interface ISimulationBuilder<in TSettings>

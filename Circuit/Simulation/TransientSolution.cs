@@ -1,7 +1,7 @@
-﻿using ComputerAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ComputerAlgebra;
 using Util;
 
 namespace Circuit
@@ -183,7 +183,7 @@ namespace Circuit
                 {
                     if (optimize)
                         linear = Optimize(linear);
-                    
+
                     solutions.Add(new LinearSolutions(linear));
                     LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
                 }
@@ -256,13 +256,9 @@ namespace Circuit
         // Logging helpers.
         private static void LogList(ILog Log, MessageType Type, string Title, IEnumerable<string> List)
         {
-            if (Log is NullLog) return;
-            //if (List.Any()) // any enumerates
-            {
-                Log.WriteLine(Type, Title);
-                Log.WriteLines(Type, List.Select(i => "  " + i));
-                Log.WriteLine(Type, "");
-            }
+            Log.WriteLine(Type, Title);
+            Log.WriteLines(Type, List.Select(i => "  " + i));
+            Log.WriteLine(Type, "");
         }
 
         private static void LogExpressions(ILog Log, MessageType Type, string Title, IEnumerable<Expression> Expressions)

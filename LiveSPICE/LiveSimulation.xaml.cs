@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -308,7 +306,7 @@ namespace LiveSPICE
                         ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
                         TransientSolution solution = TransientSolution.Solve(circuit.Analyze(permutate), h, Log);
 
-                        simulation = new Simulation(solution, optimize: true)
+                        simulation = new Simulation(solution)
                         {
                             Log = Log,
                             Input = inputs.Keys.ToArray(),
@@ -436,7 +434,7 @@ namespace LiveSPICE
                 foreach (Probe i in probes)
                     i.Signal.AddSamples(clock, i.Buffer);
             }
-            catch (SimulationDiverged Ex)
+            catch (SimulationDivergedException Ex)
             {
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 Log.WriteLine(MessageType.Error, "Error: " + Ex.Message);
@@ -503,7 +501,7 @@ namespace LiveSPICE
 
         private void Exit_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Close(); 
+            Close();
         }
 
         protected override void OnClosed(EventArgs e)

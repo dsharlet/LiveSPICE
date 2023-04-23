@@ -5,19 +5,16 @@ using System.Numerics;
 using System.Reflection;
 using ComputerAlgebra;
 using ComputerAlgebra.LinqCompiler;
-using ExpressionTreeToString;
 using Util;
 using LinqExpr = System.Linq.Expressions.Expression;
 using ParamExpr = System.Linq.Expressions.ParameterExpression;
 
 namespace Circuit
 {
-
-
     /// <summary>
     /// Simulate a circuit.
     /// </summary>
-    public class OldSimulation
+    public class LegacySimulation
     {
         protected static readonly Variable t = TransientSolution.t;
 
@@ -100,7 +97,7 @@ namespace Circuit
         /// <param name="Solution">Transient solution to run.</param>
         /// <param name="Input">Expressions in the solution to be defined by input samples.</param>
         /// <param name="Output">Expressions describing outputs to be saved from the simulation.</param>
-        public OldSimulation(TransientSolution Solution)
+        public LegacySimulation(TransientSolution Solution)
         {
             solution = Solution;
 
@@ -158,9 +155,9 @@ namespace Circuit
                     throw Ex.InnerException;
                 }
             }
-            catch (SimulationDiverged Ex)
+            catch (SimulationDivergedException Ex)
             {
-                throw new SimulationDiverged("Simulation diverged near t = " + Quantity.ToString(Time, Units.s) + " + " + Ex.At, n + Ex.At);
+                throw new SimulationDivergedException("Simulation diverged near t = " + Quantity.ToString(Time, Units.s) + " + " + Ex.At, n + Ex.At);
             }
         }
         public void Run(int N, IEnumerable<double[]> Output) { Run(N, new double[][] { }, Output); }
@@ -188,7 +185,7 @@ namespace Circuit
 
             // Create parameters for the basic simulation info (N, t, Iterations).
             ParamExpr SampleCount = code.Decl<int>(Scope.Parameter, "SampleCount");
-            ParamExpr t = code.Decl(Scope.Parameter, OldSimulation.t);
+            ParamExpr t = code.Decl(Scope.Parameter, LegacySimulation.t);
             var ins = code.Decl<double[][]>(Scope.Parameter, "ins");
             var outs = code.Decl<double[][]>(Scope.Parameter, "outs");
 
@@ -206,7 +203,7 @@ namespace Circuit
                 outputs.Add(new KeyValuePair<Expression, LinqExpr>(output[i], LinqExpr.ArrayAccess(outs, LinqExpr.Constant(i))));
             }
 
-            Arrow t_t1 = Arrow.New(OldSimulation.t, OldSimulation.t - Solution.TimeStep);
+            Arrow t_t1 = Arrow.New(LegacySimulation.t, LegacySimulation.t - Solution.TimeStep);
 
             // Create globals to store previous values of inputs.
             foreach (Expression i in Input.Distinct())
@@ -233,7 +230,7 @@ namespace Circuit
                 code.DeclInit(i.Key, i.Value);
 
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
-                code.Map(Scope.Intermediate, i.Key, code[i.Key.Evaluate(t_t1)]);
+                code.DeclInit(i.Key, code[i.Key.Evaluate(t_t1)]);
 
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
@@ -354,8 +351,8 @@ namespace Circuit
                         {
                             for (int m = MaxDelay; m < 0; m++)
                             {
-                                Arrow t_tm = Arrow.New(OldSimulation.t, OldSimulation.t + m * Solution.TimeStep);
-                                Arrow t_tm1 = Arrow.New(OldSimulation.t, OldSimulation.t + (m + 1) * Solution.TimeStep);
+                                Arrow t_tm = Arrow.New(LegacySimulation.t, LegacySimulation.t + m * Solution.TimeStep);
+                                Arrow t_tm1 = Arrow.New(LegacySimulation.t, LegacySimulation.t + (m + 1) * Solution.TimeStep);
                                 foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_tm))))
                                     code.Add(LinqExpr.Assign(code[i.Evaluate(t_tm)], code[i.Evaluate(t_tm1)]));
                             }
@@ -401,9 +398,9 @@ namespace Circuit
                 code.Add(LinqExpr.Assign(i.Value, code[i.Key]));
 
             var lambda = code.Build<Action<int, double, double[][], double[][], double[]>>();
-            var str = lambda.ToString("C#");
-            Console.WriteLine("Generated code:");
-            Console.WriteLine(str);
+            //var str = lambda.ToString("C#");
+            //log.WriteLine(MessageType.Info, "Generated code:");
+            //log.WriteLine(MessageType.Info, str);
 #if NET48
             return GetCompiledDelegate(lambda);
 #else
@@ -582,7 +579,7 @@ namespace Circuit
         // Returns a throw SimulationDiverged expression at At.
         private LinqExpr ThrowSimulationDiverged(LinqExpr At)
         {
-            return LinqExpr.Throw(LinqExpr.New(typeof(SimulationDiverged).GetConstructor(new Type[] { At.Type }), At));
+            return LinqExpr.Throw(LinqExpr.New(typeof(SimulationDivergedException).GetConstructor(new Type[] { At.Type }), At));
         }
 
         private static ParamExpr Decl<T>(CodeGen Target, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr, string Name)

@@ -6,7 +6,6 @@ using System.Reflection;
 using ComputerAlgebra;
 using ComputerAlgebra.Extensions;
 using ComputerAlgebra.LinqCompiler;
-using ExpressionTreeToString;
 using Util;
 using Util.Cancellation;
 using LinqExpr = System.Linq.Expressions.Expression;
@@ -55,7 +54,7 @@ namespace Circuit
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ...)
         //  { ... }
-        private (Action<int, double, double[][], double[][], double[]>, Dictionary<Expression, GlobalExpr<double>>) DefineProcess(
+        private (Action<int, double, double[][], double[][], double[], double[]>, IReadOnlyDictionary<Expression, double>) DefineProcess(
             TransientSolution solution,
             NewtonSimulationSettings settings,
             Expression[] input,
@@ -76,8 +75,8 @@ namespace Circuit
             ParamExpr t = code.Decl(Scope.Parameter, NewtonSimulationBuilder.t);
             var ins = code.Decl<double[][]>(Scope.Parameter, "ins");
             var outs = code.Decl<double[][]>(Scope.Parameter, "outs");
-
             var parameters = code.Decl<double[]>(Scope.Parameter, "params");
+            var state = code.Decl<double[]>(Scope.Parameter, "state");
 
             // Create buffer parameters for each input...
             for (int i = 0; i < input.Length; i++)
@@ -95,57 +94,54 @@ namespace Circuit
             Arrow t1_t = Arrow.New(NewtonSimulationBuilder.t - solution.TimeStep, NewtonSimulationBuilder.t);
 
             // Create globals to store previous values of inputs.
-            var globals = new Dictionary<Expression, GlobalExpr<double>>();
+            var globals = new Dictionary<Expression, double>();
 
-            void AddGlobal(Expression Name)
-            {
-                if (!globals.ContainsKey(Name))
-                    globals.Add(Name, new GlobalExpr<double>(0.0));
-            }
+            void AddGlobal(Expression Name) => globals.TryAdd(Name, 0d);
 
             foreach (Expression i in input.Distinct())
                 AddGlobal(i.Evaluate(t_t1));
 
             //If any system depends on the previous value of an unknown, we need a global variable for it.
-            //for (int i = -1; i >= MaxDelay; i--)
-            //{
-            //    Arrow t_tn = Arrow.New(NewtonSimulationBuilder.t, NewtonSimulationBuilder.t + i * solution.TimeStep);
-            //    IEnumerable<Expression> unknowns_tn = solution.Solutions
-            //        .SelectMany(solutionSet => solutionSet.Unknowns)
-            //        //.Where(unknown => output.Any(o => o.DependsOn(unknown)))
-            //        .Select(expression => expression.Evaluate(t_tn));
-
-            //    // Do something smarter here - like returning a list of variables that a solution depends on, as this is very slow
-            //    foreach (var unknown in unknowns_tn.Where(u => solution.Solutions.Any(solutionSet => solutionSet.DependsOn(u))))
-            //    {
-            //        AddGlobal(unknown);
-            //    }
-            //}
 
             for (int i = -1; i >= MaxDelay; i--)
             {
                 Arrow t_tn = Arrow.New(NewtonSimulationBuilder.t, NewtonSimulationBuilder.t + i * solution.TimeStep);
                 IEnumerable<Expression> unknowns_tn = solution.Solutions
                     .SelectMany(solutionSet => solutionSet.Unknowns)
+                    //.Where(unknown => output.Any(o => o.DependsOn(unknown)))
                     .Select(expression => expression.Evaluate(t_tn));
-                if (!solution.Solutions.Any(solutionSet => solutionSet.DependsOn(unknowns_tn)))
-                    break;
 
-                foreach (Expression expression in solution.Solutions.SelectMany(solutionSet => solutionSet.Unknowns))
-                    AddGlobal(expression.Evaluate(t_tn));
+                // Do something smarter here - like returning a list of variables that a solution depends on, as this is very slow
+                foreach (var unknown in unknowns_tn.Where(u => solution.Solutions.Any(solutionSet => solutionSet.DependsOn(u))))
+                {
+                    AddGlobal(unknown);
+                }
             }
+
+            //for (int i = -1; i >= MaxDelay; i--)
+            //{
+            //    Arrow t_tn = Arrow.New(NewtonSimulationBuilder.t, NewtonSimulationBuilder.t + i * solution.TimeStep);
+            //    IEnumerable<Expression> unknowns_tn = solution.Solutions
+            //        .SelectMany(solutionSet => solutionSet.Unknowns)
+            //        .Select(expression => expression.Evaluate(t_tn));
+            //    if (!solution.Solutions.Any(solutionSet => solutionSet.DependsOn(unknowns_tn)))
+            //        break;
+
+            //    foreach (Expression expression in solution.Solutions.SelectMany(solutionSet => solutionSet.Unknowns))
+            //        AddGlobal(expression.Evaluate(t_tn));
+            //}
 
             // Also need globals for any Newton's method unknowns.
             foreach (Expression i in solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
                 AddGlobal(i.Evaluate(t_t1));
 
             // Set the global values to the initial conditions of the solution.
-            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+            foreach (var i in globals)
             {
                 // Dumb hack to get f[t - x] -> f[0] for any x.
                 Expression i_t0 = i.Key.Evaluate(NewtonSimulationBuilder.t, Real.Infinity).Substitute(Real.Infinity, 0);
                 Expression init = i_t0.Evaluate(solution.InitialConditions);
-                i.Value.Value = init is Constant ? (double)init : 0.0;
+                globals[i.Key] = init is Constant ? (double)init : 0.0;
             }
 
             // Define lambda body.
@@ -154,22 +150,22 @@ namespace Circuit
             LinqExpr Zero = LinqExpr.Constant(0);
 
             // double h = T / Oversample
-            LinqExpr h = LinqExpr.Constant(settings.TimeStep / settings.Oversample);
+            LinqExpr h = LinqExpr.Constant((double)settings.TimeStep / settings.Oversample);
 
             // double invOversample = 1 / Oversample
             LinqExpr invOversample = LinqExpr.Constant(1.0 / settings.Oversample);
 
-            foreach (var (param, index) in solution.Parameters.Select((p, i) => (p, i)))
+            foreach (var (param, index) in solution.Parameters.WithIndex())
             {
                 code.Map(Scope.Intermediate, param.Expression, LinqExpr.ArrayAccess(parameters, LinqExpr.Constant(index)));
             }
 
             // Load the globals to local variables and add them to the map.
-            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                code.DeclInit(i.Key, i.Value);
+            foreach (var (i, idx) in globals.WithIndex())
+                code.DeclInit(i.Key, LinqExpr.ArrayAccess(state, LinqExpr.Constant(idx)));
 
             foreach (KeyValuePair<Expression, LinqExpr> i in inputs)
-                code.Map(Scope.Intermediate, i.Key, code[i.Key.Evaluate(t_t1)]);
+                code.DeclInit(i.Key, code[i.Key.Evaluate(t_t1)]);
 
             // Create arrays for linear systems.
             int M = solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
@@ -371,23 +367,23 @@ namespace Circuit
                 });
 
             // Copy the global state variables back to the globals.
-            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
-                code.Add(LinqExpr.Assign(i.Value, code[i.Key]));
+            foreach (var (i, idx) in globals.WithIndex())
+                code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(state, LinqExpr.Constant(idx)), code[i.Key]));
 
-            var lambda = code.Build<Action<int, double, double[][], double[][], double[]>>();
+            var lambda = code.Build<Action<int, double, double[][], double[][], double[], double[]>>();
             if (settings.Optimize)
             {
                 var visitor = new FindVariablesUsedOnce(cancellationStrategy);
                 visitor.Visit(lambda);
 
                 var replacer = new RemoveVariablesUsedOnce(visitor.Usage, cancellationStrategy);
-                lambda = replacer.Visit(lambda) as System.Linq.Expressions.Expression<Action<int, double, double[][], double[][], double[]>>;
+                lambda = replacer.Visit(lambda) as System.Linq.Expressions.Expression<Action<int, double, double[][], double[][], double[], double[]>>;
                 Console.WriteLine($"ToReplace: {visitor.Usage.Count}, replaced: {replacer.removed.Count}");
             }
 
-            var str = lambda.ToString("C#");
-            Console.WriteLine("Generated code:");
-            Console.WriteLine(str);
+            //var str = lambda.ToString("C#");
+            //Console.WriteLine("Generated code:");
+            //Console.WriteLine(str);
 
             var process = lambda.Compile();
 
@@ -416,25 +412,6 @@ namespace Circuit
 
                     var deps = derivative.GetDependecnies(dependencies);
                     all.UnionWith(deps);
-
-                    //var der = code.Decl<double>(Scope.Intermediate);
-
-                    //if (derivative is Constant c)
-                    //{
-                    //    code.Add(LinqExpr.Assign(
-                    //        LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(x)),
-                    //        LinqExpr.Constant((double)c.Value)));
-                    //}
-                    //else
-                    //{
-                    //    code.If(LinqExpr.Not(code[Call.New("Done", delta)]), () =>
-                    //    {
-                    //        code.Add(LinqExpr.Assign(der, code.Compile(derivative)));
-                    //    });
-                    //    code.Add(LinqExpr.Assign(
-                    //        LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(x)),
-                    //        der));
-                    //}
 
                     code.Add(LinqExpr.Assign(
                             LinqExpr.ArrayAccess(Abi, LinqExpr.Constant(x)),
@@ -493,7 +470,7 @@ namespace Circuit
         // Returns a throw SimulationDiverged expression at At.
         private LinqExpr ThrowSimulationDiverged(LinqExpr At)
         {
-            return LinqExpr.Throw(LinqExpr.New(typeof(SimulationDiverged).GetConstructor(new Type[] { At.Type }), At));
+            return LinqExpr.Throw(LinqExpr.New(typeof(SimulationDivergedException).GetConstructor(new Type[] { At.Type }), At));
         }
 
         private static ParamExpr Decl<T>(CodeGen Target, ICollection<KeyValuePair<Expression, LinqExpr>> Map, Expression Expr, string Name)

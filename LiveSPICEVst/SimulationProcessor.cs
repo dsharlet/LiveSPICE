@@ -208,7 +208,7 @@ namespace LiveSPICEVst
                 }
             }
 
-            if ((circuit == null) || (simulation == null) || !simulation.CanProcess)
+            if ((circuit == null) || (simulation == null))
             {
                 audioInputs[0].CopyTo(audioOutputs[0], 0);
                 return;

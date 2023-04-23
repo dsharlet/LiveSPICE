@@ -1,29 +1,27 @@
-﻿namespace Circuit
+﻿using ComputerAlgebra;
+using ComputerAlgebra.LinqCompiler;
+using ExpressionTreeToString;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
+using ComputerAlgebra;
+using Util;
+using ZSpitz.Util;
+
+namespace Circuit
 {
-    /// <summary>
-    /// Exception thrown when a simulation does not converge.
-    /// </summary>
-    public class SimulationDiverged : FailedToConvergeException
-    {
-        private long at;
-        /// <summary>
-        /// Sample number at which the simulation diverged.
-        /// </summary>
-        public long At { get { return at; } }
-
-        public SimulationDiverged(string Message, long At) : base(Message) { at = At; }
-
-        public SimulationDiverged(int At) : base("Simulation diverged.") { at = At; }
-    }
 
     /// <summary>
     /// Simulate a circuit.
     /// </summary>
     public class Simulation
     {
-        private Action<int, double, double[][], double[][], double[]> _process;
-        private readonly Dictionary<Expression, GlobalExpr<double>> state;
+        private Action<int, double, double[][], double[][], double[], double[]> _process;
         private readonly SimulationSettings settings;
+        private readonly SortedReadonlyDictionary<Expression, double> _state;
         private long n = 0;
 
         /// <summary>
@@ -39,7 +37,7 @@
         /// <summary>
         /// Get the timestep for the simulation.
         /// </summary>
-        public double TimeStep => settings.TimeStep;
+        public double TimeStep => (double)settings.TimeStep;
 
         /// <summary>
         /// The sampling rate of this simulation, the sampling rate of the transient solution divided by the oversampling factor.
@@ -49,8 +47,11 @@
         /// <summary>
         /// Stores any global state in the simulation (previous state values, mostly).
         /// </summary>
-        public Dictionary<Expression, GlobalExpr<double>> State => state;
+        public IReadOnlyDictionary<Expression, double> State => _state;
 
+        /// <summary>
+        /// Parameters
+        /// </summary>
         public IEnumerable<Analysis.Parameter> Parameters { get; }
 
         /// <summary>
@@ -59,10 +60,10 @@
         /// <param name="Solution">Transient solution to run.</param>
         /// <param name="Input">Expressions in the solution to be defined by input samples.</param>
         /// <param name="Output">Expressions describing outputs to be saved from the simulation.</param>
-        public Simulation(Action<int, double, double[][], double[][], double[]> process, Dictionary<Expression, GlobalExpr<double>> state, SimulationSettings settings, IEnumerable<Analysis.Parameter> parameters)
+        public Simulation(Action<int, double, double[][], double[][], double[], double[]> process, IReadOnlyDictionary<Expression, double> state, SimulationSettings settings, IEnumerable<Analysis.Parameter> parameters)
         {
             _process = process;
-            this.state = state;
+            this._state = new SortedReadonlyDictionary<Expression, double>(state);
             this.settings = settings;
             Parameters = parameters;
 
@@ -84,12 +85,12 @@
             try
             {
                 var parameters = Parameters.Select(p => p.Value).ToArray();
-                _process(N, n * TimeStep, Input.AsArray(), Output.AsArray(), parameters);
+                _process(N, n * TimeStep, Input.AsArray(), Output.AsArray(), parameters, _state.RawData);
                 n += N;
             }
-            catch (SimulationDiverged Ex)
+            catch (SimulationDivergedException Ex)
             {
-                throw new SimulationDiverged("Simulation diverged near t = " + Quantity.ToString(Time, Units.s) + " + " + Ex.At, n + Ex.At);
+                throw new SimulationDivergedException("Simulation diverged near t = " + Quantity.ToString(Time, Units.s) + " + " + Ex.At, n + Ex.At);
             }
         }
         public void Run(int N, IEnumerable<double[]> Output) { Run(N, new double[][] { }, Output); }
@@ -147,8 +148,6 @@
                 }
             }
         }
-
-
 
         /// <summary>
         /// This algorith has no tail-loop - it requires arrays to be padded to N + Vector.Count - 1

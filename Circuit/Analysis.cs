@@ -1,7 +1,8 @@
-﻿using ComputerAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -118,6 +119,7 @@ namespace Circuit
         /// <summary>
         /// Describes a normalized parameter for the circuit.
         /// </summary>
+        [DebuggerDisplay("{Value}", Name = "{Name,nq}")]
         public class Parameter
         {
             private readonly Func<double> _valueAccessor;

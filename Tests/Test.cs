@@ -131,12 +131,24 @@ namespace Tests
                     Outputs = new[] { sum };
                 }
 
+                //TransientSolution TS = null;
+                //var solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample)));
+                //System.Console.WriteLine("TransientSolution.Solve time: {0} ms", solveTime);
+
+                //var simulation = new OldSimulation(TS)
+                //{
+                //    Oversample = Oversample,
+                //    Iterations = Iterations,
+                //    Input = new[] { Input },
+                //    Output = Outputs,
+                //};
+
                 var builder = new NewtonSimulationBuilder(log);
 
                 var settings = new NewtonSimulationSettings(SampleRate, Oversample, Iterations, Optimize: true);
 
                 Simulation simulation = null;
-                var solveTime = Benchmark(.01, () => simulation = builder.Build(analysis, settings, new[] { Input }, Outputs, CancellationStrategy.None));
+                var solveTime = Benchmark(.01, () => simulation = builder.Build(analysis, settings, new[] { Input }, Outputs, CancellationStrategy.TimeoutAfter(TimeSpan.FromSeconds(30))));
                 Console.WriteLine($"{nameof(NewtonSimulationBuilder.Build)} time: {solveTime}");
 
                 int N = 1000;
@@ -150,14 +162,13 @@ namespace Tests
                     // This is counting the cost of evaluating Vin during benchmarking...
                     for (int n = 0; n < N; ++n, t += T)
                         inputBuffer[n] = Vin(t);
-
                     simulation.Run(inputBuffer, outputBuffers);
                 });
                 double rate = N / runTime.TotalMilliseconds * 1000; // samples per second
                 Console.WriteLine("{0:G3} kHz, {1:G3}x real time", rate / 1000, rate / SampleRate);
                 return rate / SampleRate;
             }
-            catch (SimulationDiverged ex)
+            catch (SimulationDivergedException ex)
             {
                 Console.WriteLine("Simulation diverged");
             }
