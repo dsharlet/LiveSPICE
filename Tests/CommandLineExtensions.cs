@@ -16,7 +16,7 @@ namespace Tests
             return command;
         }
 
-        public static Command WithArgument<T>(this Command command, string name, string description, IArgumentArity? arity = null)
+        public static Command WithArgument<T>(this Command command, string name, string description, ArgumentArity? arity = null)
         {
             var argument = new Argument<T>(name)
             {
@@ -32,6 +32,13 @@ namespace Tests
         {
             var subCommand = new Command(name, description);
             commandBuilder.Invoke(subCommand);
+            command.AddCommand(subCommand);
+            return command;
+        }
+
+        public static TCommand WithSubCommand<TCommand>(this TCommand command, Command subCommand)
+            where TCommand : Command
+        {
             command.AddCommand(subCommand);
             return command;
         }
