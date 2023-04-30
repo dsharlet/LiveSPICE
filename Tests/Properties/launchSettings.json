@@ -2,7 +2,7 @@
   "profiles": {
     "Tests": {
       "commandName": "Project",
-      "commandLineArgs": "benchmark .\\*.schx --sampleRate 44100"
+      "commandLineArgs": "benchmark Examples\\*.schx --sampleRate 44100",
     }
   }
 }

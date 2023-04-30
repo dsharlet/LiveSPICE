@@ -46,11 +46,13 @@ namespace Tests
 
         public static void Benchmark(string pattern, int sampleRate, int oversample, int iterations)
         {
-            var log = new ConsoleLog() { Verbosity = MessageType.Info };
+            var log = new ConsoleLog() { Verbosity = MessageType.Warning };
             var tester = new Test();
             foreach (var circuit in GetCircuits(pattern, log))
             {
+                System.Console.WriteLine("Benchmarking {0}...", circuit.Name);
                 tester.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);
+                System.Console.WriteLine("");
             }
         }
 
