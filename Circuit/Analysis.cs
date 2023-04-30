@@ -218,18 +218,20 @@ namespace Circuit
         /// <returns></returns>
         public Expression AddUnknownEqualTo(string Name, Expression Eq)
         {
+            // Find an existing unknown that may just be a constant factor of this one.
             IEnumerable<Equal> eqs = equations.Concat(context.Equations);
-            Equal eq = eqs.FirstOrDefault(i => Component.IsDependentVariable(i.Left, Component.t) && i.Right.Equals(Eq));
-            if (eq is null)
+            foreach (Equal i in eqs.Where(j => !j.Right.EqualsZero() && Component.IsDependentVariable(j.Left, Component.t)))
             {
-                Expression x = AddUnknown(Name);
-                AddEquation(x, Eq);
-                return x;
+                Expression factor = Eq / i.Right;
+                if (factor is Constant)
+                {
+                    // Existing unknown is a constant factor of this new unknown.
+                    return i.Left * factor;
+                }
             }
-            else
-            {
-                return eq.Left;
-            }
+            Expression x = AddUnknown(Name);
+            AddEquation(x, Eq);
+            return x;
         }
         /// <summary>
         /// Add an anonymous unknown to the system with a known equation.
