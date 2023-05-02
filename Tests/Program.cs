@@ -26,9 +26,6 @@ namespace Tests
         static async Task<int> Main(string[] args)
         {
             var rootCommand = new RootCommand("LiveSPICE CLI")
-                .WithGlobalOption(GlobalOptions.SampleRate)
-                .WithGlobalOption(GlobalOptions.Oversample)
-                .WithGlobalOption(GlobalOptions.Iterations)
                 .WithGlobalOption(GlobalOptions.Verbosity)
                 .WithSubCommand(new TestCommand())
                 .WithSubCommand(new BenchmarkCommand())

@@ -12,7 +12,7 @@
     },
     "Circuits": {
       "commandName": "Project",
-      "commandLineArgs": "test --plot \".\\Fender Deluxe AB763_optimized.schx\" --oversample 1 --plot --parameters Volume=0,9 Treble=0,7 Bass=0,4 --amplitude 30m"
+      "commandLineArgs": "test --plot \".\\Fender Deluxe AB763_optimized.schx\" --oversample 1 --plot --parameters Volume=0,9 Treble=0,7 Bass=0,4 --amplitude 30m --preRunTime 1"
     },
     "Optimize": {
       "commandName": "Project",

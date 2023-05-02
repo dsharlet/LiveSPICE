@@ -18,10 +18,7 @@ namespace LiveSPICE.Cli
 
         public static Option<Quantity> Amplitude { get; } = new(
             name: "--amplitude",
-            parseArgument: arg => 
-            {
-                return arg.Tokens.SingleOrDefault()?.Value is string v ? Quantity.Parse(v, Units.V) : new Quantity(.5d, Units.V);
-            },
+            parseArgument: arg => arg.Tokens.SingleOrDefault()?.Value is string v ? Quantity.Parse(v, Units.V) : new Quantity(.5d, Units.V),
             isDefault: true, 
             description: "Test signal amplitude");
 
@@ -32,7 +29,7 @@ namespace LiveSPICE.Cli
                 return arg.Tokens.Select(t => t.Value.Split('=')).ToDictionary(kv => kv[0], kv => double.Parse(kv[1]), StringComparer.OrdinalIgnoreCase);
             }, 
             isDefault: true, 
-            description: "Variable parameters e.g. Potentiometers")
+            description: "Variable parameters in format key=value")
             { 
                 AllowMultipleArgumentsPerToken = true 
             };

@@ -26,8 +26,21 @@ namespace LiveSPICE.CLI.Commands
             var plot = new Option<bool>("--plot", "Plot results");
             AddOption(plot);
 
-            var samples = new Option<int>("--samples", () => 4800, "Samples to process");
-            AddOption(samples);
+            var simulationTime = new Option<Quantity>(
+                "--simulationTime",
+                arg => arg.Tokens.SingleOrDefault()?.Value is string value ? Quantity.Parse(value, Units.s) : new Quantity(1d, Units.s),
+                true,
+                "Simulation time");
+            AddOption(simulationTime);
+
+
+            var preRunTime = new Option<Quantity>(
+                "--preRunTime",
+                arg => arg.Tokens.SingleOrDefault()?.Value is string value ? Quantity.Parse(value, Units.s) : new Quantity(0d, Units.s),
+                true,
+                "Time when data is not collected (usefull for circuits with no steady state)");
+            AddOption(preRunTime);
+
 
             AddOption(CommonOptions.Amplitude);
             AddOption(CommonOptions.Parameters);
@@ -39,7 +52,8 @@ namespace LiveSPICE.CLI.Commands
                 RunTest,
                 pattern,
                 plot,
-                samples,
+                simulationTime,
+                preRunTime,
                 CommonOptions.Amplitude,
                 CommonOptions.Parameters,
                 CommonOptions.SampleRate,
@@ -51,7 +65,8 @@ namespace LiveSPICE.CLI.Commands
 
         private void RunTest(string pattern,
                              bool plot,
-                             int samples,
+                             Quantity simulationTime,
+                             Quantity preRunTime,
                              Quantity amplitude,
                              Dictionary<string, double> parameters,
                              int sampleRate,
@@ -60,6 +75,10 @@ namespace LiveSPICE.CLI.Commands
                              ILog log,
                              SchematicReader reader)
         {
+            var totalTime = (double)preRunTime + (double)simulationTime;
+
+            var samples = (int)Math.Ceiling(sampleRate * totalTime);
+            var toSkip = (int)Math.Ceiling(sampleRate * (double)preRunTime);
 
             foreach (var circuit in reader.GetSchematics(pattern).Select(s => s.Build(log)))
             {
@@ -129,30 +148,39 @@ namespace LiveSPICE.CLI.Commands
 
                 if (plot)
                 {
-                    PlotAll(circuit.Name, outputBuffers);
+                    var p = PlotAll(circuit.Name, outputBuffers, toSkip, 1d / sampleRate);
+
+                    var outputFileName = circuit.Name + ".bmp";
+                    log.WriteLine(MessageType.Info, $"Saving output file: [blue]{outputFileName}[/blue]");
+                    p.Save(outputFileName);
+
                 }
             }
         }
 
-        private void PlotAll(string Title, Dictionary<Expression, double[]> Outputs)
+        private Plot PlotAll(string Title, Dictionary<Expression, double[]> Outputs, int startAt, double h)
         {
+            var startTime = startAt * h;
+            var endTime = Outputs.Max(i => i.Value.Length * h);
+
             Plot p = new Plot()
             {
                 Title = Title,
                 Width = 1200,
                 Height = 800,
-                x0 = 0,
-                x1 = Outputs.Max(i => i.Value.Length),
+                x0 = startTime,
+                x1 = endTime,
                 xLabel = "Time (s)",
                 yLabel = "Voltage (V)",
             };
 
             p.Series.AddRange(Outputs.Select(i => new Scatter(
-                i.Value.Select((k, n) => new KeyValuePair<double, double>(n, k)).ToArray())
+                i.Value.Skip(startAt).Select((k, n) => new KeyValuePair<double, double>(startTime + n * h, k)).ToArray())
             { Name = i.Key.ToString() }));
 
             System.IO.Directory.CreateDirectory("Plots");
             p.Save("Plots\\" + Title + ".bmp");
+            return p;
         }
     }
 }
