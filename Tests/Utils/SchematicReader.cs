@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Circuit;
-using Tests;
+using LiveSPICE.Cli.Utils;
 using Util;
 
 namespace LiveSPICE.CLI.Utils
@@ -22,7 +22,7 @@ namespace LiveSPICE.CLI.Utils
 
         public Schematic GetSchematic(string filename)
         {
-            log.WriteLine(MessageType.Info, filename);
+            log.WriteLine(MessageType.Info, $"Opening [blue]{filename}[/blue]");
             var circuit = Schematic.Load(filename, log);
             //circuit.Name = Path.GetFileNameWithoutExtension(filename);
             return circuit;

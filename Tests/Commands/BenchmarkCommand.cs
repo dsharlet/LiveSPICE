@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Circuit;
 using ComputerAlgebra;
+using LiveSPICE.Cli;
 using LiveSPICE.Cli.Utils;
 using LiveSPICE.CLI.Utils;
 using Tests;
@@ -26,12 +27,26 @@ namespace LiveSPICE.CLI.Commands
             var pattern = new Argument<string>("pattern", "\"Glob pattern for files to benchmark");
             AddArgument(pattern);
 
+            var legacy = new Option<bool>("--legacy", "Use legacy simulation process.");
+            AddOption(legacy);
+
+            var dynamic = new Option<bool>("--dynamic", () => true, "Enable dynamic components.");
+            AddOption(dynamic);
+
+            AddOption(CommonOptions.Amplitude);
+            AddOption(CommonOptions.SampleRate);
+            AddOption(CommonOptions.Oversample);
+            AddOption(CommonOptions.Iterations);
+
             this.SetHandler(
                 RunBenchmark,
-                pattern,
-                GlobalOptions.SampleRate, 
-                GlobalOptions.Oversample, 
-                GlobalOptions.Iterations,
+                pattern, 
+                CommonOptions.SampleRate, 
+                CommonOptions.Oversample,
+                CommonOptions.Iterations,
+                legacy,
+                dynamic,
+                CommonOptions.Amplitude,
                 Bind.FromServiceProvider<ILog>(),
                 Bind.FromServiceProvider<SchematicReader>(),
                 Bind.FromServiceProvider<BenchmarkRunner>());
@@ -42,6 +57,9 @@ namespace LiveSPICE.CLI.Commands
             int sampleRate,
             int oversample,
             int iterations,
+            bool legacy,
+            bool dynamic,
+            Quantity amplitude,
             ILog log,
             SchematicReader reader,
             BenchmarkRunner runner)
@@ -50,6 +68,16 @@ namespace LiveSPICE.CLI.Commands
 
             foreach (var circuit in reader.GetSchematics(pattern).Select(s => s.Build(log)))
             {
+                if (legacy) { log.WriteLine(MessageType.Info, "[darkyellow]Legacy simulation process[/darkyellow]"); }
+
+                if (!dynamic)
+                {
+                    foreach (var pot in circuit.Components.OfType<Potentiometer>())
+                    {
+                        pot.Dynamic = false;
+                    }
+                }
+
                 runner.Benchmark(circuit, t => FunctionGenerator.Harmonics(t, .5, 82d, 2), sampleRate, oversample, iterations);
                 //TODO: fix
                 double[] result = runner.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);

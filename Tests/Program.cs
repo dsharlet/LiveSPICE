@@ -16,6 +16,8 @@ using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using LiveSPICE.CLI;
 using LiveSPICE.Cli.Utils;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace Tests
 {
@@ -27,19 +29,28 @@ namespace Tests
                 .WithGlobalOption(GlobalOptions.SampleRate)
                 .WithGlobalOption(GlobalOptions.Oversample)
                 .WithGlobalOption(GlobalOptions.Iterations)
-                .WithGlobalOption(GlobalOptions.Verbose)
+                .WithGlobalOption(GlobalOptions.Verbosity)
                 .WithSubCommand(new TestCommand())
                 .WithSubCommand(new BenchmarkCommand())
-                .WithSubCommand(new OptimizeCommand());
+                .WithSubCommand(new OptimizeCommand())
+                .WithCommand("color", "color console test", cmd =>
+                {
+                    var input = new Argument<string>("text", "text to display");
+                    cmd.WithArgument(input);
+                    cmd.SetHandler((input, log) =>
+                    {
+                        log.WriteLine(MessageType.Info, input);
+                    }, input, Bind.FromServiceProvider<ILog>());
+                });
 
             var commandLineBuilder = new CommandLineBuilder(rootCommand);
 
             commandLineBuilder.AddMiddleware(ctx =>
             {
-                var verbose = ctx.ParseResult.GetValueForOption(GlobalOptions.Verbose);
+                var verbosity = ctx.ParseResult.GetValueForOption(GlobalOptions.Verbosity);
                 ctx.BindingContext.AddService<ILog>(s => new ConsoleLog
                 {
-                    Verbosity = verbose ? MessageType.Verbose : MessageType.Info
+                    Verbosity = verbosity
                 });
                 ctx.BindingContext.AddService(s => new SchematicReader(s.GetService<ILog>()));
                 ctx.BindingContext.AddService(s => new BenchmarkRunner(s.GetService<ILog>()));

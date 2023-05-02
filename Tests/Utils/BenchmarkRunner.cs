@@ -26,83 +26,98 @@ namespace LiveSPICE.Cli.Utils
         /// </summary>
         /// <returns>{analyze time, solve time, simulate rate} in seconds or Hz</returns>
         public double Benchmark(
-            Circuit.Circuit C,
+            Circuit.Circuit circuit,
             Func<double, double> Vin,
-            int SampleRate,
-            int Oversample,
-            int Iterations,
+            int sampleRate,
+            int oversample,
+            int iterations,
+            bool legacy = false,
             int[]? permutation = null,
-            Expression Input = null,
-            IEnumerable<Expression> Outputs = null,
+            Expression input = null,
+            IEnumerable<Expression> outputs = null,
             bool optimize = false)
         {
             double t = 0;
-            permutation.Print();
+            permutation?.Print();
             try
             {
                 Analysis? analysis = null;
-                var analyzeTime = Benchmark(.01, () => analysis = C.Analyze(permutation));
-                Console.WriteLine($"{nameof(Circuit.Circuit.Analyze)} time: {analyzeTime}");
+                var analyzeTime = Benchmark(.01, () => analysis = permutation != null ? circuit.Analyze(permutation) : circuit.Analyze());
+                log.WriteLine(MessageType.Info, $"{nameof(Circuit.Circuit.Analyze)} time: [yellow]{analyzeTime}[/yellow]");
 
                 // By default, pass Vin to each input of the circuit.
-                if (Input == null)
-                    Input = FindInput(C);
+                if (input == null)
+                    input = FindInput(circuit);
 
                 // By default, produce every node of the circuit as output.
-                if (Outputs == null)
+                if (outputs == null)
                 {
                     Expression sum = 0;
-                    foreach (Speaker i in C.Components.OfType<Speaker>())
+                    foreach (Speaker i in circuit.Components.OfType<Speaker>())
                         sum += i.Out;
-                    Outputs = new[] { sum };
+                    outputs = new[] { sum };
                 }
 
-                //TransientSolution TS = null;
-                //var solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample)));
-                //System.Console.WriteLine("TransientSolution.Solve time: {0} ms", solveTime);
+                ISimulation? simulation = null;
 
-                //var simulation = new OldSimulation(TS)
-                //{
-                //    Oversample = Oversample,
-                //    Iterations = Iterations,
-                //    Input = new[] { Input },
-                //    Output = Outputs,
-                //};
+                if (legacy)
+                {
+                    TransientSolution? TS = null;
+                    var solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample), log));
+                   log.WriteLine(MessageType.Info,$"Solve time: [yellow]{solveTime}[/yellow]");
 
-                var builder = new NewtonSimulationBuilder(log);
+                    var s = new LegacySimulation(TS)
+                    {
+                        Oversample = oversample,
+                        Iterations = iterations,
+                        Input = new[] { input },
+                        Output = outputs,
+                    };
 
-                var settings = new NewtonSimulationSettings(SampleRate, Oversample, Iterations, Optimize: true);
+                    var buildTime = Benchmark(1, () => s.Build());
+                    log.WriteLine(MessageType.Info, $"Build time: [yellow]{buildTime}[/yellow]");
 
-                Simulation simulation = null;
-                var solveTime = Benchmark(.01, () => simulation = builder.Build(analysis, settings, new[] { Input }, Outputs, CancellationStrategy.TimeoutAfter(TimeSpan.FromSeconds(30))));
-                Console.WriteLine($"{nameof(NewtonSimulationBuilder.Build)} time: {solveTime}");
+                    simulation = s;
+                } else
+                {
+                    var builder = new NewtonSimulationBuilder(log);
+
+                    var settings = new NewtonSimulationSettings(sampleRate, oversample, iterations, Optimize: true);
+
+                    TransientSolution? solution = null;
+
+                    var solveTime = Benchmark(.01, () => solution = builder.Solve(analysis, settings));
+                    log.WriteLine(MessageType.Info, $"{nameof(NewtonSimulationBuilder.Solve)} time: [yellow]{solveTime}[/yellow]");
+
+                    var buildTime = Benchmark(.01, () => simulation = builder.Build(solution, settings, new[] { input }, outputs, CancellationStrategy.TimeoutAfter(TimeSpan.FromSeconds(30))));
+                    log.WriteLine(MessageType.Info, $"{nameof(NewtonSimulationBuilder.Build)} time: [yellow]{buildTime}[/yellow]");
+
+                }
 
                 int N = 1000;
                 double[] inputBuffer = new double[N];
-                List<double[]> outputBuffers = Outputs.Select(i => new double[N]).ToList();
+                List<double[]> outputBuffers = outputs.Select(i => new double[N]).ToList();
 
-                double T = 1.0 / SampleRate;
+                double T = 1.0 / sampleRate;
 
                 var runTime = Benchmark(1, () =>
                 {
                     // This is counting the cost of evaluating Vin during benchmarking...
                     for (int n = 0; n < N; ++n, t += T)
                         inputBuffer[n] = Vin(t);
-                    simulation.Run(inputBuffer, outputBuffers);
+                    simulation!.Run(inputBuffer, outputBuffers);
                 });
                 double rate = N / runTime.TotalMilliseconds * 1000; // samples per second
-                Console.WriteLine("{0:G3} kHz, {1:G3}x real time", rate / 1000, rate / SampleRate);
-                return rate / SampleRate;
+                log.WriteLine(MessageType.Info, "[yellow]{0:G3}[/yellow] kHz, [green]{1:G3}x[/green] real time", rate / 1000, rate / sampleRate);
+                return rate / sampleRate;
             }
             catch (SimulationDivergedException ex)
             {
-                Console.WriteLine("Simulation diverged");
+                log.WriteLine(MessageType.Error, "[red]Simulation diverged[/red]");
             }
             catch (Exception e)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(e.ToString());
-                Console.ResetColor();
+                log.WriteLine(MessageType.Error, $"[red]{e}[/red]");
             }
             return 0;
         }

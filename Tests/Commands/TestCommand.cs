@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 using Circuit;
 using ComputerAlgebra;
 using ComputerAlgebra.Plotting;
+using LiveSPICE.Cli;
 using LiveSPICE.CLI.Utils;
+using Tests;
 using Util;
 using Util.Cancellation;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace LiveSPICE.CLI.Commands
 {
@@ -28,23 +29,59 @@ namespace LiveSPICE.CLI.Commands
             var samples = new Option<int>("--samples", () => 4800, "Samples to process");
             AddOption(samples);
 
+            AddOption(CommonOptions.Amplitude);
+            AddOption(CommonOptions.Parameters);
+            AddOption(CommonOptions.SampleRate);
+            AddOption(CommonOptions.Oversample);
+            AddOption(CommonOptions.Iterations);
+
             this.SetHandler(
                 RunTest,
                 pattern,
                 plot,
                 samples,
-                GlobalOptions.SampleRate,
-                GlobalOptions.Oversample,
-                GlobalOptions.Iterations,
+                CommonOptions.Amplitude,
+                CommonOptions.Parameters,
+                CommonOptions.SampleRate,
+                CommonOptions.Oversample,
+                CommonOptions.Iterations,
                 Bind.FromServiceProvider<ILog>(),
                 Bind.FromServiceProvider<SchematicReader>());
         }
 
-        private void RunTest(string pattern, bool plot, int samples, int sampleRate, int oversample, int iterations, ILog log, SchematicReader reader)
+        private void RunTest(string pattern,
+                             bool plot,
+                             int samples,
+                             Quantity amplitude,
+                             Dictionary<string, double> parameters,
+                             int sampleRate,
+                             int oversample,
+                             int iterations,
+                             ILog log,
+                             SchematicReader reader)
         {
 
             foreach (var circuit in reader.GetSchematics(pattern).Select(s => s.Build(log)))
             {
+                var interactive = circuit.Components
+                    .OfType<IPotControl>()
+                    .GroupBy(p => !string.IsNullOrEmpty(p.Group) ? p.Group : p.Name)
+                    .ToDictionary(g => g.Key, p => p.ToArray(), StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (paramName, paramValue) in parameters)
+                {
+                    if (interactive.TryGetValue(paramName, out var components))
+                    {
+                        foreach (var component in components)
+                        {
+                            component.Position = Math.Clamp(paramValue, 0d, 1d);
+                        }
+                    }
+                }
+
+                var paramsString = string.Join(", ", interactive.Select(i => i.Key + '=' + i.Value[0].Position));
+                log.WriteLine(MessageType.Info, $"Testing circuit with parameters: {paramsString}");
+
                 var analysis = circuit.Analyze();
 
                 // By default, pass Vin to each input of the circuit.
@@ -80,7 +117,7 @@ namespace LiveSPICE.CLI.Commands
                     double[] inputBuffer = new double[N];
                     List<double[]> buffers = outputs.Select(i => new double[N]).ToList();
                     for (int n = 0; n < N; ++n, t += T)
-                        inputBuffer[n] = FunctionGenerator.Harmonics(t, .5, 82, 2);
+                        inputBuffer[n] = FunctionGenerator.Harmonics(t, (double)amplitude, 82, 2);
 
                     simulation.Run(inputBuffer, buffers);
 
