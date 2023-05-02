@@ -3,6 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net50</TargetFrameworks>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +16,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Circuit\Circuit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Schematics\Marshall JCM800 2203 preamp.schx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
