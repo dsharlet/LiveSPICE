@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Util
@@ -146,9 +147,107 @@ namespace Util
     /// </summary>
     public class ConsoleLog : Log
     {
+        private static Lazy<Regex> colorBlockRegEx = new Lazy<Regex>(() => new Regex("\\[(?<color>.*?)\\](?<text>[^[]*)\\[/\\k<color>\\]", RegexOptions.IgnoreCase), isThreadSafe: true);
+
         protected override void WriteLine(string Text)
         {
-            Console.WriteLine(Text);
+            WriteEmbeddedColorLine(Text);
+        }
+
+        /// <summary>
+        /// Allows a string to be written with embedded color values using:
+        /// This is [red]Red[/red] text and this is [cyan]Blue[/blue] text
+        /// </summary>
+        /// <param name="text">Text to display</param>
+        /// <param name="baseTextColor">Base text color</param>
+        public static void WriteEmbeddedColorLine(string text, ConsoleColor? baseTextColor = null)
+        {
+            if (baseTextColor == null)
+                baseTextColor = Console.ForegroundColor;
+
+            if (string.IsNullOrEmpty(text))
+            {
+                Console.WriteLine(string.Empty);
+                return;
+            }
+
+            int at = text.IndexOf("[");
+            int at2 = text.IndexOf("]");
+            if (at == -1 || at2 <= at)
+            {
+                Console.WriteLine(text, baseTextColor);
+                return;
+            }
+
+            while (true)
+            {
+                var match = colorBlockRegEx.Value.Match(text);
+                if (match.Length < 1)
+                {
+                    Console.Write(text, baseTextColor);
+                    break;
+                }
+
+                // write up to expression
+                Console.Write(text.Substring(0, match.Index), baseTextColor);
+
+                // strip out the expression
+                string highlightText = match.Groups["text"].Value;
+                string colorVal = match.Groups["color"].Value;
+
+                Write(highlightText, colorVal);
+
+                // remainder of string
+                text = text.Substring(match.Index + match.Value.Length);
+            }
+
+            Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Writes out a line with color specified as a string
+        /// </summary>
+        /// <param name="text">Text to write</param>
+        /// <param name="color">A console color. Must match ConsoleColors collection names (case insensitive)</param>
+        public static void Write(string text, string color)
+        {
+            if (string.IsNullOrEmpty(color))
+            {
+                Console.Write(text);
+                return;
+            }
+
+            if (!Enum.TryParse(color, true, out ConsoleColor col))
+            {
+                Console.Write(text);
+            }
+            else
+            {
+                Write(text, col);
+            }
+        }
+
+        /// <summary>
+        /// Write with color
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="color"></param>
+        public static void Write(string text, ConsoleColor? color = null)
+        {
+            if (color.HasValue)
+            {
+                var oldColor = System.Console.ForegroundColor;
+                if (color == oldColor)
+                    Console.Write(text);
+                else
+                {
+                    Console.ForegroundColor = color.Value;
+                    Console.Write(text);
+                    Console.ForegroundColor = oldColor;
+                }
+            }
+            else
+                Console.Write(text);
         }
     }
 }
