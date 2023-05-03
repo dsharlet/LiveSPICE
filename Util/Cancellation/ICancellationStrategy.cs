@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Util.Cancellation
 {
@@ -12,6 +13,8 @@ namespace Util.Cancellation
         public static ICancellationStrategy None => new NoneCancellationStrategy();
 
         public static ICancellationStrategy TimeoutAfter(TimeSpan time) => new TimeoutCancellationStrategy(time);
+
+        public static ICancellationStrategy FromToken(CancellationToken token) => new TokenCancellationStrategy(token);
     }
 
     internal class NoneCancellationStrategy : ICancellationStrategy
@@ -31,6 +34,21 @@ namespace Util.Cancellation
         {
             if (timeout < DateTime.UtcNow)
                 throw new OperationCanceledException("Timeout!");
+        }
+    }
+
+    internal class TokenCancellationStrategy : ICancellationStrategy
+    {
+        private readonly CancellationToken token;
+
+        public TokenCancellationStrategy(CancellationToken token)
+        {
+            this.token = token;
+        }
+
+        public void ThrowIfCancelled()
+        {
+            token.ThrowIfCancellationRequested();
         }
     }
 }
