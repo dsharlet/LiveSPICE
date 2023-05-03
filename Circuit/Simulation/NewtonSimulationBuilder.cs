@@ -41,12 +41,28 @@ namespace Circuit
                                 IEnumerable<Expression> outputs,
                                 ICancellationStrategy cancellationStrategy)
         {
-            var solution = TransientSolution.Solve(mna, settings.TimeStep / settings.Oversample, _log);
+            var solution = Solve(mna, settings);
+            return Build(solution, settings, inputs, outputs, cancellationStrategy);
+        }
 
-            cancellationStrategy.ThrowIfCancelled();
+        public TransientSolution Solve(Analysis mna,
+                                       NewtonSimulationSettings settings)
+        {
+            return TransientSolution.Solve(mna, settings.TimeStep / settings.Oversample, _log);
+        }
+
+        public Simulation Build(TransientSolution solution,
+                                NewtonSimulationSettings settings,
+                                IEnumerable<Expression> inputs,
+                                IEnumerable<Expression> outputs,
+                                ICancellationStrategy cancellationStrategy)
+        {
+            if (solution.TimeStep != (settings.TimeStep / settings.Oversample))
+            {
+                throw new InvalidOperationException("Solution's time step does not match provided settings");
+            }
 
             var (process, state) = DefineProcess(solution, settings, inputs.ToArray(), outputs.ToArray(), cancellationStrategy);
-
             return new Simulation(process, state, settings, solution.Parameters);
         }
 
@@ -103,33 +119,33 @@ namespace Circuit
 
             //If any system depends on the previous value of an unknown, we need a global variable for it.
 
-            for (int i = -1; i >= MaxDelay; i--)
-            {
-                Arrow t_tn = Arrow.New(NewtonSimulationBuilder.t, NewtonSimulationBuilder.t + i * solution.TimeStep);
-                IEnumerable<Expression> unknowns_tn = solution.Solutions
-                    .SelectMany(solutionSet => solutionSet.Unknowns)
-                    //.Where(unknown => output.Any(o => o.DependsOn(unknown)))
-                    .Select(expression => expression.Evaluate(t_tn));
-
-                // Do something smarter here - like returning a list of variables that a solution depends on, as this is very slow
-                foreach (var unknown in unknowns_tn.Where(u => solution.Solutions.Any(solutionSet => solutionSet.DependsOn(u))))
-                {
-                    AddGlobal(unknown);
-                }
-            }
-
             //for (int i = -1; i >= MaxDelay; i--)
             //{
             //    Arrow t_tn = Arrow.New(NewtonSimulationBuilder.t, NewtonSimulationBuilder.t + i * solution.TimeStep);
             //    IEnumerable<Expression> unknowns_tn = solution.Solutions
             //        .SelectMany(solutionSet => solutionSet.Unknowns)
+            //        //.Where(unknown => output.Any(o => o.DependsOn(unknown)))
             //        .Select(expression => expression.Evaluate(t_tn));
-            //    if (!solution.Solutions.Any(solutionSet => solutionSet.DependsOn(unknowns_tn)))
-            //        break;
 
-            //    foreach (Expression expression in solution.Solutions.SelectMany(solutionSet => solutionSet.Unknowns))
-            //        AddGlobal(expression.Evaluate(t_tn));
+            //    // Do something smarter here - like returning a list of variables that a solution depends on, as this is very slow
+            //    foreach (var unknown in unknowns_tn.Where(u => solution.Solutions.Any(solutionSet => solutionSet.DependsOn(u))))
+            //    {
+            //        AddGlobal(unknown);
+            //    }
             //}
+
+            for (int i = -1; i >= MaxDelay; i--)
+            {
+                Arrow t_tn = Arrow.New(NewtonSimulationBuilder.t, NewtonSimulationBuilder.t + i * solution.TimeStep);
+                IEnumerable<Expression> unknowns_tn = solution.Solutions
+                    .SelectMany(solutionSet => solutionSet.Unknowns)
+                    .Select(expression => expression.Evaluate(t_tn));
+                if (!solution.Solutions.Any(solutionSet => solutionSet.DependsOn(unknowns_tn)))
+                    break;
+
+                foreach (Expression expression in solution.Solutions.SelectMany(solutionSet => solutionSet.Unknowns))
+                    AddGlobal(expression.Evaluate(t_tn));
+            }
 
             // Also need globals for any Newton's method unknowns.
             foreach (Expression i in solution.Solutions.OfType<NewtonIteration>().SelectMany(i => i.Unknowns))
