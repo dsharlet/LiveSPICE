@@ -248,7 +248,6 @@ namespace Circuit
         /// <returns></returns>
         public static Expression LinExpm1(Expression x)
         {
-            return Call.Exp(x) - 1;
             const double LinExpKnee = 50.0;
             // TODO: Do a proper e^x - 1. Right now this still helps with stability, just
             // because the computer algebra simplifications don't cross Call.If, which is
