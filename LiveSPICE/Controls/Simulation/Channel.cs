@@ -1,7 +1,7 @@
-﻿using ComputerAlgebra.LinqCompiler;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Windows.Media;
+using ComputerAlgebra.LinqCompiler;
 
 namespace LiveSPICE
 {
@@ -82,8 +82,19 @@ namespace LiveSPICE
         public int Index { get { return index; } }
 
         private ComputerAlgebra.Expression signal = 0;
-        public ComputerAlgebra.Expression Signal { get { return signal; } set { signal = value; NotifyChanged(nameof(Signal)); } }
+        public ComputerAlgebra.Expression Signal
+        {
+            get => signal;
+            set
+            {
+                signal = value;
+                NotifyChanged(nameof(Signal));
+                SignalChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
 
         public OutputChannel(int Index) { index = Index; }
+
+        public event EventHandler SignalChanged;
     }
 }

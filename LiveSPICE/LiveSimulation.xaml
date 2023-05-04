@@ -15,40 +15,52 @@
     <Window.Resources>
         <ls:dBConverter x:Key="dBConverter" />
         <DataTemplate DataType="{x:Type ls:InputChannel}">
-            <Border Margin="2" BorderThickness="1" BorderBrush="LightGray" ToolTip="{Binding Name}">
-                <DockPanel>
-                    <DockPanel Margin="2" DockPanel.Dock="Top">
-                        <Border DockPanel.Dock="Left" Margin="4" Width="12" Height="12" 
-                                BorderThickness="1"
-                                BorderBrush="Black" Background="{Binding SignalStatus}" />
-                        <TextBlock DockPanel.Dock="Left"
+            <Border Margin="2" Padding="4" BorderThickness="1" BorderBrush="LightGray" ToolTip="{Binding Name}">
+                <DockPanel Margin="2">
+                    <Border DockPanel.Dock="Left" 
+                            Margin="4" 
+                            Width="12" 
+                            Height="12" 
+                            CornerRadius="6"
+                            Background="{Binding SignalStatus}" />
+                    <TextBlock DockPanel.Dock="Left"
                                    Text="{Binding Name}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
                                    ToolTip="{Binding Name}" 
                                    TextAlignment="Left" VerticalAlignment="Center" />
-                    </DockPanel>
                 </DockPanel>
             </Border>
         </DataTemplate>
         <DataTemplate DataType="{x:Type ls:OutputChannel}">
-            <Border Margin="2" BorderThickness="1" BorderBrush="LightGray" ToolTip="{Binding Name}">
-                <DockPanel>
-                    <DockPanel Margin="2" DockPanel.Dock="Top" LastChildFill="True">
-                        <Border DockPanel.Dock="Left" Margin="4" Width="12" Height="12" 
-                                BorderThickness="1"
-                                BorderBrush="Black" Background="{Binding SignalStatus}" />
-                        <TextBlock DockPanel.Dock="Left" Width="60" 
-                                   Text="{Binding Name}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
-                                   ToolTip="{Binding Name}" 
-                                   TextAlignment="Left" VerticalAlignment="Center" />
-                        <TextBlock DockPanel.Dock="Left" Width="40" 
-                                   Text="Signal: " 
-                                   TextAlignment="Right" VerticalAlignment="Center" />
-                        <Button DockPanel.Dock="Right" Width="20" 
-                                Content="&#x1f50d;" Click="BindSignal_Click" Tag="{Binding}"/>
-                        <TextBox Text="{Binding Signal}" 
-                                 ToolTip="{Binding Signal}" 
-                                 TextAlignment="Left" VerticalAlignment="Center" />
-                    </DockPanel>
+            <Border Margin="2" Padding="4" BorderThickness="1" BorderBrush="LightGray" ToolTip="{Binding Name}">
+                <DockPanel LastChildFill="True">
+                    <Border DockPanel.Dock="Left"
+                            Margin="4" 
+                            Width="12"
+                            Height="12"
+                            CornerRadius="6"
+                            Background="{Binding SignalStatus}" />
+                    <Button DockPanel.Dock="Right"  Margin="4,0,0,0"
+                            ToolTip="Select signal"
+                            Width="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=ActualHeight}"
+                            Padding="0"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            FontSize="16"
+                            Content="&#x2316;" Click="BindSignal_Click" Tag="{Binding}"/>
+                    <TextBox Text="{Binding Signal, Delay=500, UpdateSourceTrigger=PropertyChanged}" 
+                             ToolTip="{Binding Signal}" 
+                             TextAlignment="Left" 
+                             VerticalContentAlignment="Center"
+                             MinWidth="100"
+                             Padding="4,0"
+                             DockPanel.Dock="Right" />
+                    <TextBlock DockPanel.Dock="Right"
+                               Text="Signal: " 
+                               Margin="4,0,0,0"
+                               TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Name}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                               ToolTip="{Binding Name}"
+                               TextAlignment="Left" VerticalAlignment="Center" />
                 </DockPanel>
             </Border>
         </DataTemplate>
@@ -80,7 +92,7 @@
         <ToolBarTray Grid.Row="2">
             <ToolBar Band="1" BandIndex="1">
                 <TextBlock Text="Oversample:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <ComboBox Width="40" IsEditable="True" Text="{Binding Oversample, UpdateSourceTrigger=PropertyChanged, Delay=1000}">
+                <ComboBox Width="40" IsEditable="True" Text="{Binding Oversample, UpdateSourceTrigger=PropertyChanged}">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
                     <ComboBoxItem>3</ComboBoxItem>
@@ -92,10 +104,10 @@
                 </ComboBox>
 
                 <TextBlock Text="Iterations:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <xctk:IntegerUpDown Value="{Binding Iterations, Delay=1000}" Minimum="1" Maximum="64" />
+                <xctk:IntegerUpDown Value="{Binding Iterations}" Minimum="1" Maximum="64" />
 
                 <Separator />
-                
+
                 <ls:ImageButton CommandImage="{x:Static ls:Commands.Simulate}" ImageHeight="16" />
             </ToolBar>
             <!-- View -->
@@ -160,7 +172,7 @@
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
-                    
+
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="*">
                         <xcad:LayoutDocumentPane DockHeight="*">
                             <!-- Schematic -->
@@ -180,7 +192,7 @@
             </xcad:LayoutRoot>
         </xcad:DockingManager>
 
-        <StatusBar Grid.Row="4">
+        <StatusBar Grid.Row="4" Padding="4,2" Foreground="White">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -192,13 +204,39 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem>
-                <TextBlock>Ready</TextBlock>
+                <TextBlock Text="{Binding Status}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Name="statusSampleRate" />
+                    <TextBlock Name="statusSampleRate" Text="CPU load:" />
+                    <ProgressBar Width="100" Margin="5" Minimum="0" Maximum="1" Value="{Binding CpuLoad}" Foreground="#AAFFFFFF" Background="#33000000" BorderThickness="0" />
+                    <!--<StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Simulation}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>-->
                 </StackPanel>
             </StatusBarItem>
+            <StatusBar.Style>
+                <Style TargetType="StatusBar">
+                    <Setter Property="Background" Value="#578eec"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Status}" Value="Building">
+                            <Setter Property="Background" Value="#fea400"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="Solving">
+                            <Setter Property="Background" Value="#fea400"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="Error">
+                            <Setter Property="Background" Value="#FF6B6B"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StatusBar.Style>
         </StatusBar>
     </Grid>
 </Window>
