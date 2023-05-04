@@ -30,6 +30,8 @@ jobs:
       - name: Run circuit tests
         shell: pwsh
         working-directory: Tests
-        run: |
-          dotnet run -c Release --framework net6.0-windows test "Circuits\*.schx" \
-          dotnet run -c Release --framework net6.0-windows test "Examples\*.schx"
+        run: dotnet run -c Release --framework net6.0-windows test "Circuits\*.schx"
+      - name: Run examples
+        shell: pwsh
+        working-directory: Tests
+        run: dotnet run -c Release --framework net6.0-windows test "Examples\*.schx"
