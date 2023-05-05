@@ -14,12 +14,14 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using AgileObjects.ReadableExpressions.Extensions;
 using AvalonDock.Layout;
 using Circuit;
 using ComputerAlgebra;
 using SchematicControls;
 using Util;
 using Util.Cancellation;
+using static System.Reactive.Linq.Observable;
 using Expression = ComputerAlgebra.Expression;
 
 namespace LiveSPICE
@@ -132,7 +134,7 @@ namespace LiveSPICE
 
                 // Make a clone of the schematic so we can mess with it.
                 _editor = editor;
-                var clone = Circuit.Schematic.Deserialize(editor.Schematic.Serialize(), Log);
+                var clone = Circuit.Schematic.Deserialize(editor.Schematic.Serialize(), Log); // slow
                 clone.Elements.ItemAdded += OnElementAdded;
                 clone.Elements.ItemRemoved += OnElementRemoved;
                 Schematic = new SimulationSchematic(clone);
@@ -140,7 +142,7 @@ namespace LiveSPICE
 
                 // Build the circuit from the schematic.
                 circuit = Schematic.Schematic.Build(Log);
-                RebuildSolution();
+                mnaSubject.OnNext(circuit.Analyze());
 
                 // Create the input and output controls.                
                 IEnumerable<Circuit.Component> components = circuit.Components;
@@ -284,7 +286,7 @@ namespace LiveSPICE
                         {
                             try
                             {
-                                this.inputs[In] = new SignalChannel(ComputerAlgebra.Expression.Parse(combo.Text));
+                                this.inputs[In] = new SignalChannel(Expression.Parse(combo.Text));
                             }
                             catch (Exception)
                             {
@@ -303,7 +305,7 @@ namespace LiveSPICE
                     }
                 }
 
-                inputSubject.OnNext(this.inputs.Select(i => i.Key).ToArray());
+                inputSubject.OnNext(this.inputs.Keys.ToArray());
 
                 // Create audio output channels.
                 OutputChannels = outputs.Select((o, idx) => new OutputChannel(idx) { Name = o.Name, Signal = speakers }).ToList();
@@ -324,7 +326,14 @@ namespace LiveSPICE
                     oversampleSubject,
                     (analysis, oversample) => (analysis, oversample))
                         .Do(_ => Status = SimulationStatus.Solving)
-                        .Select(ctx => Observable.FromAsync(token => Task.Run(() => (solution: TransientSolution.Solve(ctx.analysis, (Real)1 / (int)stream.SampleRate / ctx.oversample, Log), ctx.oversample), token)))
+                        .Select(ctx =>
+                            FromAsync(token => Task.Run(() => (solution: TransientSolution.Solve(ctx.analysis, (Real)1 / (int)stream.SampleRate / ctx.oversample, Log), ctx.oversample), token))
+                            .Catch((Exception e) =>
+                            {
+                                Status = SimulationStatus.Error;
+                                Log.WriteException(e);
+                                return Empty<(TransientSolution solution, int oversample)>();
+                            }))
                         .Switch();
 
                 var simulationObservable = Observable.CombineLatest(
@@ -336,10 +345,14 @@ namespace LiveSPICE
                    (input, output, iterations, sp, probes) => (input, output, iterations, sp.solution, sp.oversample, probes))
                        .Do(_ => Status = SimulationStatus.Building)
                        .Select(ctx =>
-                           Observable.Zip(
-                               RebuildSimulation(ctx.solution, ctx.input, ctx.probes.Select(i => i.V).Concat(ctx.output).ToArray(), ctx.oversample, ctx.iterations),
-                               Observable.Return(ctx.probes),
-                               (s, p) => (s, p)))
+                               RebuildSimulation(ctx.solution, ctx.input, ctx.probes.Select(i => i.V).Concat(ctx.output).ToArray(), ctx.oversample, ctx.iterations)
+                               .Catch((Exception e) =>
+                               {
+                                   Status = SimulationStatus.Error;
+                                   Log.WriteException(e);
+                                   return Empty<Simulation>();
+                               })
+                               .Zip(Return(ctx.probes), (s, p) => (s, p)))
                        .Switch();
 
                 simulationSubscription = simulationObservable
@@ -357,6 +370,7 @@ namespace LiveSPICE
                         },
                         exception =>
                         {
+                            Status = SimulationStatus.Error;
                             Log.WriteException(exception);
                         });
 
@@ -388,7 +402,7 @@ namespace LiveSPICE
             int oversample,
             int iterations)
         {
-            return Observable.FromAsync(token =>
+            return FromAsync(token =>
             {
                 return Task.Run(() =>
                 {
@@ -573,16 +587,13 @@ namespace LiveSPICE
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            if (Simulation != null)
-            {
-                var elements = Schematic.Schematic.Elements;
-                var symbols = elements.OfType<Symbol>();
-                var probes = symbols.Where(s => s.Component is Probe);
-                var other = elements.Except(symbols);
-                _editor.Schematic.Elements.Clear();
-                _editor.Schematic.Elements.AddRange(symbols.OrderBy(el => Schematic.Schematic.Circuit.Components.IndexOf(el.Component)).Concat(other).Except(probes));
-                _editor.Edits.Dirty = true;
-            }
+            //if (Simulation != null)
+            //{
+            //    var elements = Schematic.Schematic.Elements;
+            //    var symbols = elements.OfType<Symbol>();
+            //    var probes = symbols.Where(s => s.Component is Probe).ToArray();
+            //    Schematic.Schematic.Elements.RemoveRange(probes);
+            //}
         }
 
         private void ViewScope_Click(object sender, RoutedEventArgs e) { ToggleVisible(scope); }
