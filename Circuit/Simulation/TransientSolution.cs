@@ -135,6 +135,9 @@ namespace Circuit
 
             LogExpressions(Log, MessageType.Verbose, "Discretized system:", system.Select(i => Equal.New(i, 0)));
 
+            if (system.DependsOn(dy_dt))
+                throw new Exception("Failed to eliminate differentials from system of equations.");
+
             // Solving the system...
             List<SolutionSet> solutions = new List<SolutionSet>();
 
