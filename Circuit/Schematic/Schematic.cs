@@ -51,17 +51,26 @@ namespace Circuit
             elements = new ElementCollection();
             if (Elements != null)
             {
+                // If we rely on the normal events for adding/removing these components,
+                // it's very slow because the nodes get rebuilt every time a new
+                // component is added. To avoid this, just manually connect everything
+                // here, and then rebuild the nodes once.
                 elements.AddRange(Elements);
                 foreach (Symbol i in elements.OfType<Symbol>())
                     circuit.Components.Add(i.Component);
+                // Rebuild the nodes here so we at least reduce to one node per connected
+                // group of wires.
+                RebuildNodes(null, false);
+                foreach (Element i in elements)
+                    foreach (Terminal j in i.Terminals)
+                        j.ConnectTo(NodeAt(i.MapTerminal(j)));
+                // Rebuild the nodes again in case a named wire changed the name of the nodes.
                 RebuildNodes(null, true);
-                foreach (Element i in elements)
-                    OnLayoutChanged(i, null);
-
-                foreach (Element i in elements)
-                    i.LayoutChanged += OnLayoutChanged;
             }
 
+            // We skipped this usual event setup for the initial elements, add the events now.
+            foreach (Element i in elements)
+                i.LayoutChanged += OnLayoutChanged;
             elements.ItemAdded += OnElementAdded;
             elements.ItemRemoved += OnElementRemoved;
         }
@@ -264,7 +273,7 @@ namespace Circuit
                 circuit.Nodes.Add(n);
             }
 
-            foreach (Wire i in Wires)
+            foreach (Wire i in Wires.Where(j => j.Node != n))
             {
                 i.Node = n;
                 UpdateTerminals(i);
@@ -309,16 +318,17 @@ namespace Circuit
         {
             foreach (Terminal i in Of.Terminals)
                 Connect(i, NodeAt(Of.MapTerminal(i), Of as Wire));
-
-            // If Of is a named wire, the nodes might have changed.
-            if (Of is Symbol symbol && symbol.Component is NamedWire wire)
-                RebuildNodes(wire.ConnectedTo, false);
         }
 
         private void Connect(Terminal T, Node V)
         {
             if (V != T.ConnectedTo)
+            {
                 T.ConnectTo(V);
+                // If this terminal is a named wire, the nodes need to be rebuilt.
+                if (T.Owner is NamedWire)
+                    RebuildNodes(V, false);
+            }
         }
 
         private void LogComponents()
