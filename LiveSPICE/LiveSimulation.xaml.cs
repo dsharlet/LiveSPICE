@@ -31,7 +31,6 @@ namespace LiveSPICE
         Ready,
         Solving,
         Building,
-        Running,
         Error
     }
     /// <summary>
@@ -46,6 +45,8 @@ namespace LiveSPICE
         private BehaviorSubject<Expression[]> outputSubject = new(Array.Empty<Expression>());
 
         private BehaviorSubject<Analysis> mnaSubject = new(null);
+
+        private BehaviorSubject<int> sampleRateSubject = new BehaviorSubject<int>(0);
 
         private BehaviorSubject<int> oversampleSubject = new(8);
         /// <summary>
@@ -319,14 +320,17 @@ namespace LiveSPICE
                 else
                     stream = new NullStream(ProcessSamples);
 
+                sampleRateSubject.OnNext((int)stream.SampleRate);
+
                 // Rebuild solution every time analysis or oversampling changes.
                 var solutionObservable = Observable.CombineLatest(
                     mnaSubject,
+                    sampleRateSubject,
                     oversampleSubject,
-                    (analysis, oversample) => (analysis, oversample))
+                    (analysis, sampleRate, oversample) => (analysis, sampleRate, oversample))
                         .Do(_ => Status = SimulationStatus.Solving)
                         .Select(ctx =>
-                            FromAsync(token => Task.Run(() => TransientSolution.Solve(ctx.analysis, (Real)1 / (int)stream.SampleRate / ctx.oversample, Log), token))
+                            FromAsync(token => Task.Run(() => TransientSolution.Solve(ctx.analysis, (Real)1 / ctx.sampleRate / ctx.oversample, Log), token))
                             .Catch((Exception e) =>
                             {
                                 Status = SimulationStatus.Error;
@@ -341,9 +345,10 @@ namespace LiveSPICE
                    iterations.Throttle(TimeSpan.FromMilliseconds(300)),
                    solutionObservable,
                    (input, output, iterations, solution) => (input, output, iterations, solution))
+                       .WithLatestFrom(sampleRateSubject, (x, sampleRate) => (x.input, x.output, x.iterations, x.solution, sampleRate))
                        .Do(_ => Status = SimulationStatus.Building)
                        .Select(ctx =>
-                               RebuildSimulation(ctx.solution, ctx.input, ctx.output, ctx.iterations)
+                               RebuildSimulation(ctx.solution, ctx.input, ctx.output, ctx.sampleRate, ctx.iterations)
                                .Catch((Exception e) =>
                                {
                                    Status = SimulationStatus.Error;
@@ -364,7 +369,7 @@ namespace LiveSPICE
                                 Simulation = simulation;
                                 simulatedProbes = simProbes;
                             }
-                            Status = SimulationStatus.Running;
+                            Status = SimulationStatus.Ready;
                         },
                         exception =>
                         {
@@ -402,6 +407,7 @@ namespace LiveSPICE
             TransientSolution solution,
             Expression[] inputs,
             Expression[] outputs,
+            int sampleRate,
             int iterations)
         {
             return FromAsync(token =>
@@ -410,15 +416,9 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        var sampleRate = (int)stream.SampleRate; // Observable
-                        var timeStep = (Real)1 / sampleRate;
+                        var simulationTimeStep = (Real)1 / sampleRate;
 
-                        Expression oversample = timeStep / solution.TimeStep;
-
-                        if (!oversample.IsInteger())
-                        {
-
-                        }
+                        var oversample = simulationTimeStep / solution.TimeStep;
 
                         var builder = new NewtonSimulationBuilder(Log);
 
@@ -500,7 +500,7 @@ namespace LiveSPICE
                 if (sampleRate != (double)Simulation.SampleRate)
                 {
                     Simulation = null;
-                    RebuildSolution();
+                    sampleRateSubject.OnNext((int)sampleRate);
                     return;
                 }
 
