@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,10 +16,8 @@ using System.Windows.Threading;
 using AgileObjects.ReadableExpressions.Extensions;
 using AvalonDock.Layout;
 using Circuit;
-using ComputerAlgebra;
 using SchematicControls;
 using Util;
-using Util.Cancellation;
 using static System.Reactive.Linq.Observable;
 using Expression = ComputerAlgebra.Expression;
 
@@ -36,37 +33,11 @@ namespace LiveSPICE
     /// <summary>
     /// Interaction logic for LiveSimulation.xaml
     /// </summary>
-    partial class LiveSimulation : Window, INotifyPropertyChanged, IDisposable
+    partial class LiveSimulation : Window, INotifyPropertyChanged
     {
         public Log Log { get { return (Log)log.Content; } }
         public Scope Scope { get { return (Scope)scope.Content; } }
 
-        private BehaviorSubject<Expression[]> inputSubject = new(Array.Empty<Expression>());
-        private BehaviorSubject<Expression[]> outputSubject = new(Array.Empty<Expression>());
-
-        private BehaviorSubject<Analysis> mnaSubject = new(null);
-
-        private BehaviorSubject<int> sampleRateSubject = new BehaviorSubject<int>(0);
-
-        private BehaviorSubject<int> oversampleSubject = new(8);
-        /// <summary>
-        /// Simulation oversampling rate.
-        /// </summary>
-        public int Oversample
-        {
-            get { return oversampleSubject.Value; }
-            set { oversampleSubject.OnNext(Math.Max(1, value)); NotifyChanged(nameof(Oversample)); }
-        }
-
-        protected BehaviorSubject<int> iterations = new(8);
-        /// <summary>
-        /// Max iterations for numerical algorithms.
-        /// </summary>
-        public int Iterations
-        {
-            get { return iterations.Value; }
-            set { iterations.OnNext(Math.Max(1, value)); NotifyChanged(nameof(Iterations)); }
-        }
 
         private double inputGain = 1.0;
         /// <summary>
@@ -103,16 +74,6 @@ namespace LiveSPICE
         // A timer for continuously refreshing controls.
         protected DispatcherTimer timer;
 
-        public SimulationStatus Status
-        {
-            get => status;
-            set
-            {
-                status = value;
-                NotifyChanged();
-            }
-        }
-
 
         public double CpuLoad { get => simulation != null ? cpuLoad : 0d; set => cpuLoad = value; }
         public Simulation Simulation
@@ -124,6 +85,10 @@ namespace LiveSPICE
                 NotifyChanged();
             }
         }
+
+        public SimulationPipeline SimulationPipeline => simulationPipeline;
+
+        private readonly SimulationPipeline simulationPipeline;
 
         public LiveSimulation(SchematicEditor editor, Audio.Device device, Audio.Channel[] inputs, Audio.Channel[] outputs)
         {
@@ -142,7 +107,10 @@ namespace LiveSPICE
 
                 // Build the circuit from the schematic.
                 circuit = Schematic.Schematic.Build(Log);
-                mnaSubject.OnNext(circuit.Analyze());
+
+                simulationPipeline = new SimulationPipeline(oversample: 1, log: Log);
+
+                simulationPipeline.UpdateAnalysis(circuit.Analyze());
 
                 // Create the input and output controls.                
                 IEnumerable<Circuit.Component> components = circuit.Components;
@@ -305,7 +273,7 @@ namespace LiveSPICE
                     }
                 }
 
-                inputSubject.OnNext(this.inputs.Keys.ToArray());
+                simulationPipeline.UpdateInputs(this.inputs.Keys);
 
                 // Create audio output channels.
                 OutputChannels = outputs.Select((o, idx) => new OutputChannel(idx) { Name = o.Name, Signal = speakers }).ToList();
@@ -320,44 +288,11 @@ namespace LiveSPICE
                 else
                     stream = new NullStream(ProcessSamples);
 
-                sampleRateSubject.OnNext((int)stream.SampleRate);
+                simulationPipeline.UpdateSampleRate((int)stream.SampleRate);
 
-                // Rebuild solution every time analysis or oversampling changes.
-                var solutionObservable = Observable.CombineLatest(
-                    mnaSubject,
-                    sampleRateSubject,
-                    oversampleSubject,
-                    (analysis, sampleRate, oversample) => (analysis, sampleRate, oversample))
-                        .Do(_ => Status = SimulationStatus.Solving)
-                        .Select(ctx =>
-                            FromAsync(token => Task.Run(() => TransientSolution.Solve(ctx.analysis, (Real)1 / ctx.sampleRate / ctx.oversample, Log), token))
-                            .Catch((Exception e) =>
-                            {
-                                Status = SimulationStatus.Error;
-                                Log.WriteException(e);
-                                return Empty<TransientSolution>();
-                            }))
-                        .Switch();
+                Closed += (s, e) => stream.Stop();
 
-                var simulationObservable = Observable.CombineLatest(
-                   inputSubject,
-                   outputSubject,
-                   iterations.Throttle(TimeSpan.FromMilliseconds(300)),
-                   solutionObservable,
-                   (input, output, iterations, solution) => (input, output, iterations, solution))
-                       .WithLatestFrom(sampleRateSubject, (x, sampleRate) => (x.input, x.output, x.iterations, x.solution, sampleRate))
-                       .Do(_ => Status = SimulationStatus.Building)
-                       .Select(ctx =>
-                               RebuildSimulation(ctx.solution, ctx.input, ctx.output, ctx.sampleRate, ctx.iterations)
-                               .Catch((Exception e) =>
-                               {
-                                   Status = SimulationStatus.Error;
-                                   Log.WriteException(e);
-                                   return Empty<Simulation>();
-                               }))
-                       .Switch();
-
-                simulationSubscription = simulationObservable
+                simulationSubscription = simulationPipeline.Simulation
                     .SubscribeOn(Scheduler.Default)
                     .Subscribe(
                         simulation =>
@@ -369,15 +304,7 @@ namespace LiveSPICE
                                 Simulation = simulation;
                                 simulatedProbes = simProbes;
                             }
-                            Status = SimulationStatus.Ready;
-                        },
-                        exception =>
-                        {
-                            Status = SimulationStatus.Error;
-                            Log.WriteException(exception);
                         });
-
-                Closed += (s, e) => stream.Stop();
 
                 timer = new DispatcherTimer
                 {
@@ -395,57 +322,12 @@ namespace LiveSPICE
 
         private Task RebuildSolution(bool shuffle = false) => Task.Run(() =>
             {
-                mnaSubject.OnNext(circuit.Analyze(shuffle));
+                SimulationPipeline.UpdateAnalysis(circuit.Analyze(shuffle));
             });
 
         private void UpdateOutputs()
         {
-            outputSubject.OnNext(probes.Select(p => p.V).Concat(OutputChannels.Select(o => o.Signal)).ToArray());
-        }
-
-        private IObservable<Simulation> RebuildSimulation(
-            TransientSolution solution,
-            Expression[] inputs,
-            Expression[] outputs,
-            int sampleRate,
-            int iterations)
-        {
-            return FromAsync(token =>
-            {
-                return Task.Run(() =>
-                {
-                    try
-                    {
-                        var simulationTimeStep = (Real)1 / sampleRate;
-
-                        var oversample = simulationTimeStep / solution.TimeStep;
-
-                        var builder = new NewtonSimulationBuilder(Log);
-
-                        var settings = new NewtonSimulationSettings(sampleRate, (int)oversample, iterations, true);
-
-                        var simulation = builder.Build(
-                            solution,
-                            settings,
-                            inputs,
-                            outputs,
-                            CancellationStrategy.FromToken(token));
-
-                        return simulation;
-
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Log.WriteLine(MessageType.Info, "Build cancelled");
-                        throw;
-                    }
-                    catch (Exception Ex)
-                    {
-                        Log.WriteException(Ex);
-                    }
-                    return default;
-                }, token);
-            });
+            SimulationPipeline.UpdateOutputs(probes.Select(p => p.V).Concat(OutputChannels.Select(o => o.Signal)));
         }
 
         private SchematicEditor _editor;
@@ -500,7 +382,7 @@ namespace LiveSPICE
                 if (sampleRate != (double)Simulation.SampleRate)
                 {
                     Simulation = null;
-                    sampleRateSubject.OnNext((int)sampleRate);
+                    SimulationPipeline.UpdateSampleRate((int)sampleRate);
                     return;
                 }
 
@@ -539,7 +421,7 @@ namespace LiveSPICE
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 Log.WriteLine(MessageType.Error, "Error: " + Ex.Message);
                 Simulation = null;
-                Status = SimulationStatus.Error;
+                //Status = SimulationStatus.Error;
                 CpuLoad = 0d;
                 if ((double)Ex.At > sampleRate)
                     RebuildSolution();

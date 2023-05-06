@@ -92,7 +92,7 @@
         <ToolBarTray Grid.Row="2">
             <ToolBar Band="1" BandIndex="1">
                 <TextBlock Text="Oversample:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <ComboBox Width="40" IsEditable="True" Text="{Binding Oversample, UpdateSourceTrigger=PropertyChanged}">
+                <ComboBox Width="40" IsEditable="True" Text="{Binding SimulationPipeline.Oversample, UpdateSourceTrigger=PropertyChanged}">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
                     <ComboBoxItem>3</ComboBoxItem>
@@ -104,7 +104,7 @@
                 </ComboBox>
 
                 <TextBlock Text="Iterations:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <xctk:IntegerUpDown Value="{Binding Iterations}" Minimum="1" Maximum="64" />
+                <xctk:IntegerUpDown Value="{Binding SimulationPipeline.Iterations}" Minimum="1" Maximum="64" />
 
                 <Separator />
 
@@ -204,34 +204,25 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem>
-                <TextBlock Text="{Binding Status}"/>
+                <TextBlock Text="{Binding SimulationPipeline.Status}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Name="statusSampleRate" Text="CPU load:" />
+                    <TextBlock Text="CPU load:" />
                     <ProgressBar Width="100" Margin="5" Minimum="0" Maximum="1" Value="{Binding CpuLoad}" Foreground="#AAFFFFFF" Background="#33000000" BorderThickness="0" />
-                    <!--<StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Simulation}" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>-->
                 </StackPanel>
             </StatusBarItem>
             <StatusBar.Style>
                 <Style TargetType="StatusBar">
                     <Setter Property="Background" Value="#578eec"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Status}" Value="Building">
+                        <DataTrigger Binding="{Binding SimulationPipeline.Status}" Value="Building">
                             <Setter Property="Background" Value="#fea400"/>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding Status}" Value="Solving">
+                        <DataTrigger Binding="{Binding SimulationPipeline.Status}" Value="Solving">
                             <Setter Property="Background" Value="#fea400"/>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding Status}" Value="Error">
+                        <DataTrigger Binding="{Binding SimulationPipeline.Status}" Value="Error">
                             <Setter Property="Background" Value="#FF6B6B"/>
                         </DataTrigger>
                     </Style.Triggers>

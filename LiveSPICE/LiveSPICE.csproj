@@ -123,6 +123,7 @@
     <Resource Include="Images\Signal.png" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
     <PackageReference Include="Dirkster.AvalonDock" Version="4.40.0" />
     <PackageReference Include="DotNetProjects.Extended.Wpf.Toolkit" Version="4.6.86" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
