@@ -42,10 +42,26 @@ namespace Circuit
         /// </summary>
         public ILog Log { get { return log; } set { log = value; } }
 
-        public Schematic(ILog Log) : this() { log = Log; }
-        public Schematic()
+        public Schematic(ILog Log, IEnumerable<Element> Elements = null) : this(Elements) 
+        {
+            log = Log; 
+        }
+        public Schematic(IEnumerable<Element> Elements = null)
         {
             elements = new ElementCollection();
+            if (Elements != null)
+            {
+                elements.AddRange(Elements);
+                foreach (Symbol i in elements.OfType<Symbol>())
+                    circuit.Components.Add(i.Component);
+                RebuildNodes(null, true);
+                foreach (Element i in elements)
+                    OnLayoutChanged(i, null);
+
+                foreach (Element i in elements)
+                    i.LayoutChanged += OnLayoutChanged;
+            }
+
             elements.ItemAdded += OnElementAdded;
             elements.ItemRemoved += OnElementRemoved;
         }
@@ -341,8 +357,8 @@ namespace Circuit
 
         public static Schematic Deserialize(XElement X, ILog Log)
         {
-            Schematic s = new Schematic(Log);
-            s.Elements.AddRange(X.Elements("Element").Select(i => Element.Deserialize(i)));
+            IEnumerable<Element> elements = X.Elements("Element").Select(i => Element.Deserialize(i));
+            Schematic s = new Schematic(Log, elements);
             s.Circuit.Name = Value(X.Attribute("Name"));
             s.Circuit.Description = Value(X.Attribute("Description"));
             s.Circuit.PartNumber = Value(X.Attribute("PartNumber"));
