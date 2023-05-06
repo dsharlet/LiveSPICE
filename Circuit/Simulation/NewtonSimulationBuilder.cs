@@ -62,8 +62,17 @@ namespace Circuit
                 throw new InvalidOperationException("Solution's time step does not match provided settings");
             }
 
-            var (process, state) = DefineProcess(solution, settings, inputs.ToArray(), outputs.ToArray(), cancellationStrategy);
-            return new Simulation(process, state, settings, solution.Parameters);
+            var inputExpressions = inputs.ToArray();
+            var outputExpressions = outputs.ToArray();
+
+            var (process, state) = DefineProcess(solution, settings, inputExpressions, outputExpressions, cancellationStrategy);
+
+            return new Simulation(process,
+                                  state,
+                                  settings,
+                                  inputExpressions,
+                                  outputExpressions,
+                                  solution.Parameters);
         }
 
 

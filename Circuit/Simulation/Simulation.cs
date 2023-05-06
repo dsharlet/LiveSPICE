@@ -1,7 +1,4 @@
-﻿using ComputerAlgebra;
-using ComputerAlgebra.LinqCompiler;
-using ExpressionTreeToString;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -17,7 +14,7 @@ namespace Circuit
     /// <summary>
     /// Simulate a circuit.
     /// </summary>
-    public class Simulation
+    public class Simulation : ISimulation
     {
         private Action<int, double, double[][], double[][], double[], double[]> _process;
         private readonly SimulationSettings settings;
@@ -50,6 +47,16 @@ namespace Circuit
         public IReadOnlyDictionary<Expression, double> State => _state;
 
         /// <summary>
+        /// Inputs.
+        /// </summary>
+        public IReadOnlyCollection<Expression> InputExpressions { get; }
+
+        /// <summary>
+        /// Outputs
+        /// </summary>
+        public IReadOnlyCollection<Expression> OutputExpressions { get; }
+
+        /// <summary>
         /// Parameters
         /// </summary>
         public IEnumerable<Analysis.Parameter> Parameters { get; }
@@ -60,17 +67,20 @@ namespace Circuit
         /// <param name="Solution">Transient solution to run.</param>
         /// <param name="Input">Expressions in the solution to be defined by input samples.</param>
         /// <param name="Output">Expressions describing outputs to be saved from the simulation.</param>
-        public Simulation(Action<int, double, double[][], double[][], double[], double[]> process, IReadOnlyDictionary<Expression, double> state, SimulationSettings settings, IEnumerable<Analysis.Parameter> parameters)
+        public Simulation(
+            Action<int, double, double[][], double[][], double[], double[]> process,
+            IReadOnlyDictionary<Expression, double> state,
+            SimulationSettings settings,
+            Expression[] inputExpressions,
+            Expression[] outputExpressions,
+            IEnumerable<Analysis.Parameter> parameters)
         {
             _process = process;
             this._state = new SortedReadonlyDictionary<Expression, double>(state);
             this.settings = settings;
+            InputExpressions = inputExpressions;
+            OutputExpressions = outputExpressions;
             Parameters = parameters;
-
-            //Observable.CombineLatest(inputSubject, outputSubject, oversampleSubject, iterationsSubject, (input, output, oversample, iterations) => (input, output, oversample, iterations))
-            //    .Select(a => Compile(a.input, a.output, a.oversample, a.iterations))
-            //    .Switch()
-            //    .Subscribe(newProcess => _process = newProcess);
         }
 
         /// <summary>

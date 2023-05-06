@@ -44,7 +44,6 @@ namespace LiveSPICE
 
         private BehaviorSubject<Expression[]> inputSubject = new(Array.Empty<Expression>());
         private BehaviorSubject<Expression[]> outputSubject = new(Array.Empty<Expression>());
-        private BehaviorSubject<Probe[]> probesSubject = new(Array.Empty<Probe>());
 
         private BehaviorSubject<Analysis> mnaSubject = new(null);
 
@@ -87,7 +86,7 @@ namespace LiveSPICE
 
         private List<Probe> probes = new List<Probe>();
 
-        private Probe[] activeProbes;
+        private Probe[] simulatedProbes;
 
         protected Dictionary<Expression, double> arguments = new Dictionary<Expression, double>();
 
@@ -310,9 +309,9 @@ namespace LiveSPICE
                 // Create audio output channels.
                 OutputChannels = outputs.Select((o, idx) => new OutputChannel(idx) { Name = o.Name, Signal = speakers }).ToList();
                 foreach (var channel in OutputChannels)
-                    channel.SignalChanged += (o, e) => { outputSubject.OnNext(OutputChannels.Select(o => o.Signal).ToArray()); };
+                    channel.SignalChanged += (o, e) => UpdateOutputs();
 
-                outputSubject.OnNext(OutputChannels.Select(o => o.Signal).ToArray());
+                UpdateOutputs();
 
                 // Begin audio processing.
                 if (inputs.Any() || outputs.Any())
@@ -327,12 +326,12 @@ namespace LiveSPICE
                     (analysis, oversample) => (analysis, oversample))
                         .Do(_ => Status = SimulationStatus.Solving)
                         .Select(ctx =>
-                            FromAsync(token => Task.Run(() => (solution: TransientSolution.Solve(ctx.analysis, (Real)1 / (int)stream.SampleRate / ctx.oversample, Log), ctx.oversample), token))
+                            FromAsync(token => Task.Run(() => TransientSolution.Solve(ctx.analysis, (Real)1 / (int)stream.SampleRate / ctx.oversample, Log), token))
                             .Catch((Exception e) =>
                             {
                                 Status = SimulationStatus.Error;
                                 Log.WriteException(e);
-                                return Empty<(TransientSolution solution, int oversample)>();
+                                return Empty<TransientSolution>();
                             }))
                         .Switch();
 
@@ -341,30 +340,29 @@ namespace LiveSPICE
                    outputSubject,
                    iterations.Throttle(TimeSpan.FromMilliseconds(300)),
                    solutionObservable,
-                   probesSubject,
-                   (input, output, iterations, sp, probes) => (input, output, iterations, sp.solution, sp.oversample, probes))
+                   (input, output, iterations, solution) => (input, output, iterations, solution))
                        .Do(_ => Status = SimulationStatus.Building)
                        .Select(ctx =>
-                               RebuildSimulation(ctx.solution, ctx.input, ctx.probes.Select(i => i.V).Concat(ctx.output).ToArray(), ctx.oversample, ctx.iterations)
+                               RebuildSimulation(ctx.solution, ctx.input, ctx.output, ctx.iterations)
                                .Catch((Exception e) =>
                                {
                                    Status = SimulationStatus.Error;
                                    Log.WriteException(e);
                                    return Empty<Simulation>();
-                               })
-                               .Zip(Return(ctx.probes), (s, p) => (s, p)))
+                               }))
                        .Switch();
 
                 simulationSubscription = simulationObservable
                     .SubscribeOn(Scheduler.Default)
                     .Subscribe(
-                        result =>
+                        simulation =>
                         {
-                            var (simulation, probes) = result;
+                            var simProbes = probes.Where(p => simulation.OutputExpressions.Contains(p.V)).ToArray(); // maybe not needed?
+
                             lock (sync)
                             {
                                 Simulation = simulation;
-                                activeProbes = probes;
+                                simulatedProbes = simProbes;
                             }
                             Status = SimulationStatus.Running;
                         },
@@ -395,11 +393,15 @@ namespace LiveSPICE
                 mnaSubject.OnNext(circuit.Analyze(shuffle));
             });
 
+        private void UpdateOutputs()
+        {
+            outputSubject.OnNext(probes.Select(p => p.V).Concat(OutputChannels.Select(o => o.Signal)).ToArray());
+        }
+
         private IObservable<Simulation> RebuildSimulation(
             TransientSolution solution,
             Expression[] inputs,
             Expression[] outputs,
-            int oversample,
             int iterations)
         {
             return FromAsync(token =>
@@ -408,9 +410,19 @@ namespace LiveSPICE
                 {
                     try
                     {
+                        var sampleRate = (int)stream.SampleRate; // Observable
+                        var timeStep = (Real)1 / sampleRate;
+
+                        Expression oversample = timeStep / solution.TimeStep;
+
+                        if (!oversample.IsInteger())
+                        {
+
+                        }
+
                         var builder = new NewtonSimulationBuilder(Log);
 
-                        var settings = new NewtonSimulationSettings((int)stream.SampleRate, oversample, iterations, true);
+                        var settings = new NewtonSimulationSettings(sampleRate, (int)oversample, iterations, true);
 
                         var simulation = builder.Build(
                             solution,
@@ -504,7 +516,7 @@ namespace LiveSPICE
                 }
 
                 outputBuffers.Clear();
-                foreach (Probe i in activeProbes)
+                foreach (Probe i in simulatedProbes)
                     outputBuffers.Add(i.AllocBuffer(Count));
                 for (int i = 0; i < Out.Length; ++i)
                     outputBuffers.Add(Out[i].Samples);
@@ -514,7 +526,7 @@ namespace LiveSPICE
 
                 // Show the samples on the oscilloscope.
                 long clock = Scope.Signals.Clock;
-                foreach (Probe i in activeProbes)
+                foreach (Probe i in simulatedProbes)
                     i.Signal.AddSamples(clock, i.Buffer);
 
                 var calcuationTime = sw.Elapsed;
@@ -556,7 +568,7 @@ namespace LiveSPICE
                 Scope.Signals.Add(probe.Signal);
                 Scope.SelectedSignal = probe.Signal;
                 probes.Add(probe);
-                probesSubject.OnNext(probes.ToArray());
+                UpdateOutputs();
             }
         }
 
@@ -566,7 +578,7 @@ namespace LiveSPICE
             {
                 Scope.Signals.Remove(probe.Signal);
                 probes.Remove(probe);
-                probesSubject.OnNext(probes.ToArray());
+                UpdateOutputs();
             }
         }
 
@@ -655,14 +667,15 @@ namespace LiveSPICE
             return (Pen)color.GetCurrentValueAsFrozen();
         }
 
-        private static Brush MapSignalToBrush(double Peak)
+        private static Brush MapSignalToBrush(double Peak) => Peak switch
         {
-            if (Peak < 1e-3) return Brushes.LightGray;
-            if (Peak < 0.5) return Brushes.YellowGreen;
-            if (Peak < 0.75) return Brushes.Yellow;
-            if (Peak < 0.95) return Brushes.Orange;
-            return Brushes.Red;
-        }
+            < 1e-3 => Brushes.LightGray,
+            < 0.5 => Brushes.YellowGreen,
+            < 0.75 => Brushes.Yellow,
+            < 0.95 => Brushes.Orange,
+            _ => Brushes.Red
+        };
+
 
         // INotifyPropertyChanged.
         private void NotifyChanged([CallerMemberName] string p = null)

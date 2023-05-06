@@ -14,7 +14,7 @@ namespace Circuit
     /// <summary>
     /// Simulate a circuit.
     /// </summary>
-    public class LegacySimulation
+    public class LegacySimulation : ISimulation
     {
         protected static readonly Variable t = TransientSolution.t;
 
@@ -171,10 +171,15 @@ namespace Circuit
             _process = null;
         }
 
+        public void Build()
+        {
+            _process = DefineProcess();
+        }
+
         // The resulting lambda processes N samples, using buffers provided for Input and Output:
         //  void Process(int N, double t0, double T, double[] Input0 ..., double[] Output0 ...)
         //  { ... }
-        private Action<int, double, double[][], double[][], double[]> DefineProcess()
+        internal Action<int, double, double[][], double[][], double[]> DefineProcess()
         {
             // Map expressions to identifiers in the syntax tree.
             var inputs = new List<KeyValuePair<Expression, LinqExpr>>();
@@ -480,7 +485,7 @@ namespace Circuit
         }
 
         // A human readable implementation of RowReduce.
-        private static void RowReduce(double[][] Ab, int M, int N)
+        internal static void RowReduce(double[][] Ab, int M, int N)
         {
             // Solve for dx.
             // For each variable in the system...
