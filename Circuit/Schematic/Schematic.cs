@@ -213,22 +213,26 @@ namespace Circuit
             UpdateTerminals(of);
         }
 
+        private IEnumerable<Wire> ConnectedTo(IEnumerable<Wire> Wires, Wire Target, HashSet<Wire> visited)
+        {
+            foreach (Wire i in Wires.Where(j => !visited.Contains(j)))
+            {
+                if (i.IsConnectedTo(Target))
+                {
+                    visited.Add(i);
+                    yield return i;
+                    foreach (Wire j in ConnectedTo(Wires, i, visited))
+                        yield return j;
+                }
+            }
+        }
+
         // Wires was a single node but it is now two. Break it into two sets of nodes
         // and return the one containing Target.
         private IEnumerable<Wire> ConnectedTo(IEnumerable<Wire> Wires, Wire Target)
         {
-            // Repeatedly search for connections with the target.
-            IEnumerable<Wire> connected = new Wire[] { Target };
-            int count = connected.Count();
-            while (true)
-            {
-                connected = Wires.Where(i => connected.Any(j => i.IsConnectedTo(j))).ToArray();
-                if (connected.Count() == count)
-                    break;
-                count = connected.Count();
-            }
-
-            return connected;
+            HashSet<Wire> visited = new HashSet<Wire>();
+            return ConnectedTo(Wires.Buffer(), Target, visited);
         }
 
         // Merge all of the nodes contained in wires to one.
