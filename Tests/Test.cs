@@ -173,7 +173,8 @@ namespace Tests
                 i.Value.Select((k, n) => new KeyValuePair<double, double>(n, k)).ToArray())
             { Name = i.Key.ToString() }));
 
-            p.Save(Title + ".bmp");
+            System.IO.Directory.CreateDirectory("Plots");
+            p.Save("Plots\\" + Title + ".bmp");
         }
     }
 }
