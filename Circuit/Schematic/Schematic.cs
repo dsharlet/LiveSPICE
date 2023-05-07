@@ -217,22 +217,19 @@ namespace Circuit
                 {
                     Node n = NodeAt(of.MapTerminal(i));
 
-                    if (n != i.ConnectedTo)
-                    {
-                        i.ConnectTo(n);
-                        // If this terminal is a named wire, the nodes need to be rebuilt.
+                    // If this terminal is a named wire, the node needs to be rebuilt.
+                    if (i.ConnectTo(n))
                         if (i.Owner is NamedWire && n != null)
                             RebuildNode(n);
-                    }
                 }
             }
         }
 
         private IEnumerable<Wire> ConnectedTo(IEnumerable<Wire> Wires, Wire Target, HashSet<Wire> visited)
         {
-            foreach (Wire i in Wires.Where(j => !visited.Contains(j)))
+            foreach (Wire i in Wires)
             {
-                if (i.IsConnectedTo(Target))
+                if (!visited.Contains(i) && i.IsConnectedTo(Target))
                 {
                     visited.Add(i);
                     yield return i;
