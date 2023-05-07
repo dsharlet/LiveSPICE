@@ -38,10 +38,10 @@ namespace Circuit
         public virtual bool Intersects(Coord x1, Coord x2)
         {
             Coord l = LowerBound;
-            if (l.x >= x2.x || l.y >= x2.y) return false;
+            if (l.x > x2.x || l.y > x2.y) return false;
 
             Coord u = UpperBound;
-            if (u.x <= x1.x || u.y <= x1.y) return false;
+            if (u.x < x1.x || u.y < x1.y) return false;
             return true;
         }
 

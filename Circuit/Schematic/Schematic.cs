@@ -58,9 +58,7 @@ namespace Circuit
                 elements.AddRange(Elements);
                 foreach (Symbol i in elements.OfType<Symbol>())
                     circuit.Components.Add(i.Component);
-                // Rebuild the nodes here so we at least reduce to one node per connected
-                // group of wires.
-                RebuildNodes(null);
+                RebuildNodes();
                 ReconnectAllTerminals();
             }
 
@@ -82,6 +80,9 @@ namespace Circuit
             int warnings = 0;
 
             log.WriteLine(MessageType.Info, "Building circuit...");
+
+            RebuildNodes();
+            ReconnectAllTerminals();
 
             // Check for duplicate names.
             foreach (string i in circuit.Components.Select(i => i.Name))
@@ -184,12 +185,11 @@ namespace Circuit
             }
             else if (e.Element is Wire wire)
             {
+                // Reconnect any terminals connected to this wire's node, in case they are no longer connected.
+                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).ToArray());
+
                 // If the removed element is a wire, we might have to split the node it was a part of.
                 RebuildNode(wire.Node);
-
-                // Reconnect any terminals connected to this wire's node, in case they are no longer connected.
-                // We could be more precise here, but it probably doesn't matter when removing elements.
-                ReconnectAllTerminals();
             }
 
             foreach (Terminal j in e.Element.Terminals)
@@ -209,11 +209,14 @@ namespace Circuit
             Element of = (Element)sender;
             if (of is Wire wire)
             {
+                // Reconnect all the elements connected to this wire's node. This will disconnect any newly
+                // disconnected nodes.
+                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).ToArray());
+
                 RebuildNode(wire.Node);
-                // TODO: It's ridiculous that we have to reconnect all the terminals of every
-                // component. Not doing so is hard because when a wire moves, it could be moving
-                // into contact with any terminal in the circuit. 
-                ReconnectAllTerminals();
+
+                // Now reconnect all terminals in the bounding box of this wire.
+                ReconnectAllTerminals(Elements.Where(i => i.Intersects(wire.LowerBound, wire.UpperBound)));
             }
             else
             {
@@ -221,7 +224,7 @@ namespace Circuit
                 {
                     Node n = NodeAt(of.MapTerminal(i));
 
-                    // If this terminal is a named wire, the node needs to be rebuilt.
+                    // If this terminal is a named wire, the node needs to be rebuilt. 
                     if (i.ConnectTo(n))
                         if (i.Owner is NamedWire && n != null)
                             RebuildNode(n);
