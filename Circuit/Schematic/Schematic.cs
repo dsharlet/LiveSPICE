@@ -186,6 +186,10 @@ namespace Circuit
             {
                 // If the removed element is a wire, we might have to split the node it was a part of.
                 RebuildNode(wire.Node);
+
+                // Reconnect any terminals connected to this wire's node, in case they are no longer connected.
+                // We could be more precise here, but it probably doesn't matter when removing elements.
+                ReconnectAllTerminals();
             }
 
             foreach (Terminal j in e.Element.Terminals)
