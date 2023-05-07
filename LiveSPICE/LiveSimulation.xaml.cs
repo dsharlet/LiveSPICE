@@ -16,11 +16,11 @@ using System.Windows.Threading;
 using AgileObjects.ReadableExpressions.Extensions;
 using AvalonDock.Layout;
 using Circuit;
+using LiveSPICE.Common;
 using SchematicControls;
 using Util;
 using static System.Reactive.Linq.Observable;
 using Expression = ComputerAlgebra.Expression;
-using NewtonSimulationPipeline = LiveSPICE.SimulationBuildPipeline<Circuit.NewtonSimulationBuilder, Circuit.NewtonSimulationSettings>;
 
 namespace LiveSPICE
 {
@@ -95,9 +95,9 @@ namespace LiveSPICE
             set { simulationPipeline.UpdateSimulationSettings(s => s with { Oversample = value }); NotifyChanged(); }
         }
 
-        public NewtonSimulationPipeline SimulationPipeline => simulationPipeline;
+        public ISimulationBuildPipeline<NewtonSimulationSettings> SimulationPipeline => simulationPipeline;
 
-        private readonly NewtonSimulationPipeline simulationPipeline;
+        private readonly ISimulationBuildPipeline<NewtonSimulationSettings> simulationPipeline;
 
         public LiveSimulation(SchematicEditor editor, Audio.Device device, Audio.Channel[] inputs, Audio.Channel[] outputs)
         {
@@ -122,7 +122,7 @@ namespace LiveSPICE
                 // Some defaults
                 var settings = new NewtonSimulationSettings(44100, Oversample: 1, Iterations: 8, Optimize: true);
 
-                simulationPipeline = new(builder: builder, settings: settings, log: Log);
+                simulationPipeline = SimulationBuildPipeline.Create(builder: builder, settings: settings, log: Log);
 
                 simulationPipeline.UpdateAnalysis(circuit.Analyze());
 

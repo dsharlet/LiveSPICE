@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Circuit;
+using ComputerAlgebra;
 
 namespace LiveSPICE.Common
 {
@@ -10,6 +12,10 @@ namespace LiveSPICE.Common
         IObservable<Simulation> Simulation { get; }
 
         SimulationSettings Settings { get; }
+
+        void UpdateAnalysis(Analysis analysis);
+        void UpdateInputs(IEnumerable<Expression> expressions);
+        void UpdateOutputs(IEnumerable<Expression> expressions);
     }
 
     public interface ISimulationBuildPipeline<TSettings> : ISimulationBuildPipeline

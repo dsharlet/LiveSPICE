@@ -154,4 +154,11 @@ namespace LiveSPICE.Common
             }
         }
     }
+
+    public static class SimulationBuildPipeline
+    {
+        public static ISimulationBuildPipeline<TSettings> Create<TBuilder, TSettings>(TBuilder builder, TSettings settings, ILog log)
+            where TSettings : SimulationSettings
+            where TBuilder : ISimulationBuilder<TSettings> => new SimulationBuildPipeline<TBuilder, TSettings>(builder, settings, log);
+    }
 }
