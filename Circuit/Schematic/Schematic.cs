@@ -189,7 +189,7 @@ namespace Circuit
                 RebuildNode(wire.Node);
 
                 // Reconnect any terminals connected to this wire's node, in case they are no longer connected.
-                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).ToArray());
+                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).Where(i => i != null).ToArray());
             }
 
             foreach (Terminal j in e.Element.Terminals)
