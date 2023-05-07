@@ -185,11 +185,11 @@ namespace Circuit
             }
             else if (e.Element is Wire wire)
             {
-                // Reconnect any terminals connected to this wire's node, in case they are no longer connected.
-                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).ToArray());
-
                 // If the removed element is a wire, we might have to split the node it was a part of.
                 RebuildNode(wire.Node);
+
+                // Reconnect any terminals connected to this wire's node, in case they are no longer connected.
+                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).ToArray());
             }
 
             foreach (Terminal j in e.Element.Terminals)
@@ -209,12 +209,12 @@ namespace Circuit
             Element of = (Element)sender;
             if (of is Wire wire)
             {
+                RebuildNode(wire.Node);
+
                 // Reconnect all the elements connected to this wire's node. This will disconnect any newly
                 // disconnected nodes.
                 ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).ToArray());
-
-                RebuildNode(wire.Node);
-
+                
                 // Now reconnect all terminals in the bounding box of this wire.
                 ReconnectAllTerminals(Elements.Where(i => i.Intersects(wire.LowerBound, wire.UpperBound)));
             }
@@ -322,7 +322,7 @@ namespace Circuit
         {
             HashSet<Wire> wires = new HashSet<Wire>();
             foreach (Wire i in Wires)
-                if (Nodes == null || Nodes.Contains(i.Node))
+                if (Nodes == null || i.Node == null || Nodes.Contains(i.Node))
                     wires.Add(i);
             while (!wires.Empty())
             {
