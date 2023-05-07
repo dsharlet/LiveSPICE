@@ -189,7 +189,7 @@ namespace Circuit
                 RebuildNode(wire.Node);
 
                 // Reconnect any terminals connected to this wire's node, in case they are no longer connected.
-                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).Where(i => i != null).ToArray());
+                ReconnectAllTerminals(wire.Node.Connected.Select(i => (Element)i.Owner.Tag).ToArray());
             }
 
             foreach (Terminal j in e.Element.Terminals)
@@ -220,15 +220,7 @@ namespace Circuit
             }
             else
             {
-                foreach (Terminal i in of.Terminals)
-                {
-                    Node n = NodeAt(of.MapTerminal(i));
-
-                    // If this terminal is a named wire, the node needs to be rebuilt. 
-                    if (i.ConnectTo(n))
-                        if (i.Owner is NamedWire && n != null)
-                            RebuildNode(n);
-                }
+                ReconnectAllTerminals(new Element[] { of });
             }
         }
 
