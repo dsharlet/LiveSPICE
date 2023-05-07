@@ -44,10 +44,11 @@ namespace Circuit
         /// Connect this terminal to the node.
         /// </summary>
         /// <param name="n"></param>
-        public void ConnectTo(Node N)
+        /// <returns>true if the connection was changed, false if not.</returns>
+        public bool ConnectTo(Node N)
         {
             if (connectedTo == N)
-                return;
+                return false;
 
             if (connectedTo != null)
                 connectedTo.Disconnect(this);
@@ -56,6 +57,7 @@ namespace Circuit
                 connectedTo.Connect(this);
 
             foreach (EventHandler i in connectionChanged) i(this, null);
+            return true;
         }
 
         private List<EventHandler> connectionChanged = new List<EventHandler>();
