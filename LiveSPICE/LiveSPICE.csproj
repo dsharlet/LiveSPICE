@@ -58,6 +58,7 @@
     <ProjectReference Include="..\Audio\Audio.csproj" />
     <ProjectReference Include="..\Circuit\Circuit.csproj" />
     <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj" />
+    <ProjectReference Include="..\LiveSPICE.UI.Controls\LiveSPICE.UI.Controls.csproj" />
     <ProjectReference Include="..\SchematicControls\SchematicControls.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
     <ProjectReference Include="..\WaveAudio\WaveAudio.csproj" />

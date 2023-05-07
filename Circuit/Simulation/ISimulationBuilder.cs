@@ -18,5 +18,11 @@ namespace Circuit
             IEnumerable<Expression> inputs,
             IEnumerable<Expression> outputs,
             ICancellationStrategy cancellationStrategy);
+
+        Simulation Build(TransientSolution solution,
+            TSettings settings,
+            IEnumerable<Expression> inputs,
+            IEnumerable<Expression> outputs,
+            ICancellationStrategy cancellationStrategy);
     }
 }

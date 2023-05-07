@@ -1,7 +1,6 @@
 ﻿using System;
-using Util;
 
-namespace LiveSPICE.Utils
+namespace Util
 {
     public static class ILogExtensions
     {

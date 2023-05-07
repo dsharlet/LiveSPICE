@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using ComputerAlgebra;
 using Util;
-using ZSpitz.Util;
 
 namespace Circuit
 {

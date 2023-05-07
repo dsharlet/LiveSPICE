@@ -20,16 +20,10 @@ using SchematicControls;
 using Util;
 using static System.Reactive.Linq.Observable;
 using Expression = ComputerAlgebra.Expression;
+using NewtonSimulationPipeline = LiveSPICE.SimulationBuildPipeline<Circuit.NewtonSimulationBuilder, Circuit.NewtonSimulationSettings>;
 
 namespace LiveSPICE
 {
-    public enum SimulationStatus
-    {
-        Ready,
-        Solving,
-        Building,
-        Error
-    }
     /// <summary>
     /// Interaction logic for LiveSimulation.xaml
     /// </summary>
@@ -86,9 +80,24 @@ namespace LiveSPICE
             }
         }
 
-        public SimulationPipeline SimulationPipeline => simulationPipeline;
+        /// <summary>
+        /// Max iterations for numerical algorithms.
+        /// </summary>
+        public int Iterations
+        {
+            get { return simulationPipeline.Settings.Iterations; }
+            set { simulationPipeline.UpdateSimulationSettings(s => s with { Iterations = value }); NotifyChanged(); }
+        }
 
-        private readonly SimulationPipeline simulationPipeline;
+        public int Oversample
+        {
+            get { return simulationPipeline.Settings.Oversample; }
+            set { simulationPipeline.UpdateSimulationSettings(s => s with { Oversample = value }); NotifyChanged(); }
+        }
+
+        public NewtonSimulationPipeline SimulationPipeline => simulationPipeline;
+
+        private readonly NewtonSimulationPipeline simulationPipeline;
 
         public LiveSimulation(SchematicEditor editor, Audio.Device device, Audio.Channel[] inputs, Audio.Channel[] outputs)
         {
@@ -108,7 +117,12 @@ namespace LiveSPICE
                 // Build the circuit from the schematic.
                 circuit = Schematic.Schematic.Build(Log);
 
-                simulationPipeline = new SimulationPipeline(oversample: 1, log: Log);
+                var builder = new NewtonSimulationBuilder(Log);
+
+                // Some defaults
+                var settings = new NewtonSimulationSettings(44100, Oversample: 1, Iterations: 8, Optimize: true);
+
+                simulationPipeline = new(builder: builder, settings: settings, log: Log);
 
                 simulationPipeline.UpdateAnalysis(circuit.Analyze());
 
@@ -278,9 +292,9 @@ namespace LiveSPICE
                 // Create audio output channels.
                 OutputChannels = outputs.Select((o, idx) => new OutputChannel(idx) { Name = o.Name, Signal = speakers }).ToList();
                 foreach (var channel in OutputChannels)
-                    channel.SignalChanged += (o, e) => UpdateOutputs();
+                    channel.SignalChanged += (o, e) => UpdateSimulationOutputs();
 
-                UpdateOutputs();
+                UpdateSimulationOutputs();
 
                 // Begin audio processing.
                 if (inputs.Any() || outputs.Any())
@@ -288,7 +302,7 @@ namespace LiveSPICE
                 else
                     stream = new NullStream(ProcessSamples);
 
-                simulationPipeline.UpdateSampleRate((int)stream.SampleRate);
+                simulationPipeline.UpdateSimulationSettings(settings => settings with { SampleRate = (int)stream.SampleRate });
 
                 Closed += (s, e) => stream.Stop();
 
@@ -325,7 +339,7 @@ namespace LiveSPICE
                 SimulationPipeline.UpdateAnalysis(circuit.Analyze(shuffle));
             });
 
-        private void UpdateOutputs()
+        private void UpdateSimulationOutputs()
         {
             SimulationPipeline.UpdateOutputs(probes.Select(p => p.V).Concat(OutputChannels.Select(o => o.Signal)));
         }
@@ -333,7 +347,6 @@ namespace LiveSPICE
         private SchematicEditor _editor;
         private List<IPotControl> _pots = new List<IPotControl>();
         private double cpuLoad;
-        private SimulationStatus status;
         private IDisposable simulationSubscription;
 
         private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
@@ -382,7 +395,7 @@ namespace LiveSPICE
                 if (sampleRate != (double)Simulation.SampleRate)
                 {
                     Simulation = null;
-                    SimulationPipeline.UpdateSampleRate((int)sampleRate);
+                    simulationPipeline.UpdateSimulationSettings(settings => settings with { SampleRate = (int)stream.SampleRate });
                     return;
                 }
 
@@ -450,7 +463,7 @@ namespace LiveSPICE
                 Scope.Signals.Add(probe.Signal);
                 Scope.SelectedSignal = probe.Signal;
                 probes.Add(probe);
-                UpdateOutputs();
+                UpdateSimulationOutputs();
             }
         }
 
@@ -460,7 +473,7 @@ namespace LiveSPICE
             {
                 Scope.Signals.Remove(probe.Signal);
                 probes.Remove(probe);
-                UpdateOutputs();
+                UpdateSimulationOutputs();
             }
         }
 

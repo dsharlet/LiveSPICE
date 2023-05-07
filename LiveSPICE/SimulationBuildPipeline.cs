@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Circuit;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ComputerAlgebra;
-using LiveSPICE.Utils;
+using LiveSPICE.Common;
 using Util;
 using Util.Cancellation;
 using static System.Reactive.Linq.Observable;
@@ -16,7 +16,9 @@ using static System.Reactive.Linq.Observable;
 
 namespace LiveSPICE
 {
-    public class SimulationPipeline : ObservableObject
+    public class SimulationBuildPipeline<TBuilder, TSettings> : ObservableObject, ISimulationBuildPipeline<TSettings>
+        where TBuilder : ISimulationBuilder<TSettings>
+        where TSettings : SimulationSettings
     {
         private BehaviorSubject<Expression[]> inputs = new(Array.Empty<Expression>());
         private BehaviorSubject<Expression[]> outputs = new(Array.Empty<Expression>());
@@ -25,34 +27,32 @@ namespace LiveSPICE
 
         private BehaviorSubject<int> sampleRate = new BehaviorSubject<int>(0);
 
+        private readonly BehaviorSubject<TSettings> settings;
+        public TSettings Settings
+        {
+            get => settings.Value;
+            private set
+            {
+                settings.OnNext(value);
+                OnPropertyChanged();
+            }
+        }
+
+        private readonly TBuilder builder;
         private readonly ILog log;
 
         public IObservable<Simulation> Simulation { get; private set; }
 
 
-        private BehaviorSubject<int> oversample;
+        private BehaviorSubject<int> oversample = new(1);
 
         /// <summary>
         /// Simulation oversampling rate.
         /// </summary>
-        public int Oversample
-        {
-            get { return oversample.Value; }
-            set { oversample.OnNext(Math.Max(1, value)); OnPropertyChanged(); }
-        }
-
-        private BehaviorSubject<int> iterations = new(8);
-
-        /// <summary>
-        /// Max iterations for numerical algorithms.
-        /// </summary>
-        public int Iterations
-        {
-            get { return iterations.Value; }
-            set { iterations.OnNext(Math.Max(1, value)); OnPropertyChanged(); }
-        }
+        public int Oversample => oversample.Value;
 
         private SimulationStatus status;
+        private object _lock = new();
 
         /// <summary>
         /// Simulation pipeline status.
@@ -63,9 +63,10 @@ namespace LiveSPICE
             private set => SetProperty(ref status, value);
         }
 
-        public SimulationPipeline(int oversample, ILog log)
+        public SimulationBuildPipeline(TBuilder builder, TSettings settings, ILog log)
         {
-            this.oversample = new(oversample);
+            this.settings = new(settings);
+            this.builder = builder;
             this.log = log;
 
             CreatePipeline();
@@ -76,8 +77,8 @@ namespace LiveSPICE
             // Rebuild solution every time analysis, sample rate or oversampling changes.
             var solution = Observable.CombineLatest(
                 analysis,
-                sampleRate,
-                oversample,
+                sampleRate.DistinctUntilChanged(),
+                oversample.DistinctUntilChanged(),
                 (analysis, sampleRate, oversample) => (analysis, sampleRate, oversample))
                     .Do(_ => Status = SimulationStatus.Solving)
                     .Select(ctx =>
@@ -88,19 +89,20 @@ namespace LiveSPICE
                             log.Exception(e);
                             return Empty<TransientSolution>();
                         }))
-                    .Switch();
+                    .Switch()
+                    .Do(_ => Status = SimulationStatus.Ready);
 
             // compile
             Simulation = Observable.CombineLatest(
                inputs,
                outputs,
-               iterations,
+               settings,
                solution,
-               (input, output, iterations, solution) => (input, output, iterations, solution))
-                   .WithLatestFrom(sampleRate, (x, sampleRate) => (x.input, x.output, x.iterations, x.solution, sampleRate))
+               (input, output, settings, solution) => (input, output, settings, solution))
+                   .Where(_ => Status != SimulationStatus.Solving) //Rebuild only if not already solving.
                    .Do(_ => Status = SimulationStatus.Building)
                    .Select(ctx =>
-                           RebuildSimulation(ctx.solution, ctx.input, ctx.output, ctx.sampleRate, ctx.iterations)
+                           RebuildSimulation(ctx.solution, ctx.input, ctx.output, ctx.settings)
                            .Catch((Exception e) =>
                            {
                                Status = SimulationStatus.Error;
@@ -115,8 +117,7 @@ namespace LiveSPICE
             TransientSolution solution,
             Expression[] inputs,
             Expression[] outputs,
-            int sampleRate,
-            int iterations)
+            TSettings settings)
         {
             return FromAsync(token =>
             {
@@ -124,23 +125,12 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        var simulationTimeStep = (Real)1 / sampleRate;
-
-                        var oversample = simulationTimeStep / solution.TimeStep;
-
-                        var builder = new NewtonSimulationBuilder(log);
-
-                        var settings = new NewtonSimulationSettings(sampleRate, (int)oversample, iterations, true);
-
-                        var simulation = builder.Build(
+                        return builder.Build(
                             solution,
                             settings,
                             inputs,
                             outputs,
                             CancellationStrategy.FromToken(token));
-
-                        return simulation;
-
                     }
                     catch (OperationCanceledException)
                     {
@@ -157,7 +147,17 @@ namespace LiveSPICE
 
         public void UpdateAnalysis(Analysis analysis) => this.analysis.OnNext(analysis);
 
-        public void UpdateSampleRate(int sampleRate) => this.sampleRate.OnNext(sampleRate);
+        public void UpdateSimulationSettings(Func<TSettings, TSettings> update)
+        {
+            lock (_lock)
+            {
+                var newSettings = update(Settings);
 
+                oversample.OnNext(newSettings.Oversample);
+                sampleRate.OnNext(newSettings.SampleRate);
+
+                Settings = newSettings;
+            }
+        }
     }
 }
