@@ -62,8 +62,11 @@ namespace LiveSPICE
         {
             ((PathGeometry)path.Data).Clear();
             path.Visibility = Visibility.Hidden;
-            Editor.AddWire(Editor.FindWirePath(mouse));
-            mouse = null;
+            if (mouse != null)
+            {
+                Editor.AddWire(Editor.FindWirePath(mouse));
+                mouse = null;
+            }
 
             if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
                 Target.Tool = new SelectionTool(Editor);
