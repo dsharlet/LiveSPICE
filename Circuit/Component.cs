@@ -91,7 +91,7 @@ namespace Circuit
 
         private object tag = null;
         [Browsable(false)]
-        public object Tag { get { return tag; } set { tag = value; NotifyChanged(nameof(Tag)); } }
+        public virtual object Tag { get { return tag; } set { tag = value; NotifyChanged(nameof(Tag)); } }
 
         /// <summary>
         /// Access the terminals of this component.
