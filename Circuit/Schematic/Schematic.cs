@@ -163,12 +163,17 @@ namespace Circuit
         /// <returns></returns>
         public Node NodeAt(Coord x, Wire Self)
         {
-            IEnumerable<Wire> wires = Wires;
-            if (Self != null)
-                wires = wires.Except(Self);
-
-            Wire w = wires.FirstOrDefault(i => i.IsConnectedTo(x));
-            return w?.Node;
+            foreach (Element e in elements)
+            {
+                if (e is Wire w)
+                {
+                    if (ReferenceEquals(w, Self))
+                        continue;
+                    if (w.IsConnectedTo(x))
+                        return w.Node;
+                }
+            }
+            return null;
         }
         public Node NodeAt(Coord x) { return NodeAt(x, null); }
 
@@ -276,7 +281,8 @@ namespace Circuit
             foreach (Wire i in Wires.Where(j => j.Node != n))
             {
                 i.Node = n;
-                UpdateTerminals(i);
+                foreach (Terminal j in i.Terminals)
+                    Connect(j, n);
             }
 
             // Everything connected to a node in nodes should now be connected to n.
