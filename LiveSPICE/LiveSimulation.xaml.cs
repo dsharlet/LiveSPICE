@@ -320,13 +320,14 @@ namespace LiveSPICE
                             }
                         });
 
-                timer = new DispatcherTimer
+                timer = new DispatcherTimer(DispatcherPriority.DataBind)
                 {
-                    Interval = TimeSpan.FromMilliseconds(100)
+                    Interval = TimeSpan.FromMilliseconds(32),  // 60 Hz
                 };
 
-                timer.Tick += RefreshControls;
+                timer.Tick += (o, e) => RefreshControls();
                 timer.Start();
+
             }
             catch (Exception Ex)
             {
@@ -425,8 +426,11 @@ namespace LiveSPICE
                     i.Signal.AddSamples(clock, i.Buffer);
 
                 var calcuationTime = sw.Elapsed;
-                var availableTime = TimeSpan.FromSeconds(1d / sampleRate * Count);
-                CpuLoad = calcuationTime / availableTime;
+                var windowTime = TimeSpan.FromSeconds(1d / sampleRate * Count);
+
+                var a = Frequency.DecayRate(windowTime.TotalMilliseconds, 300);
+
+                CpuLoad = CpuLoad * a + sw.Elapsed / windowTime * (1 - a);
 
             }
             catch (SimulationDivergedException Ex)
@@ -531,7 +535,7 @@ namespace LiveSPICE
             };
         }
 
-        private void RefreshControls(object sender, EventArgs e)
+        private void RefreshControls()
         {
             NotifyChanged(nameof(CpuLoad));
 

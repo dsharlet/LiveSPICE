@@ -1,4 +1,7 @@
-﻿namespace MockVst
+﻿using System;
+using AudioPlugSharp;
+
+namespace MockVst
 {
     /// <summary>
     /// Dummy VST host class to use for testing

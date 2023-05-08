@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace LiveSPICEVst
 {
-    public abstract class ComponentWrapper<T> : IComponentWrapper
+    public abstract class ComponentWrapper<T> : ObservableObject, IComponentWrapper
     {
         public string Name { get; private set; }
         public bool NeedUpdate { get; set; }
@@ -15,22 +14,6 @@ namespace LiveSPICEVst
         {
             Name = name;
             AddSection(component);
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void SetProperty<TProperty>(ref TProperty field, TProperty newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (!EqualityComparer<TProperty>.Default.Equals(field, newValue))
-            {
-                field = newValue;
-                OnPropertyChanged(propertyName);
-            }
-        }
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void AddSection(T section)

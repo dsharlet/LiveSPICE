@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace LiveSPICE
 {
@@ -22,18 +22,17 @@ namespace LiveSPICE
             }
         }
 
-        private System.Timers.Timer refreshTimer;
+        private DispatcherTimer refreshTimer;
 
         public SignalDisplay()
         {
-            refreshTimer = new System.Timers.Timer()
+            refreshTimer = new DispatcherTimer(DispatcherPriority.DataBind)
             {
-                Interval = 16,  // 60 Hz
-                AutoReset = true,
-                Enabled = true,
+                Interval = TimeSpan.FromMilliseconds(32),  // 60 Hz
+                IsEnabled = true,
             };
-            refreshTimer.Elapsed +=
-                (o, e) => Dispatcher.InvokeAsync(() => InvalidateVisual(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            refreshTimer.Tick +=
+                (o, e) => InvalidateVisual();
             refreshTimer.Start();
         }
 

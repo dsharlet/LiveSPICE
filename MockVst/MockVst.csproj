@@ -11,6 +11,8 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LiveSPICEVst\AudioPlugSharp\AudioPlugSharpWPF\AudioPlugSharpWPF.csproj" />
+    <ProjectReference Include="..\LiveSPICEVst\AudioPlugSharp\AudioPlugSharp\AudioPlugSharp.csproj" />
     <ProjectReference Include="..\LiveSPICEVst\LiveSPICEVst.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>

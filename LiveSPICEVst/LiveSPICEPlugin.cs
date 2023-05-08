@@ -1,15 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Serialization;
 using AudioPlugSharp;
 using AudioPlugSharpWPF;
+using LiveSPICE.UI.Controls;
 
 namespace LiveSPICEVst
 {
@@ -26,6 +24,12 @@ namespace LiveSPICEVst
         AudioIOPort monoOutput;
 
         bool haveSimulationError = false;
+
+        static LiveSPICEPlugin()
+        {
+            // TODO: find a better way to trick the xaml loader to work ¯\_(ツ)_/¯
+            typeof(SimulationStatus).Assembly.GetName();
+        }
 
         public LiveSPICEPlugin()
         {
@@ -121,7 +125,7 @@ namespace LiveSPICEVst
                         programParameters.ControlParameters.Add(new VSTProgramControlParameter { Name = wrapper.Name, Value = multiThrowWrapper.Position });
                         break;
                 }
-             }
+            }
 
             XmlSerializer serializer = new XmlSerializer(typeof(VstProgramParameters));
 
@@ -145,53 +149,51 @@ namespace LiveSPICEVst
 
             try
             {
-                using (MemoryStream memoryStream = new MemoryStream(stateData))
+                using MemoryStream memoryStream = new MemoryStream(stateData);
+                VstProgramParameters programParameters = serializer.Deserialize(memoryStream) as VstProgramParameters;
+
+                if (string.IsNullOrEmpty(programParameters.SchematicPath))
                 {
-                    VstProgramParameters programParameters = serializer.Deserialize(memoryStream) as VstProgramParameters;
+                    haveSimulationError = false;
 
-                    if (string.IsNullOrEmpty(programParameters.SchematicPath))
+                    SimulationProcessor.ClearSchematic();
+                }
+                else
+                {
+                    LoadSchematic(programParameters.SchematicPath);
+                }
+
+                SimulationProcessor.Oversample = programParameters.OverSample;
+                SimulationProcessor.Iterations = programParameters.Iterations;
+
+                var (width, height) = programParameters.Size;
+                ResizeEditor(width, height);
+
+                foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
+                {
+                    var wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
+
+                    if (wrapper != null)
                     {
-                        haveSimulationError = false;
-
-                        SimulationProcessor.ClearSchematic();
-                    }
-                    else
-                    {
-                        LoadSchematic(programParameters.SchematicPath);
-                    }
-
-                    SimulationProcessor.Oversample = programParameters.OverSample;
-                    SimulationProcessor.Iterations = programParameters.Iterations;
-
-                    var (width, height) = programParameters.Size;
-                    ResizeEditor(width, height);
-
-                    foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
-                    {
-                        var wrapper = SimulationProcessor.InteractiveComponents.Where(i => i.Name == controlParameter.Name).SingleOrDefault();
-
-                        if (wrapper != null)
+                        switch (wrapper)
                         {
-                            switch (wrapper)
-                            {
-                                case PotWrapper potWrapper:
-                                    potWrapper.PotValue = controlParameter.Value;
-                                    break;
+                            case PotWrapper potWrapper:
+                                potWrapper.PotValue = controlParameter.Value;
+                                break;
 
-                                case DoubleThrowWrapper doubleThrowWrapper:
-                                    doubleThrowWrapper.Engaged = (controlParameter.Value == 1);
-                                    break;
+                            case DoubleThrowWrapper doubleThrowWrapper:
+                                doubleThrowWrapper.Engaged = (controlParameter.Value == 1);
+                                break;
 
-                                case MultiThrowWrapper multiThrowWrapper:
-                                    multiThrowWrapper.Position = (int)controlParameter.Value;
-                                    break;
-                            }
+                            case MultiThrowWrapper multiThrowWrapper:
+                                multiThrowWrapper.Position = (int)controlParameter.Value;
+                                break;
                         }
                     }
-
-                    if (EditorView != null)
-                        EditorView.UpdateSchematic();
                 }
+
+                if (EditorView != null)
+                    EditorView.UpdateSchematic();
             }
             catch (Exception ex)
             {
