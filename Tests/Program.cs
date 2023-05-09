@@ -46,13 +46,20 @@ namespace Tests
 
         public static void Benchmark(string pattern, int sampleRate, int oversample, int iterations)
         {
-            var log = new ConsoleLog() { Verbosity = MessageType.Warning };
+            var log = new ConsoleLog() { Verbosity = MessageType.Error };
             var tester = new Test();
+            string fmt = "{0,-40}{1,12:G4}{2,12:G4}{3,12:G4}{4,12:G4}";
+            System.Console.WriteLine(fmt, "Circuit", "Analysis (ms)", "Solve (ms)", "Sim (kHz)", "Realtime x");
             foreach (var circuit in GetCircuits(pattern, log))
             {
-                System.Console.WriteLine("Benchmarking {0}...", circuit.Name);
-                tester.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);
-                System.Console.WriteLine("");
+                double[] result = tester.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);
+                double analyzeTime = result[0];
+                double solveTime = result[1];
+                double simRate = result[2];
+                string name = circuit.Name;
+                if (name.Length > 39)
+                    name = name.Substring(0, 39);
+                System.Console.WriteLine(fmt, name, analyzeTime * 1000, solveTime * 1000, simRate / 1000, simRate / sampleRate);
             }
         }
 
