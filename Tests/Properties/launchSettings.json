@@ -1,8 +1,19 @@
 {
   "profiles": {
-    "Tests": {
+    "Benchmarks": {
       "commandName": "Project",
-      "commandLineArgs": "benchmark Examples\\*.schx --sampleRate 44100"
+      "commandLineArgs": "benchmark Examples\\*.schx --sampleRate 44100",
+      "workingDirectory": "$(ProjectDir)"
+    },
+    "Examples": {
+      "commandName": "Project",
+      "commandLineArgs": "test Examples\\*.schx --sampleRate 44100 --plot",
+      "workingDirectory": "$(ProjectDir)"
+    },
+    "Circuits": {
+      "commandName": "Project",
+      "commandLineArgs": "test Circuits\\*.schx --sampleRate 44100 --plot",
+      "workingDirectory": "$(ProjectDir)"
     }
   }
 }
