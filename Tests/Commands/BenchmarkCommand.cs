@@ -80,7 +80,7 @@ namespace LiveSPICE.CLI.Commands
 
                 runner.Benchmark(circuit, t => FunctionGenerator.Harmonics(t, .5, 82d, 2), sampleRate, oversample, iterations);
                 //TODO: fix
-                double[] result = runner.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);
+                double[] result = runner.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations);
                 double analyzeTime = result[0];
                 double solveTime = result[1];
                 double simRate = result[2];

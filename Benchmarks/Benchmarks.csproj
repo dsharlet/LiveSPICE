@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0-windows</TargetFrameworks>
-    <TargetFrameworks>net50</TargetFrameworks>
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Platforms>AnyCPU;ARM64</Platforms>

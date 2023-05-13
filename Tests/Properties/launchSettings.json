@@ -28,11 +28,6 @@
     "Color": {
       "commandName": "Project",
       "commandLineArgs": "color \"lorem [red]ipsum[/red]\""
-    },
-    "Benchmark": {
-      "commandName": "Project",
-      "commandLineArgs": "benchmark \".\\Marshall JCM800 2203 preamp_optimized.schx\" --oversample 1 --iterations 64"
-      "workingDirectory": "$(ProjectDir)"
     }
   }
 }
