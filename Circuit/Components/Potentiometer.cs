@@ -1,6 +1,6 @@
-﻿using ComputerAlgebra;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
+using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -46,7 +46,7 @@ namespace Circuit
         // IPotControl
         double IPotControl.Position { get { return Wipe; } set { Wipe = value; } }
 
-         double IPotControl.Value => VariableResistor.AdjustWipe(Wipe, sweep);
+        double IPotControl.Value => VariableResistor.AdjustWipe(Wipe, sweep);
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep progression of this potentiometer.")]
@@ -75,8 +75,8 @@ namespace Circuit
                 Expression P = Mna.AddParameter(this, Name, () => wipe);
                 var mapped = Mna.AddUnknownEqualTo(Name + "_m", VariableResistor.ApplySweep(P, sweep));
 
-                R2 = Mna.AddUnknownEqualTo(Name + "b", Resistance * mapped);
-                R1 = Mna.AddUnknownEqualTo(Name + "t", Resistance * (1 - mapped));
+                R1 = Mna.AddUnknownEqualTo(Name + "b", Resistance * mapped);
+                R2 = Mna.AddUnknownEqualTo(Name + "t", Resistance * (1 - mapped));
             }
             else
             {
@@ -86,8 +86,8 @@ namespace Circuit
                 R2 = Resistance * (1 - P);
             }
 
-            Resistor.Analyze(Mna, Anode, Wiper, R1);
-            Resistor.Analyze(Mna, Wiper, Cathode, R2);
+            Resistor.Analyze(Mna, Anode, Wiper, R2);
+            Resistor.Analyze(Mna, Wiper, Cathode, R1);
         }
 
         protected internal override sealed void LayoutSymbol(SymbolLayout Sym)
@@ -105,7 +105,7 @@ namespace Circuit
 
             Resistor.Draw(Sym, -10, -16, 16, 7);
 
-            Sym.DrawText(() => Sweep.GetCode()+Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Sweep.GetCode() + Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => Wipe.ToString("G3"), new Coord(-4, 4), Alignment.Near, Alignment.Near);
             Sym.DrawText(() => Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
         }
