@@ -498,13 +498,16 @@ namespace LiveSPICE
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            //if (Simulation != null)
-            //{
-            //    var elements = Schematic.Schematic.Elements;
-            //    var symbols = elements.OfType<Symbol>();
-            //    var probes = symbols.Where(s => s.Component is Probe).ToArray();
-            //    Schematic.Schematic.Elements.RemoveRange(probes);
-            //}
+            if (simulation != null)
+            {
+                var elements = Schematic.Schematic.Elements;
+                var symbols = elements.OfType<Symbol>();
+                var probes = symbols.Where(s => s.Component is Probe);
+                var other = elements.Except(symbols);
+                _editor.Schematic.Elements.Clear();
+                _editor.Schematic.Elements.AddRange(symbols.OrderBy(el => Schematic.Schematic.Circuit.Components.IndexOf(el.Component)).Concat(other).Except(probes));
+                _editor.Edits.Dirty = true;
+            }
         }
 
         private void ViewScope_Click(object sender, RoutedEventArgs e) { ToggleVisible(scope); }

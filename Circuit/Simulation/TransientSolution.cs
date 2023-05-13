@@ -148,7 +148,7 @@ namespace Circuit
             // Transient analysis of the system.
             Log.WriteLine(MessageType.Info, "Performing transient analysis...");
 
-            var pivotConditions = Array.Empty<Arrow>();  // initial.Select(c => Arrow.New(c.Left.Substitute(0, t), c.Right)).ToArray(); // Array.Empty<Arrow>();
+            Arrow[] pivotConditions = null;// Array.Empty<Arrow>(); //initial.Select(c => Arrow.New(c.Left.Substitute(0, t), c.Right)).ToArray(); // Array.Empty<Arrow>();
             SystemOfEquations system = new SystemOfEquations(equations.Substitute(SinglePoleSwitch.ExcludeOpen).OfType<Equal>(), dy_dt.Concat(unknowns));
 
             // Solve the diff eq for dy/dt and integrate the results.
