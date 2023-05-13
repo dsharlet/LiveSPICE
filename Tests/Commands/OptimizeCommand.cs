@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
 using System.Linq;
+using Circuit;
 using LiveSPICE.Cli;
 using LiveSPICE.Cli.Utils;
 using LiveSPICE.CLI.Utils;
+using Tests;
 using Tests.Genetic;
 using Util;
 
@@ -21,6 +23,9 @@ namespace LiveSPICE.CLI.Commands
             var populationSize = new Option<int>("--populationSize", () => 6, "Population size");
             AddOption(populationSize);
 
+            var dynamic = new Option<bool>("--dynamic", () => true, "Enable dynamic components.");
+            AddOption(dynamic);
+
             AddOption(CommonOptions.SampleRate);
             AddOption(CommonOptions.Oversample);
             AddOption(CommonOptions.Iterations);
@@ -32,6 +37,7 @@ namespace LiveSPICE.CLI.Commands
                 CommonOptions.SampleRate,
                 CommonOptions.Oversample,
                 CommonOptions.Iterations,
+                dynamic,
                 Bind.FromServiceProvider<ILog>(),
                 Bind.FromServiceProvider<SchematicReader>(),
                 Bind.FromServiceProvider<BenchmarkRunner>());
@@ -42,6 +48,7 @@ namespace LiveSPICE.CLI.Commands
                                         int sampleRate,
                                         int oversample,
                                         int iterations,
+                                        bool dynamic,
                                         ILog log,
                                         SchematicReader reader,
                                         BenchmarkRunner runner)
@@ -49,6 +56,14 @@ namespace LiveSPICE.CLI.Commands
 
             var schematic = reader.GetSchematic(filename);
             var circuit = schematic.Build();
+
+            if (!dynamic)
+            {
+                foreach (var pot in circuit.Components.OfType<Potentiometer>())
+                {
+                    pot.Dynamic = false;
+                }
+            }
 
             circuit.Name = Path.GetFileNameWithoutExtension(filename);
 
@@ -70,7 +85,7 @@ namespace LiveSPICE.CLI.Commands
                 var evaluated = population.Select(permutation => (permutation, fitness: runner.Benchmark(circuit, t => FunctionGenerator.Harmonics(t, .5, 82, 2), sampleRate, oversample, iterations, permutation: permutation, optimize: true)));
 
                 selection = evaluated.OrderByDescending(r => r.fitness).Take(2).ToArray();
-                Console.WriteLine($"[green]Best: {selection[0].fitness}x[/green]");
+                log.Info($"[green]Best: {selection[0].fitness}x[/green]");
 
                 if (Console.KeyAvailable)
                 {
