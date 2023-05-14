@@ -1,6 +1,6 @@
-﻿using ComputerAlgebra;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
+using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -42,9 +42,11 @@ namespace Circuit
 
         protected double wipe = 0.5;
         [Serialize, Description("Position of the wiper, between 0 and 1.")]
-        public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); NotifyChanged(nameof(IPotControl.PotValue)); } }
+        public double Wipe { get => wipe; set { wipe = value; NotifyChanged(nameof(Wipe)); NotifyChanged(nameof(IPotControl.Position)); } }
         // IPotControl
-        double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
+        double IPotControl.Position { get { return Wipe; } set { Wipe = value; } }
+
+        double IPotControl.Value => VariableResistor.AdjustWipe(Wipe, sweep);
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep progression of this potentiometer.")]
@@ -53,6 +55,9 @@ namespace Circuit
         private string group = "";
         [Serialize, Description("Potentiometer group this potentiometer is a section of.")]
         public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
+
+        [Serialize]
+        public bool Dynamic { get; set; }
 
         public void ConnectTo(Node A, Node C, Node W)
         {
@@ -63,13 +68,26 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = VariableResistor.AdjustWipe(wipe, sweep);
+            Expression R1, R2;
 
-            Expression R1 = Resistance * P;
-            Expression R2 = Resistance * (1 - P);
+            if (Dynamic)
+            {
+                Expression P = Mna.AddParameter(this, Name, () => wipe);
+                var mapped = Mna.AddUnknownEqualTo(Name + "_m", VariableResistor.ApplySweep(P, sweep));
 
-            Resistor.Analyze(Mna, Cathode, Wiper, R1);
+                R1 = Mna.AddUnknownEqualTo(Name + "b", Resistance * mapped);
+                R2 = Mna.AddUnknownEqualTo(Name + "t", Resistance * (1 - mapped));
+            }
+            else
+            {
+                Expression P = VariableResistor.AdjustWipe(wipe, sweep);
+
+                R1 = Resistance * P;
+                R2 = Resistance * (1 - P);
+            }
+
             Resistor.Analyze(Mna, Anode, Wiper, R2);
+            Resistor.Analyze(Mna, Wiper, Cathode, R1);
         }
 
         protected internal override sealed void LayoutSymbol(SymbolLayout Sym)
@@ -87,7 +105,7 @@ namespace Circuit
 
             Resistor.Draw(Sym, -10, -16, 16, 7);
 
-            Sym.DrawText(() => Sweep.GetCode()+Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Sweep.GetCode() + Resistance.ToString(), new Coord(-17, 0), Alignment.Far, Alignment.Center);
             Sym.DrawText(() => Wipe.ToString("G3"), new Coord(-4, 4), Alignment.Near, Alignment.Near);
             Sym.DrawText(() => Name, new Coord(-4, -4), Alignment.Near, Alignment.Far);
         }

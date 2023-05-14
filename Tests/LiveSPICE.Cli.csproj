@@ -2,13 +2,15 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0-windows</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <AssemblyName>CircuitTests</AssemblyName>
+    <AssemblyName>LiveSPICE</AssemblyName>
     <Product>CircuitTests</Product>
     <Copyright>Copyright ©  2020</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Circuit\Circuit.csproj" />
@@ -18,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
 </Project>

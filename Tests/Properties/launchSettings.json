@@ -2,7 +2,7 @@
   "profiles": {
     "Benchmarks": {
       "commandName": "Project",
-      "commandLineArgs": "benchmark Examples\\*.schx --sampleRate 44100",
+      "commandLineArgs": "benchmark Examples\\*.schx --sampleRate 44100 --dynamic false --oversample 1",
       "workingDirectory": "$(ProjectDir)"
     },
     "Examples": {
@@ -12,8 +12,22 @@
     },
     "Circuits": {
       "commandName": "Project",
-      "commandLineArgs": "test Circuits\\*.schx --sampleRate 44100 --plot",
-      "workingDirectory": "$(ProjectDir)"
+      "commandLineArgs": "test --plot \".\\Fender Deluxe AB763_optimized.schx\" --oversample 1 --plot --parameters Volume=0,9 Treble=0,7 Bass=0,4 --amplitude 30m --preRunTime 1"
+    },
+    "Optimize": {
+      "commandName": "Project",
+      //"commandLineArgs": "--benchmark \".\\diode.schx\" --optimize",
+      //"commandLineArgs": "--benchmark \".\\Fender Deluxe AB763.schx\" --optimize"
+      "commandLineArgs": "optimize \".\\Fender Deluxe AB763_optimized.schx\" --oversample 1 --iterations 64"
+      //"commandLineArgs": "--benchmark \".\\Orange Rockerverb 50 Preamp_optimized_optimized.schx\" --optimize"
+      //"commandLineArgs": "--benchmark \".\\Marshall JCM2000 DSL preamp.schx\" --optimize"
+      //"commandLineArgs": "--benchmark \".\\Marshall JCM800 2203 preamp_optimized.schx\" --optimize"
+      //"commandLineArgs": "--benchmark \".\\MKIVPre.schx\" --optimize"
+      //"commandLineArgs": "--benchmark \".\\Marshall JCM800 2203 preamp_optimized.schx\" --optimize"
+    },
+    "Color": {
+      "commandName": "Project",
+      "commandLineArgs": "color \"lorem [red]ipsum[/red]\""
     }
   }
 }

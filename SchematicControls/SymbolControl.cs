@@ -111,7 +111,8 @@ namespace SchematicControls
         protected void RefreshLayout()
         {
             layout = Component.LayoutSymbol();
-            InvalidateVisual();
+            // temporary change, nedds to be fixed in AudioPlugSharp
+            Dispatcher.BeginInvoke(new Action(() => InvalidateVisual()));
         }
 
         protected DrawingContext dc;

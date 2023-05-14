@@ -61,6 +61,7 @@ namespace SchematicControls
         protected ElementControl(Circuit.Element E)
         {
             element = E;
+            // TODO: Do not use tags, as this causes weird bugs when one schematic is displayed in multiple places. Use a Dictionary<Element, Control> in SchematicControl.
             element.Tag = this;
 
             Background = Brushes.Transparent;

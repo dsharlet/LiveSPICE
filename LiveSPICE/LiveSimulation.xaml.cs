@@ -1,21 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
+using AgileObjects.ReadableExpressions.Extensions;
 using AvalonDock.Layout;
 using Circuit;
+using LiveSPICE.Common;
 using SchematicControls;
 using Util;
+using static System.Reactive.Linq.Observable;
+using Expression = ComputerAlgebra.Expression;
 
 namespace LiveSPICE
 {
@@ -27,25 +32,6 @@ namespace LiveSPICE
         public Log Log { get { return (Log)log.Content; } }
         public Scope Scope { get { return (Scope)scope.Content; } }
 
-        protected int oversample = 8;
-        /// <summary>
-        /// Simulation oversampling rate.
-        /// </summary>
-        public int Oversample
-        {
-            get { return oversample; }
-            set { oversample = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Oversample)); }
-        }
-
-        protected int iterations = 8;
-        /// <summary>
-        /// Max iterations for numerical algorithms.
-        /// </summary>
-        public int Iterations
-        {
-            get { return iterations; }
-            set { iterations = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Iterations)); }
-        }
 
         private double inputGain = 1.0;
         /// <summary>
@@ -62,25 +48,58 @@ namespace LiveSPICE
         private SimulationSchematic Schematic { get { return (SimulationSchematic)schematic.Schematic; } set { schematic.Schematic = value; } }
 
         protected Circuit.Circuit circuit = null;
-        protected Simulation simulation = null;
+        private Simulation simulation = null;
 
         private List<Probe> probes = new List<Probe>();
 
+        private Probe[] simulatedProbes;
+
+        protected Dictionary<Expression, double> arguments = new Dictionary<Expression, double>();
+
         private object sync = new object();
 
-        protected Audio.Stream stream = null;
+        private Audio.Stream stream = null;
 
-        protected ObservableCollection<InputChannel> _inputChannels = new ObservableCollection<InputChannel>();
-        protected ObservableCollection<OutputChannel> _outputChannels = new ObservableCollection<OutputChannel>();
-        public ObservableCollection<InputChannel> InputChannels { get { return _inputChannels; } }
-        public ObservableCollection<OutputChannel> OutputChannels { get { return _outputChannels; } }
+        public IReadOnlyCollection<InputChannel> InputChannels { get; }
+        public IReadOnlyCollection<OutputChannel> OutputChannels { get; }
 
-        private Dictionary<ComputerAlgebra.Expression, Channel> inputs = new Dictionary<ComputerAlgebra.Expression, Channel>();
+        private Dictionary<Expression, Channel> inputs = new Dictionary<Expression, Channel>();
 
         // A timer for continuously refreshing controls.
-        protected System.Timers.Timer timer;
+        protected DispatcherTimer timer;
 
-        public LiveSimulation(Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
+
+        public double CpuLoad { get => simulation != null ? cpuLoad : 0d; set => cpuLoad = value; }
+        public Simulation Simulation
+        {
+            get => simulation;
+            set
+            {
+                simulation = value;
+                NotifyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Max iterations for numerical algorithms.
+        /// </summary>
+        public int Iterations
+        {
+            get { return simulationPipeline.Settings.Iterations; }
+            set { simulationPipeline.UpdateSimulationSettings(s => s with { Iterations = value }); NotifyChanged(); }
+        }
+
+        public int Oversample
+        {
+            get { return simulationPipeline.Settings.Oversample; }
+            set { simulationPipeline.UpdateSimulationSettings(s => s with { Oversample = value }); NotifyChanged(); }
+        }
+
+        public ISimulationBuildPipeline<NewtonSimulationSettings> SimulationPipeline => simulationPipeline;
+
+        private readonly ISimulationBuildPipeline<NewtonSimulationSettings> simulationPipeline;
+
+        public LiveSimulation(SchematicEditor editor, Audio.Device device, Audio.Channel[] inputs, Audio.Channel[] outputs)
         {
             try
             {
@@ -88,7 +107,8 @@ namespace LiveSPICE
                 DataContext = this;
 
                 // Make a clone of the schematic so we can mess with it.
-                var clone = Circuit.Schematic.Deserialize(Simulate.Serialize(), Log);
+                _editor = editor;
+                var clone = Circuit.Schematic.Deserialize(editor.Schematic.Serialize(), Log); // slow
                 clone.Elements.ItemAdded += OnElementAdded;
                 clone.Elements.ItemRemoved += OnElementRemoved;
                 Schematic = new SimulationSchematic(clone);
@@ -97,14 +117,22 @@ namespace LiveSPICE
                 // Build the circuit from the schematic.
                 circuit = Schematic.Schematic.Build(Log);
 
+                var builder = new NewtonSimulationBuilder(Log);
+
+                // Some defaults
+                var settings = new NewtonSimulationSettings(44100, Oversample: 1, Iterations: 8, Optimize: true);
+
+                simulationPipeline = SimulationBuildPipeline.Create(builder: builder, settings: settings, log: Log);
+
+                simulationPipeline.UpdateAnalysis(circuit.Analyze());
+
                 // Create the input and output controls.                
                 IEnumerable<Circuit.Component> components = circuit.Components;
 
                 // Create audio input channels.
-                for (int i = 0; i < Inputs.Length; ++i)
-                    InputChannels.Add(new InputChannel(i) { Name = Inputs[i].Name });
+                InputChannels = inputs.Select((ch, idx) => new InputChannel(idx) { Name = ch.Name }).ToArray();
 
-                ComputerAlgebra.Expression speakers = 0;
+                Expression speakers = 0;
 
                 foreach (Circuit.Component i in components)
                 {
@@ -119,6 +147,7 @@ namespace LiveSPICE
                     // Create potentiometers.
                     if (i is IPotControl potentiometer)
                     {
+                        _pots.Add(potentiometer);
                         var potControl = new PotControl()
                         {
                             Width = 80,
@@ -134,7 +163,7 @@ namespace LiveSPICE
                         var binding = new Binding
                         {
                             Source = potentiometer,
-                            Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.PotValue))),
+                            Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.Position))),
                             Mode = BindingMode.TwoWay,
                             NotifyOnSourceUpdated = true
                         };
@@ -143,14 +172,20 @@ namespace LiveSPICE
 
                         potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
                         {
+                            var update = !potentiometer.Dynamic;
+
                             if (!string.IsNullOrEmpty(potentiometer.Group))
                             {
                                 foreach (var p in components.OfType<IPotControl>().Where(p => p != potentiometer && p.Group == potentiometer.Group))
                                 {
-                                    p.PotValue = (o as PotControl).Value;
+                                    p.Position = (o as PotControl).Value;
+                                    update |= !p.Dynamic;
                                 }
                             }
-                            UpdateSimulation(false);
+                            if (update)
+                            {
+                                RebuildSolution();
+                            }
                         }));
 
                         potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
@@ -180,7 +215,7 @@ namespace LiveSPICE
                                 foreach (var j in components.OfType<IButtonControl>().Where(x => x != b && x.Group == b.Group))
                                     j.Click();
                             }
-                            UpdateSimulation(true);
+                            RebuildSolution();
                         };
 
                         button.MouseEnter += (o, e) => button.Opacity = 0.95;
@@ -217,28 +252,28 @@ namespace LiveSPICE
                         Canvas.SetLeft(combo, Canvas.GetLeft(tag) - combo.Width / 2 + tag.Width / 2);
                         Canvas.SetTop(combo, Canvas.GetTop(tag) - combo.Height / 2 + tag.Height / 2);
 
-                        ComputerAlgebra.Expression In = input.In;
-                        inputs[In] = new SignalChannel(0);
+                        Expression In = input.In;
+                        this.inputs[In] = new SignalChannel(0);
 
                         combo.SelectionChanged += (o, e) =>
                         {
                             if (combo.SelectedItem != null)
                             {
                                 ComboBoxItem it = (ComboBoxItem)combo.SelectedItem;
-                                inputs[In] = new InputChannel(((InputChannel)it.Tag).Index);
+                                this.inputs[In] = new InputChannel(((InputChannel)it.Tag).Index);
                             }
                         };
 
-                        combo.AddHandler(TextBox.KeyDownEvent, new KeyEventHandler((o, e) =>
+                        combo.AddHandler(KeyDownEvent, new KeyEventHandler((o, e) =>
                         {
                             try
                             {
-                                inputs[In] = new SignalChannel(ComputerAlgebra.Expression.Parse(combo.Text));
+                                this.inputs[In] = new SignalChannel(Expression.Parse(combo.Text));
                             }
                             catch (Exception)
                             {
                                 // If there is an error in the expression, zero out the signal.
-                                inputs[In] = new SignalChannel(0);
+                                this.inputs[In] = new SignalChannel(0);
                             }
                         }));
 
@@ -252,33 +287,47 @@ namespace LiveSPICE
                     }
                 }
 
-                // Create audio output channels.
-                for (int i = 0; i < Outputs.Length; ++i)
-                {
-                    OutputChannel c = new OutputChannel(i) { Name = Outputs[i].Name, Signal = speakers };
-                    c.PropertyChanged += (o, e) => { if (e.PropertyName == "Signal") RebuildSolution(); };
-                    OutputChannels.Add(c);
-                }
+                simulationPipeline.UpdateInputs(this.inputs.Keys);
 
+                // Create audio output channels.
+                OutputChannels = outputs.Select((o, idx) => new OutputChannel(idx) { Name = o.Name, Signal = speakers }).ToList();
+                foreach (var channel in OutputChannels)
+                    channel.SignalChanged += (o, e) => UpdateSimulationOutputs();
+
+                UpdateSimulationOutputs();
 
                 // Begin audio processing.
-                if (Inputs.Any() || Outputs.Any())
-                    stream = Device.Open(ProcessSamples, Inputs, Outputs);
+                if (inputs.Any() || outputs.Any())
+                    stream = device.Open(ProcessSamples, inputs, outputs);
                 else
                     stream = new NullStream(ProcessSamples);
 
-                ContentRendered += (o, e) => RebuildSolution();
+                simulationPipeline.UpdateSimulationSettings(settings => settings with { SampleRate = (int)stream.SampleRate });
 
                 Closed += (s, e) => stream.Stop();
 
-                timer = new System.Timers.Timer()
+                simulationSubscription = simulationPipeline.Simulation
+                    .SubscribeOn(Scheduler.Default)
+                    .Subscribe(
+                        simulation =>
+                        {
+                            var simProbes = probes.Where(p => simulation.OutputExpressions.Contains(p.V)).ToArray(); // maybe not needed?
+
+                            lock (sync)
+                            {
+                                Simulation = simulation;
+                                simulatedProbes = simProbes;
+                            }
+                        });
+
+                timer = new DispatcherTimer(DispatcherPriority.DataBind)
                 {
-                    Interval = 100,
-                    AutoReset = true,
-                    Enabled = true,
+                    Interval = TimeSpan.FromMilliseconds(32),  // 60 Hz
                 };
-                timer.Elapsed += timer_Elapsed;
+
+                timer.Tick += (o, e) => RefreshControls();
                 timer.Start();
+
             }
             catch (Exception Ex)
             {
@@ -286,69 +335,20 @@ namespace LiveSPICE
             }
         }
 
-        private void RebuildSolution()
-        {
-            lock (sync)
+        private Task RebuildSolution(bool shuffle = false) => Task.Run(() =>
             {
-                simulation = null;
-                ProgressDialog.RunAsync(this, "Building circuit solution...", () =>
-                {
-                    try
-                    {
-                        ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                        TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
+                SimulationPipeline.UpdateAnalysis(circuit.Analyze(shuffle));
+            });
 
-                        simulation = new Simulation(solution)
-                        {
-                            Log = Log,
-                            Input = inputs.Keys.ToArray(),
-                            Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                            Oversample = Oversample,
-                            Iterations = Iterations,
-                        };
-                    }
-                    catch (Exception Ex)
-                    {
-                        Log.WriteException(Ex);
-                    }
-                });
-            }
+        private void UpdateSimulationOutputs()
+        {
+            SimulationPipeline.UpdateOutputs(probes.Select(p => p.V).Concat(OutputChannels.Select(o => o.Signal)));
         }
 
-        private int clock = -1;
-        private int update = 0;
-        private TaskScheduler scheduler = new RedundantTaskScheduler(1);
-        private void UpdateSimulation(bool Rebuild)
-        {
-            int id = Interlocked.Increment(ref update);
-            new Task(() =>
-            {
-                ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
-                lock (sync)
-                {
-                    if (id > clock)
-                    {
-                        if (Rebuild)
-                        {
-                            simulation = new Simulation(s)
-                            {
-                                Log = Log,
-                                Input = inputs.Keys.ToArray(),
-                                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                                Oversample = Oversample,
-                                Iterations = Iterations,
-                            };
-                        }
-                        else
-                        {
-                            simulation.Solution = s;
-                            clock = id;
-                        }
-                    }
-                }
-            }).Start(scheduler);
-        }
+        private SchematicEditor _editor;
+        private List<IPotControl> _pots = new List<IPotControl>();
+        private double cpuLoad;
+        private IDisposable simulationSubscription;
 
         private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
@@ -358,7 +358,7 @@ namespace LiveSPICE
             // Apply input gain.
             for (int i = 0; i < In.Length; ++i)
             {
-                Channel ch = InputChannels[i];
+                Channel ch = InputChannels.ElementAt(i);
                 double peak = In[i].Amplify(inputGain);
                 ch.SampleSignalLevel(peak, timespan);
             }
@@ -366,7 +366,7 @@ namespace LiveSPICE
             // Run the simulation.
             lock (sync)
             {
-                if (simulation != null)
+                if (Simulation != null)
                     RunSimulation(Count, In, Out, Rate);
                 else
                     foreach (Audio.SampleBuffer i in Out)
@@ -376,7 +376,7 @@ namespace LiveSPICE
             // Apply output gain.
             for (int i = 0; i < Out.Length; ++i)
             {
-                Channel ch = OutputChannels[i];
+                Channel ch = OutputChannels.ElementAt(i);
                 double peak = Out[i].Amplify(outputGain);
                 ch.SampleSignalLevel(peak, timespan);
             }
@@ -388,17 +388,19 @@ namespace LiveSPICE
         // These lists only ever grow, but they should never contain more than 10s of items.
         readonly List<double[]> inputBuffers = new List<double[]>();
         readonly List<double[]> outputBuffers = new List<double[]>();
-        private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
+        private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double sampleRate)
         {
             try
             {
                 // If the sample rate changed, we need to kill the simulation and let the foreground rebuild it.
-                if (Rate != (double)simulation.SampleRate)
+                if (sampleRate != (double)Simulation.SampleRate)
                 {
-                    simulation = null;
-                    Dispatcher.InvokeAsync(() => RebuildSolution());
+                    Simulation = null;
+                    simulationPipeline.UpdateSimulationSettings(settings => settings with { SampleRate = (int)stream.SampleRate });
                     return;
                 }
+
+                var sw = Stopwatch.StartNew();
 
                 inputBuffers.Clear();
                 foreach (Channel i in inputs.Values)
@@ -406,30 +408,40 @@ namespace LiveSPICE
                     if (i is InputChannel input)
                         inputBuffers.Add(In[input.Index].Samples);
                     else if (i is SignalChannel channel)
-                        inputBuffers.Add(channel.Buffer(Count, simulation.Time, simulation.TimeStep));
+                        inputBuffers.Add(channel.Buffer(Count, Simulation.Time, Simulation.TimeStep));
                 }
 
                 outputBuffers.Clear();
-                foreach (Probe i in probes)
+                foreach (Probe i in simulatedProbes)
                     outputBuffers.Add(i.AllocBuffer(Count));
                 for (int i = 0; i < Out.Length; ++i)
                     outputBuffers.Add(Out[i].Samples);
 
                 // Process the samples!
-                simulation.Run(Count, inputBuffers, outputBuffers);
+                Simulation?.Run(Count, inputBuffers, outputBuffers);
 
                 // Show the samples on the oscilloscope.
                 long clock = Scope.Signals.Clock;
-                foreach (Probe i in probes)
+                foreach (Probe i in simulatedProbes)
                     i.Signal.AddSamples(clock, i.Buffer);
+
+                var calcuationTime = sw.Elapsed;
+                var windowTime = TimeSpan.FromSeconds(1d / sampleRate * Count);
+
+                var a = Frequency.DecayRate(windowTime.TotalMilliseconds, 300);
+
+                CpuLoad = CpuLoad * a + sw.Elapsed / windowTime * (1 - a);
+
             }
-            catch (SimulationDiverged Ex)
+            catch (SimulationDivergedException Ex)
             {
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 Log.WriteLine(MessageType.Error, "Error: " + Ex.Message);
-                simulation = null;
-                if ((double)Ex.At > Rate)
-                    Dispatcher.InvokeAsync(() => RebuildSolution());
+                Simulation = null;
+                //Status = SimulationStatus.Error;
+                CpuLoad = 0d;
+                if ((double)Ex.At > sampleRate)
+                    RebuildSolution();
                 foreach (Audio.SampleBuffer i in Out)
                     i.Clear();
             }
@@ -437,7 +449,7 @@ namespace LiveSPICE
             {
                 // If there was a more serious error, kill the simulation so the user can fix it.
                 Log.WriteException(Ex);
-                simulation = null;
+                Simulation = null;
                 foreach (Audio.SampleBuffer i in Out)
                     i.Clear();
             }
@@ -445,9 +457,8 @@ namespace LiveSPICE
 
         private void OnElementAdded(object sender, ElementEventArgs e)
         {
-            if (e.Element is Symbol && ((Symbol)e.Element).Component is Probe)
+            if (e.Element is Symbol s && s.Component is Probe probe)
             {
-                Probe probe = (Probe)((Symbol)e.Element).Component;
                 probe.Signal = new Signal()
                 {
                     Name = probe.V.ToString(),
@@ -455,27 +466,18 @@ namespace LiveSPICE
                 };
                 Scope.Signals.Add(probe.Signal);
                 Scope.SelectedSignal = probe.Signal;
-                lock (sync)
-                {
-                    probes.Add(probe);
-                    if (simulation != null)
-                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray();
-                }
+                probes.Add(probe);
+                UpdateSimulationOutputs();
             }
         }
 
         private void OnElementRemoved(object sender, ElementEventArgs e)
         {
-            if (e.Element is Symbol && ((Symbol)e.Element).Component is Probe)
+            if (e.Element is Symbol s && s.Component is Probe probe)
             {
-                Probe probe = (Probe)((Symbol)e.Element).Component;
                 Scope.Signals.Remove(probe.Signal);
-                lock (sync)
-                {
-                    probes.Remove(probe);
-                    if (simulation != null)
-                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray();
-                }
+                probes.Remove(probe);
+                UpdateSimulationOutputs();
             }
         }
 
@@ -486,9 +488,27 @@ namespace LiveSPICE
                 Scope.SelectedSignal = ((Probe)selected.First().Component).Signal;
         }
 
-        private void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) { RebuildSolution(); }
+        private async void Simulate_Executed(object sender, ExecutedRoutedEventArgs e) => await RebuildSolution(true);
 
-        private void Exit_Executed(object sender, ExecutedRoutedEventArgs e) { Close(); }
+        private void Exit_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Close();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            if (simulation != null)
+            {
+                var elements = Schematic.Schematic.Elements;
+                var symbols = elements.OfType<Symbol>();
+                var probes = symbols.Where(s => s.Component is Probe);
+                var other = elements.Except(symbols);
+                _editor.Schematic.Elements.Clear();
+                _editor.Schematic.Elements.AddRange(symbols.OrderBy(el => Schematic.Schematic.Circuit.Components.IndexOf(el.Component)).Concat(other).Except(probes));
+                _editor.Edits.Dirty = true;
+            }
+        }
 
         private void ViewScope_Click(object sender, RoutedEventArgs e) { ToggleVisible(scope); }
         private void ViewAudio_Click(object sender, RoutedEventArgs e) { ToggleVisible(audio); }
@@ -507,7 +527,7 @@ namespace LiveSPICE
                 {
                     if (x.Any())
                     {
-                        ComputerAlgebra.Expression init = (Keyboard.Modifiers & ModifierKeys.Control) != 0 ? ch.Signal : 0;
+                        Expression init = (Keyboard.Modifiers & ModifierKeys.Control) != 0 ? ch.Signal : 0;
                         ch.Signal = x.OfType<Symbol>()
                             .Select(i => i.Component)
                             .OfType<TwoTerminal>()
@@ -518,16 +538,14 @@ namespace LiveSPICE
             };
         }
 
-        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void RefreshControls()
         {
-            Dispatcher.InvokeAsync(() =>
-            {
-                // TODO: Figure out how to calculate the processing speed to set statusSampleRate.Text.
-                foreach (Channel i in InputChannels)
-                    i.SignalStatus = MapSignalToBrush(i.SignalLevel);
-                foreach (Channel i in OutputChannels)
-                    i.SignalStatus = MapSignalToBrush(i.SignalLevel);
-            });
+            NotifyChanged(nameof(CpuLoad));
+
+            foreach (Channel i in InputChannels)
+                i.SignalStatus = MapSignalToBrush(i.SignalLevel);
+            foreach (Channel i in OutputChannels)
+                i.SignalStatus = MapSignalToBrush(i.SignalLevel);
         }
 
         private static void ToggleVisible(LayoutAnchorable Anchorable)
@@ -540,29 +558,39 @@ namespace LiveSPICE
 
         private static Pen MapToSignalPen(EdgeType Color)
         {
-            switch (Color)
+            var color = Color switch
             {
                 // These two need to be brighter than the normal colors.
-                case Circuit.EdgeType.Red: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 80, 80)), 1.0);
-                case Circuit.EdgeType.Blue: return new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 180, 255)), 1.0);
-                default: return ElementControl.MapToPen(Color);
-            }
+                EdgeType.Red => new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 80, 80)), 1.0).GetAsFrozen(),
+                EdgeType.Blue => new Pen(new SolidColorBrush(System.Windows.Media.Color.FromRgb(20, 180, 255)), 1.0).GetAsFrozen(),
+                _ => ElementControl.MapToPen(Color)
+            };
+
+            return (Pen)color.GetCurrentValueAsFrozen();
         }
 
-        private static Brush MapSignalToBrush(double Peak)
+        private static Brush MapSignalToBrush(double Peak) => Peak switch
         {
-            if (Peak < 1e-3) return Brushes.Transparent;
-            if (Peak < 0.5) return Brushes.Green;
-            if (Peak < 0.75) return Brushes.Yellow;
-            if (Peak < 0.95) return Brushes.Orange;
-            return Brushes.Red;
-        }
+            < 1e-3 => Brushes.LightGray,
+            < 0.5 => Brushes.YellowGreen,
+            < 0.75 => Brushes.Yellow,
+            < 0.95 => Brushes.Orange,
+            _ => Brushes.Red
+        };
+
 
         // INotifyPropertyChanged.
-        private void NotifyChanged(string p)
+        private void NotifyChanged([CallerMemberName] string p = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
         }
+
+        public void Dispose()
+        {
+            simulationSubscription.Dispose();
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
+
     }
 }

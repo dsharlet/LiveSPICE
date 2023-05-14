@@ -10,6 +10,8 @@ namespace LiveSPICEVst
         public string SchematicPath { get; set; }
         public int OverSample { get; set; }
         public int Iterations { get; set; }
+
+        public EditorSize Size { get; set; }
         public List<VSTProgramControlParameter> ControlParameters { get; set; }
 
         public VstProgramParameters()
@@ -28,5 +30,13 @@ namespace LiveSPICEVst
     {
         public string Name { get; set; }
         public double Value { get; set; }
+    }
+
+    public record EditorSize(uint Width, uint Height)
+    {
+        public EditorSize() : this(0, 0)
+        {
+
+        }
     }
 }

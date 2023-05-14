@@ -16,19 +16,22 @@ namespace LiveSPICEVst
         {
             get
             {
-                return Sections[0].PotValue;
+                return Sections[0].Position;
             }
 
             set
             {
-                if (Sections[0].PotValue != value)
+                if (Sections[0].Position != value)
                 {
+                    bool needUpdate = false;
                     foreach (var section in Sections)
                     {
-                        section.PotValue = value;
+                        section.Position = value;
+                        needUpdate |= !section.Dynamic;
                     }
 
-                    NeedUpdate = true;
+                    NeedUpdate = needUpdate;
+                    OnPropertyChanged();
                 }
             }
         }

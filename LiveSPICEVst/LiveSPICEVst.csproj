@@ -5,28 +5,40 @@
     <AssemblyName>LiveSPICEVst</AssemblyName>
     <Product>LiveSPICEVst</Product>
     <Copyright>Copyright ©  2020</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="AudioPlugSharp\**" />
+    <EmbeddedResource Remove="AudioPlugSharp\**" />
+    <None Remove="AudioPlugSharp\**" />
+    <Page Remove="AudioPlugSharp\**" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\MetalAlpha.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Circuit\Circuit.csproj" />
     <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj" />
+    <ProjectReference Include="..\LiveSPICE.UI.Controls\LiveSPICE.UI.Controls.csproj" />
     <ProjectReference Include="..\SchematicControls\SchematicControls.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
+    <ProjectReference Include="AudioPlugSharp\AudioPlugSharpVst\AudioPlugSharpVst.vcxproj" />
+    <ProjectReference Include="AudioPlugSharp\AudioPlugSharpWPF\AudioPlugSharpWPF.csproj" />
+    <ProjectReference Include="AudioPlugSharp\AudioPlugSharp\AudioPlugSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AudioPlugSharp" Version="0.5.1" />
     <PackageReference Include="AudioPlugSharpWPF" Version="0.5.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
+  
 </Project>

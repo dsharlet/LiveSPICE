@@ -1,7 +1,8 @@
-﻿using ComputerAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -114,6 +115,58 @@ namespace Circuit
                 i.BeginAnalysis(prefix);
         }
         public void DeclNodes(params Node[] Nodes) { DeclNodes(Nodes.AsEnumerable()); }
+
+        /// <summary>
+        /// Describes a normalized parameter for the circuit.
+        /// </summary>
+        [DebuggerDisplay("{Value}", Name = "{Name,nq}")]
+        public class Parameter
+        {
+            private readonly Func<double> _valueAccessor;
+
+            /// <summary>
+            /// Component the parameter affects.
+            /// </summary>
+            public Component Owner { get; private set; }
+
+            /// <summary>
+            /// Expression for the parameter in the system of equations for this analysis.
+            /// </summary>
+            public Expression Expression { get; }
+
+            /// <summary>
+            /// Name of this parameter.
+            /// </summary>
+            public string Name { get; }
+
+            public double Value => _valueAccessor();
+
+            public Parameter(Component owner, string name, Expression expression, Func<double> valueAccessor)
+            {
+                Owner = owner;
+                Name = name;
+                Expression = expression;
+                _valueAccessor = valueAccessor;
+            }
+        }
+
+        private List<Parameter> parameters = new List<Parameter>();
+        /// <summary>
+        /// Enumerates the parameters in this analysis.
+        /// </summary>
+        public IEnumerable<Parameter> Parameters { get { return parameters; } }
+
+        /// <summary>
+        /// Create an expression for a parameter in the current context.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns></returns>
+        public Expression AddParameter(Component Of, string Name, Func<double> valueAccessor)
+        {
+            Expression expr = Component.DependentVariable((context.Prefix + Name).Replace(' ', '_'), Component.t);
+            parameters.Add(new Parameter(Of, Name, expr, valueAccessor));
+            return expr;
+        }
 
         /// <summary>
         /// Get the KCL expressions for this analysis.

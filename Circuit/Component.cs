@@ -24,9 +24,24 @@ namespace Circuit
     public interface IPotControl: IGroupableComponent
     {
         /// <summary>
-        /// The value of the pot.
+        /// The wiper position.
         /// </summary>
-        double PotValue { get; set; }
+        double Position { get; set; }
+
+        /// <summary>
+        /// The current value of the pot.
+        /// </summary>
+        double Value { get; }
+
+        /// <summary>
+        /// Defines if pot value can be adjusted dynamically during the simulation.
+        /// </summary>
+        bool Dynamic { get; }
+
+        /// <summary>
+        /// Potentiometer name.
+        /// </summary>
+        string Name { get; }
     }
 
     /// <summary>

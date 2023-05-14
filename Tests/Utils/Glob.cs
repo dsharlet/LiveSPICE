@@ -5,7 +5,7 @@ using System.Text;
 
 // From https://stackoverflow.com/questions/398518/how-to-implement-glob-in-c-sharp
 
-namespace Tests
+namespace LiveSPICE.Cli.Utils
 {
     public class Globber
     {

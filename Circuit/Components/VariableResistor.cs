@@ -66,7 +66,7 @@ namespace Circuit
         [Serialize, Description("Position of the wiper on this variable resistor, between 0 and 1.")]
         public double Wipe { get { return wipe; } set { wipe = value; NotifyChanged(nameof(Wipe)); } }
         // IPotControl
-        double IPotControl.PotValue { get { return Wipe; } set { Wipe = value; } }
+        double IPotControl.Position { get => Wipe; set => Wipe = value; }
 
         protected SweepType sweep = SweepType.Linear;
         [Serialize, Description("Sweep mapping of the wiper.")]
@@ -76,13 +76,18 @@ namespace Circuit
         [Serialize, Description("Potentiometer group this potentiometer is a section of.")]
         public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
 
+        public double Value => AdjustWipe(Wipe, Sweep);
+
+        [Serialize]
+        public bool Dynamic { get; set; }
+
         public VariableResistor() { Name = "R1"; }
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = AdjustWipe(wipe, sweep);
+            Expression P = Dynamic ? Mna.AddParameter(this, Name, () => AdjustWipe(wipe, sweep)) : AdjustWipe(wipe, sweep);
 
-            Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * P);
+            Resistor.Analyze(Mna, Name, Anode, Cathode, Resistance * P);
         }
 
         public static double AdjustWipe(double x, SweepType Sweep)
@@ -118,6 +123,44 @@ namespace Circuit
                 case SweepType.AntiSigmoid:
                 case SweepType.ReverseAntiSigmoid:
                     return 1 / (1 + Math.Pow(x/(1-x), -1/k));
+                default:
+                    return x;
+            }
+        }
+
+        public static Expression ApplySweep(Expression x, SweepType Sweep)
+        {
+            x = Call.Min(Call.Max(x, 1e-3), 1.0 - 1e-3);
+
+            // If we want the parameter to be backwards, swap it.
+            if (Sweep == SweepType.ReverseLinear || Sweep == SweepType.ReverseSigmoid ||
+                Sweep == SweepType.ReverseLogarithmic || Sweep == SweepType.ReverseAntiLogarithmic)
+                x = 1 - x;
+
+            double exp = Math.Exp(2);
+            const double k = 1.8; // Sigmoid shape factor.
+            switch (Sweep)
+            {
+                // If we want the parameter to be logarithmic, apply an exponential curve
+                // passing through 0 and 1.
+                case SweepType.Logarithmic:
+                case SweepType.ReverseLogarithmic:
+                    return (Binary.Power(exp, x) - 1.0) / (exp - 1.0);
+                // If we want the parameter to be anti-logarithmic, apply an exponential curve
+                // passing through 0 and 1.
+                case SweepType.AntiLogarithmic:
+                case SweepType.ReverseAntiLogarithmic:
+                    return 1 - (Binary.Power(exp, 1 - x) - 1.0) / (exp - 1.0);
+                // If we want the parameter to be s-shaped, apply an sigmoid curve
+                // passing through 0 and 1.
+                case SweepType.Sigmoid:
+                case SweepType.ReverseSigmoid:
+                    return 1 / (1 + Binary.Power(x / (1 - x), -k));
+                // If we want the parameter to be s-shaped inverted, apply an sigmoid curve
+                // passing through 0 and 1.
+                case SweepType.AntiSigmoid:
+                case SweepType.ReverseAntiSigmoid:
+                    return 1 / (1 + Binary.Power(x / (1 - x), -1 / k));
                 default:
                     return x;
             }

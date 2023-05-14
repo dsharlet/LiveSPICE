@@ -29,8 +29,8 @@ namespace LiveSPICEVst
 
         public void UpdateSchematic()
         {
-            OverlaySchematic.DataContext = null;  // Set to null first to force rebind in case the schematic hasn't changed, but we want to update the UI
-            OverlaySchematic.DataContext = Plugin.SimulationProcessor.Schematic;
+            //OverlaySchematic.DataContext = null;  // Set to null first to force rebind in case the schematic hasn't changed, but we want to update the UI
+            //OverlaySchematic.DataContext = Plugin.SimulationProcessor.Schematic;
 
             (LoadCircuitButton.Content as TextBlock).Text = (Plugin.SimulationProcessor.Schematic != null) ? Plugin.SimulationProcessor.SchematicName : "Load Schematic";
 
@@ -106,7 +106,8 @@ namespace LiveSPICEVst
                     schematicWindow = new SchematicWindow()
                     {
                         DataContext = Plugin.SimulationProcessor.Schematic,
-                        Title = Plugin.SimulationProcessor.SchematicName
+                        Title = Plugin.SimulationProcessor.SchematicName,
+                        Topmost = true,
                     };
                 }
 

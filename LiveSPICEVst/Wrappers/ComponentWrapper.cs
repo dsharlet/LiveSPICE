@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace LiveSPICEVst
 {
-    public abstract class ComponentWrapper<T> : IComponentWrapper
+    public abstract class ComponentWrapper<T> : ObservableObject, IComponentWrapper
     {
         public string Name { get; private set; }
         public bool NeedUpdate { get; set; }
