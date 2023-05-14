@@ -88,6 +88,7 @@ namespace Circuit
 
             // Find out what variables have differential relationships.
             List<Expression> dy_dt = y.Where(i => mna.Any(j => j.DependsOn(D(i, t)))).Select(i => D(i, t)).ToList();
+            Log.WriteLine(MessageType.Verbose, "Differential unknowns: {0}", String.Join(", ", dy_dt));
 
             // Find steady state solution for initial conditions.
             List<Arrow> initial = InitialConditions.ToList();
@@ -127,6 +128,7 @@ namespace Circuit
             // Solve the diff eq for dy/dt and integrate the results.
             system.RowReduce(dy_dt);
             system.BackSubstitute(dy_dt);
+            LogExpressions(Log, MessageType.Verbose, "Differential equations:", system.Where(i => i.DependsOn(dy_dt)).Select(i => Equal.New(i, 0)));
             IEnumerable<Equal> integrated = system.Solve(dy_dt)
                 .NDIntegrate(t, h, IntegrationMethod.BackwardDifferenceFormula2)
                 .Select(i => Equal.New(i.Left, i.Right)).Buffer();
@@ -144,6 +146,7 @@ namespace Circuit
             // Partition the system into independent systems of equations.
             foreach (SystemOfEquations F in system.Partition())
             {
+                Log.WriteLine(MessageType.Verbose, "Partition unknowns: {0}", String.Join(", ", F.Unknowns));
                 // Find linear solutions for y. Linear systems should be completely solved here.
                 F.RowReduce();
                 IEnumerable<Arrow> linear = F.Solve();
@@ -179,12 +182,15 @@ namespace Circuit
                     guess = Factor(guess);
 
                     // Newton system equations.
-                    IEnumerable<LinearCombination> equations = nonlinear.Equations;
+                    IEnumerable<LinearCombination> equations = nonlinear.Equations.Buffer();
                     equations = Factor(equations);
 
                     solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
                     LogExpressions(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), equations.Select(i => Equal.New(i, 0)));
                     LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
+
+                    if (equations.Count() < nonlinear.Unknowns.Count())
+                        throw new Exception("Failed to find a full solution for partition, simulation would diverge");
                 }
             }
 
