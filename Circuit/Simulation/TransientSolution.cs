@@ -123,20 +123,32 @@ namespace Circuit
                 LogExpressions(Log, MessageType.Verbose, "Steady state system for partition:", i.Select(j => Equal.New(j, 0)));
                 try
                 {
+                    // Get linearly solvable variables first
                     i.RowReduce();
-                    var lin = i.Solve();
+                    var linear = i.Solve();
 
-                    var linearSystem = new SystemOfEquations(lin.Select(l => Equal.New(l.Right, l.Left)), lin.Select(l => l.Left));
+                    // Solve linear variables
+                    var linearSystem = new SystemOfEquations(linear.Select(l => Equal.New(l.Right, l.Left)), linear.Select(l => l.Left));
                     linearSystem.RowReduce();
                     linearSystem.BackSubstitute();
-                    var x = linearSystem.Solve();
-                    initial.AddRange(x);
+                    var linearSolutions = linearSystem.Solve();
 
-                    var other = i.Evaluate(x);
-                    var init = i.Unknowns.Select(j => Arrow.New(j, 0)).ToArray();
-                    List<Arrow> part = other.Select(j => Equal.New(j, 0)).NSolve(init);
-                    initial.AddRange(part);
-                    LogExpressions(Log, MessageType.Verbose, "Initial conditions:", part); 
+                    // Add solutions to the initial conditions
+                    initial.AddRange(linearSolutions);
+
+                    // Find non-linear variables
+                    var nonLinear = i.Evaluate(linearSolutions);
+
+                    // Get the non-linear variables to solve for using NSolve
+                    var nonLinearVariables = i.Unknowns.Select(j => Arrow.New(j, 0)).ToArray();
+
+                    if (nonLinearVariables.Any())
+                    {
+                        var nonLinearSolutions = nonLinear.Select(j => Equal.New(j, 0)).NSolve(nonLinearVariables);
+                        initial.AddRange(nonLinearSolutions);
+                    }
+
+                    LogExpressions(Log, MessageType.Verbose, "Initial conditions:", initial); 
                 }
                 catch (Exception e)
                 {
