@@ -188,9 +188,6 @@ namespace Circuit
                     solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
                     LogExpressions(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), equations.Select(i => Equal.New(i, 0)));
                     LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
-
-                    if (equations.Count() < nonlinear.Unknowns.Count())
-                        throw new Exception("Failed to find a full solution for partition, simulation would diverge");
                 }
             }
 
