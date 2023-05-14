@@ -53,23 +53,9 @@ namespace LiveSPICEVst
             }
         }
 
-        public int Iterations
-        {
-            get { return iterations; }
-            set
-            {
-                if (iterations != value)
-                {
-                    iterations = value;
-
-                    needRebuild = true;
-                }
-            }
-        }
 
         double sampleRate;
         int oversample = 2;
-        int iterations = 8;
 
         Circuit.Circuit circuit = null;
         Simulation simulation = null;
@@ -308,7 +294,6 @@ namespace LiveSPICEVst
                                         simulation = new Simulation(ts)
                                         {
                                             Oversample = oversample,
-                                            Iterations = iterations,
                                             Input = new[] { inputExpression },
                                             Output = new[] { outputExpression }
                                         };

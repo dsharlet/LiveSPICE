@@ -45,16 +45,6 @@ namespace LiveSPICEVst
                     break;
                 }
             }
-
-            for (int i = 0; i < IterationsComboBox.Items.Count; i++)
-            {
-                if (int.Parse((IterationsComboBox.Items[i] as ComboBoxItem).Content as string) == Plugin.SimulationProcessor.Iterations)
-                {
-                    IterationsComboBox.SelectedIndex = i;
-
-                    break;
-                }
-            }
         }
 
         private void OversampleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -62,13 +52,6 @@ namespace LiveSPICEVst
             ComboBox combo = sender as ComboBox;
 
             Plugin.SimulationProcessor.Oversample = int.Parse((combo.SelectedItem as ComboBoxItem).Content as string);
-        }
-
-        private void IterationsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ComboBox combo = sender as ComboBox;
-
-            Plugin.SimulationProcessor.Iterations = int.Parse((combo.SelectedItem as ComboBoxItem).Content as string);
         }
 
         private void LoadCircuitButton_Click(object sender, RoutedEventArgs e)

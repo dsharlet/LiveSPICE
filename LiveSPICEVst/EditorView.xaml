@@ -37,16 +37,6 @@
                     <ComboBoxItem>4</ComboBoxItem>
                     <ComboBoxItem>8</ComboBoxItem>
                 </ComboBox>
-                <TextBlock>Iterations:</TextBlock>
-                <ComboBox x:Name="IterationsComboBox" SelectionChanged="IterationsComboBox_SelectionChanged">
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                    <ComboBoxItem>4</ComboBoxItem>
-                    <ComboBoxItem>8</ComboBoxItem>
-                    <ComboBoxItem>16</ComboBoxItem>
-                    <ComboBoxItem>32</ComboBoxItem>
-                    <ComboBoxItem>64</ComboBoxItem>
-                </ComboBox>
             </StackPanel>
             <local:SimulationInterface DataContext="{Binding SimulationProcessor}" />
         </DockPanel>

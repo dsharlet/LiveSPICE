@@ -27,7 +27,7 @@ namespace LiveSPICE
         public Log Log { get { return (Log)log.Content; } }
         public Scope Scope { get { return (Scope)scope.Content; } }
 
-        protected int oversample = 8;
+        protected int oversample = 2;
         /// <summary>
         /// Simulation oversampling rate.
         /// </summary>
@@ -35,16 +35,6 @@ namespace LiveSPICE
         {
             get { return oversample; }
             set { oversample = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Oversample)); }
-        }
-
-        protected int iterations = 8;
-        /// <summary>
-        /// Max iterations for numerical algorithms.
-        /// </summary>
-        public int Iterations
-        {
-            get { return iterations; }
-            set { iterations = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Iterations)); }
         }
 
         private double inputGain = 1.0;
@@ -304,7 +294,6 @@ namespace LiveSPICE
                             Input = inputs.Keys.ToArray(),
                             Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
                             Oversample = Oversample,
-                            Iterations = Iterations,
                         };
                     }
                     catch (Exception Ex)
@@ -337,7 +326,6 @@ namespace LiveSPICE
                                 Input = inputs.Keys.ToArray(),
                                 Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
                                 Oversample = Oversample,
-                                Iterations = Iterations,
                             };
                         }
                         else
