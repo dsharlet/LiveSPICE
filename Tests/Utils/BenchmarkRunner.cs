@@ -25,7 +25,7 @@ namespace LiveSPICE.Cli.Utils
         /// By default, benchmarks producing the sum of all output components.
         /// </summary>
         /// <returns>{analyze time, solve time, simulate rate} in seconds or Hz</returns>
-        public double Benchmark(
+        public (TimeSpan analyzeTime, TimeSpan solveTime, TimeSpan buildTime, double simulateRate) Benchmark(
             Circuit.Circuit circuit,
             Func<double, double> Vin,
             int sampleRate,
@@ -59,11 +59,12 @@ namespace LiveSPICE.Cli.Utils
                 }
 
                 ISimulation? simulation = null;
+                TimeSpan solveTime, buildTime;
 
                 if (legacy)
                 {
                     TransientSolution? TS = null;
-                    var solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample), log));
+                    solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample), log));
                    log.WriteLine(MessageType.Info,$"Solve time: [yellow]{solveTime}[/yellow]");
 
                     var s = new LegacySimulation(TS)
@@ -74,7 +75,7 @@ namespace LiveSPICE.Cli.Utils
                         Output = outputs,
                     };
 
-                    var buildTime = Benchmark(1, () => s.Build());
+                    buildTime = Benchmark(1, () => s.Build());
                     log.WriteLine(MessageType.Info, $"Build time: [yellow]{buildTime}[/yellow]");
 
                     simulation = s;
@@ -86,10 +87,10 @@ namespace LiveSPICE.Cli.Utils
 
                     TransientSolution? solution = null;
 
-                    var solveTime = Benchmark(.01, () => solution = builder.Solve(analysis, settings));
+                    solveTime = Benchmark(.01, () => solution = builder.Solve(analysis, settings));
                     log.WriteLine(MessageType.Info, $"{nameof(NewtonSimulationBuilder.Solve)} time: [yellow]{solveTime}[/yellow]");
 
-                    var buildTime = Benchmark(.01, () => simulation = builder.Build(solution, settings, new[] { input }, outputs, CancellationStrategy.TimeoutAfter(TimeSpan.FromSeconds(30))));
+                    buildTime = Benchmark(.01, () => simulation = builder.Build(solution, settings, new[] { input }, outputs, CancellationStrategy.TimeoutAfter(TimeSpan.FromSeconds(30))));
                     log.WriteLine(MessageType.Info, $"{nameof(NewtonSimulationBuilder.Build)} time: [yellow]{buildTime}[/yellow]");
 
                 }
@@ -109,7 +110,7 @@ namespace LiveSPICE.Cli.Utils
                 });
                 double rate = N / runTime.TotalMilliseconds * 1000; // samples per second
                 log.WriteLine(MessageType.Info, "[yellow]{0:G3}[/yellow] kHz, [green]{1:G3}x[/green] real time", rate / 1000, rate / sampleRate);
-                return rate / sampleRate;
+                return (analyzeTime, solveTime, buildTime, rate / sampleRate);
             }
             catch (SimulationDivergedException ex)
             {
@@ -119,7 +120,7 @@ namespace LiveSPICE.Cli.Utils
             {
                 log.WriteLine(MessageType.Error, $"[red]{e}[/red]");
             }
-            return 0;
+            return default;
         }
 
         private TimeSpan Benchmark(double t, Action fn)

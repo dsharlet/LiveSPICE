@@ -82,7 +82,7 @@ namespace LiveSPICE.CLI.Commands
                     .Concat(Enumerable.Range(1, populationSize - 3).Select(i => selection[0].permutation.Crossover(selection[1].permutation).Permutate(i)))
                     .Append(Enumerable.Range(0, circuit.Components.Count).ToArray().Permutate(circuit.Components.Count));
 
-                var evaluated = population.Select(permutation => (permutation, fitness: runner.Benchmark(circuit, t => FunctionGenerator.Harmonics(t, .5, 82, 2), sampleRate, oversample, iterations, permutation: permutation, optimize: true)));
+                var evaluated = population.Select(permutation => (permutation, fitness: runner.Benchmark(circuit, t => FunctionGenerator.Harmonics(t, .5, 82, 2), sampleRate, oversample, iterations, permutation: permutation, optimize: true).simulateRate));
 
                 selection = evaluated.OrderByDescending(r => r.fitness).Take(2).ToArray();
                 log.Info($"[green]Best: {selection[0].fitness}x[/green]");

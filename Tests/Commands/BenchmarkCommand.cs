@@ -64,8 +64,6 @@ namespace LiveSPICE.CLI.Commands
             SchematicReader reader,
             BenchmarkRunner runner)
         {
-            string fmt = "{0,-40}{1,12:G4}{2,12:G4}{3,12:G4}{4,12:G4}";
-
             foreach (var circuit in reader.GetSchematics(pattern).Select(s => s.Build(log)))
             {
                 if (legacy) { log.WriteLine(MessageType.Info, "[darkyellow]Legacy simulation process[/darkyellow]"); }
@@ -78,16 +76,10 @@ namespace LiveSPICE.CLI.Commands
                     }
                 }
 
-                runner.Benchmark(circuit, t => FunctionGenerator.Harmonics(t, .5, 82d, 2), sampleRate, oversample, iterations);
-                //TODO: fix
-                double[] result = runner.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations);
-                double analyzeTime = result[0];
-                double solveTime = result[1];
-                double simRate = result[2];
+                var (analyzeTime, solveTime, buildTime, simRate) = runner.Benchmark(circuit, t => FunctionGenerator.Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations);
+
                 string name = circuit.Name;
-                if (name.Length > 39)
-                    name = name.Substring(0, 39);
-                System.Console.WriteLine(fmt, name, analyzeTime * 1000, solveTime * 1000, simRate / 1000, simRate / sampleRate);
+                log.Info($"{name,-40}{analyzeTime,12}{solveTime,12}{buildTime,12}{simRate,12:G4}");
             }
         }
     }
