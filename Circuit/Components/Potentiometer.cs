@@ -57,7 +57,7 @@ namespace Circuit
         public string Group { get { return group; } set { group = value; NotifyChanged(nameof(Group)); } }
 
         [Serialize]
-        public bool Dynamic { get; set; } = true;
+        public bool Dynamic { get; set; }
 
         public void ConnectTo(Node A, Node C, Node W)
         {

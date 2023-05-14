@@ -79,7 +79,7 @@ namespace Circuit
         public double Value => AdjustWipe(Wipe, Sweep);
 
         [Serialize]
-        public bool Dynamic { get; set; } = true;
+        public bool Dynamic { get; set; }
 
         public VariableResistor() { Name = "R1"; }
 
