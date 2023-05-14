@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 
 namespace Circuit.Components
 {
@@ -35,6 +34,18 @@ namespace Circuit.Components
         private double _ex = 1.310;
         [Serialize, Category("Koren"), Browsable(true)]
         public double Ex { get { return _ex; } set { _ex = value; NotifyChanged(nameof(Ex)); } }
+
+        private Quantity rgk = new Quantity(2e4, Units.Ohm);
+        [Serialize, Category("Koren"), Description("Grid resistance")]
+        public Quantity Rgk { get { return rgk; } set { if (rgk.Set(value)) NotifyChanged(nameof(Rgk)); } }
+
+        private Quantity kn = new Quantity(3, Units.V);
+        [Serialize, Category("Koren"), Description("Knee size")]
+        public Quantity Kn { get { return kn; } set { if (kn.Set(value)) NotifyChanged(nameof(Kn)); } }
+
+        private Quantity vg = new Quantity(13, Units.V);
+        [Serialize, Category("Koren")]
+        public Quantity Vg { get { return vg; } set { if (vg.Set(value)) NotifyChanged(nameof(Vg)); } }
 
         public Pentode()
         {
@@ -93,15 +104,15 @@ namespace Circuit.Components
             var iKoren = Call.If(E1 > 0, Binary.Power(E1, Ex), 0);
             var ip = Call.If(vpk > 0, iKoren / Kg1 * Call.ArcTan(vpk / Kvb), 0);
 
-            var vg = 13d;
-            var knee = 3d;
-            var rg1 = 2000d;
+            var vg = (Real)Vg;
+            var knee = (Real)Kn;
+            var rg1 = (Real)Rgk;
 
             var a = 1 / (4 * knee * rg1);
-            var b = (knee - vg) / (2 * knee * rg1);
-            var c = (-a * Math.Pow(vg - knee, 2)) - (b * (vg - knee));
+            var b = ((Expression)Kn - Vg) / (2 * knee * rg1);
+            var c = (-a * Binary.Power(vg - knee, 2)) - (b * (vg - knee));
 
-            var ig = Call.If(vgk < vg - knee, 0, Call.If(vgk > vg + knee, (vgk - vg)/ rg1, a*vgk*vgk + b*vgk + c));
+            var ig = Call.If(vgk < vg - knee, 0, Call.If(vgk > vg + knee, (vgk - vg) / rg1, a * vgk * vgk + b * vgk + c));
             var ig2 = iKoren / Kg2;
             var ik = -(ip + ig + ig2);
 
@@ -112,8 +123,7 @@ namespace Circuit.Components
         }
         private static Expression Ln1Exp(Expression x)
         {
-            return Call.Ln(1 + Call.Exp(x));
-            //return Call.If(x > 5, x, Call.Ln(1 + Call.Exp(x)));
+            return Call.If(x > 50, x, Call.Ln(1 + Call.Exp(x)));
         }
     }
 }
