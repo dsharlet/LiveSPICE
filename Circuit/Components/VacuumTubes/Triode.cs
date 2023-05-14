@@ -148,13 +148,13 @@ namespace Circuit
                     Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
                     ip = Mna.AddUnknownEqualTo(Call.If(E1 > 0, 2d * (E1 ^ Ex) / Kg, 0));
 
-                    var vg = (double)Vg;
-                    var knee = (double)Kn;
-                    var rg1 = (double)Rgk;
+                    var vg = (Real)Vg;
+                    var knee = (Real)Kn;
+                    var rg1 = (Real)Rgk;
 
                     var a = 1 / (4 * knee * rg1);
                     var b = (knee - vg) / (2 * knee * rg1);
-                    var c = (-a * Math.Pow(vg - knee, 2)) - (b * (vg - knee));
+                    var c = (-a * Binary.Power(vg - knee, 2)) - (b * (vg - knee));
 
                     ig = Mna.AddUnknownEqualTo(Call.If(Vgk < vg - knee, 0, Call.If(Vgk > vg + knee, (Vgk - vg) / rg1, a * Vgk * Vgk + b * Vgk + c)));
                     ik = -(ip + ig);
@@ -164,17 +164,19 @@ namespace Circuit
                     ig = Call.If(exg > -50, Gg * Binary.Power(Ln1Exp(exg) / Cg, Xi), 0) + Ig0;
                     Expression exk = C * ((Vpk / Mu) + Vgk);
                     ik = Call.If(exk > -50, -G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
-                    if (SimulateCapacitances)
-                    {
-                        Capacitor.Analyze(Mna, Name + "_cgp", p, g, _cgp);
-                        Capacitor.Analyze(Mna, Name + "_cgk", g, k, _cgk);
-                        Capacitor.Analyze(Mna, Name + "_cpk", p, k, _cpk);
-                    }
                     ip = -(ik + ig);
                     break;
                 default:
                     throw new NotImplementedException("Triode model " + model.ToString());
             }
+
+            if (SimulateCapacitances)
+            {
+                Capacitor.Analyze(Mna, Name + "_cgp", p, g, _cgp);
+                Capacitor.Analyze(Mna, Name + "_cgk", g, k, _cgk);
+                Capacitor.Analyze(Mna, Name + "_cpk", p, k, _cpk);
+            }
+
             Mna.AddTerminal(p, ip);
             Mna.AddTerminal(g, ig);
             Mna.AddTerminal(k, ik);

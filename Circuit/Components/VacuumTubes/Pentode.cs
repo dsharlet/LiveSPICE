@@ -104,13 +104,13 @@ namespace Circuit.Components
             var iKoren = Call.If(E1 > 0, Binary.Power(E1, Ex), 0);
             var ip = Call.If(vpk > 0, iKoren / Kg1 * Call.ArcTan(vpk / Kvb), 0);
 
-            var vg = (double)Vg;
-            var knee = (double)Kn;
-            var rg1 = (double)Rgk;
+            var vg = (Real)Vg;
+            var knee = (Real)Kn;
+            var rg1 = (Real)Rgk;
 
             var a = 1 / (4 * knee * rg1);
-            var b = (knee - vg) / (2 * knee * rg1);
-            var c = (-a * Math.Pow(vg - knee, 2)) - (b * (vg - knee));
+            var b = ((Expression)Kn - Vg) / (2 * knee * rg1);
+            var c = (-a * Binary.Power(vg - knee, 2)) - (b * (vg - knee));
 
             var ig = Call.If(vgk < vg - knee, 0, Call.If(vgk > vg + knee, (vgk - vg) / rg1, a * vgk * vgk + b * vgk + c));
             var ig2 = iKoren / Kg2;
