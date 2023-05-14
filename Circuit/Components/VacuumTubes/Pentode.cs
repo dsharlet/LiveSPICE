@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 
 namespace Circuit.Components
 {
@@ -113,7 +112,7 @@ namespace Circuit.Components
             var b = (knee - vg) / (2 * knee * rg1);
             var c = (-a * Math.Pow(vg - knee, 2)) - (b * (vg - knee));
 
-            var ig = Call.If(vgk < vg - knee, 0, Call.If(vgk > vg + knee, (vgk - vg)/ rg1, a*vgk*vgk + b*vgk + c));
+            var ig = Call.If(vgk < vg - knee, 0, Call.If(vgk > vg + knee, (vgk - vg) / rg1, a * vgk * vgk + b * vgk + c));
             var ig2 = iKoren / Kg2;
             var ik = -(ip + ig + ig2);
 
@@ -124,8 +123,7 @@ namespace Circuit.Components
         }
         private static Expression Ln1Exp(Expression x)
         {
-            return Call.Ln(1 + Call.Exp(x));
-            //return Call.If(x > 5, x, Call.Ln(1 + Call.Exp(x)));
+            return Call.If(x > 50, x, Call.Ln(1 + Call.Exp(x)));
         }
     }
 }

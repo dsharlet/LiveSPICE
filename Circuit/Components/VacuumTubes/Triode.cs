@@ -1,7 +1,7 @@
-﻿using ComputerAlgebra;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using ComputerAlgebra;
 
 namespace Circuit
 {
@@ -37,19 +37,19 @@ namespace Circuit
         public double K { get { return k_; } set { k_ = value; NotifyChanged(nameof(K)); } }
 
         private double ex = 1.4;
-        [Serialize, Category("Koren"), Browsable(false)]
+        [Serialize, Category("Koren")]
         public double Ex { get { return ex; } set { ex = value; NotifyChanged(nameof(Ex)); } }
 
         private double kg = 1060.0;
-        [Serialize, Category("Koren"), Browsable(false)]
+        [Serialize, Category("Koren")]
         public double Kg { get { return kg; } set { kg = value; NotifyChanged(nameof(Kg)); } }
 
         private double kp = 600.0;
-        [Serialize, Category("Koren"), Browsable(false)]
+        [Serialize, Category("Koren")]
         public double Kp { get { return kp; } set { kp = value; NotifyChanged(nameof(Kp)); } }
 
         private double kvb = 300;
-        [Serialize, Category("Koren"), Browsable(false)]
+        [Serialize, Category("Koren")]
         public double Kvb { get { return kvb; } set { kvb = value; NotifyChanged(nameof(Kvb)); } }
 
         private Quantity rgk = new Quantity(1e6, Units.Ohm);
@@ -140,14 +140,14 @@ namespace Circuit
             {
                 case TriodeModel.ChildLangmuir:
                     Expression Ed = Mu * Vgk + Vpk;
-                    ip = Call.If(Ed > 0, K * (Ed ^ 1.5), 0);
+                    ip = Call.If(Ed > 0, K * Binary.Power(Ed, 1.5), 0);
                     ig = 0;
                     ik = -(ip + ig);
                     break;
                 case TriodeModel.Koren:
                     Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
-                    ip = Call.If(E1 > 0, 2d * (E1 ^ Ex) / Kg, 0);
-                    
+                    ip = Mna.AddUnknownEqualTo(Call.If(E1 > 0, 2d * (E1 ^ Ex) / Kg, 0));
+
                     var vg = (double)Vg;
                     var knee = (double)Kn;
                     var rg1 = (double)Rgk;
@@ -156,12 +156,12 @@ namespace Circuit
                     var b = (knee - vg) / (2 * knee * rg1);
                     var c = (-a * Math.Pow(vg - knee, 2)) - (b * (vg - knee));
 
-                    ig = Call.If(Vgk < vg - knee, 0, Call.If(Vgk > vg + knee, (Vgk - vg) / rg1, a * Vgk * Vgk + b * Vgk + c));
-                    ik = -(ip+ig);
+                    ig = Mna.AddUnknownEqualTo(Call.If(Vgk < vg - knee, 0, Call.If(Vgk > vg + knee, (Vgk - vg) / rg1, a * Vgk * Vgk + b * Vgk + c)));
+                    ik = -(ip + ig);
                     break;
                 case TriodeModel.DempwolfZolzer:
-                    Expression exg2 = Cg * Vgk;
-                    ig = Call.If(exg2 > -50, Gg * Binary.Power(Ln1Exp(exg2) / Cg, Xi), 0) + Ig0;
+                    Expression exg = Cg * Vgk;
+                    ig = Call.If(exg > -50, Gg * Binary.Power(Ln1Exp(exg) / Cg, Xi), 0) + Ig0;
                     Expression exk = C * ((Vpk / Mu) + Vgk);
                     ik = Call.If(exk > -50, -G * Binary.Power(Ln1Exp(exk) / C, Gamma), 0);
                     if (SimulateCapacitances)
@@ -202,8 +202,6 @@ namespace Circuit
         // ln(1+e^x) = x for large x, and large x causes numerical issues.
         private static Expression Ln1Exp(Expression x)
         {
-            //return Call.Ln(1 + Call.Exp(x));
-
             return Call.If(x > 50, x, Call.Ln(1 + Call.Exp(x)));
         }
     }
