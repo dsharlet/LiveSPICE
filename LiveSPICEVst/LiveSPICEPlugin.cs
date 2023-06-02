@@ -52,8 +52,8 @@ namespace LiveSPICEVst
         {
             base.Initialize();
 
-            InputPorts = new AudioIOPort[] { monoInput = new AudioIOPort("Mono Input", EAudioChannelConfiguration.Mono) };
-            OutputPorts = new AudioIOPort[] { monoOutput = new AudioIOPort("Mono Output", EAudioChannelConfiguration.Mono) };
+            InputPorts = new AudioIOPort[] { monoInput = new AudioIOPort("Mono Input", EAudioChannelConfiguration.Mono, forceCopy: true) };
+            OutputPorts = new AudioIOPort[] { monoOutput = new AudioIOPort("Mono Output", EAudioChannelConfiguration.Mono, forceCopy: true) };
         }
 
         public override void InitializeProcessing()
@@ -202,9 +202,6 @@ namespace LiveSPICEVst
                 double[][] inBuffers = monoInput.GetAudioBuffers();
                 double[][] outBuffers = monoOutput.GetAudioBuffers();
 
-                // Read input samples from unmanaged memory
-                monoInput.ReadData();
-
                 try
                 {
                     SimulationProcessor.RunSimulation(inBuffers, outBuffers, inBuffers[0].Length);
@@ -218,9 +215,6 @@ namespace LiveSPICEVst
                         MessageBox.Show("Error running circuit simulation.\n\n" + ex.Message, "Simulation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }).Start();
                 }
-
-                // Write outout samples to unmanaged memory
-                monoOutput.WriteData();
             }
         }
     }
