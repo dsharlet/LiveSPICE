@@ -80,6 +80,7 @@ namespace LiveSPICE
             };
             scroll.PreviewMouseMove += (o, e) => mouse = e.GetPosition(this);
             scroll.MouseLeave += (o, e) => mouse = null;
+            scroll.MouseMove += scroll_MouseMove;
 
             SizeChanged += SchematicViewer_SizeChanged;
 
@@ -136,6 +137,27 @@ namespace LiveSPICE
                 b = Schematic.ToPoint(new Circuit.Coord(100, 100));
             }
             FocusRect(a, b, true);
+        }
+
+        Point? mouse_scroll = null;
+        private void scroll_MouseMove(object o, System.Windows.Input.MouseEventArgs e)
+        {
+            if (IsMouseCaptureWithin && e.MiddleButton == MouseButtonState.Pressed)
+            {
+                Point x = e.GetPosition(this);
+                if (mouse_scroll.HasValue)
+                {
+                    Vector dx = x - mouse_scroll.Value;
+                    scroll.ScrollToHorizontalOffset(scroll.HorizontalOffset + dx.X * Zoom);
+                    scroll.ScrollToVerticalOffset(scroll.VerticalOffset + dx.Y * Zoom);
+                }
+                mouse_scroll = x;
+                e.Handled = true;
+            } 
+            else
+            {
+                mouse_scroll = null;
+            }
         }
     }
 }

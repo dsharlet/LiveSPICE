@@ -250,28 +250,35 @@ namespace LiveSPICE
         // Mouse events.
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
-            Focus();
-            Keyboard.Focus(this);
-            Circuit.Coord at = SnapToGrid(e.GetPosition(root));
             if (e.ChangedButton == MouseButton.Left)
             {
+                Focus();
+                Keyboard.Focus(this);
                 CaptureMouse();
                 if (Tool != null)
                 {
+                    Circuit.Coord at = SnapToGrid(e.GetPosition(root));
                     if (e.ClickCount == 2)
                         Tool.MouseDoubleClick(at);
                     else
                         Tool.MouseDown(at);
                 }
+                e.Handled = true;
             }
-            else
+            else if (e.ChangedButton == MouseButton.Middle)
+            {
+                Focus();
+                Keyboard.Focus(this);
+                CaptureMouse();
+                e.Handled = true;
+            }
+            else if (e.ChangedButton == MouseButton.Right)
             {
                 ReleaseMouseCapture();
                 if (Tool != null)
                     Tool.Cancel();
+                e.Handled = true;
             }
-
-            e.Handled = true;
         }
         protected override void OnMouseUp(MouseButtonEventArgs e)
         {
@@ -281,6 +288,12 @@ namespace LiveSPICE
                 if (Tool != null)
                     Tool.MouseUp(at);
                 ReleaseMouseCapture();
+                e.Handled = true;
+            }
+            else if (e.ChangedButton == MouseButton.Middle)
+            {
+                ReleaseMouseCapture();
+                e.Handled = true;
             }
             else if (e.ChangedButton == MouseButton.Right && e.ClickCount == 1)
             {
@@ -290,14 +303,14 @@ namespace LiveSPICE
                     if (ContextMenu != null)
                         ContextMenu.IsOpen = true;
                 }
+                e.Handled = true;
             }
-            e.Handled = true;
         }
         private Circuit.Coord? mouse = null;
         protected override void OnMouseMove(MouseEventArgs e)
         {
             Point x = e.GetPosition(root);
-            if (IsMouseCaptured)
+            if (IsMouseCaptured && e.LeftButton == MouseButtonState.Pressed)
                 BringIntoView(new Rect(x - AutoScrollBorder, x + AutoScrollBorder));
             Circuit.Coord at = SnapToGrid(x);
             if (!mouse.HasValue || mouse.Value != at)
@@ -305,7 +318,6 @@ namespace LiveSPICE
                 mouse = at;
                 if (Tool != null)
                     Tool.MouseMove(at);
-                e.Handled = true;
             }
         }
 
