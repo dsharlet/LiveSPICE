@@ -148,8 +148,8 @@ namespace LiveSPICE
                 if (mouse_scroll.HasValue)
                 {
                     Vector dx = x - mouse_scroll.Value;
-                    scroll.ScrollToHorizontalOffset(scroll.HorizontalOffset + dx.X * Zoom);
-                    scroll.ScrollToVerticalOffset(scroll.VerticalOffset + dx.Y * Zoom);
+                    scroll.ScrollToHorizontalOffset(scroll.HorizontalOffset - dx.X);
+                    scroll.ScrollToVerticalOffset(scroll.VerticalOffset - dx.Y);
                 }
                 mouse_scroll = x;
                 e.Handled = true;
