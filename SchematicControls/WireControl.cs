@@ -40,7 +40,7 @@ namespace SchematicControls
                 dc.DrawRectangle(WirePen.Brush, WirePen, new Rect(x - dx, x + dx));
         }
 
-        protected static Pen SelectedWirePen = new Pen(Brushes.Blue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+        protected static Pen SelectedWirePen = new Pen(Brushes.DodgerBlue, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
         protected static Pen HighlightedWirePen = new Pen(Brushes.Gray, EdgeThickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
     }
 }

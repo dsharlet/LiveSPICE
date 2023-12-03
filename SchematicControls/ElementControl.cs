@@ -16,8 +16,8 @@ namespace SchematicControls
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ElementControl), new FrameworkPropertyMetadata(typeof(ElementControl)));
         }
 
-        public static Pen HighlightPen = new Pen(Brushes.Gray, 0.5f) { DashStyle = DashStyles.Dash }.GetAsFrozen() as Pen;
-        public static Pen SelectedPen = new Pen(Brushes.Blue, 0.5f) { DashStyle = DashStyles.Dash }.GetAsFrozen() as Pen;
+        public static Pen HighlightPen = new Pen(Brushes.Gray, 1.0f) { DashStyle = DashStyles.Dash }.GetAsFrozen() as Pen;
+        public static Pen SelectedPen = new Pen(Brushes.DodgerBlue, 1.0f) { DashStyle = DashStyles.Dash }.GetAsFrozen() as Pen;
 
         private Pen pen = null;
         public Pen Pen { get { return pen; } set { pen = value; InvalidateVisual(); } }
