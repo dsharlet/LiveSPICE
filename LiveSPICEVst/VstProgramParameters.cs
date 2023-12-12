@@ -9,13 +9,11 @@ namespace LiveSPICEVst
     {
         public string SchematicPath { get; set; }
         public int OverSample { get; set; }
-        public int Iterations { get; set; }
         public List<VSTProgramControlParameter> ControlParameters { get; set; }
 
         public VstProgramParameters()
         {
             OverSample = 2;
-            Iterations = 8;
 
             ControlParameters = new List<VSTProgramControlParameter>();
         }

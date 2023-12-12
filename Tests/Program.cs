@@ -18,25 +18,24 @@ namespace Tests
                                                     .WithArgument<string>("pattern", "Glob pattern for files to test")
                                                     .WithOption<bool>(new[] { "--plot" }, "Plot results")
                                                     .WithOption(new[] { "--samples" }, () => 4800, "Samples")
-                                                    .WithHandler(CommandHandler.Create<string, bool, int, int, int, int>(Test)))
+                                                    .WithHandler(CommandHandler.Create<string, bool, int, int, int>(Test)))
                                                .WithCommand("benchmark", "Run benchmarks", c => c
                                                     .WithArgument<string>("pattern", "Glob pattern for files to benchmark")
-                                                    .WithHandler(CommandHandler.Create<string, int, int, int>(Benchmark)))
+                                                    .WithHandler(CommandHandler.Create<string, int, int>(Benchmark)))
                                                .WithGlobalOption(new Option<int>("--sampleRate", () => 48000, "Sample Rate"))
-                                               .WithGlobalOption(new Option<int>("--oversample", () => 8, "Oversample"))
-                                               .WithGlobalOption(new Option<int>("--iterations", () => 8, "Iterations"));
+                                               .WithGlobalOption(new Option<int>("--oversample", () => 4, "Oversample"));
 
             return await rootCommand.InvokeAsync(args);
         }
 
-        public static void Test(string pattern, bool plot, int sampleRate, int samples, int oversample, int iterations)
+        public static void Test(string pattern, bool plot, int sampleRate, int samples, int oversample)
         {
             var log = new ConsoleLog() { Verbosity = MessageType.Info };
             var tester = new Test();
 
             foreach (var circuit in GetCircuits(pattern, log))
             {
-                var outputs = tester.Run(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, samples, oversample, iterations);
+                var outputs = tester.Run(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, samples, oversample);
                 if (plot)
                 {
                     tester.PlotAll(circuit.Name, outputs);
@@ -44,7 +43,7 @@ namespace Tests
             }
         }
 
-        public static void Benchmark(string pattern, int sampleRate, int oversample, int iterations)
+        public static void Benchmark(string pattern, int sampleRate, int oversample)
         {
             var log = new ConsoleLog() { Verbosity = MessageType.Error };
             var tester = new Test();
@@ -52,7 +51,7 @@ namespace Tests
             System.Console.WriteLine(fmt, "Circuit", "Analysis (ms)", "Solve (ms)", "Sim (kHz)", "Realtime x");
             foreach (var circuit in GetCircuits(pattern, log))
             {
-                double[] result = tester.Benchmark(circuit, t => Harmonics(t, 0.5, 82, 2), sampleRate, oversample, iterations, log: log);
+                double[] result = tester.Benchmark(circuit, t => Harmonics(t, 0.5, 820, 2), sampleRate, oversample, log: log);
                 double analyzeTime = result[0];
                 double solveTime = result[1];
                 double simRate = result[2];

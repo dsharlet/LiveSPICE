@@ -39,7 +39,6 @@ namespace Tests
             int SampleRate,
             int Samples,
             int Oversample,
-            int Iterations,
             Expression? Input = null,
             IEnumerable<Expression>? Outputs = null)
         {
@@ -62,7 +61,6 @@ namespace Tests
             Simulation S = new Simulation(TS)
             {
                 Oversample = Oversample,
-                Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
             };
@@ -104,7 +102,6 @@ namespace Tests
             Func<double, double> Vin,
             int SampleRate,
             int Oversample,
-            int Iterations,
             Expression? Input = null,
             IEnumerable<Expression>? Outputs = null,
             ILog? log = null)
@@ -131,7 +128,6 @@ namespace Tests
             Simulation S = new Simulation(TS)
             {
                 Oversample = Oversample,
-                Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
             };

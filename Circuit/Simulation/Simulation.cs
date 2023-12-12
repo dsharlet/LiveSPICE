@@ -69,17 +69,11 @@ namespace Circuit
             set { solution = value; InvalidateProcess(); }
         }
 
-        private int oversample = 8;
+        private int oversample = 2;
         /// <summary>
         /// Oversampling factor for this simulation.
         /// </summary>
         public int Oversample { get { return oversample; } set { oversample = value; InvalidateProcess(); } }
-
-        private int iterations = 8;
-        /// <summary>
-        /// Maximum number of iterations allowed for the simulation to converge.
-        /// </summary>
-        public int Iterations { get { return iterations; } set { iterations = value; InvalidateProcess(); } }
 
         /// <summary>
         /// The sampling rate of this simulation, the sampling rate of the transient solution divided by the oversampling factor.
@@ -317,7 +311,12 @@ namespace Circuit
                                     code.DeclInit(i.Left, i.Right);
 
                                 // int it = iterations
-                                LinqExpr it = code.ReDeclInit<int>("it", Iterations);
+                                // This used to be a parameter, defaulted to 8. Experiments seem to show that
+                                // it basically never makes sense to stop iterating at a limit. This sort of
+                                // makes sense, because stopping iteration early suggests that the initial guess
+                                // for the next sample will be worse. So, we're just going to use a very large
+                                // number of iterations just to avoid getting stuck forever.
+                                LinqExpr it = code.ReDeclInit<int>("it", 128);
                                 // do { ... --it } while(it > 0)
                                 code.DoWhile((Break) =>
                                 {
