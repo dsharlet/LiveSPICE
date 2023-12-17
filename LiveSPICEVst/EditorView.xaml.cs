@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace LiveSPICEVst
 {
@@ -95,9 +96,22 @@ namespace LiveSPICEVst
         {
             About about = new About() { Owner = Window.GetWindow(this) };
             about.ShowDialog();
-        }
+		}
 
-        private void ShowCircuitButton_Click(object sender, RoutedEventArgs e)
+		private void ReloadCircuitButton_Click(object sender, RoutedEventArgs e)
+		{
+            if (string.IsNullOrEmpty(Plugin.SchematicPath))
+            {
+                return;
+            }
+
+			Plugin.LoadSchematic(Plugin.SchematicPath);
+
+			UpdateSchematic();
+		}
+
+
+		private void ShowCircuitButton_Click(object sender, RoutedEventArgs e)
         {
             if (Plugin.SimulationProcessor.Schematic != null)
             {
