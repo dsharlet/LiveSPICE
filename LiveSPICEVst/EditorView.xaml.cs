@@ -97,6 +97,19 @@ namespace LiveSPICEVst
             about.ShowDialog();
         }
 
+        private void ReloadCircuitButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(Plugin.SchematicPath))
+            {
+                return;
+            }
+
+            Plugin.LoadSchematic(Plugin.SchematicPath);
+
+            UpdateSchematic();
+        }
+
+
         private void ShowCircuitButton_Click(object sender, RoutedEventArgs e)
         {
             if (Plugin.SimulationProcessor.Schematic != null)

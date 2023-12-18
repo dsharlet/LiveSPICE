@@ -13,16 +13,21 @@
         <local:SchematicDisplay x:Name="OverlaySchematic" Opacity="0.5" IsHitTestVisible="False" />
         <DockPanel Margin="8,6">
             <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="5">
-                <Button DockPanel.Dock="Right" x:Name="ShowAboutButton" Click="ShowAboutButton_Click" HorizontalAlignment="Right">
-                    <TextBlock Margin="5,0,5,0">About</TextBlock>
-                </Button>
-                <Button DockPanel.Dock="Right" x:Name="ShowCircuitButton" Click="ShowCircuitButton_Click" HorizontalAlignment="Right">
-                    <TextBlock Margin="5,0,5,0">View</TextBlock>
-                </Button>
-                <Button x:Name="LoadCircuitButton" Click="LoadCircuitButton_Click" MaxWidth="200">
+                <Button x:Name="LoadCircuitButton" Click="LoadCircuitButton_Click">
                     <TextBlock TextTrimming="CharacterEllipsis">Load Schematic</TextBlock>
                 </Button>
             </DockPanel>
+            <UniformGrid DockPanel.Dock="Top" Columns="3" Margin="5,0">
+                <Button x:Name="ReloadCircuitButton" Click="ReloadCircuitButton_Click">
+                    <TextBlock Margin="5,0,5,0">Reload</TextBlock>
+                </Button>
+                <Button x:Name="ShowCircuitButton" Click="ShowCircuitButton_Click">
+                    <TextBlock Margin="5,0,5,0">View</TextBlock>
+                </Button>
+                <Button x:Name="ShowAboutButton" Click="ShowAboutButton_Click">
+                    <TextBlock Margin="5,0,5,0">About</TextBlock>
+                </Button>
+            </UniformGrid>
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5" UseLayoutRounding="True">
                 <StackPanel.Resources>
                     <Style TargetType="{x:Type TextBlock}">
@@ -30,14 +35,14 @@
                         <Setter Property="Margin" Value="10,0,5,0"/>
                     </Style>
                 </StackPanel.Resources>
-                <TextBlock>Oversample:</TextBlock>
+                <TextBlock VerticalAlignment="Center">Oversample:</TextBlock>
                 <ComboBox x:Name="OversampleComboBox" SelectionChanged="OversampleComboBox_SelectionChanged">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
                     <ComboBoxItem>4</ComboBoxItem>
                     <ComboBoxItem>8</ComboBoxItem>
                 </ComboBox>
-                <TextBlock>Iterations:</TextBlock>
+                <TextBlock VerticalAlignment="Center">Iterations:</TextBlock>
                 <ComboBox x:Name="IterationsComboBox" SelectionChanged="IterationsComboBox_SelectionChanged">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
