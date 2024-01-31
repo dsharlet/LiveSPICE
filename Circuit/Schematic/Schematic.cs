@@ -364,9 +364,11 @@ namespace Circuit
             doc.Save(temp);
             if (!MoveFileEx(temp, FileName, MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
             {
-                // If the MoveFileEx call failed, just save it the regular way. If it works,
-                // we still saved the file (just not atomically), and if it doesn't, we'll get
-                // a better exception than making one up here.
+                // If the MoveFileEx call failed, just save it the regular way. This should never
+                // actually work, but we'll get a more descriptive error message if it fails.
+                // The only reasons MoveFileEx can fail either don't apply here (file is on a
+                // different volume) or reasons that will cause this to fail as well (file can't
+                // be written for some reason).
                 doc.Save(FileName);
             }
             Log.WriteLine(MessageType.Info, "Schematic saved to '" + FileName + "'");
