@@ -25,9 +25,9 @@ namespace LiveSPICEVst
             this.DataContext = Plugin;
 
             Plugin.EditorView = this;
+            uiThreadContext = SynchronizationContext.Current;
 
             InitializeComponent();
-            uiThreadContext = SynchronizationContext.Current;
 
             UpdateSchematic();
         }
@@ -90,10 +90,7 @@ namespace LiveSPICEVst
 
             if (dialog.ShowDialog() == true)
             {
-                Plugin.LoadSchematic(dialog.FileName);
-
-                UpdateSchematic();
-
+                ReloadCircuit(dialog.FileName);
                 AutoReloadSetup();
             }
         }
@@ -106,7 +103,7 @@ namespace LiveSPICEVst
 
         private void ReloadCircuitButton_Click(object sender, RoutedEventArgs e)
         {
-            ReloadCircuit();
+            ReloadCircuit(Plugin.SchematicPath);
         }
 
         private void ShowCircuitButton_Click(object sender, RoutedEventArgs e)
@@ -127,19 +124,28 @@ namespace LiveSPICEVst
             }
         }
 
-        private void ReloadCircuit()
+        private void ReloadCircuit(string path)
         {
-            if (string.IsNullOrEmpty(Plugin.SchematicPath))
+            if (string.IsNullOrEmpty(path))
             {
                 return;
             }
 
-            Plugin.LoadSchematic(Plugin.SchematicPath);
+            Plugin.LoadSchematic(path);
+            UpdateSchematic();
+        }
+        private void ReloadCircuit(FileStream circuitFileStream)
+        {
+            if (circuitFileStream.Length == 0)
+            {
+                return;
+            }
 
+            Plugin.LoadSchematic(circuitFileStream);
             UpdateSchematic();
         }
 
-        private void OnCircuitFileUpdated(object sender, FileSystemEventArgs e)
+        private void OnCircuitFileChanged(object sender, FileSystemEventArgs e)
         {
             // The circuit file remains locked by the OS for a short period of time after writing.
             // A workaround for this problem is to wait for a short amount of time and keep checking
@@ -156,23 +162,37 @@ namespace LiveSPICEVst
                     // If the file can be successfully opened,
                     // it means that it's unlocked and the circuit can be reloaded
                     FileStream circuitFile = File.Open(
-                        Plugin.SchematicPath, 
-                        FileMode.Open, 
-                        FileAccess.ReadWrite, 
+                        Plugin.SchematicPath,
+                        FileMode.Open,
+                        FileAccess.Read,
                         FileShare.None);
 
-                    circuitFile.Close();
-
-                    // The OnCircuitFileUpdated function is called a from a thread separate from the UI
+                    // The OnCircuitFileChanged function is called a from a thread separate from the UI
                     // and it cannot directly access the plugin data.
                     // Therefore, the main UI thread should be notified to call the reload function.
-                    uiThreadContext.Send(x => ReloadCircuit(), null);
+                    uiThreadContext.Send(x => ReloadCircuit(circuitFile), null);
+
+                    circuitFile.Close();
                     return;
                 }
                 catch { }
 
                 Thread.Sleep(delay);
                 --numberOfRetries;
+            }
+        }
+
+        private void OnCircuitFileRenamed(object sender, FileSystemEventArgs e)
+        {
+            // The OnCircuitFileRenamed function is called a from a thread separate from the UI
+            // and it cannot directly access the plugin data.
+            // Therefore, the main UI thread should be notified to call the reload function.
+            uiThreadContext.Send(x => ReloadCircuit(e.FullPath), null);
+
+            // If the file was manually renamed (from file explorer), reinitialize the FileSystemWatcher with the new schematic path
+            if (e.FullPath != Plugin.SchematicPath)
+            {
+                uiThreadContext.Send(x => AutoReloadSetup(), null);
             }
         }
 
@@ -201,13 +221,15 @@ namespace LiveSPICEVst
             {
                 Filter = Path.GetFileName(Plugin.SchematicPath),
                 Path = Path.GetDirectoryName(Plugin.SchematicPath),
-                NotifyFilter = NotifyFilters.LastWrite,
+                NotifyFilter = NotifyFilters.FileName| NotifyFilters.LastWrite,
                 // EnableRaisingEvents has to be set last, otherwise it throws an error because the path is still empty
                 EnableRaisingEvents = true,
             };
 
-            // Link a callback function to the file watcher that executes each time a new write operation occurs
-            loadedCircuitFileWatcher.Changed += OnCircuitFileUpdated;
+            // Link callback functions to the file watcher that executes each time a
+            // new write or rename operation occurs on the loaded schematic file
+            loadedCircuitFileWatcher.Renamed += OnCircuitFileRenamed;
+            loadedCircuitFileWatcher.Changed += OnCircuitFileChanged;
         }
     }
 }

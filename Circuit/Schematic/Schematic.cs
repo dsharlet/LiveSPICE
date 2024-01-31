@@ -1,6 +1,7 @@
 ﻿using ComputerAlgebra;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Util;
@@ -363,7 +364,17 @@ namespace Circuit
             return S;
         }
 
+        public static Schematic Load(FileStream fileStream, ILog Log)
+        {
+            XDocument doc = XDocument.Load(fileStream);
+            Schematic S = Deserialize(doc.Root, Log);
+            Log.WriteLine(MessageType.Info, "Schematic loaded from '" + fileStream.Name + "'");
+            S.LogComponents();
+            return S;
+        }
+
         public static Schematic Load(string FileName) { return Load(FileName, new NullLog()); }
+        public static Schematic Load(FileStream fileStream) { return Load(fileStream, new NullLog()); }
 
         public XElement Serialize()
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,6 +98,18 @@ namespace LiveSPICEVst
             Schematic = newSchematic;
 
             SchematicPath = path;
+        }
+        public void LoadSchematic(FileStream schematicFileStream)
+        {
+            Schematic newSchematic = Circuit.Schematic.Load(schematicFileStream);
+
+            Circuit.Circuit circuit = newSchematic.Build();
+
+            SetCircuit(circuit);
+
+            Schematic = newSchematic;
+
+            SchematicPath = schematicFileStream.Name;
         }
 
         public void ClearSchematic()
