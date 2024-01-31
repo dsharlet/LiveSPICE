@@ -134,57 +134,10 @@ namespace LiveSPICEVst
             Plugin.LoadSchematic(path);
             UpdateSchematic();
         }
-        private void ReloadCircuit(FileStream circuitFileStream)
+
+        private void OnCircuitFileUpdate(object sender, FileSystemEventArgs e)
         {
-            if (circuitFileStream.Length == 0)
-            {
-                return;
-            }
-
-            Plugin.LoadSchematic(circuitFileStream);
-            UpdateSchematic();
-        }
-
-        private void OnCircuitFileChanged(object sender, FileSystemEventArgs e)
-        {
-            // The circuit file remains locked by the OS for a short period of time after writing.
-            // A workaround for this problem is to wait for a short amount of time and keep checking
-            // if the file has been unlocked, or if a timeout has occured
-            // The timeout time is calculated as follows: delay * numberOfRetries
-            // and it this case it is 50 * 20 = 1000 milliseconds or 1 second
-            const int delay = 50;
-            int numberOfRetries = 20;
-
-            while (numberOfRetries > 0)
-            {
-                try
-                {
-                    // If the file can be successfully opened,
-                    // it means that it's unlocked and the circuit can be reloaded
-                    FileStream circuitFile = File.Open(
-                        Plugin.SchematicPath,
-                        FileMode.Open,
-                        FileAccess.Read,
-                        FileShare.None);
-
-                    // The OnCircuitFileChanged function is called a from a thread separate from the UI
-                    // and it cannot directly access the plugin data.
-                    // Therefore, the main UI thread should be notified to call the reload function.
-                    uiThreadContext.Send(x => ReloadCircuit(circuitFile), null);
-
-                    circuitFile.Close();
-                    return;
-                }
-                catch { }
-
-                Thread.Sleep(delay);
-                --numberOfRetries;
-            }
-        }
-
-        private void OnCircuitFileRenamed(object sender, FileSystemEventArgs e)
-        {
-            // The OnCircuitFileRenamed function is called a from a thread separate from the UI
+            // The OnCircuitFileUpdate function is called a from a thread separate from the UI
             // and it cannot directly access the plugin data.
             // Therefore, the main UI thread should be notified to call the reload function.
             uiThreadContext.Send(x => ReloadCircuit(e.FullPath), null);
@@ -221,15 +174,16 @@ namespace LiveSPICEVst
             {
                 Filter = Path.GetFileName(Plugin.SchematicPath),
                 Path = Path.GetDirectoryName(Plugin.SchematicPath),
-                NotifyFilter = NotifyFilters.FileName| NotifyFilters.LastWrite,
+                NotifyFilter = NotifyFilters.FileName,
                 // EnableRaisingEvents has to be set last, otherwise it throws an error because the path is still empty
                 EnableRaisingEvents = true,
             };
 
-            // Link callback functions to the file watcher that executes each time a
-            // new write or rename operation occurs on the loaded schematic file
-            loadedCircuitFileWatcher.Renamed += OnCircuitFileRenamed;
-            loadedCircuitFileWatcher.Changed += OnCircuitFileChanged;
+            // Link a callback function to the file watcher that executes
+            // each time a rename operation occurs on the loaded schematic file.
+            // A rename happens because whenever the schematic file is saved, it is firstly
+            // stored as a .temp file and after writing, the file is renamed to use the correct extension.
+            loadedCircuitFileWatcher.Renamed += OnCircuitFileUpdate;
         }
     }
 }

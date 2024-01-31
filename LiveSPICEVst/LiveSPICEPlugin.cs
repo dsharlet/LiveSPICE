@@ -190,19 +190,6 @@ namespace LiveSPICEVst
                 MessageBox.Show(String.Format("Error loading schematic from: {0}\n\n{1}", path, ex.ToString()), "Schematic Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        public void LoadSchematic(FileStream schematicFileStream)
-        {
-            haveSimulationError = false;
-
-            try
-            {
-                SimulationProcessor.LoadSchematic(schematicFileStream);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(String.Format("Error loading schematic from: {0}\n\n{1}", schematicFileStream.Name, ex.ToString()), "Schematic Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
 
         public override void Process()
         {
