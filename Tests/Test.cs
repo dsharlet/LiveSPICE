@@ -38,13 +38,11 @@ namespace Tests
             Func<double, double> Vin,
             int SampleRate,
             int Samples,
-            int Oversample,
-            int Iterations,
             Expression? Input = null,
             IEnumerable<Expression>? Outputs = null)
         {
             Analysis analysis = C.Analyze();
-            TransientSolution TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample));
+            TransientSolution TS = TransientSolution.Solve(analysis, (Real)1 / SampleRate);
 
             // By default, pass Vin to each input of the circuit.
             if (Input == null)
@@ -61,8 +59,6 @@ namespace Tests
 
             Simulation S = new Simulation(TS)
             {
-                Oversample = Oversample,
-                Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
             };
@@ -103,8 +99,6 @@ namespace Tests
             Circuit.Circuit C,
             Func<double, double> Vin,
             int SampleRate,
-            int Oversample,
-            int Iterations,
             Expression? Input = null,
             IEnumerable<Expression>? Outputs = null,
             ILog? log = null)
@@ -113,7 +107,7 @@ namespace Tests
             double analyzeTime = Benchmark(1, () => analysis = C.Analyze());
 
             TransientSolution? TS = null;
-            double solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample), log));
+            double solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / SampleRate, log));
 
             // By default, pass Vin to each input of the circuit.
             if (Input == null)
@@ -130,8 +124,6 @@ namespace Tests
 
             Simulation S = new Simulation(TS)
             {
-                Oversample = Oversample,
-                Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
             };

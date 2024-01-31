@@ -82,8 +82,6 @@ namespace LiveSPICEVst
             VstProgramParameters programParameters = new VstProgramParameters
             {
                 SchematicPath = SimulationProcessor.SchematicPath,
-                OverSample = SimulationProcessor.Oversample,
-                Iterations = SimulationProcessor.Iterations
             };
 
             foreach (var wrapper in SimulationProcessor.InteractiveComponents)
@@ -140,9 +138,6 @@ namespace LiveSPICEVst
                     {
                         LoadSchematic(programParameters.SchematicPath);
                     }
-
-                    SimulationProcessor.Oversample = programParameters.OverSample;
-                    SimulationProcessor.Iterations = programParameters.Iterations;
 
                     foreach (VSTProgramControlParameter controlParameter in programParameters.ControlParameters)
                     {

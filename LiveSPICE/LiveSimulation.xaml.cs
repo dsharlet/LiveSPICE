@@ -27,26 +27,6 @@ namespace LiveSPICE
         public Log Log { get { return (Log)log.Content; } }
         public Scope Scope { get { return (Scope)scope.Content; } }
 
-        protected int oversample = 8;
-        /// <summary>
-        /// Simulation oversampling rate.
-        /// </summary>
-        public int Oversample
-        {
-            get { return oversample; }
-            set { oversample = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Oversample)); }
-        }
-
-        protected int iterations = 8;
-        /// <summary>
-        /// Max iterations for numerical algorithms.
-        /// </summary>
-        public int Iterations
-        {
-            get { return iterations; }
-            set { iterations = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Iterations)); }
-        }
-
         private double inputGain = 1.0;
         /// <summary>
         /// Overall input gain.
@@ -295,7 +275,7 @@ namespace LiveSPICE
                 {
                     try
                     {
-                        ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
+                        ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / stream.SampleRate;
                         TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
 
                         simulation = new Simulation(solution)
@@ -303,8 +283,6 @@ namespace LiveSPICE
                             Log = Log,
                             Input = inputs.Keys.ToArray(),
                             Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                            Oversample = Oversample,
-                            Iterations = Iterations,
                         };
                     }
                     catch (Exception Ex)
@@ -323,7 +301,7 @@ namespace LiveSPICE
             int id = Interlocked.Increment(ref update);
             new Task(() =>
             {
-                ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
+                ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / stream.SampleRate;
                 TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
                 lock (sync)
                 {
@@ -336,8 +314,6 @@ namespace LiveSPICE
                                 Log = Log,
                                 Input = inputs.Keys.ToArray(),
                                 Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                                Oversample = Oversample,
-                                Iterations = Iterations,
                             };
                         }
                         else
