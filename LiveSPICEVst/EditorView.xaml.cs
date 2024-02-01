@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.IO;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -17,7 +16,6 @@ namespace LiveSPICEVst
         SchematicWindow schematicWindow = null;
 
         FileSystemWatcher loadedCircuitFileWatcher = null;
-        readonly SynchronizationContext uiThreadContext = null;
 
         public EditorView(LiveSPICEPlugin plugin)
         {
@@ -25,7 +23,6 @@ namespace LiveSPICEVst
             this.DataContext = Plugin;
 
             Plugin.EditorView = this;
-            uiThreadContext = SynchronizationContext.Current;
 
             InitializeComponent();
 
@@ -137,16 +134,15 @@ namespace LiveSPICEVst
 
         private void OnCircuitFileUpdate(object sender, FileSystemEventArgs e)
         {
+            if (e.FullPath != Plugin.SchematicPath)
+            {
+                return;
+            }
+
             // The OnCircuitFileUpdate function is called a from a thread separate from the UI
             // and it cannot directly access the plugin data.
             // Therefore, the main UI thread should be notified to call the reload function.
-            uiThreadContext.Send(x => ReloadCircuit(e.FullPath), null);
-
-            // If the file was manually renamed (from file explorer), reinitialize the FileSystemWatcher with the new schematic path
-            if (e.FullPath != Plugin.SchematicPath)
-            {
-                uiThreadContext.Send(x => AutoReloadSetup(), null);
-            }
+            Dispatcher.Invoke(() => ReloadCircuit(Plugin.SchematicPath));
         }
 
         private void AutoReloadCheckBox_Click(object sender, RoutedEventArgs e)
