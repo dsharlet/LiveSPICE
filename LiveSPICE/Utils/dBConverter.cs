@@ -12,7 +12,11 @@ namespace LiveSPICE
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return Math.Pow(10, (double)value / 20);
+            if (value is string s && double.TryParse(s, out var dbValue))
+            {
+                return Math.Pow(10, dbValue / 20);
+            }
+            return value;
         }
     }
 }
