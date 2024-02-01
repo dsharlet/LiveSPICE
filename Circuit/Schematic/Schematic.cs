@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Util;
 
@@ -345,11 +346,31 @@ namespace Circuit
             Log.WriteLine(MessageType.Verbose, "  (" + Wires.Count() + " wires)");
         }
 
+        // The .NET wrapper for this doesn't support allowing overwriting until .NET 8 :(
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        static extern bool MoveFileEx(string existingFileName, string newFileName, int flags);
+
+        static int MOVEFILE_REPLACE_EXISTING = 1;
+        static int MOVEFILE_COPY_ALLOWED = 2;
+
         public void Save(string FileName)
         {
             XDocument doc = new XDocument();
             doc.Add(Serialize());
-            doc.Save(FileName);
+            // Try to make file writing atomic, in case other applications like
+            // VST plugins are watching for changes.
+            string temp = FileName + ".temp";
+            doc.Save(temp);
+            if (!MoveFileEx(temp, FileName, MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
+            {
+                // If the MoveFileEx call failed, just save it the regular way. This should never
+                // actually work, but we'll get a more descriptive error message if it fails.
+                // The only reasons MoveFileEx can fail either don't apply here (file is on a
+                // different volume) or reasons that will cause this to fail as well (file can't
+                // be written for some reason).
+                doc.Save(FileName);
+            }
             Log.WriteLine(MessageType.Info, "Schematic saved to '" + FileName + "'");
             LogComponents();
         }
