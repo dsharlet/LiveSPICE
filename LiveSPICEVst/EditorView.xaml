@@ -28,7 +28,10 @@
                     <TextBlock Margin="5,0,5,0">About</TextBlock>
                 </Button>
             </UniformGrid>
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5" UseLayoutRounding="True">
+            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="5">
+                <CheckBox x:Name="AutoReloadCheckBox" Content="Auto Reload" FlowDirection="RightToLeft" FontWeight="Bold" VerticalAlignment="Center" Click="AutoReloadCheckBox_Click"/>
+            </DockPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5,0" UseLayoutRounding="True">
                 <StackPanel.Resources>
                     <Style TargetType="{x:Type TextBlock}">
                         <Setter Property="FontWeight" Value="Bold" />
@@ -52,7 +55,7 @@
                     <ComboBoxItem>32</ComboBoxItem>
                     <ComboBoxItem>64</ComboBoxItem>
                 </ComboBox>
-            </StackPanel>
+            </StackPanel>            
             <local:SimulationInterface DataContext="{Binding SimulationProcessor}" />
         </DockPanel>
     </Grid>
