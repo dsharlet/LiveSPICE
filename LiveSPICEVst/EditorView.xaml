@@ -35,23 +35,6 @@
                         <Setter Property="Margin" Value="10,0,5,0"/>
                     </Style>
                 </StackPanel.Resources>
-                <TextBlock VerticalAlignment="Center">Oversample:</TextBlock>
-                <ComboBox x:Name="OversampleComboBox" SelectionChanged="OversampleComboBox_SelectionChanged">
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                    <ComboBoxItem>4</ComboBoxItem>
-                    <ComboBoxItem>8</ComboBoxItem>
-                </ComboBox>
-                <TextBlock VerticalAlignment="Center">Iterations:</TextBlock>
-                <ComboBox x:Name="IterationsComboBox" SelectionChanged="IterationsComboBox_SelectionChanged">
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                    <ComboBoxItem>4</ComboBoxItem>
-                    <ComboBoxItem>8</ComboBoxItem>
-                    <ComboBoxItem>16</ComboBoxItem>
-                    <ComboBoxItem>32</ComboBoxItem>
-                    <ComboBoxItem>64</ComboBoxItem>
-                </ComboBox>
             </StackPanel>
             <local:SimulationInterface DataContext="{Binding SimulationProcessor}" />
         </DockPanel>

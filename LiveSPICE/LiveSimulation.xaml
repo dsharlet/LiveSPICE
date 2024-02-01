@@ -78,24 +78,7 @@
 
         <!-- Toolbars -->
         <ToolBarTray Grid.Row="2">
-            <ToolBar Band="1" BandIndex="1">
-                <TextBlock Text="Oversample:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <ComboBox Width="40" IsEditable="True" Text="{Binding Oversample, UpdateSourceTrigger=PropertyChanged, Delay=1000}">
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                    <ComboBoxItem>3</ComboBoxItem>
-                    <ComboBoxItem>4</ComboBoxItem>
-                    <ComboBoxItem>6</ComboBoxItem>
-                    <ComboBoxItem>8</ComboBoxItem>
-                    <ComboBoxItem>12</ComboBoxItem>
-                    <ComboBoxItem>16</ComboBoxItem>
-                </ComboBox>
-
-                <TextBlock Text="Iterations:" Margin="5, 0, 2, 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                <xctk:IntegerUpDown Value="{Binding Iterations, Delay=1000}" Minimum="1" Maximum="64" />
-
-                <Separator />
-                
+            <ToolBar Band="1" BandIndex="1">                
                 <ls:ImageButton CommandImage="{x:Static ls:Commands.Simulate}" ImageHeight="16" />
             </ToolBar>
             <!-- View -->

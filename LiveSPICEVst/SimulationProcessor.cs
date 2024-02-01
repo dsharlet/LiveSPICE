@@ -39,37 +39,7 @@ namespace LiveSPICEVst
             }
         }
 
-        public int Oversample
-        {
-            get { return oversample; }
-            set
-            {
-                if (oversample != value)
-                {
-                    oversample = value;
-
-                    needRebuild = true;
-                }
-            }
-        }
-
-        public int Iterations
-        {
-            get { return iterations; }
-            set
-            {
-                if (iterations != value)
-                {
-                    iterations = value;
-
-                    needRebuild = true;
-                }
-            }
-        }
-
         double sampleRate;
-        int oversample = 2;
-        int iterations = 8;
 
         Circuit.Circuit circuit = null;
         Simulation simulation = null;
@@ -273,7 +243,7 @@ namespace LiveSPICEVst
                 try
                 {
                     Analysis analysis = circuit.Analyze();
-                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
+                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / sampleRate);
 
                     lock (sync)
                     {
@@ -307,8 +277,6 @@ namespace LiveSPICEVst
                                     {
                                         simulation = new Simulation(ts)
                                         {
-                                            Oversample = oversample,
-                                            Iterations = iterations,
                                             Input = new[] { inputExpression },
                                             Output = new[] { outputExpression }
                                         };

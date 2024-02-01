@@ -51,7 +51,7 @@ namespace Circuit
         /// <summary>
         /// Get the timestep for the simulation.
         /// </summary>
-        public double TimeStep { get { return (double)(Solution.TimeStep * oversample); } }
+        public double TimeStep { get { return (double)Solution.TimeStep; } }
 
         private ILog log = new NullLog();
         /// <summary>
@@ -69,22 +69,10 @@ namespace Circuit
             set { solution = value; InvalidateProcess(); }
         }
 
-        private int oversample = 8;
-        /// <summary>
-        /// Oversampling factor for this simulation.
-        /// </summary>
-        public int Oversample { get { return oversample; } set { oversample = value; InvalidateProcess(); } }
-
-        private int iterations = 8;
-        /// <summary>
-        /// Maximum number of iterations allowed for the simulation to converge.
-        /// </summary>
-        public int Iterations { get { return iterations; } set { iterations = value; InvalidateProcess(); } }
-
         /// <summary>
         /// The sampling rate of this simulation, the sampling rate of the transient solution divided by the oversampling factor.
         /// </summary>
-        public Expression SampleRate { get { return 1 / (Solution.TimeStep * oversample); } }
+        public Expression SampleRate { get { return 1 / Solution.TimeStep; } }
 
         private Expression[] input = new Expression[] { };
         /// <summary>
@@ -228,10 +216,7 @@ namespace Circuit
             LinqExpr Zero = LinqExpr.Constant(0);
 
             // double h = T / Oversample
-            LinqExpr h = LinqExpr.Constant(TimeStep / (double)Oversample);
-
-            // double invOversample = 1 / Oversample
-            LinqExpr invOversample = LinqExpr.Constant(1.0 / (double)Oversample);
+            LinqExpr h = LinqExpr.Constant(TimeStep);
 
             // Load the globals to local variables and add them to the map.
             foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
@@ -261,141 +246,121 @@ namespace Circuit
                 () => code.Add(LinqExpr.PreIncrementAssign(n)),
                 () =>
                 {
-                    // Prepare input samples for oversampling interpolation.
-                    Dictionary<Expression, LinqExpr> dVi = new Dictionary<Expression, LinqExpr>();
+                    // t += h
+                    code.Add(LinqExpr.AddAssign(t, h));
+
+                    // Interpolate the input samples.
                     foreach (Expression i in Input.Distinct())
                     {
-                        LinqExpr Va = code[i];
                         // Sum all inputs with this key.
                         IEnumerable<LinqExpr> Vbs = inputs.Where(j => j.Key.Equals(i)).Select(j => j.Value);
-                        LinqExpr Vb = LinqExpr.ArrayAccess(Vbs.First(), n);
+                        LinqExpr v = LinqExpr.ArrayAccess(Vbs.First(), n);
                         foreach (LinqExpr j in Vbs.Skip(1))
-                            Vb = LinqExpr.Add(Vb, LinqExpr.ArrayAccess(j, n));
-
-                        // dVi = (Vb - Va) / Oversample
-                        code.Add(LinqExpr.Assign(
-                            Decl<double>(code, dVi, i, "d" + i.ToString().Replace("[t]", "")),
-                            LinqExpr.Multiply(LinqExpr.Subtract(Vb, Va), invOversample)));
+                            v = LinqExpr.Add(v, LinqExpr.ArrayAccess(j, n));
+                        code.Add(LinqExpr.Assign(code[i], v));
                     }
 
-                    // Prepare output sample accumulators for low pass filtering.
-                    Dictionary<Expression, LinqExpr> Vo = new Dictionary<Expression, LinqExpr>();
-                    foreach (Expression i in Output.Distinct())
-                        code.Add(LinqExpr.Assign(
-                            Decl<double>(code, Vo, i, i.ToString().Replace("[t]", "")),
-                            LinqExpr.Constant(0.0)));
-
-                    // int ov = Oversample; 
-                    // do { -- ov; } while(ov > 0)
-                    ParamExpr ov = code.Decl<int>("ov");
-                    code.Add(LinqExpr.Assign(ov, LinqExpr.Constant(Oversample)));
-                    code.DoWhile(() =>
+                    // Compile all of the SolutionSets in the solution.
+                    foreach (SolutionSet ss in Solution.Solutions)
                     {
-                        // t += h
-                        code.Add(LinqExpr.AddAssign(t, h));
-
-                        // Interpolate the input samples.
-                        foreach (Expression i in Input.Distinct())
-                            code.Add(LinqExpr.AddAssign(code[i], dVi[i]));
-
-                        // Compile all of the SolutionSets in the solution.
-                        foreach (SolutionSet ss in Solution.Solutions)
+                        if (ss is LinearSolutions)
                         {
-                            if (ss is LinearSolutions)
-                            {
-                                // Linear solutions are easy.
-                                LinearSolutions S = (LinearSolutions)ss;
-                                foreach (Arrow i in S.Solutions)
-                                    code.DeclInit(i.Left, i.Right);
-                            }
-                            else if (ss is NewtonIteration)
-                            {
-                                NewtonIteration S = (NewtonIteration)ss;
+                            // Linear solutions are easy.
+                            LinearSolutions S = (LinearSolutions)ss;
+                            foreach (Arrow i in S.Solutions)
+                                code.DeclInit(i.Left, i.Right);
+                        }
+                        else if (ss is NewtonIteration)
+                        {
+                            NewtonIteration S = (NewtonIteration)ss;
 
-                                // Start with the initial guesses from the solution.
-                                foreach (Arrow i in S.Guesses)
-                                    code.DeclInit(i.Left, i.Right);
+                            // Start with the initial guesses from the solution.
+                            foreach (Arrow i in S.Guesses)
+                                code.DeclInit(i.Left, i.Right);
 
-                                // int it = iterations
-                                LinqExpr it = code.ReDeclInit<int>("it", Iterations);
-                                // do { ... --it } while(it > 0)
-                                code.DoWhile((Break) =>
+                            // int it = MaxIterations
+                            // This used to be a parameter, defaulted to 8. Experiments seem to show that
+                            // it basically never makes sense to stop iterating at a limit. This sort of
+                            // makes sense, because stopping iteration early suggests that the initial guess
+                            // for the next sample will be worse. So, we're just going to use a very large
+                            // number of iterations just to avoid getting stuck forever.
+                            LinqExpr it = code.ReDeclInit<int>("it", 128);
+                            // do { ... --it } while(it > 0)
+                            code.DoWhile((Break) =>
+                            {
+                                // Solve the un-solved system.
+                                Solve(code, JxF, S.Equations, S.UnknownDeltas);
+
+                                // Compile the pre-solved solutions.
+                                if (S.KnownDeltas != null)
+                                    foreach (Arrow i in S.KnownDeltas)
+                                        code.DeclInit(i.Left, i.Right);
+
+                                // bool done = true
+                                LinqExpr done = code.ReDeclInit("done", true);
+                                foreach (Expression i in S.Unknowns)
                                 {
-                                    // Solve the un-solved system.
-                                    Solve(code, JxF, S.Equations, S.UnknownDeltas);
+                                    LinqExpr v = code[i];
+                                    LinqExpr dv = code[NewtonIteration.Delta(i)];
 
-                                    // Compile the pre-solved solutions.
-                                    if (S.KnownDeltas != null)
-                                        foreach (Arrow i in S.KnownDeltas)
-                                            code.DeclInit(i.Left, i.Right);
+                                    // done &= (|dv| < |v|*epsilon)
+                                    code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), MultiplyAdd(Abs(v), LinqExpr.Constant(1e-4), LinqExpr.Constant(1e-6)))));
+                                    // v += dv
+                                    code.Add(LinqExpr.AddAssign(v, dv));
+                                }
+                                // if (done) break
+                                code.Add(LinqExpr.IfThen(done, Break));
 
-                                    // bool done = true
-                                    LinqExpr done = code.ReDeclInit("done", true);
-                                    foreach (Expression i in S.Unknowns)
-                                    {
-                                        LinqExpr v = code[i];
-                                        LinqExpr dv = code[NewtonIteration.Delta(i)];
+                                // --it;
+                                code.Add(LinqExpr.PreDecrementAssign(it));
+                            }, LinqExpr.GreaterThan(it, Zero));
 
-                                        // done &= (|dv| < |v|*epsilon)
-                                        code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), MultiplyAdd(Abs(v), LinqExpr.Constant(1e-4), LinqExpr.Constant(1e-6)))));
-                                        // v += dv
-                                        code.Add(LinqExpr.AddAssign(v, dv));
-                                    }
-                                    // if (done) break
-                                    code.Add(LinqExpr.IfThen(done, Break));
+                            //// bool failed = false
+                            //LinqExpr failed = Decl(code, code, "failed", LinqExpr.Constant(false));
+                            //for (int i = 0; i < eqs.Length; ++i)
+                            //    // failed |= |JxFi| > epsilon
+                            //    code.Add(LinqExpr.OrAssign(failed, LinqExpr.GreaterThan(Abs(eqs[i].ToExpression().Compile(map)), LinqExpr.Constant(1e-3))));
 
-                                    // --it;
-                                    code.Add(LinqExpr.PreDecrementAssign(it));
-                                }, LinqExpr.GreaterThan(it, Zero));
-
-                                //// bool failed = false
-                                //LinqExpr failed = Decl(code, code, "failed", LinqExpr.Constant(false));
-                                //for (int i = 0; i < eqs.Length; ++i)
-                                //    // failed |= |JxFi| > epsilon
-                                //    code.Add(LinqExpr.OrAssign(failed, LinqExpr.GreaterThan(Abs(eqs[i].ToExpression().Compile(map)), LinqExpr.Constant(1e-3))));
-
-                                //code.Add(LinqExpr.IfThen(failed, ThrowSimulationDiverged(n)));
-                            }
+                            //code.Add(LinqExpr.IfThen(failed, ThrowSimulationDiverged(n)));
                         }
+                    }
 
-                        // Update the previous timestep variables.
-                        foreach (SolutionSet S in Solution.Solutions)
+                    // Update the previous timestep variables.
+                    foreach (SolutionSet S in Solution.Solutions)
+                    {
+                        for (int m = MaxDelay; m < 0; m++)
                         {
-                            for (int m = MaxDelay; m < 0; m++)
-                            {
-                                Arrow t_tm = Arrow.New(Simulation.t, Simulation.t + m * Solution.TimeStep);
-                                Arrow t_tm1 = Arrow.New(Simulation.t, Simulation.t + (m + 1) * Solution.TimeStep);
-                                foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_tm))))
-                                    code.Add(LinqExpr.Assign(code[i.Evaluate(t_tm)], code[i.Evaluate(t_tm1)]));
-                            }
+                            Arrow t_tm = Arrow.New(Simulation.t, Simulation.t + m * Solution.TimeStep);
+                            Arrow t_tm1 = Arrow.New(Simulation.t, Simulation.t + (m + 1) * Solution.TimeStep);
+                            foreach (Expression i in S.Unknowns.Where(i => globals.Keys.Contains(i.Evaluate(t_tm))))
+                                code.Add(LinqExpr.Assign(code[i.Evaluate(t_tm)], code[i.Evaluate(t_tm1)]));
                         }
+                    }
 
-                        // Vo += i
-                        foreach (Expression i in Output.Distinct())
+                    Dictionary<Expression, LinqExpr> Vo = new Dictionary<Expression, LinqExpr>();
+
+                    // Vo = i
+                    foreach (Expression i in Output.Distinct())
+                    {
+                        try
                         {
-                            LinqExpr Voi = LinqExpr.Constant(0.0);
-                            try
-                            {
-                                Voi = code.Compile(i);
-                            }
-                            catch (Exception Ex)
-                            {
-                                Log.WriteLine(MessageType.Warning, Ex.Message);
-                            }
-                            code.Add(LinqExpr.AddAssign(Vo[i], Voi));
+                            code.Add(LinqExpr.Assign(
+                                Decl<double>(code, Vo, i, i.ToString().Replace("[t]", "")),
+                                code.Compile(i)));
                         }
+                        catch (Exception Ex)
+                        {
+                            Log.WriteLine(MessageType.Warning, Ex.Message);
+                        }
+                    }
 
-                        // Vi_t0 = Vi
-                        foreach (Expression i in Input.Distinct())
-                            code.Add(LinqExpr.Assign(code[i.Evaluate(t_t1)], code[i]));
+                    // Vi_t0 = V
+                    foreach (Expression i in Input.Distinct())
+                        code.Add(LinqExpr.Assign(code[i.Evaluate(t_t1)], code[i]));
 
-                        // --ov;
-                        code.Add(LinqExpr.PreDecrementAssign(ov));
-                    }, LinqExpr.GreaterThan(ov, Zero));
-
-                    // Output[i][n] = Vo / Oversample
+                    // Output[i][n] = Vo
                     foreach (KeyValuePair<Expression, LinqExpr> i in outputs)
-                        code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), LinqExpr.Multiply(Vo[i.Key], invOversample)));
+                        code.Add(LinqExpr.Assign(LinqExpr.ArrayAccess(i.Value, n), Vo[i.Key]));
 
                     // Every 256 samples, check for divergence.
                     if (Vo.Any())
