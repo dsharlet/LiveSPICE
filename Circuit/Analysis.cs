@@ -270,21 +270,14 @@ namespace Circuit
             /// </summary>
             public Expression Expression { get { return expr; } }
 
-            private string name;
-            /// <summary>
-            /// Name of this parameter.
-            /// </summary>
-            public string Name { get { return name; } }
-
             /// <summary>
             /// Expression describing the default value.
             /// </summary>
             public abstract Expression Default { get; }
 
-            public Parameter(Component Of, string Name, Expression Expression)
+            public Parameter(Component Of, Expression Expression)
             {
                 of = Of;
-                name = Name;
                 expr = Expression;
             }
         }
@@ -314,8 +307,8 @@ namespace Circuit
             /// </summary>
             public SweepType Sweep { get { return sweep; } }
 
-            public RangeParameter(Component Of, string Name, Expression Expression, double Default, double Minimum, double Maximum, SweepType Sweep)
-                : base(Of, Name, Expression)
+            public RangeParameter(Component Of, Expression Expression, double Default, double Minimum, double Maximum, SweepType Sweep)
+                : base(Of, Expression)
             {
                 def = Default;
                 min = Minimum;
@@ -338,7 +331,7 @@ namespace Circuit
         public Expression AddParameter(Component Of, string Name, double Default, double Min, double Max, SweepType Sweep)
         {
             Expression expr = ComputerAlgebra.Variable.New(context.Prefix + Name);
-            parameters.Add(new RangeParameter(Of, Name, expr, Default, Min, Max, Sweep)); 
+            parameters.Add(new RangeParameter(Of, expr, Default, Min, Max, Sweep)); 
             return expr;
         }
 
