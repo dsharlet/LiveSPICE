@@ -273,7 +273,7 @@ namespace Circuit
             /// <summary>
             /// Expression describing the default value.
             /// </summary>
-            public abstract Expression Default { get; }
+            public abstract double Default { get; }
 
             public Parameter(Component Of, Expression Expression)
             {
@@ -291,7 +291,7 @@ namespace Circuit
             /// <summary>
             /// Default value of the parameter.
             /// </summary>
-            public override Expression Default { get { return def; } }
+            public override double Default { get { return def; } }
             /// <summary>
             /// Minimum value for the parameter.
             /// </summary>
