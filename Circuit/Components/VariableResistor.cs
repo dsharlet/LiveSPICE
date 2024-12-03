@@ -80,10 +80,13 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = Mna.AddParameter(this, Name, Wipe, 1e-6, 1.0 - 1e-6, Sweep);
+            Expression P = Mna.AddParameter(this, Name, Wipe, SweepMin, SweepMax, Sweep);
 
             Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * P);
         }
+
+        public static readonly double SweepMin = 1e-6;
+        public static readonly double SweepMax = 1.0 - SweepMin;
 
         public static double AdjustWipe(double x, SweepType Sweep)
         {
