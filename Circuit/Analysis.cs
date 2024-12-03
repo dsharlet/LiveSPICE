@@ -253,6 +253,95 @@ namespace Circuit
         /// <returns></returns>
         public string AnonymousName() { return context.AnonymousName(); }
 
+        /// <summary>
+        /// Describes a parameter for the circuit.
+        /// </summary>
+        public abstract class Parameter
+        {
+            private Component of;
+            /// <summary>
+            /// Component the parameter affects.
+            /// </summary>
+            public Component Of { get { return of; } }
+
+            private Expression expr;
+            /// <summary>
+            /// Expression for the parameter in the system of equations for this analysis.
+            /// </summary>
+            public Expression Expression { get { return expr; } }
+
+            private string name;
+            /// <summary>
+            /// Name of this parameter.
+            /// </summary>
+            public string Name { get { return name; } }
+
+            /// <summary>
+            /// Expression describing the default value.
+            /// </summary>
+            public abstract Expression Default { get; }
+
+            public Parameter(Component Of, string Name, Expression Expression)
+            {
+                of = Of;
+                name = Name;
+                expr = Expression;
+            }
+        }
+
+        /// <summary>
+        /// Describes a ranged parameter for the circuit.
+        /// </summary>
+        public class RangeParameter : Parameter
+        {
+            private double def, min, max;
+            /// <summary>
+            /// Default value of the parameter.
+            /// </summary>
+            public override Expression Default { get { return def; } }
+            /// <summary>
+            /// Minimum value for the parameter.
+            /// </summary>
+            public double Minimum { get { return min; } }
+            /// <summary>
+            /// Maximum value for the parameter.
+            /// </summary>
+            public double Maximum { get { return max; } }
+
+            private SweepType sweep;
+            /// <summary>
+            /// Sweep type of the parameter.
+            /// </summary>
+            public SweepType Sweep { get { return sweep; } }
+
+            public RangeParameter(Component Of, string Name, Expression Expression, double Default, double Minimum, double Maximum, SweepType Sweep)
+                : base(Of, Name, Expression)
+            {
+                def = Default;
+                min = Minimum;
+                max = Maximum;
+                sweep = Sweep;
+            }
+        }
+
+        private List<Parameter> parameters = new List<Parameter>();
+        /// <summary>
+        /// Enumerates the parameters in this analysis.
+        /// </summary>
+        public IEnumerable<Parameter> Parameters { get { return parameters; } }
+
+        /// <summary>
+        /// Create an expression for a parameter in the current context.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns></returns>
+        public Expression AddParameter(Component Of, string Name, double Default, double Min, double Max, SweepType Sweep)
+        {
+            Expression expr = context.Prefix + Name;
+            parameters.Add(new RangeParameter(Of, Name, expr, Default, Min, Max, Sweep)); 
+            return expr;
+        }
+
         private void AddKcl(Dictionary<Expression, Expression> kcl, Expression V, Expression i)
         {
             if (kcl.TryGetValue(V, out var sumi))

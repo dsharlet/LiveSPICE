@@ -21,7 +21,7 @@ namespace Circuit
     /// <summary>
     /// Interface for components that expose a pot controlled value.
     /// </summary>
-    public interface IPotControl: IGroupableComponent
+    public interface IPotControl : IGroupableComponent
     {
         /// <summary>
         /// The value of the pot.
@@ -32,7 +32,7 @@ namespace Circuit
     /// <summary>
     /// Interface for components that expose a button controlled value.
     /// </summary>
-    public interface IButtonControl: IGroupableComponent
+    public interface IButtonControl : IGroupableComponent
     {
         void Click();
         int Position { get; set; }

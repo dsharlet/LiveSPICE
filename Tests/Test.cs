@@ -45,6 +45,8 @@ namespace Tests
         {
             Analysis analysis = C.Analyze();
             TransientSolution TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample));
+            
+            List<KeyValuePair<Expression, double>> arguments = analysis.Parameters.Select(i => new KeyValuePair<Expression, double>(i.Expression, (double)i.Default)).ToList();
 
             // By default, pass Vin to each input of the circuit.
             if (Input == null)
@@ -65,10 +67,13 @@ namespace Tests
                 Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
+                Arguments = arguments.Select(i => i.Key),
             };
 
             Dictionary<Expression, List<double>> outputs = 
                 S.Output.ToDictionary(i => i, i => new List<double>(Samples));
+
+            List<double> parameters = arguments.Select(i => i.Value).ToList();
 
             double T = S.TimeStep;
             double t = 0;
@@ -83,7 +88,7 @@ namespace Tests
                 for (int n = 0; n < N; ++n, t += T)
                     inputBuffer[n] = Vin(t);
 
-                S.Run(inputBuffer, outputBuffers);
+                S.Run(inputBuffer, outputBuffers, parameters);
 
                 for (int i = 0; i < S.Output.Count(); ++i)
                     outputs[S.Output.ElementAt(i)].AddRange(outputBuffers[i]);
@@ -115,6 +120,8 @@ namespace Tests
             TransientSolution? TS = null;
             double solveTime = Benchmark(1, () => TS = TransientSolution.Solve(analysis, (Real)1 / (SampleRate * Oversample), log));
 
+            List<KeyValuePair<Expression, double>> arguments = analysis.Parameters.Select(i => new KeyValuePair<Expression, double>(i.Expression, (double)i.Default)).ToList();
+
             // By default, pass Vin to each input of the circuit.
             if (Input == null)
                 Input = FindInput(C);
@@ -134,12 +141,14 @@ namespace Tests
                 Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
+                Arguments = arguments.Select(i => i.Key),
             };
 
             int N = 1000;
             double[] inputBuffer = new double[N];
             List<double[]> outputBuffers = Outputs.Select(i => new double[N]).ToList();
 
+            List<double> parameters = arguments.Select(i => i.Value).ToList();
             double T = 1.0 / SampleRate;
             double t = 0;
             double runTime = Benchmark(3, () =>
@@ -148,7 +157,7 @@ namespace Tests
                 for (int n = 0; n < N; ++n, t += T)
                     inputBuffer[n] = Vin(t);
 
-                S.Run(inputBuffer, outputBuffers);
+                S.Run(inputBuffer, outputBuffers, parameters);
             });
             double rate = N / runTime;
             return new double[] { analyzeTime, solveTime, rate };

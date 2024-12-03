@@ -101,6 +101,8 @@ namespace Circuit
                 .Substitute(dy_dt.Select(i => Arrow.New(i, 0)).Append(Arrow.New(t, 0), Arrow.New(T, 0), SinglePoleSwitch.IncludeOpen))
                 // Use the initial conditions from analysis.
                 .Substitute(Analysis.InitialConditions)
+                // Use the default parameter values.
+                .Substitute(Analysis.Parameters.Select(i => Arrow.New(i.Expression, i.Default)))
                 // Evaluate variables at t=0.
                 .OfType<Equal>(), y.Select(j => j.Substitute(t, 0)));
 

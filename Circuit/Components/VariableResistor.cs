@@ -80,7 +80,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = AdjustWipe(wipe, sweep);
+            Expression P = Mna.AddParameter(this, Name, Wipe, 1e-6, 1.0 - 1e-6, Sweep);
 
             Resistor.Analyze(Mna, Name, Anode, Cathode, (Expression)Resistance * P);
         }
