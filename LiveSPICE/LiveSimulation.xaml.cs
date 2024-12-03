@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Printing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -302,6 +303,19 @@ namespace LiveSPICE
             }
         }
 
+        private Simulation MakeSimulation(TransientSolution solution)
+        {
+            return new Simulation(solution)
+            {
+                Log = Log,
+                Input = inputs.Keys.ToArray(),
+                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
+                Arguments = namedArguments.Select(i => i.Key).ToArray(),
+                Oversample = Oversample,
+                Iterations = Iterations,
+            };
+        }
+
         private void RebuildSolution()
         {
             lock (sync)
@@ -313,16 +327,7 @@ namespace LiveSPICE
                     {
                         ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
                         TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
-
-                        simulation = new Simulation(solution)
-                        {
-                            Log = Log,
-                            Input = inputs.Keys.ToArray(),
-                            Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                            Arguments = namedArguments.Select(i => i.Key).ToArray(),
-                            Oversample = Oversample,
-                            Iterations = Iterations,
-                        };
+                        simulation = MakeSimulation(solution);
                     }
                     catch (Exception Ex)
                     {
@@ -348,15 +353,7 @@ namespace LiveSPICE
                     {
                         if (Rebuild)
                         {
-                            simulation = new Simulation(s)
-                            {
-                                Log = Log,
-                                Input = inputs.Keys.ToArray(),
-                                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                                Arguments = namedArguments.Select(i => i.Key).ToArray(),
-                                Oversample = Oversample,
-                                Iterations = Iterations,
-                            };
+                            simulation = MakeSimulation(s);
                         }
                         else
                         {
