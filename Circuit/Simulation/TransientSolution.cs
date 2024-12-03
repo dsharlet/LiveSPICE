@@ -154,7 +154,6 @@ namespace Circuit
                 IEnumerable<Arrow> linear = F.Solve();
                 if (linear.Any())
                 {
-                    linear = Factor(linear);
                     solutions.Add(new LinearSolutions(linear));
                     LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
                 }
@@ -177,15 +176,12 @@ namespace Circuit
                     // Find linear solutions for dy. 
                     nonlinear.RowReduce(ly);
                     IEnumerable<Arrow> solved = nonlinear.Solve(ly);
-                    solved = Factor(solved);
 
                     // Initial guess for y[t] = y[t - h].
                     IEnumerable<Arrow> guess = F.Unknowns.Select(i => Arrow.New(i, i.Substitute(t, t - h))).ToList();
-                    guess = Factor(guess);
 
                     // Newton system equations.
                     IEnumerable<LinearCombination> equations = nonlinear.Equations.Buffer();
-                    equations = Factor(equations);
 
                     solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
                     LogExpressions(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), equations.Select(i => Equal.New(i, 0)));
@@ -204,9 +200,6 @@ namespace Circuit
         }
         public static TransientSolution Solve(Analysis Analysis, Expression TimeStep, ILog Log) { return Solve(Analysis, TimeStep, new Arrow[] { }, Log); }
         public static TransientSolution Solve(Analysis Analysis, Expression TimeStep) { return Solve(Analysis, TimeStep, new Arrow[] { }, new NullLog()); }
-
-        private static IEnumerable<Arrow> Factor(IEnumerable<Arrow> x) { return x.Select(i => Arrow.New(i.Left, i.Right.Factor())).Buffer(); }
-        private static IEnumerable<LinearCombination> Factor(IEnumerable<LinearCombination> x) { return x.Select(i => LinearCombination.New(i.Select(j => new KeyValuePair<Expression, Expression>(j.Key, j.Value.Factor())))).Buffer(); }
 
         // Shorthand for df/dx.
         protected static Expression D(Expression f, Expression x) { return Call.D(f, x); }
