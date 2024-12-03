@@ -337,7 +337,7 @@ namespace Circuit
         /// <returns></returns>
         public Expression AddParameter(Component Of, string Name, double Default, double Min, double Max, SweepType Sweep)
         {
-            Expression expr = context.Prefix + Name;
+            Expression expr = ComputerAlgebra.Variable.New(context.Prefix + Name);
             parameters.Add(new RangeParameter(Of, Name, expr, Default, Min, Max, Sweep)); 
             return expr;
         }
