@@ -63,7 +63,7 @@ namespace Circuit
 
         public override void Analyze(Analysis Mna)
         {
-            Expression P = Mna.AddParameter(this, Name, Wipe, VariableResistor.SweepMin, VariableResistor.SweepMax, Sweep);
+            Expression P = Mna.AddParameter(this, Name, () => VariableResistor.AdjustWipe(Wipe, Sweep));
 
             Expression R1 = Resistance * P;
             Expression R2 = Resistance * (1 - P);

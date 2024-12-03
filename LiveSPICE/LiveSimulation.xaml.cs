@@ -102,57 +102,47 @@ namespace LiveSPICE
 
                 foreach (Circuit.Analysis.Parameter P in analysis.Parameters)
                 {
-                    namedArguments[P.Expression] = (double)P.Default;
+                    namedArguments[P.Expression] = P.Value;
 
                     Circuit.Symbol S = P.Of.Tag as Circuit.Symbol;
                     if (S == null)
                         continue;
 
-                    SymbolControl tag = (SymbolControl)S.Tag;
+                    SymbolControl tag = S.Tag as SymbolControl;
+                    if (tag == null) 
+                        continue;
 
-                    if (tag != null)
+                    IPotControl pot = (IPotControl)P.Of;
+                    var potControl = new PotControl()
                     {
-                        if (P is Circuit.Analysis.RangeParameter RP)
-                        {
-                            IPotControl pot = (IPotControl)P.Of;
-                            var potControl = new PotControl()
-                            {
-                                Width = 80,
-                                Height = 80,
-                                Opacity = 0.5,
-                                FontSize = 15,
-                                FontWeight = FontWeights.Bold,
-                                Value = (double)P.Default,
-                            };
-                            Schematic.Overlays.Children.Add(potControl);
-                            Canvas.SetLeft(potControl, Canvas.GetLeft(tag) - potControl.Width / 2 + tag.Width / 2);
-                            Canvas.SetTop(potControl, Canvas.GetTop(tag) - potControl.Height / 2 + tag.Height / 2);
+                        Width = 80,
+                        Height = 80,
+                        Opacity = 0.5,
+                        FontSize = 15,
+                        FontWeight = FontWeights.Bold,
+                        Value = pot.PotValue,
+                    };
+                    Schematic.Overlays.Children.Add(potControl);
+                    Canvas.SetLeft(potControl, Canvas.GetLeft(tag) - potControl.Width / 2 + tag.Width / 2);
+                    Canvas.SetTop(potControl, Canvas.GetTop(tag) - potControl.Height / 2 + tag.Height / 2);
 
-                            var binding = new Binding
-                            {
-                                Source = pot,
-                                Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.PotValue))),
-                                Mode = BindingMode.TwoWay,
-                                NotifyOnSourceUpdated = true
-                            };
-
-                            potControl.SetBinding(PotControl.ValueProperty, binding);
-
-                            potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
-                            {
-                                double x = potControl.Value;
-                                lock (namedArguments) namedArguments[P.Expression] = x * (RP.Maximum - RP.Minimum) + RP.Minimum; //AdjustWipe(x * (RP.Maximum - RP.Minimum) + RP.Minimum, RP.Sweep);
-                            }));
-
-                            potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
-                            potControl.MouseLeave += (o, e) => potControl.Opacity = 0.4;
-                        }
-                    }
-                    else
+                    var binding = new Binding
                     {
-                        // The component does not have a symbol, just use the default parameter value.
-                        namedArguments[P.Expression] = (double)P.Default;
-                    }
+                        Source = pot,
+                        Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.PotValue))),
+                        Mode = BindingMode.TwoWay,
+                        NotifyOnSourceUpdated = true
+                    };
+
+                    potControl.SetBinding(PotControl.ValueProperty, binding);
+
+                    potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
+                    {
+                        lock (namedArguments) namedArguments[P.Expression] = P.Value;
+                    }));
+
+                    potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
+                    potControl.MouseLeave += (o, e) => potControl.Opacity = 0.4;
                 }
 
                 // Create the input and output controls.                

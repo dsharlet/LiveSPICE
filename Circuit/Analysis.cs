@@ -256,7 +256,7 @@ namespace Circuit
         /// <summary>
         /// Describes a parameter for the circuit.
         /// </summary>
-        public abstract class Parameter
+        public class Parameter
         {
             private Component of;
             /// <summary>
@@ -270,50 +270,17 @@ namespace Circuit
             /// </summary>
             public Expression Expression { get { return expr; } }
 
+            Func<double> getter;
             /// <summary>
-            /// Expression describing the default value.
+            /// Current value of the parameter.
             /// </summary>
-            public abstract double Default { get; }
+            public double Value { get { return getter(); } }
 
-            public Parameter(Component Of, Expression Expression)
+            public Parameter(Component Of, Expression Expression, Func<double> Getter)
             {
                 of = Of;
                 expr = Expression;
-            }
-        }
-
-        /// <summary>
-        /// Describes a ranged parameter for the circuit.
-        /// </summary>
-        public class RangeParameter : Parameter
-        {
-            private double def, min, max;
-            /// <summary>
-            /// Default value of the parameter.
-            /// </summary>
-            public override double Default { get { return def; } }
-            /// <summary>
-            /// Minimum value for the parameter.
-            /// </summary>
-            public double Minimum { get { return min; } }
-            /// <summary>
-            /// Maximum value for the parameter.
-            /// </summary>
-            public double Maximum { get { return max; } }
-
-            private SweepType sweep;
-            /// <summary>
-            /// Sweep type of the parameter.
-            /// </summary>
-            public SweepType Sweep { get { return sweep; } }
-
-            public RangeParameter(Component Of, Expression Expression, double Default, double Minimum, double Maximum, SweepType Sweep)
-                : base(Of, Expression)
-            {
-                def = Default;
-                min = Minimum;
-                max = Maximum;
-                sweep = Sweep;
+                getter = Getter;
             }
         }
 
@@ -328,10 +295,10 @@ namespace Circuit
         /// </summary>
         /// <param name="Name"></param>
         /// <returns></returns>
-        public Expression AddParameter(Component Of, string Name, double Default, double Min, double Max, SweepType Sweep)
+        public Expression AddParameter(Component Of, string Name, Func<double> Getter)
         {
-            Expression expr = ComputerAlgebra.Variable.New(context.Prefix + Name);
-            parameters.Add(new RangeParameter(Of, expr, Default, Min, Max, Sweep)); 
+            Expression expr = Variable.New(context.Prefix + Name);
+            parameters.Add(new Parameter(Of, expr, Getter)); 
             return expr;
         }
 

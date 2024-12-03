@@ -102,7 +102,7 @@ namespace Circuit
                 // Use the initial conditions from analysis.
                 .Substitute(Analysis.InitialConditions)
                 // Use the default parameter values.
-                .Substitute(Analysis.Parameters.Select(i => Arrow.New(i.Expression, i.Default)))
+                .Substitute(Analysis.Parameters.Select(i => Arrow.New(i.Expression, i.Value)))
                 // Evaluate variables at t=0.
                 .OfType<Equal>(), y.Select(j => j.Substitute(t, 0)));
 
