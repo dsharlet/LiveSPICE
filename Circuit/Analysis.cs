@@ -238,7 +238,11 @@ namespace Circuit
         /// </summary>
         /// <param name="Eq"></param>
         /// <returns></returns>
-        public Expression AddUnknownEqualTo(Expression Eq) { return AddUnknownEqualTo(AnonymousName(), Eq); }
+        public Expression AddUnknownEqualTo(Expression x) {
+            if (x is Constant) return x;
+            if (x is Call c && c.Target is UnknownFunction) return x;
+            return AddUnknownEqualTo(AnonymousName(), x); 
+        }
 
         /// <summary>
         /// Add initial conditions to the system.
