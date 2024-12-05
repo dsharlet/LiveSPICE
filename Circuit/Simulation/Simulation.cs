@@ -444,32 +444,24 @@ namespace Circuit
                     LinqExpr.Constant(0.0)));
             }
 
-            // Gaussian elimination on this turd.
+            // Fully solve this system of equations.
             code.Add(LinqExpr.Call(
-                GetMethod<Simulation>(Vector.IsHardwareAccelerated ? nameof(RowReduceVector) : nameof(RowReduce), Ab.Type, typeof(int), typeof(int)),
+                GetMethod<Simulation>(Vector.IsHardwareAccelerated ? nameof(SolveVector) : nameof(Solve), Ab.Type, typeof(int), typeof(int)),
                 Ab,
                 LinqExpr.Constant(M),
-                LinqExpr.Constant(N)));
+                LinqExpr.Constant(N + 1)));
 
-            // Ab is now upper triangular, solve it.
-            for (int j = N - 1; j >= 0; --j)
-            {
-                LinqExpr _j = LinqExpr.Constant(j);
-                LinqExpr Abj = code.ReDeclInit<double[]>("Abj", LinqExpr.ArrayAccess(Ab, _j));
-
-                LinqExpr r = LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(N));
-                for (int ji = j + 1; ji < N; ++ji)
-                    r = LinqExpr.Add(r, LinqExpr.Multiply(LinqExpr.ArrayAccess(Abj, LinqExpr.Constant(ji)), code[deltas[ji]]));
-                code.DeclInit(deltas[j], LinqExpr.Divide(LinqExpr.Negate(r), LinqExpr.ArrayAccess(Abj, _j)));
-            }
+            // Extract the solutions.
+            for (int j = 0; j < N; ++j)
+                code.DeclInit(deltas[j], LinqExpr.Negate(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(Ab, LinqExpr.Constant(j)), LinqExpr.Constant(N))));
         }
 
         // A human readable implementation of RowReduce.
-        public static void RowReduce(double[][] Ab, int M, int N)
+        public static void Solve(double[][] Ab, int M, int N)
         {
             // Solve for dx.
-            // For each variable in the system...
-            for (int j = 0; j + 1 < N; ++j)
+            // For each column...
+            for (int j = 0; j < Math.Min(M, N); ++j)
             {
                 int pi = j;
                 double max = Math.Abs(Ab[j][j]);
@@ -497,25 +489,35 @@ namespace Circuit
 
                 double[] Abj = Ab[j];
 
-                // Eliminate the rows after the pivot.
+                // Eliminate all other rows.
                 double p = Abj[j];
-                for (int i = j + 1; i < M; ++i)
+                if (p == 0) continue;
+                for (int i = 0; i < M; ++i)
                 {
+                    if (i == j) continue;
                     double[] Abi = Ab[i];
+                    if (Abi[j] == 0.0) continue;
+
                     double s = Abi[j] / p;
-                    if (s != 0.0)
-                        for (int ij = j + 1; ij <= N; ++ij)
-                            Abi[ij] -= Abj[ij] * s;
+                    for (int ij = j + 1; ij < N; ++ij)
+                        Abi[ij] -= Abj[ij] * s;
                 }
+
+                // Scale the pivot row, so the pivot is one.
+                double inv_p = 1.0 / p;
+                for (int ij = j + 1; ij < N; ++ij)
+                    Abj[ij] *= inv_p;
             }
         }
 
         //This algorith has no tail-loop - it requires arrays to be padded to N + Vector.Count - 1
-        private static void RowReduceVector(double[][] Ab, int M, int N)
+        private static void SolveVector(double[][] Ab, int M, int N)
         {
+            var vectorLength = Vector<double>.Count;
+
             // Solve for dx.
             // For each variable in the system...
-            for (int j = 0; j + 1 < N; ++j)
+            for (int j = 0; j < Math.Min(M, N); ++j)
             {
                 int pi = j;
                 double max = Math.Abs(Ab[j][j]);
@@ -540,24 +542,32 @@ namespace Circuit
                     Ab[j] = tmp;
                 }
 
-                var vectorLength = Vector<double>.Count;
-                // Eliminate the rows after the pivot.
-                double p = Ab[j][j];
-                for (int i = j + 1; i < M; ++i)
+                double[] Abj = Ab[j];
+
+                // Eliminate all other rows.
+                double p = Abj[j];
+                if (p == 0) continue;
+                for (int i = 0; i < M; ++i)
                 {
-                    double s = Ab[i][j] / p;
-                    if (s != 0.0)
+                    if (i == j) continue;
+                    double[] Abi = Ab[i];
+                    if (Abi[j] == 0) continue;
+
+                    double s = Abi[j] / p;
+                    for (int ij = j + 1; ij < N; ij += vectorLength)
                     {
-                        int jj;
-                        for (jj = j + 1; jj <= N; jj += vectorLength)
-                        {
-                            var source = new Vector<double>(Ab[j], jj);
-                            var target = new Vector<double>(Ab[i], jj);
-                            var res = target - (source * s);
-                            res.CopyTo(Ab[i], jj);
-                        }
+                        var source = new Vector<double>(Abj, ij);
+                        var target = new Vector<double>(Abi, ij);
+                        var res = target - (source * s);
+                        res.CopyTo(Abi, ij);
                     }
                 }
+
+                // Scale the pivot row, so the pivot is one.
+                // TODO: Vectorize
+                double inv_p = 1.0 / p;
+                for (int ij = j + 1; ij < N; ++ij)
+                    Abj[ij] *= inv_p;
             }
         }
 
