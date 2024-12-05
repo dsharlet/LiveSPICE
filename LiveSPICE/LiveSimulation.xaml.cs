@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Printing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -65,6 +66,7 @@ namespace LiveSPICE
         protected Simulation simulation = null;
 
         private List<Probe> probes = new List<Probe>();
+        protected Dictionary<ComputerAlgebra.Expression, double> namedArguments = new Dictionary<ComputerAlgebra.Expression, double>();
 
         private object sync = new object();
 
@@ -96,6 +98,52 @@ namespace LiveSPICE
 
                 // Build the circuit from the schematic.
                 circuit = Schematic.Schematic.Build(Log);
+                Circuit.Analysis analysis = circuit.Analyze();
+
+                foreach (Circuit.Analysis.Parameter P in analysis.Parameters)
+                {
+                    namedArguments[P.Expression] = P.Value;
+
+                    Circuit.Symbol S = P.Of.Tag as Circuit.Symbol;
+                    if (S == null)
+                        continue;
+
+                    SymbolControl tag = S.Tag as SymbolControl;
+                    if (tag == null) 
+                        continue;
+
+                    IPotControl pot = (IPotControl)P.Of;
+                    var potControl = new PotControl()
+                    {
+                        Width = 80,
+                        Height = 80,
+                        Opacity = 0.5,
+                        FontSize = 15,
+                        FontWeight = FontWeights.Bold,
+                        Value = pot.PotValue,
+                    };
+                    Schematic.Overlays.Children.Add(potControl);
+                    Canvas.SetLeft(potControl, Canvas.GetLeft(tag) - potControl.Width / 2 + tag.Width / 2);
+                    Canvas.SetTop(potControl, Canvas.GetTop(tag) - potControl.Height / 2 + tag.Height / 2);
+
+                    var binding = new Binding
+                    {
+                        Source = pot,
+                        Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.PotValue))),
+                        Mode = BindingMode.TwoWay,
+                        NotifyOnSourceUpdated = true
+                    };
+
+                    potControl.SetBinding(PotControl.ValueProperty, binding);
+
+                    potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
+                    {
+                        lock (namedArguments) namedArguments[P.Expression] = P.Value;
+                    }));
+
+                    potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
+                    potControl.MouseLeave += (o, e) => potControl.Opacity = 0.4;
+                }
 
                 // Create the input and output controls.                
                 IEnumerable<Circuit.Component> components = circuit.Components;
@@ -115,47 +163,6 @@ namespace LiveSPICE
                     SymbolControl tag = (SymbolControl)S.Tag;
                     if (tag == null)
                         continue;
-
-                    // Create potentiometers.
-                    if (i is IPotControl potentiometer)
-                    {
-                        var potControl = new PotControl()
-                        {
-                            Width = 80,
-                            Height = 80,
-                            Opacity = 0.5,
-                            FontSize = 15,
-                            FontWeight = FontWeights.Bold,
-                        };
-                        Schematic.Overlays.Children.Add(potControl);
-                        Canvas.SetLeft(potControl, Canvas.GetLeft(tag) - potControl.Width / 2 + tag.Width / 2);
-                        Canvas.SetTop(potControl, Canvas.GetTop(tag) - potControl.Height / 2 + tag.Height / 2);
-
-                        var binding = new Binding
-                        {
-                            Source = potentiometer,
-                            Path = new PropertyPath("(0)", typeof(IPotControl).GetProperty(nameof(IPotControl.PotValue))),
-                            Mode = BindingMode.TwoWay,
-                            NotifyOnSourceUpdated = true
-                        };
-
-                        potControl.SetBinding(PotControl.ValueProperty, binding);
-
-                        potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
-                        {
-                            if (!string.IsNullOrEmpty(potentiometer.Group))
-                            {
-                                foreach (var p in components.OfType<IPotControl>().Where(p => p != potentiometer && p.Group == potentiometer.Group))
-                                {
-                                    p.PotValue = (o as PotControl).Value;
-                                }
-                            }
-                            UpdateSimulation(false);
-                        }));
-
-                        potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
-                        potControl.MouseLeave += (o, e) => potControl.Opacity = 0.5;
-                    }
 
                     // Create Buttons.
                     if (i is IButtonControl b)
@@ -286,6 +293,19 @@ namespace LiveSPICE
             }
         }
 
+        private Simulation MakeSimulation(TransientSolution solution)
+        {
+            return new Simulation(solution)
+            {
+                Log = Log,
+                Input = inputs.Keys.ToArray(),
+                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
+                Arguments = namedArguments.Select(i => i.Key).ToArray(),
+                Oversample = Oversample,
+                Iterations = Iterations,
+            };
+        }
+
         private void RebuildSolution()
         {
             lock (sync)
@@ -297,15 +317,7 @@ namespace LiveSPICE
                     {
                         ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
                         TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
-
-                        simulation = new Simulation(solution)
-                        {
-                            Log = Log,
-                            Input = inputs.Keys.ToArray(),
-                            Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                            Oversample = Oversample,
-                            Iterations = Iterations,
-                        };
+                        simulation = MakeSimulation(solution);
                     }
                     catch (Exception Ex)
                     {
@@ -331,14 +343,7 @@ namespace LiveSPICE
                     {
                         if (Rebuild)
                         {
-                            simulation = new Simulation(s)
-                            {
-                                Log = Log,
-                                Input = inputs.Keys.ToArray(),
-                                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                                Oversample = Oversample,
-                                Iterations = Iterations,
-                            };
+                            simulation = MakeSimulation(s);
                         }
                         else
                         {
@@ -388,6 +393,7 @@ namespace LiveSPICE
         // These lists only ever grow, but they should never contain more than 10s of items.
         readonly List<double[]> inputBuffers = new List<double[]>();
         readonly List<double[]> outputBuffers = new List<double[]>();
+        readonly List<double> arguments = new List<double>();
         private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
             try
@@ -415,8 +421,12 @@ namespace LiveSPICE
                 for (int i = 0; i < Out.Length; ++i)
                     outputBuffers.Add(Out[i].Samples);
 
+                arguments.Clear();
+                foreach (double i in namedArguments.Select(i => i.Value))
+                    arguments.Add(i);
+
                 // Process the samples!
-                simulation.Run(Count, inputBuffers, outputBuffers);
+                simulation.Run(Count, inputBuffers, outputBuffers, arguments);
 
                 // Show the samples on the oscilloscope.
                 long clock = Scope.Signals.Clock;
