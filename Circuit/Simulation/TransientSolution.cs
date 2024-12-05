@@ -195,6 +195,9 @@ namespace Circuit
                 solutions.Count,
                 solutions.Sum(i => i.Unknowns.Count()));
 
+            // Solutions from `Solve` might depend on previous solutions, so we need to make sure to emit the solutions in the order that satisifies such dependencies.
+            solutions.Reverse();
+
             return new TransientSolution(
                 h,
                 solutions,
