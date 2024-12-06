@@ -79,10 +79,10 @@ namespace Circuit
             // Define T = step size.
             DynamicNamespace globals = new DynamicNamespace();
             globals.Add("T", h);
-            // Define d[t] = delta function.
+            // Define dq = delta function.
             // TODO: This should probably be centered around 0, and also have an integral of 1 (i.e. a height of 1 / h).
             globals.Add(ExprFunction.New("d", Call.If((0 <= t) & (t < h), 1, 0), t));
-            // Define u[t] = step function.
+            // Define uq = step function.
             globals.Add(ExprFunction.New("u", Call.If(t >= 0, 1, 0), t));
             mna = mna.Resolve(Analysis).Resolve(globals).OfType<Equal>().ToList();
 
@@ -151,11 +151,13 @@ namespace Circuit
                 Log.WriteLine(MessageType.Verbose, "Partition unknowns: {0}", String.Join(", ", F.Unknowns));
                 // Find linear solutions for y. Linear systems should be completely solved here.
                 F.RowReduce();
-                IEnumerable<Arrow> linear = F.Solve();
-                if (linear.Any())
+                List<Arrow> linearFwd = new List<Arrow>();
+                List<Arrow> linearBack = new List<Arrow>();
+                F.PartialSolve(linearFwd, linearBack);
+                if (linearFwd.Any())
                 {
-                    solutions.Add(new LinearSolutions(linear));
-                    LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linear);
+                    solutions.Add(new LinearSolutions(linearFwd));
+                    LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linearFwd);
                 }
 
                 // If there are any variables left, there are some non-linear equations requiring numerical techniques to solve.
@@ -186,6 +188,12 @@ namespace Circuit
                     solutions.Add(new NewtonIteration(solved, equations, nonlinear.Unknowns, guess));
                     LogExpressions(Log, MessageType.Verbose, String.Format("Non-linear Newton's method updates ({0}):", String.Join(", ", nonlinear.Unknowns)), equations.Select(i => Equal.New(i, 0)));
                     LogExpressions(Log, MessageType.Verbose, "Linear Newton's method updates:", solved);
+                }
+
+                if (linearBack.Any())
+                {
+                    solutions.Add(new LinearSolutions(linearBack));
+                    LogExpressions(Log, MessageType.Verbose, "Linear solutions:", linearBack);
                 }
             }
 
