@@ -7,12 +7,12 @@
     },
     "Examples": {
       "commandName": "Project",
-      "commandLineArgs": "test Examples\\*.schx --sampleRate 44100 --plot",
+      "commandLineArgs": "test Examples\\*.schx --sampleRate 44100 --plot --stats",
       "workingDirectory": "$(ProjectDir)"
     },
     "Circuits": {
       "commandName": "Project",
-      "commandLineArgs": "test Circuits\\*.schx --sampleRate 44100 --plot",
+      "commandLineArgs": "test Circuits\\*.schx --sampleRate 44100 --plot --stats",
       "workingDirectory": "$(ProjectDir)"
     }
   }
