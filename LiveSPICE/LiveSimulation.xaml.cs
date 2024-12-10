@@ -187,7 +187,7 @@ namespace LiveSPICE
                                 foreach (var j in components.OfType<IButtonControl>().Where(x => x != b && x.Group == b.Group))
                                     j.Click();
                             }
-                            UpdateSimulation(true);
+                            UpdateSimulation();
                         };
 
                         button.MouseEnter += (o, e) => button.Opacity = 0.95;
@@ -327,32 +327,14 @@ namespace LiveSPICE
             }
         }
 
-        private int clock = -1;
-        private int update = 0;
-        private TaskScheduler scheduler = new RedundantTaskScheduler(1);
-        private void UpdateSimulation(bool Rebuild)
+        private void UpdateSimulation()
         {
-            int id = Interlocked.Increment(ref update);
-            new Task(() =>
+            ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
+            TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, (ILog)Log);
+            lock (sync)
             {
-                ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Rebuild ? (ILog)Log : new NullLog());
-                lock (sync)
-                {
-                    if (id > clock)
-                    {
-                        if (Rebuild)
-                        {
-                            simulation = MakeSimulation(s);
-                        }
-                        else
-                        {
-                            simulation.Solution = s;
-                            clock = id;
-                        }
-                    }
-                }
-            }).Start(scheduler);
+                simulation = MakeSimulation(s);
+            }
         }
 
         private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
