@@ -146,7 +146,8 @@ namespace Circuit
                     break;
                 case TriodeModel.Koren:
                     Expression E1 = Ln1Exp(Kp * (1.0 / Mu + Vgk * Binary.Power(Kvb + Vpk * Vpk, -0.5))) * Vpk / Kp;
-                    ip = Mna.AddUnknownEqualTo(Call.If(E1 > 0, 2d * (E1 ^ Ex) / Kg, 0));
+                    ip = Call.If(E1 > 0, 2d * (E1 ^ Ex) / Kg, 0);
+                    ip = Mna.AddUnknownEqualTo("Ip", ip);
 
                     var vg = (Real)Vg;
                     var knee = (Real)Kn;
@@ -156,7 +157,8 @@ namespace Circuit
                     var b = (knee - vg) / (2 * knee * rg1);
                     var c = (-a * Binary.Power(vg - knee, 2)) - (b * (vg - knee));
 
-                    ig = Mna.AddUnknownEqualTo(Call.If(Vgk < vg - knee, 0, Call.If(Vgk > vg + knee, (Vgk - vg) / rg1, a * Vgk * Vgk + b * Vgk + c)));
+                    ig = Call.If(Vgk < vg - knee, 0, Call.If(Vgk > vg + knee, (Vgk - vg) / rg1, a * Vgk * Vgk + b * Vgk + c));
+                    ig = Mna.AddUnknownEqualTo("Ig", ig);
                     ik = -(ip + ig);
                     break;
                 case TriodeModel.DempwolfZolzer:
