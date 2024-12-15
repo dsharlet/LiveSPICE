@@ -9,10 +9,10 @@
     <FileVersion>1.0.0.0</FileVersion>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Circuit\Circuit.csproj" />
-    <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra.Plotting\ComputerAlgebra.Plotting.csproj" />
     <ProjectReference Include="..\ComputerAlgebra\ComputerAlgebra\ComputerAlgebra.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>

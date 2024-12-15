@@ -1,6 +1,6 @@
 ﻿using Circuit;
 using ComputerAlgebra;
-using ComputerAlgebra.Plotting;
+using Plotting;
 using System;
 using System.Collections.Generic;
 using System.IO;
