@@ -19,6 +19,11 @@
       "commandName": "Project",
       "commandLineArgs": "test Circuits\\*.schx Examples\\*.schx --sampleRate 44100 --plot --updateGolden",
       "workingDirectory": "$(ProjectDir)"
+    },
+    "Test": {
+      "commandName": "Project",
+      "commandLineArgs": "test Circuits\\*.schx Examples\\*.schx --sampleRate 44100",
+      "workingDirectory": "$(ProjectDir)"
     }
   }
 }

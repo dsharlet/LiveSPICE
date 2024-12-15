@@ -224,7 +224,7 @@ namespace Tests
             {
                 string golden = File.ReadAllText(path);
                 if (golden != sb.ToString())
-                    throw new Exception(String.Format("Statistics mismatch in {0}", Title));
+                    throw new Exception(String.Format("Statistics mismatch in {0}: got:\n{1}\nexpected:\n{2}", Title, sb.ToString(), golden));
             }
         }
     }
