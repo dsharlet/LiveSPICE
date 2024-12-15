@@ -42,7 +42,7 @@ namespace Tests
                 {
                     tester.PlotAll(circuit.Name, outputs);
                 }
-                tester.CheckStatistics(circuit.Name, outputs, updateGolden);
+                tester.CheckStatistics(circuit.Name, outputs, samples / 2, updateGolden);
             }
         }
 

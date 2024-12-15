@@ -176,22 +176,23 @@ namespace Tests
             p.Save("Plots\\" + Title + ".bmp");
         }
 
-        private static Dictionary<Expression, double[]> ComputeStatistics(Dictionary<Expression, List<double>> Outputs)
+        private static Dictionary<Expression, double[]> ComputeStatistics(Dictionary<Expression, List<double>> Outputs, int Warmup)
         {
             Dictionary<Expression, double[]> stats = new Dictionary<Expression, double[]>();
             foreach (var i in Outputs)
             {
-                double mean = i.Value.Sum() / i.Value.Count;
-                double min = i.Value.Min();
-                double max = i.Value.Max();
+                double[] steadyState = i.Value.Skip(Warmup).ToArray();
+                double mean = steadyState.Sum() / steadyState.Count();
+                double min = steadyState.Min();
+                double max = steadyState.Max();
                 stats.Add(i.Key, new double[] { mean, min, max });
             }
             return stats;
         }
 
-        private string StatsToString(string Title, Dictionary<Expression, List<double>> Outputs)
+        private string StatsToString(string Title, Dictionary<Expression, List<double>> Outputs, int Warmup)
         {
-            Dictionary<Expression, double[]> stats = ComputeStatistics(Outputs);
+            Dictionary<Expression, double[]> stats = ComputeStatistics(Outputs, Warmup);
 
             string cols = "{0}, {1:G5}, {2:G5}, {3:G5}";
 
@@ -203,9 +204,9 @@ namespace Tests
             return sb.ToString();
         }
 
-        public void CheckStatistics(string Title, Dictionary<Expression, List<double>> Outputs, bool Update)
+        public void CheckStatistics(string Title, Dictionary<Expression, List<double>> Outputs, int Warmup, bool Update)
         {
-            Dictionary<Expression, double[]> stats = ComputeStatistics(Outputs);
+            Dictionary<Expression, double[]> stats = ComputeStatistics(Outputs, Warmup);
 
             string cols = "{0}, {1:G5}, {2:G5}, {3:G5}";
 
