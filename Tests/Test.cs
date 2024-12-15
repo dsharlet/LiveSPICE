@@ -189,7 +189,21 @@ namespace Tests
             return stats;
         }
 
-        public void WriteStatistics(string Title, Dictionary<Expression, List<double>> Outputs)
+        private string StatsToString(string Title, Dictionary<Expression, List<double>> Outputs)
+        {
+            Dictionary<Expression, double[]> stats = ComputeStatistics(Outputs);
+
+            string cols = "{0}, {1:G5}, {2:G5}, {3:G5}";
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(string.Format(cols, "var", "mean", "min", "max"));
+            foreach (var i in stats)
+                sb.AppendLine(string.Format(cols, i.Key, i.Value[0], i.Value[1], i.Value[2]));
+
+            return sb.ToString();
+        }
+
+        public void CheckStatistics(string Title, Dictionary<Expression, List<double>> Outputs, bool Update)
         {
             Dictionary<Expression, double[]> stats = ComputeStatistics(Outputs);
 
@@ -201,8 +215,17 @@ namespace Tests
                 sb.AppendLine(string.Format(cols, i.Key, i.Value[0], i.Value[1], i.Value[2]));
 
             string path = "Stats\\" + Title + ".csv";
-            System.IO.Directory.CreateDirectory("Stats");
-            File.WriteAllText(path, sb.ToString());
+            if (Update)
+            {
+                System.IO.Directory.CreateDirectory("Stats");
+                File.WriteAllText(path, sb.ToString());
+            }
+            else
+            {
+                string golden = File.ReadAllText(path);
+                if (golden != sb.ToString())
+                    throw new Exception(String.Format("Statistics mismatch in {0}", Title));
+            }
         }
     }
 }
