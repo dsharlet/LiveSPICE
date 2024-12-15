@@ -7,12 +7,22 @@
     },
     "Examples": {
       "commandName": "Project",
-      "commandLineArgs": "test Examples\\*.schx --sampleRate 44100 --plot --stats",
+      "commandLineArgs": "test Examples\\*.schx --sampleRate 44100 --plot",
       "workingDirectory": "$(ProjectDir)"
     },
     "Circuits": {
       "commandName": "Project",
-      "commandLineArgs": "test Circuits\\*.schx --sampleRate 44100 --plot --stats",
+      "commandLineArgs": "test Circuits\\*.schx --sampleRate 44100 --plot",
+      "workingDirectory": "$(ProjectDir)"
+    },
+    "Update Golden Stats": {
+      "commandName": "Project",
+      "commandLineArgs": "test Circuits\\*.schx Examples\\*.schx --sampleRate 44100 --plot --updateGolden",
+      "workingDirectory": "$(ProjectDir)"
+    },
+    "Test": {
+      "commandName": "Project",
+      "commandLineArgs": "test Circuits\\*.schx Examples\\*.schx --sampleRate 44100",
       "workingDirectory": "$(ProjectDir)"
     }
   }
