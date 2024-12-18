@@ -33,8 +33,6 @@ namespace LiveSPICEVst
                     sampleRate = value;
 
                     needRebuild = true;
-
-                    delayUpdateSamples = (int)(sampleRate * .1);
                 }
             }
         }
@@ -73,11 +71,9 @@ namespace LiveSPICEVst
 
         Circuit.Circuit circuit = null;
         Simulation simulation = null;
-        bool needUpdate = false;
         bool needRebuild = false;
-        int updateSamplesElapsed = 0;
-        int delayUpdateSamples = 0;
         Exception simulationUpdateException = null;
+        double[] parameters = new double[0];
 
         public SimulationProcessor()
         {
@@ -174,6 +170,8 @@ namespace LiveSPICEVst
                 }
             }
 
+            UpdateSimulation(true);
+
             needRebuild = true;
         }
 
@@ -216,42 +214,12 @@ namespace LiveSPICEVst
             {
                 lock (sync)
                 {
-                    foreach (var component in InteractiveComponents)
-                    {
-                        if (component.NeedUpdate)
-                        {
-                            needUpdate = true;
+                    int p = 0;
 
-                            component.NeedUpdate = false;
+                    foreach (var parameter in analysis.Parameters)
+                        parameters[p++] = parameter.Value;
 
-                            updateSamplesElapsed = 0;
-                        }
-
-                        if (component.NeedRebuild)
-                        {
-                            needRebuild = true;
-
-                            component.NeedRebuild = false;
-                        }
-                    }
-
-                    if (needUpdate || needRebuild)
-                    {
-                        // Delay updates until user input settles
-                        if (needRebuild || (updateSamplesElapsed > delayUpdateSamples))
-                        {
-                            UpdateSimulation(needRebuild);
-
-                            needRebuild = false;
-                            needUpdate = false;
-                        }
-                        else
-                        {
-                            updateSamplesElapsed += numSamples;
-                        }
-                    }
-
-                    simulation.Run(numSamples, audioInputs, audioOutputs);
+                    simulation.Run(numSamples, audioInputs, parameters);
                 }
             }
         }
@@ -260,6 +228,7 @@ namespace LiveSPICEVst
         int update = 0;
         TaskScheduler scheduler = new RedundantTaskScheduler(1);
         object sync = new object();
+        Analysis analysis;
 
         /// <summary>
         /// Update the simulation asynchronously
@@ -272,7 +241,8 @@ namespace LiveSPICEVst
             {
                 try
                 {
-                    Analysis analysis = circuit.Analyze();
+                    analysis = circuit.Analyze();
+                    Array.Resize(ref parameters, analysis.Parameters.Count());
                     TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
 
                     lock (sync)
@@ -310,7 +280,8 @@ namespace LiveSPICEVst
                                             Oversample = oversample,
                                             Iterations = iterations,
                                             Input = new[] { inputExpression },
-                                            Output = new[] { outputExpression }
+                                            Output = new[] { outputExpression },
+                                            Arguments = analysis.Parameters.Select(i => i.Expression)
                                         };
                                     }
                                 }
