@@ -25,7 +25,7 @@ namespace Circuit
             V = Mna.AddUnknownEqualTo("V" + Name, V);
             // i = C*dV/dt
             Expression i = C * D(V, t);
-            //i = Mna.AddUnknownEqualTo("i" + Name, i);
+            i = Mna.AddUnknownEqualTo("i" + Name, i);
             Mna.AddPassiveComponent(Anode, Cathode, i);
             return i;
         }

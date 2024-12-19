@@ -66,10 +66,13 @@ namespace Tests
                 Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
+                Arguments = analysis.Parameters.Select(i => i.Expression),
             };
 
             Dictionary<Expression, List<double>> outputs = 
                 S.Output.ToDictionary(i => i, i => new List<double>(Samples));
+
+            double[] parameters = analysis.Parameters.Select(i => i.Value).ToArray();
 
             double T = S.TimeStep;
             double t = 0;
@@ -80,11 +83,11 @@ namespace Tests
                 // Using a varying number of samples on each call to S.Run
                 int N = Math.Min(remaining, rng.Next(1000, 10000));
                 double[] inputBuffer = new double[N];
-                List<double[]> outputBuffers = S.Output.Select(i => new double[N]).ToList();
+                double[][] outputBuffers = S.Output.Select(i => new double[N]).ToArray();
                 for (int n = 0; n < N; ++n, t += T)
                     inputBuffer[n] = Vin(t);
 
-                S.Run(inputBuffer, outputBuffers);
+                S.Run(inputBuffer, outputBuffers, parameters);
 
                 for (int i = 0; i < S.Output.Count(); ++i)
                     outputs[S.Output.ElementAt(i)].AddRange(outputBuffers[i]);
@@ -135,12 +138,14 @@ namespace Tests
                 Iterations = Iterations,
                 Input = new[] { Input },
                 Output = Outputs,
+                Arguments = analysis.Parameters.Select(i => i.Expression),
             };
 
             int N = 1000;
             double[] inputBuffer = new double[N];
-            List<double[]> outputBuffers = Outputs.Select(i => new double[N]).ToList();
+            double[][] outputBuffers = Outputs.Select(i => new double[N]).ToArray();
 
+            double[] parameters = analysis.Parameters.Select(i => i.Value).ToArray();
             double T = 1.0 / SampleRate;
             double t = 0;
             double runTime = Benchmark(3, () =>
@@ -149,7 +154,7 @@ namespace Tests
                 for (int n = 0; n < N; ++n, t += T)
                     inputBuffer[n] = Vin(t);
 
-                S.Run(inputBuffer, outputBuffers);
+                S.Run(inputBuffer, outputBuffers, parameters);
             });
             double rate = N / runTime;
             return new double[] { analyzeTime, solveTime, rate };

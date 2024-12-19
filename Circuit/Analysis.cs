@@ -238,7 +238,11 @@ namespace Circuit
         /// </summary>
         /// <param name="Eq"></param>
         /// <returns></returns>
-        public Expression AddUnknownEqualTo(Expression Eq) { return AddUnknownEqualTo(AnonymousName(), Eq); }
+        public Expression AddUnknownEqualTo(Expression x) {
+            if (x is Constant) return x;
+            if (x is Call c && c.Target is UnknownFunction) return x;
+            return AddUnknownEqualTo(AnonymousName(), x); 
+        }
 
         /// <summary>
         /// Add initial conditions to the system.
@@ -252,6 +256,55 @@ namespace Circuit
         /// </summary>
         /// <returns></returns>
         public string AnonymousName() { return context.AnonymousName(); }
+
+        /// <summary>
+        /// Describes a parameter for the circuit.
+        /// </summary>
+        public class Parameter
+        {
+            private Component of;
+            /// <summary>
+            /// Component the parameter affects.
+            /// </summary>
+            public Component Of { get { return of; } }
+
+            private Expression expr;
+            /// <summary>
+            /// Expression for the parameter in the system of equations for this analysis.
+            /// </summary>
+            public Expression Expression { get { return expr; } }
+
+            Func<double> getter;
+            /// <summary>
+            /// Current value of the parameter.
+            /// </summary>
+            public double Value { get { return getter(); } }
+
+            public Parameter(Component Of, Expression Expression, Func<double> Getter)
+            {
+                of = Of;
+                expr = Expression;
+                getter = Getter;
+            }
+        }
+
+        private List<Parameter> parameters = new List<Parameter>();
+        /// <summary>
+        /// Enumerates the parameters in this analysis.
+        /// </summary>
+        public IEnumerable<Parameter> Parameters { get { return parameters; } }
+
+        /// <summary>
+        /// Create an expression for a parameter in the current context.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns></returns>
+        public Expression AddParameter(Component Of, string Name, Func<double> Getter)
+        {
+            Expression expr = Variable.New(context.Prefix + Name);
+            parameters.Add(new Parameter(Of, expr, Getter)); 
+            return expr;
+        }
 
         private void AddKcl(Dictionary<Expression, Expression> kcl, Expression V, Expression i)
         {
