@@ -1,10 +1,11 @@
 ﻿using Circuit;
 using ComputerAlgebra;
-using ComputerAlgebra.Plotting;
+using Plotting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Util;
 
 namespace Tests
@@ -178,6 +179,25 @@ namespace Tests
 
             System.IO.Directory.CreateDirectory("Plots");
             p.Save("Plots\\" + Title + ".bmp");
+        }
+        public void WriteStatistics(string Title, Dictionary<Expression, List<double>> Outputs)
+        {
+            string cols = "{0}, {1}, {2}, {3}, {4}";
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(string.Format(cols, "var", "mean", "min", "max", "rms"));
+            foreach (var i in Outputs)
+            {
+                double mean = i.Value.Sum() / i.Value.Count;
+                double min = i.Value.Min();
+                double max = i.Value.Max();
+                double rms = Math.Sqrt(i.Value.Select(v => v * v).Sum()) / i.Value.Count;
+                sb.AppendLine(string.Format(cols, i.Key, mean, min, max, rms));
+            }
+
+            string path = "Stats\\" + Title + ".csv";
+            System.IO.Directory.CreateDirectory("Stats");
+            File.WriteAllText(path, sb.ToString());
         }
     }
 }
