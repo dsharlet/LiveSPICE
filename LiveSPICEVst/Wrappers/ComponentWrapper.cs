@@ -5,8 +5,8 @@ namespace LiveSPICEVst
     public abstract class ComponentWrapper<T> : IComponentWrapper
     {
         public string Name { get; private set; }
-        public bool NeedUpdate { get; set; }
-        public bool NeedRebuild { get; set; }
+        public bool NeedRebuild { get; set; } = false;
+
         protected List<T> Sections { get; } = new List<T>();
 
         public ComponentWrapper(T component, string name)

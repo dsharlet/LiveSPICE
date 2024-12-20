@@ -27,8 +27,6 @@ namespace LiveSPICEVst
                     {
                         section.PotValue = value;
                     }
-
-                    NeedUpdate = true;
                 }
             }
         }
