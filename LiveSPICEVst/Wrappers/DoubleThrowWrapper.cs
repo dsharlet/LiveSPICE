@@ -30,6 +30,8 @@ namespace LiveSPICEVst
                     {
                         button.Click();
                     }
+
+                    NeedRebuild = true;
                 }
             }
         }

@@ -20,6 +20,8 @@ namespace LiveSPICEVst
                 if (value != Sections[0].Position)
                 {
                     Sections[0].Position = value;
+
+                    NeedRebuild = true;
                 }
             }
         }
