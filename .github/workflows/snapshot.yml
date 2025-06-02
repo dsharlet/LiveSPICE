@@ -47,7 +47,7 @@ jobs:
           ren net6.0-windows LiveSPICE
           Compress-Archive -Path LiveSPICE -DestinationPath $workdir\LiveSPICE.zip
       - name: Publish LiveSPICE snapshot
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: LiveSPICE.zip
           name: LiveSPICE-${{ steps.METADATA.outputs.build_id }}.zip
