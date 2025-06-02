@@ -18,7 +18,9 @@ jobs:
       - uses: actions/setup-dotnet@v2
         with:
           # https://dotnet.microsoft.com/en-us/download/dotnet
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            6.0.x
+            8.0.x
       - name: Test LiveSPICE build
         shell: pwsh
         working-directory: LiveSPICE
@@ -26,7 +28,7 @@ jobs:
       - name: Test LiveSPICEVst build
         shell: pwsh
         working-directory: LiveSPICEVst
-        run: dotnet publish -c Release --framework net6.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
+        run: dotnet publish -c Release --framework net8.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
       - name: Run circuit tests
         shell: pwsh
         working-directory: Tests
