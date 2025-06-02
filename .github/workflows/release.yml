@@ -59,9 +59,9 @@ jobs:
           New-Item -Name "LiveSPICEVst" -ItemType "directory"
           New-Item -Name "LiveSPICEVst\Components" -ItemType "directory"
 
-          Copy-Item bin\Release\net6.0-windows\LiveSPICEVstBridge.vst3 -Destination LiveSPICEVst\ -Force -PassThru
-          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.dll | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
-          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.json | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Copy-Item bin\Release\net8.0-windows\LiveSPICEVstBridge.vst3 -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net8.0-windows\ -Filter *.dll | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net8.0-windows\ -Filter *.json | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
           Get-ChildItem $workdir\Circuit\Components\ -Filter *.xml | Copy-Item -Destination LiveSPICEVst\Components\ -Force -PassThru
 
           Compress-Archive -Path LiveSPICEVst -DestinationPath $workdir\LiveSPICEVst-${{ github.ref_name }}.zip
