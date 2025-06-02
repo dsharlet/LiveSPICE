@@ -26,7 +26,7 @@ jobs:
       - name: Test LiveSPICEVst build
         shell: pwsh
         working-directory: LiveSPICEVst
-        run: dotnet publish -c Release --framework net6.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
+        run: dotnet publish -c Release --framework net8.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
       - name: Run circuit tests
         shell: pwsh
         working-directory: Tests
