@@ -70,7 +70,7 @@ jobs:
 
           Compress-Archive -Path LiveSPICEVst -DestinationPath $workdir\LiveSPICEVst.zip
       - name: Publish LiveSPICEVst snapshot
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: LiveSPICEVst.zip
           name: LiveSPICEVst-${{ steps.METADATA.outputs.build_id }}.zip
