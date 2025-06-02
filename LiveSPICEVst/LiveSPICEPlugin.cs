@@ -22,8 +22,8 @@ namespace LiveSPICEVst
         new public EditorView EditorView { get; set; }
         public string SchematicPath { get { return SimulationProcessor.SchematicPath; } }
 
-        AudioIOPort monoInput;
-        AudioIOPort monoOutput;
+        AudioIOPortManaged monoInput;
+        AudioIOPortManaged monoOutput;
 
         bool haveSimulationError = false;
 
@@ -52,8 +52,8 @@ namespace LiveSPICEVst
         {
             base.Initialize();
 
-            InputPorts = new AudioIOPort[] { monoInput = new AudioIOPort("Mono Input", EAudioChannelConfiguration.Mono, forceCopy: true) };
-            OutputPorts = new AudioIOPort[] { monoOutput = new AudioIOPort("Mono Output", EAudioChannelConfiguration.Mono, forceCopy: true) };
+            InputPorts = new AudioIOPortManaged[] { monoInput = new AudioIOPortManaged("Mono Input", EAudioChannelConfiguration.Mono) };
+            OutputPorts = new AudioIOPortManaged[] { monoOutput = new AudioIOPortManaged("Mono Output", EAudioChannelConfiguration.Mono) };
         }
 
         public override void InitializeProcessing()

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
     <AssemblyName>LiveSPICEVst</AssemblyName>
     <Product>LiveSPICEVst</Product>
@@ -24,8 +24,8 @@
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AudioPlugSharp" Version="0.5.6" />
-    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.6" />
+    <PackageReference Include="AudioPlugSharp" Version="0.6.10" />
+    <PackageReference Include="AudioPlugSharpWPF" Version="0.6.10" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
