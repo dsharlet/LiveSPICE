@@ -155,7 +155,7 @@ namespace Benchmarks
             {
                 var Ab = _data[iteration].JaggedArray;
 
-                Simulation.RowReduce(Ab, M, N);
+                Simulation.Solve(Ab, M, N);
             }
         }
 
