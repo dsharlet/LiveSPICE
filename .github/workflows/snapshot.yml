@@ -19,7 +19,9 @@ jobs:
       - uses: actions/setup-dotnet@v2
         with:
           # https://dotnet.microsoft.com/en-us/download/dotnet
-          dotnet-version: '6.0.x'
+          dotnet-version: |
+            6.0.x
+            8.0.x
       - name: Collect metadata
         id: METADATA
         shell: pwsh
@@ -45,7 +47,7 @@ jobs:
           ren net6.0-windows LiveSPICE
           Compress-Archive -Path LiveSPICE -DestinationPath $workdir\LiveSPICE.zip
       - name: Publish LiveSPICE snapshot
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: LiveSPICE.zip
           name: LiveSPICE-${{ steps.METADATA.outputs.build_id }}.zip
@@ -56,19 +58,19 @@ jobs:
           $workdir = Get-Location
 
           cd LiveSPICEVst
-          dotnet publish -c Release --framework net6.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
+          dotnet publish -c Release --framework net8.0-windows /p:DebugType=None /p:UseSharedCompilation=false  /p:UseRazorBuildServer=false
 
           New-Item -Name "LiveSPICEVst" -ItemType "directory"
           New-Item -Name "LiveSPICEVst\Components" -ItemType "directory"
 
-          Copy-Item bin\Release\net6.0-windows\LiveSPICEVstBridge.vst3 -Destination LiveSPICEVst\ -Force -PassThru
-          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.dll | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
-          Get-ChildItem bin\Release\net6.0-windows\ -Filter *.json | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Copy-Item bin\Release\net8.0-windows\LiveSPICEVstBridge.vst3 -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net8.0-windows\ -Filter *.dll | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
+          Get-ChildItem bin\Release\net8.0-windows\ -Filter *.json | Copy-Item -Destination LiveSPICEVst\ -Force -PassThru
           Get-ChildItem $workdir\Circuit\Components\ -Filter *.xml | Copy-Item -Destination LiveSPICEVst\Components\ -Force -PassThru
 
           Compress-Archive -Path LiveSPICEVst -DestinationPath $workdir\LiveSPICEVst.zip
       - name: Publish LiveSPICEVst snapshot
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: LiveSPICEVst.zip
           name: LiveSPICEVst-${{ steps.METADATA.outputs.build_id }}.zip
