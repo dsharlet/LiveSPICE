@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-dotnet@v2
         with:
           # https://dotnet.microsoft.com/en-us/download/dotnet
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Test LiveSPICE build
         shell: pwsh
         working-directory: LiveSPICE
