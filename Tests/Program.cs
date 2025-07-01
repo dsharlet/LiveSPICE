@@ -15,14 +15,14 @@ namespace Tests
         static async Task<int> Main(string[] args)
         {
             var rootCommand = new RootCommand().WithCommand("test", "Run tests", c => c
-                                                    .WithArgument<string>("pattern", "Glob pattern for files to test")
+                                                    .WithArgument<string>("pattern", "Glob pattern for files to test", new ArgumentArity(1, 100))
                                                     .WithOption<bool>(new[] { "--plot" }, "Plot results")
-                                                    .WithOption<bool>(new[] { "--stats" }, "Write statistics")
                                                     .WithOption(new[] { "--samples" }, () => 4800, "Samples")
-                                                    .WithHandler(CommandHandler.Create<string, bool, bool, int, int, int, int>(Test)))
+                                                    .WithOption<bool>(new[] { "--updateGolden" }, "Write statistics")
+                                                    .WithHandler(CommandHandler.Create<string[], bool, int, int, int, int, bool>(Test)))
                                                .WithCommand("benchmark", "Run benchmarks", c => c
-                                                    .WithArgument<string>("pattern", "Glob pattern for files to benchmark")
-                                                    .WithHandler(CommandHandler.Create<string, int, int, int>(Benchmark)))
+                                                    .WithArgument<string>("pattern", "Glob pattern for files to benchmark", new ArgumentArity(1, 100))
+                                                    .WithHandler(CommandHandler.Create<string[], int, int, int>(Benchmark)))
                                                .WithGlobalOption(new Option<int>("--sampleRate", () => 48000, "Sample Rate"))
                                                .WithGlobalOption(new Option<int>("--oversample", () => 8, "Oversample"))
                                                .WithGlobalOption(new Option<int>("--iterations", () => 8, "Iterations"));
@@ -30,7 +30,7 @@ namespace Tests
             return await rootCommand.InvokeAsync(args);
         }
 
-        public static void Test(string pattern, bool plot, bool stats, int sampleRate, int samples, int oversample, int iterations)
+        public static void Test(string[] pattern, bool plot, int sampleRate, int samples, int oversample, int iterations, bool updateGolden)
         {
             var log = new ConsoleLog() { Verbosity = MessageType.Info };
             var tester = new Test();
@@ -42,14 +42,11 @@ namespace Tests
                 {
                     tester.PlotAll(circuit.Name, outputs);
                 }
-                if (stats)
-                {
-                    tester.WriteStatistics(circuit.Name, outputs);
-                }
+                tester.CheckStatistics(circuit.Name, outputs, samples / 2, updateGolden);
             }
         }
 
-        public static void Benchmark(string pattern, int sampleRate, int oversample, int iterations)
+        public static void Benchmark(string[] pattern, int sampleRate, int oversample, int iterations)
         {
             var log = new ConsoleLog() { Verbosity = MessageType.Error };
             var tester = new Test();
@@ -68,13 +65,19 @@ namespace Tests
             }
         }
 
-        private static IEnumerable<Circuit.Circuit> GetCircuits(string glob, ILog log) => Globber.Glob(glob).Select(filename =>
+        private static IEnumerable<Circuit.Circuit> GetCircuits(string[] globs, ILog log)
         {
-            log.WriteLine(MessageType.Info, filename);
-            var circuit = Schematic.Load(filename, log).Build();
-            circuit.Name = Path.GetFileNameWithoutExtension(filename);
-            return circuit;
-        });
+            foreach (string glob in globs)
+            {
+                foreach (string filename in Globber.Glob(glob))
+                {
+                    log.WriteLine(MessageType.Info, filename);
+                    var circuit = Schematic.Load(filename, log).Build();
+                    circuit.Name = Path.GetFileNameWithoutExtension(filename);
+                    yield return circuit;
+                }
+            }
+        }
 
         // Generate a function with the first N harmonics of f0.
         private static double Harmonics(double t, double A, double f0, int N)
