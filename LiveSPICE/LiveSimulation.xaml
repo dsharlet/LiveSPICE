@@ -95,7 +95,7 @@
                 <xctk:IntegerUpDown Value="{Binding Iterations, Delay=1000}" Minimum="1" Maximum="64" />
 
                 <Separator />
-                
+
                 <ls:ImageButton CommandImage="{x:Static ls:Commands.Simulate}" ImageHeight="16" />
             </ToolBar>
             <!-- View -->
@@ -121,6 +121,17 @@
                             <xcad:LayoutAnchorable x:Name="audio" Title="Audio" AutoHideWidth="240">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel Orientation="Vertical">
+                                        <StackPanel.Resources>
+                                            <Style TargetType="{x:Type TextBox}">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Validation.HasError" Value="true">
+                                                        <Setter Property="ToolTip"
+                                                                Value="{Binding RelativeSource={x:Static RelativeSource.Self},
+                                                                Path=(Validation.Errors)/ErrorContent}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Resources>
                                         <DockPanel Margin="5">
                                             <TextBlock DockPanel.Dock="Left" Width="40" 
                                                        Text="Input" FontWeight="Bold" VerticalAlignment="Center" />
@@ -128,7 +139,7 @@
                                                        Text="Gain: " 
                                                        TextAlignment="Right" VerticalAlignment="Center" />
                                             <TextBox DockPanel.Dock="Left" Width="50" 
-                                                     Text="{Binding InputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB}" 
+                                                     Text="{Binding InputGain, Converter={StaticResource dBConverter}, StringFormat={}{0:+#;-#;+0} dB, ValidatesOnExceptions=True}" 
                                                      TextAlignment="Left" VerticalAlignment="Center" />
                                             <Slider DockPanel.Dock="Right" 
                                                     Value="{Binding InputGain, Converter={StaticResource dBConverter}}" Minimum="-40" Maximum="40" />
@@ -160,7 +171,7 @@
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutPanel>
-                    
+
                     <xcad:LayoutPanel Orientation="Vertical" DockWidth="*">
                         <xcad:LayoutDocumentPane DockHeight="*">
                             <!-- Schematic -->
