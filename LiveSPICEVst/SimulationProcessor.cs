@@ -272,8 +272,7 @@ namespace LiveSPICEVst
             {
                 try
                 {
-                    Analysis analysis = circuit.Analyze();
-                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
+                    TransientSolution ts = AudioSimulationFactory.Solve(circuit, sampleRate, oversample);
 
                     lock (sync)
                     {
@@ -281,45 +280,14 @@ namespace LiveSPICEVst
                         {
                             if (rebuild)
                             {
-                                Expression inputExpression = circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
-
-                                if (inputExpression == null)
-                                {
-                                    simulationUpdateException = new NotSupportedException("Circuit has no inputs.");
-                                }
-                                else
-                                {
-                                    IEnumerable<Speaker> speakers = circuit.Components.OfType<Speaker>();
-
-                                    Expression outputExpression = 0;
-
-                                    // Output is voltage drop across the speakers
-                                    foreach (Speaker speaker in speakers)
-                                    {
-                                        outputExpression += speaker.Out;
-                                    }
-
-                                    if (outputExpression.EqualsZero())
-                                    {
-                                        simulationUpdateException = new NotSupportedException("Circuit has no speaker outputs.");
-                                    }
-                                    else
-                                    {
-                                        simulation = new Simulation(ts)
-                                        {
-                                            Oversample = oversample,
-                                            Iterations = iterations,
-                                            Input = new[] { inputExpression },
-                                            Output = new[] { outputExpression }
-                                        };
-                                    }
-                                }
+                                simulation = AudioSimulationFactory.Create(circuit, ts, oversample, iterations);
                             }
                             else
                             {
                                 simulation.Solution = ts;
-                                clock = id;
                             }
+
+                            clock = id;
                         }
                     }
                 }
