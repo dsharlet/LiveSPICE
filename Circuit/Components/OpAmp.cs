@@ -73,8 +73,17 @@ namespace Circuit
                 Diode.Analyze(Mna, nee, pp1, 8e-16, 1);
             }
 
-            // Output current is buffered.
-            Mna.AddTerminal(Out, (pp1.V - Out.V) / Rout);
+            // Output current is buffered: a Thevenin source of open-circuit voltage pp1 behind a
+            // series Rout. The buffer rather than the pole node supplies the current, which is why
+            // nothing is added back at pp1.
+            //
+            // AddTerminal adds its current to the node's Kirchhoff sum, and that sum is of currents
+            // *leaving* the node: Resistor.Analyze computes i = (Anode.V - Cathode.V)/R and hands it
+            // to AddPassiveComponent, which adds +i at the anode and -i at the cathode. Capacitor,
+            // Inductor and Diode all define i the same way. A source of voltage pp1 behind Rout
+            // therefore draws (Out - pp1)/Rout out of Out, whichever of the two nodes you care to
+            // call the anode.
+            Mna.AddTerminal(Out, (Out.V - pp1.V) / Rout);
 
             Mna.PopContext();
         }
