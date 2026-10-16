@@ -13,17 +13,21 @@
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Components\Diodes.xml" />
-    <Content Include="Components\OpAmps.xml" />
-    <Content Include="Components\Readme.txt" />
-    <Content Include="Components\Transistors.xml" />
-    <Content Include="Components\Tubes.xml">
+    <!-- The whole library is copied: only Tubes.xml used to be, so a host looking beside its
+         executable found one library out of four. -->
+    <Content Include="Components\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Components\%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="Components\Readme.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
+    <PackageReference Include="MathNet.Numerics" Version="4.12.0" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
   </ItemGroup>
 </Project>

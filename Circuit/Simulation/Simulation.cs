@@ -155,8 +155,7 @@ namespace Circuit
         /// <param name="Output">Buffers to receive output samples.</param>
         public void Run(int N, IEnumerable<double[]> Input, IEnumerable<double[]> Output)
         {
-            if (_process == null)
-                _process = DefineProcess();
+            Compile();
 
             try
             {
@@ -178,6 +177,26 @@ namespace Circuit
         public void Run(int N, IEnumerable<double[]> Output) { Run(N, new double[][] { }, Output); }
         public void Run(double[] Input, IEnumerable<double[]> Output) { Run(Input.Length, new[] { Input }, Output); }
         public void Run(double[] Input, double[] Output) { Run(Input.Length, new[] { Input }, new[] { Output }); }
+
+        /// <summary>
+        /// Build the process function now instead of on the next Run.
+        /// </summary>
+        public void Compile()
+        {
+            if (_process == null)
+                _process = DefineProcess();
+        }
+
+        /// <summary>
+        /// Continue from the state of another simulation of the same circuit.
+        /// </summary>
+        public void CopyStateFrom(Simulation Other)
+        {
+            n = Other.n;
+            foreach (KeyValuePair<Expression, GlobalExpr<double>> i in globals)
+                if (Other.globals.TryGetValue(i.Key, out GlobalExpr<double> other))
+                    i.Value.Value = other.Value;
+        }
 
         private Action<int, double, double[][], double[][]> _process;
         // Force rebuilding of the process function.
