@@ -324,29 +324,39 @@ namespace Circuit
                                     // Solve the un-solved system.
                                     Solve(code, JxF, S.Equations, S.UnknownDeltas);
 
-                                    // Compile the pre-solved solutions.
-                                    if (S.KnownDeltas != null)
-                                        foreach (Arrow i in S.KnownDeltas)
-                                            code.DeclInit(i.Left, i.Right);
+                                    // Pre-solved unknowns never feed the Newton system, so when their updated values do not depend on each
+                                    // other's previous values they need no iterating and only the last iteration computes them.
+                                    List<Expression> known = (S.KnownDeltas ?? new Arrow[0]).Select(i => NewtonIteration.DeltaOf(i.Left)).ToList();
+                                    List<Arrow> stale = known.Select(i => Arrow.New(NewtonIteration.Delta(i), -i)).ToList();
+                                    bool once = known.Any() && S.KnownDeltas.All(i => !Sum.New(i.Right, NewtonIteration.DeltaOf(i.Left)).Substitute(stale).Evaluate().DependsOn(known));
+                                    Action knownDeltas = () => { foreach (Arrow i in S.KnownDeltas ?? new Arrow[0]) code.DeclInit(i.Left, i.Right); };
+                                    if (!once)
+                                        knownDeltas();
 
                                     // bool done = true
                                     LinqExpr done = code.ReDeclInit("done", true);
-                                    foreach (Expression i in S.Unknowns)
-                                    {
-                                        LinqExpr v = code[i];
-                                        LinqExpr dv = code[NewtonIteration.Delta(i)];
-
+                                    List<Expression> iterated = S.Unknowns.Except(once ? known : new List<Expression>()).ToList();
+                                    foreach (Expression i in iterated)
                                         // done &= (|dv| < |v|*epsilon)
-                                        code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(dv), MultiplyAdd(Abs(v), LinqExpr.Constant(1e-4), LinqExpr.Constant(1e-6)))));
-                                        // v += dv
-                                        code.Add(LinqExpr.AddAssign(v, dv));
-                                    }
+                                        code.Add(LinqExpr.AndAssign(done, LinqExpr.LessThan(Abs(code[NewtonIteration.Delta(i)]), MultiplyAdd(Abs(code[i]), LinqExpr.Constant(1e-4), LinqExpr.Constant(1e-6)))));
+                                    if (once)
+                                        code.If(LinqExpr.OrElse(done, LinqExpr.Equal(it, LinqExpr.Constant(1))), () =>
+                                        {
+                                            knownDeltas();
+                                            foreach (Expression i in known)
+                                                code.Add(LinqExpr.AddAssign(code[i], code[NewtonIteration.Delta(i)]));
+                                        });
+                                    // v += dv
+                                    foreach (Expression i in iterated)
+                                        code.Add(LinqExpr.AddAssign(code[i], code[NewtonIteration.Delta(i)]));
                                     // if (done) break
                                     code.Add(LinqExpr.IfThen(done, Break));
 
                                     // --it;
                                     code.Add(LinqExpr.PreDecrementAssign(it));
                                 }, LinqExpr.GreaterThan(it, Zero));
+                                // Subexpressions cached inside the loop hold values from before the last update.
+                                code.SyncPoint();
 
                                 //// bool failed = false
                                 //LinqExpr failed = Decl(code, code, "failed", LinqExpr.Constant(false));
