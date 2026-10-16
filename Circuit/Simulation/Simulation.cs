@@ -347,6 +347,8 @@ namespace Circuit
                                     // --it;
                                     code.Add(LinqExpr.PreDecrementAssign(it));
                                 }, LinqExpr.GreaterThan(it, Zero));
+                                // Subexpressions cached inside the loop hold values from before the last update.
+                                code.SyncPoint();
 
                                 //// bool failed = false
                                 //LinqExpr failed = Decl(code, code, "failed", LinqExpr.Constant(false));
