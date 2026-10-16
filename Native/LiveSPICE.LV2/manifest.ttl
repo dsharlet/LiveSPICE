@@ -1,0 +1,12 @@
+@prefix lv2: <http://lv2plug.in/ns/lv2core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://livespice.org/plugins/mxr-phase90>
+    a lv2:Plugin ;
+    lv2:binary <livespice_mxr_phase90.so> ;
+    rdfs:seeAlso <livespice_mxr_phase90.ttl> .
+
+<https://livespice.org/plugins/generic>
+    a lv2:Plugin ;
+    lv2:binary <livespice_generic.so> ;
+    rdfs:seeAlso <livespice_generic.ttl> .
