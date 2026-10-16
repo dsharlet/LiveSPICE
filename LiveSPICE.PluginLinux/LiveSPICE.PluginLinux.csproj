@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>LiveSPICE.PluginLinux</AssemblyName>
+    <Product>LiveSPICE Linux VST</Product>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LiveSPICE.Avalonia\LiveSPICE.Avalonia.csproj" />
+    <ProjectReference Include="..\LiveSPICE.PluginCore\LiveSPICE.PluginCore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AudioPlugSharp" Version="0.6.10" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultSchematic)' != ''">
+    <EmbeddedResource Include="$(DefaultSchematic)" LogicalName="LiveSPICE.PluginLinux.DefaultSchematic.schx" />
+  </ItemGroup>
+</Project>
