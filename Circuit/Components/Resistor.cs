@@ -59,8 +59,8 @@ namespace Circuit
 
             Draw(Sym, 0, -16, 16, 7);
 
-            Sym.DrawText(() => Name, new Coord(6, 0), Alignment.Near, Alignment.Center);
-            Sym.DrawText(() => resistance.ToString(), new Coord(-6, 0), Alignment.Far, Alignment.Center);
+            Sym.DrawText(() => Name, new Coord(14, 0), Alignment.Near, Alignment.Center);
+            Sym.DrawText(() => resistance.ToString(), new Coord(-14, 0), Alignment.Far, Alignment.Center);
         }
     }
 }
