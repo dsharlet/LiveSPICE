@@ -258,6 +258,19 @@ namespace Circuit
             foreach (KeyValuePair<Expression, LinqExpr> i in parameters)
                 code.DeclInit(i.Key, i.Value);
 
+            // Solve A·M = -R for the parameter-dependent linear solutions once per block.
+            foreach (ParameterSolutions S in Solution.Solutions.OfType<ParameterSolutions>())
+            {
+                LinearCombination[] m = S.Block.Select(i => (LinearCombination)i.Right).ToArray();
+                Expression[] b = m.SelectMany(i => i.Select(j => j.Key)).Distinct().ToArray();
+                LinqExpr Ab = code.ReDeclInit<double[][]>("Ab", LinqExpr.NewArrayInit(typeof(double[]),
+                    S.Equations.Select(i => LinqExpr.NewArrayInit(typeof(double), S.Block.Select(j => j.Left).Concat(b).Select(j => code.Compile(i[j]))))));
+                code.Add(LinqExpr.Call(GetMethod<Simulation>(nameof(SolveBlock), Ab.Type, typeof(int), typeof(int)), Ab, LinqExpr.Constant(m.Length), LinqExpr.Constant(m.Length + b.Length)));
+                for (int i = 0; i < m.Length; ++i)
+                    foreach (KeyValuePair<Expression, Expression> j in m[i])
+                        code.DeclInit(j.Value, LinqExpr.Negate(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(Ab, LinqExpr.Constant(i)), LinqExpr.Constant(m.Length + Array.IndexOf(b, j.Key)))));
+            }
+
             // Create arrays for linear systems.
             int M = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.Equations.Count(), 0);
             int N = Solution.Solutions.OfType<NewtonIteration>().Max(i => i.UnknownDeltas.Count(), 0);
@@ -473,6 +486,9 @@ namespace Circuit
             for (int j = 0; j < N; ++j)
                 code.DeclInit(deltas[j], LinqExpr.Negate(LinqExpr.ArrayAccess(LinqExpr.ArrayAccess(Ab, LinqExpr.Constant(j)), LinqExpr.Constant(N))));
         }
+
+        // Solve skips zero pivots, which would leave a singular parameter block as finite garbage.
+        private static void SolveBlock(double[][] Ab, int M, int N) { Solve(Ab, M, N); if (Enumerable.Range(0, M).Any(j => Ab[j][j] == 0)) throw new SimulationDiverged(0); }
 
         // A human readable implementation of RowReduce.
         public static void Solve(double[][] Ab, int M, int N)

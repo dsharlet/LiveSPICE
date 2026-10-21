@@ -73,6 +73,7 @@ namespace LiveSPICEVst
 
         Circuit.Circuit circuit = null;
         Simulation simulation = null;
+        double[] parameters;
         bool needUpdate = false;
         bool needRebuild = false;
         int updateSamplesElapsed = 0;
@@ -251,7 +252,7 @@ namespace LiveSPICEVst
                         }
                     }
 
-                    simulation.Run(numSamples, audioInputs, audioOutputs);
+                    simulation.Run(numSamples, audioInputs, audioOutputs, parameters);
                 }
             }
         }
@@ -310,14 +311,18 @@ namespace LiveSPICEVst
                                             Oversample = oversample,
                                             Iterations = iterations,
                                             Input = new[] { inputExpression },
-                                            Output = new[] { outputExpression }
+                                            Output = new[] { outputExpression },
+                                            Arguments = analysis.Parameters.Select(i => i.Expression)
                                         };
+                                        parameters = analysis.Parameters.Select(i => i.Value).ToArray();
                                     }
                                 }
                             }
                             else
                             {
                                 simulation.Solution = ts;
+                                simulation.Arguments = analysis.Parameters.Select(i => i.Expression);
+                                parameters = analysis.Parameters.Select(i => i.Value).ToArray();
                                 clock = id;
                             }
                         }
