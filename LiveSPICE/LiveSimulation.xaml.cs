@@ -34,8 +34,8 @@ namespace LiveSPICE
         /// </summary>
         public int Oversample
         {
-            get { return oversample; }
-            set { oversample = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Oversample)); }
+            get { return circuitSimulation.Oversample; }
+            set { circuitSimulation.Oversample = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Oversample)); }
         }
 
         protected int iterations = 8;
@@ -44,8 +44,8 @@ namespace LiveSPICE
         /// </summary>
         public int Iterations
         {
-            get { return iterations; }
-            set { iterations = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Iterations)); }
+            get { return circuitSimulation.Iterations; }
+            set { circuitSimulation.Iterations = Math.Max(1, value); RebuildSolution(); NotifyChanged(nameof(Iterations)); }
         }
 
         private double inputGain = 1.0;
@@ -62,13 +62,7 @@ namespace LiveSPICE
 
         private SimulationSchematic Schematic { get { return (SimulationSchematic)schematic.Schematic; } set { schematic.Schematic = value; } }
 
-        protected Circuit.Circuit circuit = null;
-        protected Simulation simulation = null;
-
         private List<Probe> probes = new List<Probe>();
-        protected Dictionary<ComputerAlgebra.Expression, double> namedArguments = new Dictionary<ComputerAlgebra.Expression, double>();
-
-        private object sync = new object();
 
         protected Audio.Stream stream = null;
 
@@ -81,6 +75,8 @@ namespace LiveSPICE
 
         // A timer for continuously refreshing controls.
         protected System.Timers.Timer timer;
+
+        CircuitSimulation circuitSimulation;
 
         public LiveSimulation(Schematic Simulate, Audio.Device Device, Audio.Channel[] Inputs, Audio.Channel[] Outputs)
         {
@@ -96,14 +92,10 @@ namespace LiveSPICE
                 Schematic = new SimulationSchematic(clone);
                 Schematic.SelectionChanged += OnProbeSelected;
 
-                // Build the circuit from the schematic.
-                circuit = Schematic.Schematic.Build(Log);
-                Circuit.Analysis analysis = circuit.Analyze();
+                circuitSimulation = new CircuitSimulation(Schematic.Schematic, Log);
 
-                foreach (Circuit.Analysis.Parameter P in analysis.Parameters)
+                foreach (Circuit.Analysis.Parameter P in circuitSimulation.Analysis.Parameters)
                 {
-                    namedArguments[P.Expression] = P.Value;
-
                     Circuit.Symbol S = P.Of.Tag as Circuit.Symbol;
                     if (S == null)
                         continue;
@@ -138,7 +130,7 @@ namespace LiveSPICE
 
                     potControl.AddHandler(Binding.SourceUpdatedEvent, new RoutedEventHandler((o, args) =>
                     {
-                        lock (namedArguments) namedArguments[P.Expression] = P.Value;
+                        circuitSimulation.SetParameter(P.Expression, pot.PotValue);
                     }));
 
                     potControl.MouseEnter += (o, e) => potControl.Opacity = 0.95;
@@ -146,7 +138,7 @@ namespace LiveSPICE
                 }
 
                 // Create the input and output controls.                
-                IEnumerable<Circuit.Component> components = circuit.Components;
+                IEnumerable<Circuit.Component> components = circuitSimulation.Circuit.Components;
 
                 // Create audio input channels.
                 for (int i = 0; i < Inputs.Length; ++i)
@@ -187,7 +179,8 @@ namespace LiveSPICE
                                 foreach (var j in components.OfType<IButtonControl>().Where(x => x != b && x.Group == b.Group))
                                     j.Click();
                             }
-                            UpdateSimulation();
+
+                            UpdateSimulation();                            
                         };
 
                         button.MouseEnter += (o, e) => button.Opacity = 0.95;
@@ -293,48 +286,24 @@ namespace LiveSPICE
             }
         }
 
-        private Simulation MakeSimulation(TransientSolution solution)
+        private void UpdateSimulation()
         {
-            return new Simulation(solution)
-            {
-                Log = Log,
-                Input = inputs.Keys.ToArray(),
-                Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray(),
-                Arguments = namedArguments.Select(i => i.Key).ToArray(),
-                Oversample = Oversample,
-                Iterations = Iterations,
-            };
+            circuitSimulation.UpdateSimulation(inputs.Keys.ToArray(), probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray());
         }
 
         private void RebuildSolution()
         {
-            lock (sync)
+            ProgressDialog.RunAsync(this, "Building circuit solution...", () =>
             {
-                simulation = null;
-                ProgressDialog.RunAsync(this, "Building circuit solution...", () =>
+                try
                 {
-                    try
-                    {
-                        ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-                        TransientSolution solution = Circuit.TransientSolution.Solve(circuit.Analyze(), h, Log);
-                        simulation = MakeSimulation(solution);
-                    }
-                    catch (Exception Ex)
-                    {
-                        Log.WriteException(Ex);
-                    }
-                });
-            }
-        }
-
-        private void UpdateSimulation()
-        {
-            ComputerAlgebra.Expression h = (ComputerAlgebra.Expression)1 / (stream.SampleRate * Oversample);
-            TransientSolution s = Circuit.TransientSolution.Solve(circuit.Analyze(), h, (ILog)Log);
-            lock (sync)
-            {
-                simulation = MakeSimulation(s);
-            }
+                    UpdateSimulation();
+                }
+                catch (Exception Ex)
+                {
+                    Log.WriteException(Ex);
+                }
+            });
         }
 
         private void ProcessSamples(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
@@ -351,14 +320,11 @@ namespace LiveSPICE
             }
 
             // Run the simulation.
-            lock (sync)
-            {
-                if (simulation != null)
-                    RunSimulation(Count, In, Out, Rate);
-                else
-                    foreach (Audio.SampleBuffer i in Out)
-                        i.Clear();
-            }
+            if (circuitSimulation.HaveSimulation)
+                RunSimulation(Count, In, Out, Rate);
+            else
+                foreach (Audio.SampleBuffer i in Out)
+                    i.Clear();
 
             // Apply output gain.
             for (int i = 0; i < Out.Length; ++i)
@@ -375,26 +341,17 @@ namespace LiveSPICE
         // These lists only ever grow, but they should never contain more than 10s of items.
         readonly List<double[]> inputBuffers = new List<double[]>();
         readonly List<double[]> outputBuffers = new List<double[]>();
-        readonly List<double> arguments = new List<double>();
         private void RunSimulation(int Count, Audio.SampleBuffer[] In, Audio.SampleBuffer[] Out, double Rate)
         {
             try
             {
-                // If the sample rate changed, we need to kill the simulation and let the foreground rebuild it.
-                if (Rate != (double)simulation.SampleRate)
-                {
-                    simulation = null;
-                    Dispatcher.InvokeAsync(() => RebuildSolution());
-                    return;
-                }
-
                 inputBuffers.Clear();
                 foreach (Channel i in inputs.Values)
                 {
                     if (i is InputChannel input)
                         inputBuffers.Add(In[input.Index].Samples);
                     else if (i is SignalChannel channel)
-                        inputBuffers.Add(channel.Buffer(Count, simulation.Time, simulation.TimeStep));
+                        inputBuffers.Add(channel.Buffer(Count, circuitSimulation.Simulation.Time, circuitSimulation.Simulation.TimeStep));
                 }
 
                 outputBuffers.Clear();
@@ -403,12 +360,8 @@ namespace LiveSPICE
                 for (int i = 0; i < Out.Length; ++i)
                     outputBuffers.Add(Out[i].Samples);
 
-                arguments.Clear();
-                foreach (double i in namedArguments.Select(i => i.Value))
-                    arguments.Add(i);
-
                 // Process the samples!
-                simulation.Run(Count, inputBuffers, outputBuffers, arguments);
+                circuitSimulation.RunSimulation(Count, inputBuffers, outputBuffers);
 
                 // Show the samples on the oscilloscope.
                 long clock = Scope.Signals.Clock;
@@ -419,7 +372,6 @@ namespace LiveSPICE
             {
                 // If the simulation diverged more than one second ago, reset it and hope it doesn't happen again.
                 Log.WriteLine(MessageType.Error, "Error: " + Ex.Message);
-                simulation = null;
                 if ((double)Ex.At > Rate)
                     Dispatcher.InvokeAsync(() => RebuildSolution());
                 foreach (Audio.SampleBuffer i in Out)
@@ -429,7 +381,6 @@ namespace LiveSPICE
             {
                 // If there was a more serious error, kill the simulation so the user can fix it.
                 Log.WriteException(Ex);
-                simulation = null;
                 foreach (Audio.SampleBuffer i in Out)
                     i.Clear();
             }
@@ -447,12 +398,9 @@ namespace LiveSPICE
                 };
                 Scope.Signals.Add(probe.Signal);
                 Scope.SelectedSignal = probe.Signal;
-                lock (sync)
-                {
-                    probes.Add(probe);
-                    if (simulation != null)
-                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray();
-                }
+                probes.Add(probe);
+                if (circuitSimulation.HaveSimulation)
+                    UpdateSimulation();
             }
         }
 
@@ -462,12 +410,9 @@ namespace LiveSPICE
             {
                 Probe probe = (Probe)((Symbol)e.Element).Component;
                 Scope.Signals.Remove(probe.Signal);
-                lock (sync)
-                {
-                    probes.Remove(probe);
-                    if (simulation != null)
-                        simulation.Output = probes.Select(i => i.V).Concat(OutputChannels.Select(i => i.Signal)).ToArray();
-                }
+                probes.Remove(probe);
+                if (circuitSimulation.HaveSimulation)
+                    UpdateSimulation();
             }
         }
 

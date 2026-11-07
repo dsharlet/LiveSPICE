@@ -6,12 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Circuit;
 using ComputerAlgebra;
+using SchematicControls;
 using Util;
 using ButtonWrapper = LiveSPICEVst.ComponentWrapper<Circuit.IButtonControl>;
 
 namespace LiveSPICEVst
 {
-
     /// <summary>
     /// Manages single-channel audio circuit simulation
     /// </summary>
@@ -23,6 +23,8 @@ namespace LiveSPICEVst
         public string SchematicPath { get; private set; }
         public string SchematicName { get { return System.IO.Path.GetFileNameWithoutExtension(SchematicPath); } }
 
+        CircuitSimulation circuitSimulation = null;
+
         public double SampleRate
         {
             get { return sampleRate; }
@@ -33,8 +35,6 @@ namespace LiveSPICEVst
                     sampleRate = value;
 
                     needRebuild = true;
-
-                    delayUpdateSamples = (int)(sampleRate * .1);
                 }
             }
         }
@@ -71,12 +71,7 @@ namespace LiveSPICEVst
         int oversample = 2;
         int iterations = 8;
 
-        Circuit.Circuit circuit = null;
-        Simulation simulation = null;
-        bool needUpdate = false;
         bool needRebuild = false;
-        int updateSamplesElapsed = 0;
-        int delayUpdateSamples = 0;
         Exception simulationUpdateException = null;
 
         public SimulationProcessor()
@@ -90,9 +85,7 @@ namespace LiveSPICEVst
         {
             Schematic newSchematic = Circuit.Schematic.Load(path);
 
-            Circuit.Circuit circuit = newSchematic.Build();
-
-            SetCircuit(circuit);
+            SetSchematic(newSchematic);
 
             Schematic = newSchematic;
 
@@ -103,20 +96,19 @@ namespace LiveSPICEVst
         {
             Schematic = null;
             SchematicPath = "";
-            circuit = null;
             InteractiveComponents.Clear();
         }
 
-        void SetCircuit(Circuit.Circuit circuit)
+        void SetSchematic(Schematic schematic)
         {
-            this.circuit = circuit;
+            circuitSimulation = new CircuitSimulation(schematic, schematic.Log);
 
             InteractiveComponents.Clear();
 
             Dictionary<string, ButtonWrapper> buttonGroups = new Dictionary<string, ButtonWrapper>();
             Dictionary<string, PotWrapper> potGroups = new Dictionary<string, PotWrapper>();
 
-            foreach (Circuit.Component i in circuit.Components)
+            foreach (Circuit.Component i in circuitSimulation.Circuit.Components)
             {
                 if (i is IPotControl pot)
                 {
@@ -174,7 +166,7 @@ namespace LiveSPICEVst
                 }
             }
 
-            needRebuild = true;
+            UpdateSimulation();
         }
 
         /// <summary>
@@ -195,130 +187,87 @@ namespace LiveSPICEVst
                 throw toThrow;
             }
 
-            if (simulation == null)
+            foreach (var component in InteractiveComponents)
             {
-                if (needRebuild)
+                if (component.NeedRebuild)
                 {
-                    if (circuit != null)
-                    {
-                        UpdateSimulation(needRebuild);
+                    needRebuild = true;
 
-                        needRebuild = false;
-                    }
+                    component.NeedRebuild = false;
                 }
             }
+            if (needRebuild && (circuitSimulation != null))
+            {
+                UpdateSimulation();
+            }
 
-            if ((circuit == null) || (simulation == null))
+            if ((circuitSimulation == null)  || !circuitSimulation.HaveSimulation)
             {
                 audioInputs[0].CopyTo(audioOutputs[0], 0);
             }
             else
             {
-                lock (sync)
+                foreach (Circuit.Analysis.Parameter P in circuitSimulation.Analysis.Parameters)
                 {
-                    foreach (var component in InteractiveComponents)
+                    Component component = P.Of;
+
+                    IPotControl pot = (IPotControl)component;
+
+                    if (pot != null)
                     {
-                        if (component.NeedUpdate)
-                        {
-                            needUpdate = true;
-
-                            component.NeedUpdate = false;
-
-                            updateSamplesElapsed = 0;
-                        }
-
-                        if (component.NeedRebuild)
-                        {
-                            needRebuild = true;
-
-                            component.NeedRebuild = false;
-                        }
+                        if (pot.PotValue != 1)
+                            circuitSimulation.SetParameter(P.Expression, pot.PotValue);
                     }
-
-                    if (needUpdate || needRebuild)
-                    {
-                        // Delay updates until user input settles
-                        if (needRebuild || (updateSamplesElapsed > delayUpdateSamples))
-                        {
-                            UpdateSimulation(needRebuild);
-
-                            needRebuild = false;
-                            needUpdate = false;
-                        }
-                        else
-                        {
-                            updateSamplesElapsed += numSamples;
-                        }
-                    }
-
-                    simulation.Run(numSamples, audioInputs, audioOutputs);
                 }
+
+                circuitSimulation.RunSimulation(numSamples, audioInputs, audioOutputs);
             }
         }
 
         int clock = -1;
         int update = 0;
         TaskScheduler scheduler = new RedundantTaskScheduler(1);
-        object sync = new object();
 
         /// <summary>
         /// Update the simulation asynchronously
         /// </summary>
         /// <param name="rebuild">Whether a full simulation rebuild is required</param>
-        void UpdateSimulation(bool rebuild)
+        void UpdateSimulation()
         {
+            needRebuild = false;
+
             int id = Interlocked.Increment(ref update);
             new Task(() =>
             {
                 try
                 {
-                    Analysis analysis = circuit.Analyze();
-                    TransientSolution ts = TransientSolution.Solve(analysis, (Real)1 / (sampleRate * oversample));
-
-                    lock (sync)
+                    if (id > clock)
                     {
-                        if (id > clock)
+                        Expression inputExpression = circuitSimulation.Circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
+
+                        if (inputExpression == null)
                         {
-                            if (rebuild)
+                            simulationUpdateException = new NotSupportedException("Circuit has no inputs.");
+                        }
+                        else
+                        {
+                            IEnumerable<Speaker> speakers = circuitSimulation.Circuit.Components.OfType<Speaker>();
+
+                            Expression outputExpression = 0;
+
+                            // Output is voltage drop across the speakers
+                            foreach (Speaker speaker in speakers)
                             {
-                                Expression inputExpression = circuit.Components.OfType<Input>().Select(i => i.In).SingleOrDefault();
+                                outputExpression += speaker.Out;
+                            }
 
-                                if (inputExpression == null)
-                                {
-                                    simulationUpdateException = new NotSupportedException("Circuit has no inputs.");
-                                }
-                                else
-                                {
-                                    IEnumerable<Speaker> speakers = circuit.Components.OfType<Speaker>();
-
-                                    Expression outputExpression = 0;
-
-                                    // Output is voltage drop across the speakers
-                                    foreach (Speaker speaker in speakers)
-                                    {
-                                        outputExpression += speaker.Out;
-                                    }
-
-                                    if (outputExpression.EqualsZero())
-                                    {
-                                        simulationUpdateException = new NotSupportedException("Circuit has no speaker outputs.");
-                                    }
-                                    else
-                                    {
-                                        simulation = new Simulation(ts)
-                                        {
-                                            Oversample = oversample,
-                                            Iterations = iterations,
-                                            Input = new[] { inputExpression },
-                                            Output = new[] { outputExpression }
-                                        };
-                                    }
-                                }
+                            if (outputExpression.EqualsZero())
+                            {
+                                simulationUpdateException = new NotSupportedException("Circuit has no speaker outputs.");
                             }
                             else
                             {
-                                simulation.Solution = ts;
-                                clock = id;
+                                circuitSimulation.UpdateSimulation(new[] { inputExpression }, new[] { outputExpression });
                             }
                         }
                     }
